@@ -934,11 +934,388 @@ def validate_class_diagram(data: dict[str, Any]) -> UMLClassDiagramModel:
     return UMLClassDiagramModel.model_validate(data)
 
 
+# ─────────────────────────────────────────────────────────────────
+# Package diagrams (Phase B)
+# ─────────────────────────────────────────────────────────────────
+
+
+PackageDependencyKind = Literal["dependency", "import", "access", "merge"]
+"""UML 2.5.1 §12.2.4 — kinds of package-to-package relationships.
+
+- `dependency`: client uses supplier (open arrow + dashed).
+- `import`: client imports supplier's public elements
+  (`«import»` stereotype + open arrow + dashed).
+- `access`: client privately uses supplier's elements
+  (`«access»` stereotype + open arrow + dashed).
+- `merge`: contents of supplier are merged into client
+  (`«merge»` stereotype + open arrow + dashed).
+"""
+
+
+class UMLPackageDependency(BaseModel):
+    """A directed relationship between two packages.
+
+    Renders as a dashed line with an open arrow at the supplier end.
+    The `kind` selects the stereotype label conventionally drawn at
+    the line's midpoint (`«import»`, `«access»`, `«merge»`); plain
+    `dependency` renders without a stereotype.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Client package id.
+        to_id: Supplier package id.
+        kind: One of `dependency`, `import`, `access`, `merge`.
+            Defaults to `dependency`.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    kind: PackageDependencyKind = "dependency"
+
+    @model_validator(mode="after")
+    def _validate_no_self_dependency(self) -> UMLPackageDependency:
+        """A package cannot depend on itself."""
+        if self.from_id == self.to_id:
+            raise ValueError(
+                f"package dependency {self.id!r} has from==to=={self.from_id!r}; "
+                f"a package cannot depend on itself"
+            )
+        return self
+
+
+class UMLPackageDiagramModel(BaseModel):
+    """Top-level container for a package diagram's UML model.
+
+    Mirrors `UMLClassDiagramModel` but focused on packages and their
+    dependencies. Sub-packages are expressed via `contains: list[str]`
+    on a parent package — the same containment field used in class
+    diagrams, but here the contained ids reference other packages
+    (creating package nesting).
+
+    Attributes:
+        packages: All packages in the diagram. Required (≥ 1).
+        dependencies: Inter-package dependency / import / access /
+            merge edges.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    packages: list[UMLPackage] = Field(..., min_length=1)
+    dependencies: list[UMLPackageDependency] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLPackageDiagramModel:
+        """Globally-unique element ids across packages, dependencies, notes."""
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("package", self.packages),
+            ("dependency", self.dependencies),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        return self
+
+    @model_validator(mode="after")
+    def _validate_dependency_endpoints_resolve(self) -> UMLPackageDiagramModel:
+        """Every dependency endpoint must reference an existing package."""
+        package_ids = {p.id for p in self.packages}
+        for d in self.dependencies:
+            if d.from_id not in package_ids:
+                raise ValueError(
+                    f"package dependency {d.id!r} references unknown client package {d.from_id!r}"
+                )
+            if d.to_id not in package_ids:
+                raise ValueError(
+                    f"package dependency {d.id!r} references unknown supplier package {d.to_id!r}"
+                )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_contains_resolve_and_acyclic(self) -> UMLPackageDiagramModel:
+        """Containment references real packages and forms no cycle."""
+        package_ids = {p.id for p in self.packages}
+        for p in self.packages:
+            for ref in p.contains:
+                if ref not in package_ids:
+                    raise ValueError(f"package {p.id!r} contains unknown package id {ref!r}")
+
+        # Cycle detection — package can't transitively contain itself.
+        children: dict[str, list[str]] = {p.id: list(p.contains) for p in self.packages}
+        for start in package_ids:
+            stack = list(children.get(start, []))
+            seen: set[str] = set()
+            while stack:
+                node = stack.pop()
+                if node == start:
+                    raise ValueError(
+                        f"package containment cycle detected: package "
+                        f"{start!r} transitively contains itself"
+                    )
+                if node in seen:
+                    continue
+                seen.add(node)
+                stack.extend(children.get(node, []))
+        return self
+
+
+def validate_package_diagram(data: dict[str, Any]) -> UMLPackageDiagramModel:
+    """Validate a parsed mapping as a UML package-diagram model.
+
+    Args:
+        data: A dict with `packages` (≥ 1), optional `dependencies`,
+            optional `notes`.
+
+    Returns:
+        A validated `UMLPackageDiagramModel`.
+
+    Raises:
+        pydantic.ValidationError: If the model violates any
+            structural rule.
+    """
+    return UMLPackageDiagramModel.model_validate(data)
+
+
+# ─────────────────────────────────────────────────────────────────
+# Use-case diagrams (Phase B.2)
+# ─────────────────────────────────────────────────────────────────
+
+
+class UMLActor(BaseModel):
+    """A UML Actor — an external role interacting with the system.
+
+    Renders as a stick-figure glyph with the name as a label below.
+    Actors are conventionally placed on the left of a use-case
+    diagram, outside any system boundary.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+        position: Optional layout hint (escape hatch).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    position: Position | None = None
+
+
+class UMLUseCase(BaseModel):
+    """A UML Use Case — an externally-visible system behaviour.
+
+    Renders as a horizontally-stretched ellipse with the name
+    centered. Use cases conventionally sit inside a system boundary
+    (`UMLSystemBoundary.contains` lists them).
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    position: Position | None = None
+
+
+class UMLSystemBoundary(BaseModel):
+    """A UML System Boundary — a labelled rectangle wrapping use cases.
+
+    Renders as an outer rectangle with the system name above the top
+    edge. Contained use cases are positioned inside the body. Like
+    `UMLPackage.contains`, the `contains` field references use-case
+    ids in the same diagram.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name (rendered above the box). Required.
+        contains: Use-case ids that belong inside this boundary.
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    contains: list[str] = Field(default_factory=list)
+    position: Position | None = None
+
+
+UseCaseRelationKind = Literal["association", "include", "extend"]
+"""UML 2.5.1 §18 — kinds of use-case-to-use-case or actor-to-use-case edges.
+
+- `association`: actor participates in use-case (plain solid line).
+- `include`: use-case A unconditionally invokes use-case B
+  (`«include»` stereotype + dashed + open arrow at B).
+- `extend`: use-case A optionally extends use-case B
+  (`«extend»` stereotype + dashed + open arrow at A — note the
+  reversed direction per UML 2.5.1 §18.1.4: extension points
+  belong to the EXTENDED use case, so the arrow goes from
+  extension → base).
+"""
+
+
+class UMLUseCaseRelation(BaseModel):
+    """A directed edge in a use-case diagram.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Source element id (actor or use-case).
+        to_id: Target element id (actor or use-case).
+        kind: One of `association`, `include`, `extend`.
+            Defaults to `association`.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    kind: UseCaseRelationKind = "association"
+
+    @model_validator(mode="after")
+    def _validate_no_self_relation(self) -> UMLUseCaseRelation:
+        if self.from_id == self.to_id:
+            raise ValueError(
+                f"use-case relation {self.id!r} has from==to=={self.from_id!r}; "
+                f"a use-case element cannot relate to itself"
+            )
+        return self
+
+
+class UMLUseCaseDiagramModel(BaseModel):
+    """Top-level container for a use-case diagram's UML model.
+
+    Attributes:
+        actors: External actors interacting with the system.
+        use_cases: System behaviours visible from outside.
+        system_boundaries: Optional labelled rectangles grouping
+            use cases.
+        relations: Edges connecting actors to use cases (or use
+            cases to use cases).
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    actors: list[UMLActor] = Field(default_factory=list)
+    use_cases: list[UMLUseCase] = Field(default_factory=list)
+    system_boundaries: list[UMLSystemBoundary] = Field(default_factory=list)
+    relations: list[UMLUseCaseRelation] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_at_least_one_element(self) -> UMLUseCaseDiagramModel:
+        """Empty diagram has nothing to render — reject for clarity."""
+        if not self.actors and not self.use_cases:
+            raise ValueError(
+                "use-case diagram must declare at least one actor or use case"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLUseCaseDiagramModel:
+        """Globally-unique element ids across all categories."""
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("actor", self.actors),
+            ("use_case", self.use_cases),
+            ("system_boundary", self.system_boundaries),
+            ("relation", self.relations),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        return self
+
+    @model_validator(mode="after")
+    def _validate_relation_endpoints_resolve(self) -> UMLUseCaseDiagramModel:
+        """Every relation endpoint must reference an actor or use case."""
+        valid_ids = {a.id for a in self.actors} | {u.id for u in self.use_cases}
+        for rel in self.relations:
+            if rel.from_id not in valid_ids:
+                raise ValueError(
+                    f"use-case relation {rel.id!r} references unknown "
+                    f"source id {rel.from_id!r}"
+                )
+            if rel.to_id not in valid_ids:
+                raise ValueError(
+                    f"use-case relation {rel.id!r} references unknown "
+                    f"target id {rel.to_id!r}"
+                )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_include_extend_between_use_cases(self) -> UMLUseCaseDiagramModel:
+        """`include` / `extend` are use-case-to-use-case relations only.
+
+        UML 2.5.1 §18.1.4 — these two relation kinds are defined
+        between two use cases. An actor cannot include or extend
+        anything; that's an authoring mistake.
+        """
+        use_case_ids = {u.id for u in self.use_cases}
+        for rel in self.relations:
+            if rel.kind in ("include", "extend"):
+                if rel.from_id not in use_case_ids or rel.to_id not in use_case_ids:
+                    raise ValueError(
+                        f"use-case relation {rel.id!r} kind={rel.kind!r} "
+                        f"requires both endpoints to be use cases; UML 2.5.1 "
+                        f"§18.1.4 restricts include/extend to use-case pairs"
+                    )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_boundary_contents_resolve(self) -> UMLUseCaseDiagramModel:
+        """`system_boundary.contains` must reference real use cases."""
+        use_case_ids = {u.id for u in self.use_cases}
+        for sb in self.system_boundaries:
+            for ref in sb.contains:
+                if ref not in use_case_ids:
+                    raise ValueError(
+                        f"system boundary {sb.id!r} contains unknown use-case "
+                        f"id {ref!r}"
+                    )
+        return self
+
+
+def validate_use_case_diagram(data: dict[str, Any]) -> UMLUseCaseDiagramModel:
+    """Validate a parsed mapping as a UML use-case-diagram model.
+
+    Args:
+        data: A dict with optional `actors`, `use_cases`,
+            `system_boundaries`, `relations`, `notes`. At least
+            one actor or use case is required.
+
+    Returns:
+        A validated `UMLUseCaseDiagramModel`.
+
+    Raises:
+        pydantic.ValidationError: If the model violates any
+            structural rule.
+    """
+    return UMLUseCaseDiagramModel.model_validate(data)
+
+
 __all__ = [
     "AssociationKind",
     "Classifier",
+    "PackageDependencyKind",
     "ParamDirection",
     "Position",
+    "UMLActor",
     "UMLAssociation",
     "UMLAssociationEnd",
     "UMLAttribute",
@@ -951,8 +1328,17 @@ __all__ = [
     "UMLNote",
     "UMLOperation",
     "UMLPackage",
+    "UMLPackageDependency",
+    "UMLPackageDiagramModel",
     "UMLParameter",
     "UMLRealization",
+    "UMLSystemBoundary",
+    "UMLUseCase",
+    "UMLUseCaseDiagramModel",
+    "UMLUseCaseRelation",
+    "UseCaseRelationKind",
     "Visibility",
     "validate_class_diagram",
+    "validate_package_diagram",
+    "validate_use_case_diagram",
 ]

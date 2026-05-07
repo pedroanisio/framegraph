@@ -344,6 +344,95 @@ def render_classifier_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
     return "\n".join(out)
 
 
+def render_actor(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a UML Actor — stick-figure glyph + name label below.
+
+    The stick-figure is drawn from primitive paths so it doesn't
+    require a webfont. Proportions are conventional UML notation:
+    head 30%, body 40%, arms 25%, legs 30% of the total height.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.actor
+        box:     [x, y, w, h]
+        name:    <actor name>
+
+    Optional:
+        style:
+            stroke_color:  default "#1A1A1A"
+            stroke_width:  default 1.5
+            label_size:    default 11
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 60, 100]))
+    name = str(obj.get("name", ""))
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.5)
+    label_size = fnum(style.get("label_size"), 11)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+
+    # Reserve label space at the bottom (label_size + 4px gap).
+    label_h = label_size + 4
+    figure_h = bh - label_h
+    cx = bx + bw / 2
+    fy_top = by
+
+    # Figure layout (relative to figure_h):
+    head_r = figure_h * 0.10  # head radius
+    head_cy = fy_top + head_r
+    body_top = head_cy + head_r
+    body_bottom = fy_top + figure_h * 0.60
+    arms_y = body_top + figure_h * 0.10
+    arms_w = bw * 0.50
+    legs_top = body_bottom
+    legs_bottom = fy_top + figure_h
+    legs_w = bw * 0.40
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+
+    # Head — filled none, stroked
+    out.append(
+        f'<circle cx="{fmt(cx)}" cy="{fmt(head_cy)}" r="{fmt(head_r)}" '
+        f'fill="none" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Body
+    out.append(
+        f'<line x1="{fmt(cx)}" y1="{fmt(body_top)}" x2="{fmt(cx)}" y2="{fmt(body_bottom)}" '
+        f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Arms (horizontal cross)
+    out.append(
+        f'<line x1="{fmt(cx - arms_w / 2)}" y1="{fmt(arms_y)}" '
+        f'x2="{fmt(cx + arms_w / 2)}" y2="{fmt(arms_y)}" '
+        f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Left leg
+    out.append(
+        f'<line x1="{fmt(cx)}" y1="{fmt(legs_top)}" '
+        f'x2="{fmt(cx - legs_w / 2)}" y2="{fmt(legs_bottom)}" '
+        f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Right leg
+    out.append(
+        f'<line x1="{fmt(cx)}" y1="{fmt(legs_top)}" '
+        f'x2="{fmt(cx + legs_w / 2)}" y2="{fmt(legs_bottom)}" '
+        f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Label below the figure
+    label_y = fy_top + figure_h + label_size
+    out.append(
+        f'<text x="{fmt(cx)}" y="{fmt(label_y)}" '
+        f'font-family="Helvetica, Arial, sans-serif" font-size="{fmt(label_size)}" '
+        f'font-weight="700" fill="{text_color}" text-anchor="middle">{esc(name)}</text>'
+    )
+
+    out.append("</g>")
+    return "\n".join(out)
+
+
 RENDERERS = {
     "uml.classifier_box": render_classifier_box,
+    "uml.actor": render_actor,
 }

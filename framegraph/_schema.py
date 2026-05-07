@@ -397,6 +397,19 @@ class UMLClassifierBoxObject(_ObjectBase):
     style: dict[str, Any] | None = None
 
 
+class UMLActorObject(_ObjectBase):
+    """UML Actor — stick-figure glyph with a label below.
+
+    Phase B.2 of the UML support architecture. The use-case-diagram
+    composer emits these for `UMLActor` semantic elements; authors
+    may also instantiate directly.
+    """
+
+    type: Literal["uml.actor"]
+    name: str
+    style: dict[str, Any] | None = None
+
+
 class _UnknownObject(_ObjectBase):
     """Fall-through for third-party `register(type_name, fn)` types.
 
@@ -428,7 +441,8 @@ KnownObject = Annotated[
     | BarChartObject
     | LineChartObject
     | TableObject
-    | UMLClassifierBoxObject,
+    | UMLClassifierBoxObject
+    | UMLActorObject,
     Field(discriminator="type"),
 ]
 
