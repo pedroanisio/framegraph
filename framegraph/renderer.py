@@ -1234,6 +1234,65 @@ class FrameGraphRenderer:
         return f"<!-- unsupported object type {esc(t)} -->"
 
     # ------------------------------------------------------------------
+    # Plug-in contract delegates (v2.0 modular-split repair)
+    #
+    # The renderer modules in framegraph.renderers.* are written against
+    # the RendererContext Protocol declared in framegraph._types. That
+    # Protocol exposes three callable members — text_svg, render_rect,
+    # eval_length — whose implementations live as free functions in the
+    # renderer modules themselves (text_objects.text_svg,
+    # shapes.render_rect, layout.eval_length). The methods below thread
+    # those free functions through the Protocol so plug-ins can call
+    # them as r.text_svg(...), r.render_rect(...), r.eval_length(...)
+    # without having to import the modules directly.
+    #
+    # Imports are deferred to avoid a circular import: renderers.* import
+    # framegraph._types (the Protocol), and renderer.py imports
+    # renderers.ALL_MODULES inside _register_all — pulling these symbols
+    # at module level would close the loop.
+    # ------------------------------------------------------------------
+
+    def text_svg(
+        self,
+        content: Any,
+        b: Box,
+        style: Mapping[str, Any],
+        *,
+        rotation: Any = None,
+        extra: Mapping[str, Any] | None = None,
+    ) -> str:
+        """Render `content` as text inside box `b` using the resolved `style`.
+
+        Delegates to `framegraph.renderers.text_objects.text_svg`.
+        """
+        from framegraph.renderers.text_objects import text_svg as _text_svg
+
+        return _text_svg(self, content, b, style, rotation=rotation, extra=extra)
+
+    def render_rect(self, obj: Mapping[str, Any]) -> str:
+        """Render a single `rect` object.
+
+        Delegates to `framegraph.renderers.shapes.render_rect`. Distinct from
+        `render_object({type: rect, ...})` in that it skips the dispatch
+        layer — useful for plug-ins that need to draw a rectangle without
+        registering or constructing a full object record.
+        """
+        from framegraph.renderers.shapes import render_rect as _render_rect
+
+        return _render_rect(self, obj)
+
+    def eval_length(self, value: Any, total: float) -> float:
+        """Resolve a length expression against `total`.
+
+        Accepts numbers, percent strings (`"40%"`), and `calc(P% +/- N)`
+        expressions; anything else is coerced via `fnum`. Delegates to
+        `framegraph.renderers.layout.eval_length`.
+        """
+        from framegraph.renderers.layout import eval_length as _eval_length
+
+        return _eval_length(self, value, total)
+
+    # ------------------------------------------------------------------
     # Shape renderers
     # ------------------------------------------------------------------
 
