@@ -571,6 +571,59 @@ class UMLPseudostateObject(_ObjectBase):
     style: dict[str, Any] | None = None
 
 
+class UMLLifelineObject(_ObjectBase):
+    """UML sequence-diagram lifeline — head box with dashed line below.
+
+    Phase D of the UML support architecture. The sequence-diagram
+    composer emits these for `UMLLifeline` semantic elements.
+    """
+
+    type: Literal["uml.lifeline"]
+    name: str
+    type_name: str | None = None
+    actor: bool | None = None
+    head_height: float | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLActivationBarObject(_ObjectBase):
+    """UML execution-specification activation bar — thin filled rectangle.
+
+    Phase D primitive.
+    """
+
+    type: Literal["uml.activation_bar"]
+    style: dict[str, Any] | None = None
+
+
+class UMLFragmentFrameObject(_ObjectBase):
+    """UML CombinedFragment frame — labelled rectangle with operator tag.
+
+    Phase D primitive. `dividers` is the list of absolute y-coordinates
+    where dashed inter-operand dividers should be drawn (composer
+    supplies these).
+    """
+
+    type: Literal["uml.fragment_frame"]
+    kind: Literal[
+        "alt",
+        "opt",
+        "loop",
+        "par",
+        "break",
+        "critical",
+        "neg",
+        "strict",
+        "seq",
+        "ignore",
+        "consider",
+        "assert",
+    ]
+    operands: list[str] | None = None
+    dividers: list[float] | None = None
+    style: dict[str, Any] | None = None
+
+
 class _UnknownObject(_ObjectBase):
     """Fall-through for third-party `register(type_name, fn)` types.
 
@@ -613,7 +666,10 @@ KnownObject = Annotated[
     | UMLActionObject
     | UMLSwimlaneObject
     | UMLStateBoxObject
-    | UMLPseudostateObject,
+    | UMLPseudostateObject
+    | UMLLifelineObject
+    | UMLActivationBarObject
+    | UMLFragmentFrameObject,
     Field(discriminator="type"),
 ]
 

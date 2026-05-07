@@ -2101,11 +2101,236 @@ def validate_state_machine(data: dict[str, Any]) -> UMLStateMachineModel:
     return UMLStateMachineModel.model_validate(data)
 
 
+# ─────────────────────────────────────────────────────────────────
+# Sequence diagrams (Phase D)
+# ─────────────────────────────────────────────────────────────────
+
+
+MessageKind = Literal[
+    "sync",
+    "async",
+    "reply",
+    "create",
+    "destroy",
+]
+"""Message kinds per UML 2.5.1 §17.4 (MessageSort).
+
+- `sync`: synchronous call — solid line with a filled-triangle arrow.
+- `async`: asynchronous signal — solid line with an open-arrow head.
+- `reply`: synchronous reply — dashed line with an open-arrow head.
+- `create`: object creation — dashed line with open-arrow head; the
+  target lifeline's head box sits at the message's y-coordinate
+  rather than at the diagram top.
+- `destroy`: object destruction — solid line with an open-arrow head;
+  draws a large `X` on the target lifeline at the message's y."""
+
+
+CombinedFragmentKind = Literal[
+    "alt",
+    "opt",
+    "loop",
+    "par",
+    "break",
+    "critical",
+    "neg",
+    "strict",
+    "seq",
+    "ignore",
+    "consider",
+    "assert",
+]
+"""InteractionOperator per UML 2.5.1 §17.6.2.
+
+The composer renders `alt` and `par` with horizontal dashed dividers
+between operands; the others render as a single operand frame."""
+
+
+class UMLLifeline(BaseModel):
+    """A sequence-diagram participant.
+
+    Per UML 2.5.1 §17.3.4, a lifeline represents a single
+    participant in an interaction. Renders as a head box at the top
+    of the diagram with a dashed line descending below it.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+        type_name: Optional class/type label rendered after a colon
+            (`name:Type`).
+        actor: When True, the head renders as a stick-figure actor
+            instead of a rectangle.
+        position: Optional layout hint (only the x-coordinate matters
+            for lifelines — y is determined by the diagram timeline).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    type_name: str | None = None
+    actor: bool = False
+    position: Position | None = None
+
+
+class UMLMessage(BaseModel):
+    """A message between two lifelines at a specific timeline step.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Source lifeline id.
+        to_id: Target lifeline id.
+        kind: One of `sync`, `async`, `reply`, `create`, `destroy`.
+        name: Optional message label (e.g., `withdraw(amount)`).
+        step: Required ordinal position in the timeline (1-based).
+            The composer uses `step` for vertical ordering; messages
+            with the same step are ambiguous and rejected.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    kind: MessageKind = "sync"
+    name: str | None = None
+    step: int = Field(..., ge=1)
+
+
+class UMLCombinedFragment(BaseModel):
+    """A combined fragment frame around a contiguous set of messages.
+
+    Per UML 2.5.1 §17.6, a combined fragment groups messages by an
+    interaction operator (alt, opt, loop, par, etc.). The frame
+    renders as a labelled rectangle with the operator name in a
+    pentagon tag in the upper-left corner.
+
+    Attributes:
+        id: Stable identifier. Required.
+        kind: The InteractionOperator.
+        from_step: First step (inclusive) covered by the fragment.
+        to_step: Last step (inclusive) covered by the fragment.
+        operands: Optional list of operand guards. For single-operand
+            operators (opt, loop, break, …), supply at most one.
+            For multi-operand operators (alt, par), each entry is
+            the guard for one operand.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    kind: CombinedFragmentKind
+    from_step: int = Field(..., ge=1)
+    to_step: int = Field(..., ge=1)
+    operands: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_step_range(self) -> UMLCombinedFragment:
+        if self.to_step < self.from_step:
+            raise ValueError(
+                f"combined fragment {self.id!r} has to_step={self.to_step} < "
+                f"from_step={self.from_step}"
+            )
+        return self
+
+
+class UMLSequenceDiagramModel(BaseModel):
+    """Top-level container for a sequence-diagram UML model.
+
+    Attributes:
+        lifelines: Participants in the interaction. ≥ 1.
+        messages: Messages between participants, ordered by `step`.
+        fragments: Optional combined fragments wrapping message ranges.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    lifelines: list[UMLLifeline] = Field(..., min_length=1)
+    messages: list[UMLMessage] = Field(default_factory=list)
+    fragments: list[UMLCombinedFragment] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLSequenceDiagramModel:
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("lifeline", self.lifelines),
+            ("message", self.messages),
+            ("fragment", self.fragments),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        return self
+
+    @model_validator(mode="after")
+    def _validate_message_endpoints(self) -> UMLSequenceDiagramModel:
+        lifeline_ids = {ll.id for ll in self.lifelines}
+        for m in self.messages:
+            if m.from_id not in lifeline_ids:
+                raise ValueError(
+                    f"message {m.id!r} references unknown source lifeline id {m.from_id!r}"
+                )
+            if m.to_id not in lifeline_ids:
+                raise ValueError(
+                    f"message {m.id!r} references unknown target lifeline id {m.to_id!r}"
+                )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_unique_steps(self) -> UMLSequenceDiagramModel:
+        seen_steps: set[int] = set()
+        for m in self.messages:
+            if m.step in seen_steps:
+                raise ValueError(
+                    f"duplicate message step {m.step}: each message must "
+                    f"have a unique ordinal position in the timeline"
+                )
+            seen_steps.add(m.step)
+        return self
+
+    @model_validator(mode="after")
+    def _validate_fragment_step_range(self) -> UMLSequenceDiagramModel:
+        if not self.messages:
+            for f in self.fragments:
+                raise ValueError(
+                    f"combined fragment {f.id!r} declared but the diagram has no messages"
+                )
+            return self
+        max_step = max(m.step for m in self.messages)
+        min_step = min(m.step for m in self.messages)
+        for f in self.fragments:
+            if f.from_step < min_step or f.to_step > max_step:
+                raise ValueError(
+                    f"combined fragment {f.id!r} step range "
+                    f"[{f.from_step}, {f.to_step}] exceeds messages range "
+                    f"[{min_step}, {max_step}]"
+                )
+        return self
+
+
+def validate_sequence_diagram(data: dict[str, Any]) -> UMLSequenceDiagramModel:
+    """Validate a parsed mapping as a UML sequence-diagram model.
+
+    Args:
+        data: A dict with `lifelines` (≥ 1), optional `messages`,
+            `fragments`, `notes`.
+
+    Returns:
+        A validated `UMLSequenceDiagramModel`.
+    """
+    return UMLSequenceDiagramModel.model_validate(data)
+
+
 __all__ = [
     "ActivityNodeKind",
     "AssociationKind",
     "Classifier",
+    "CombinedFragmentKind",
     "DeploymentRelationKind",
+    "MessageKind",
     "NodeKind",
     "PackageDependencyKind",
     "ParamDirection",
@@ -2121,6 +2346,7 @@ __all__ = [
     "UMLAttribute",
     "UMLClass",
     "UMLClassDiagramModel",
+    "UMLCombinedFragment",
     "UMLComponent",
     "UMLComponentDiagramModel",
     "UMLConnector",
@@ -2131,6 +2357,8 @@ __all__ = [
     "UMLEnumeration",
     "UMLGeneralization",
     "UMLInterface",
+    "UMLLifeline",
+    "UMLMessage",
     "UMLNote",
     "UMLOperation",
     "UMLPackage",
@@ -2140,6 +2368,7 @@ __all__ = [
     "UMLPort",
     "UMLPseudostate",
     "UMLRealization",
+    "UMLSequenceDiagramModel",
     "UMLState",
     "UMLStateMachineModel",
     "UMLSwimlane",
@@ -2155,6 +2384,7 @@ __all__ = [
     "validate_component_diagram",
     "validate_deployment_diagram",
     "validate_package_diagram",
+    "validate_sequence_diagram",
     "validate_state_machine",
     "validate_use_case_diagram",
 ]

@@ -1286,6 +1286,235 @@ def render_pseudostate(r: RendererContext, obj: Mapping[str, Any]) -> str:
     return "\n".join(out)
 
 
+def render_lifeline(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a sequence-diagram lifeline — head box with dashed line below.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.lifeline
+        box:     [x, y, w, h]    — the FULL lifeline box: head sits
+                                   at (x, y, w, head_height), the
+                                   dashed line spans from below the
+                                   head to (y + h).
+        name:    <participant name>
+
+    Optional:
+        type_name: optional class/type label rendered as `name:Type`
+        actor:     when True, render the head as a stick-figure
+                   actor (delegates to render_actor) and use the
+                   actor's box as the head footprint.
+        head_height: head box height (default 36)
+        style:
+            fill:           default "#FFFFFF"
+            stroke_color:   default "#1A1A1A"
+            stroke_width:   default 1.0
+            name_size:      default 12
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 120, 400]))
+    name = str(obj.get("name", ""))
+    type_name = obj.get("type_name")
+    actor = bool(obj.get("actor", False))
+    head_h = fnum(obj.get("head_height"), 36)
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.0)
+    fill = r.fill_value(style.get("fill", "#FFFFFF"), "#FFFFFF")
+    name_size = fnum(style.get("name_size"), 12)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    cx = bx + bw / 2
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+
+    if actor:
+        # Stick-figure head: delegate by reconstructing the actor's
+        # expected box (head sits in the upper portion).
+        out.append(
+            f'<line x1="{fmt(cx)}" y1="{fmt(by + head_h)}" '
+            f'x2="{fmt(cx)}" y2="{fmt(by + bh)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}" '
+            f'stroke-dasharray="6,5"/>'
+        )
+        # Inline actor stick figure (head + body + arms + legs).
+        head_r = head_h * 0.18
+        head_cy = by + head_r + 4
+        body_top_y = head_cy + head_r
+        body_bot_y = by + head_h - 6
+        out.append(
+            f'<circle cx="{fmt(cx)}" cy="{fmt(head_cy)}" r="{fmt(head_r)}" '
+            f'fill="none" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        out.append(
+            f'<line x1="{fmt(cx)}" y1="{fmt(body_top_y)}" '
+            f'x2="{fmt(cx)}" y2="{fmt(body_bot_y)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        # Label below the head
+        label_y = by + head_h + name_size + 2
+        label = f"{name}:{type_name}" if type_name else name
+        out.append(
+            f'<text x="{fmt(cx)}" y="{fmt(label_y)}" '
+            f'font-family="{font_family}" font-size="{fmt(name_size)}" '
+            f'fill="{text_color}" text-anchor="middle">{esc(label)}</text>'
+        )
+    else:
+        # Head rectangle
+        out.append(
+            f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(head_h)}" '
+            f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        # Name (or name:type) inside the head
+        label = f"{name}:{type_name}" if type_name else name
+        # Head names are conventionally underlined for instances.
+        out.append(
+            f'<text x="{fmt(cx)}" y="{fmt(by + head_h / 2 + name_size / 3)}" '
+            f'font-family="{font_family}" font-size="{fmt(name_size)}" '
+            f'font-weight="700" fill="{text_color}" text-anchor="middle" '
+            f'text-decoration="underline">{esc(label)}</text>'
+        )
+        # Dashed lifeline below the head
+        out.append(
+            f'<line x1="{fmt(cx)}" y1="{fmt(by + head_h)}" '
+            f'x2="{fmt(cx)}" y2="{fmt(by + bh)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}" '
+            f'stroke-dasharray="6,5"/>'
+        )
+
+    out.append("</g>")
+    return "\n".join(out)
+
+
+def render_activation_bar(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a sequence-diagram activation bar — thin filled rectangle.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.activation_bar
+        box:     [x, y, w, h]
+
+    Optional:
+        style:
+            fill:           default "#FFFFFF"
+            stroke_color:   default "#1A1A1A"
+            stroke_width:   default 1.0
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 10, 60]))
+    style = obj.get("style") or {}
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.0)
+    fill = r.fill_value(style.get("fill", "#FFFFFF"), "#FFFFFF")
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(bh)}" '
+        f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    out.append("</g>")
+    return "\n".join(out)
+
+
+def render_fragment_frame(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a UML CombinedFragment frame — labelled rectangle with operator tag.
+
+    The operator tag is a small pentagon in the upper-left corner.
+    Multi-operand operators (alt, par) render dashed dividers between
+    operands; the composer supplies operand y-positions via the
+    `dividers` field.
+
+    YAML surface
+    ------------
+    Required:
+        type:        uml.fragment_frame
+        box:         [x, y, w, h]
+        kind:        alt | opt | loop | par | break | …
+
+    Optional:
+        operands:    list of guard strings (one per operand)
+        dividers:    list of y-coordinates for inter-operand dividers
+                     (composer supplies these; absolute coords)
+        style:
+            stroke_color:   default "#1A1A1A"
+            stroke_width:   default 1.0
+            fill:           default "none"
+            tag_size:       default 11
+            guard_size:     default 10
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 240, 80]))
+    kind = str(obj.get("kind", "opt"))
+    operands = obj.get("operands") or []
+    dividers = obj.get("dividers") or []
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.0)
+    fill = r.fill_value(style.get("fill", "none"), "none")
+    tag_size = fnum(style.get("tag_size"), 11)
+    guard_size = fnum(style.get("guard_size"), 10)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+    # Outer frame
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(bh)}" '
+        f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+
+    # Operator tag (pentagon) in the upper-left corner.
+    tag_w = max(40.0, tag_size * len(kind) * 0.7 + 16)
+    tag_h = tag_size + 8
+    tag_pts = (
+        f"{fmt(bx)},{fmt(by)} "
+        f"{fmt(bx + tag_w)},{fmt(by)} "
+        f"{fmt(bx + tag_w + 6)},{fmt(by + tag_h / 2)} "
+        f"{fmt(bx + tag_w)},{fmt(by + tag_h)} "
+        f"{fmt(bx)},{fmt(by + tag_h)}"
+    )
+    out.append(
+        f'<polygon points="{tag_pts}" '
+        f'fill="#FFFFFF" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    out.append(
+        f'<text x="{fmt(bx + 8)}" y="{fmt(by + tag_h / 2 + tag_size / 3)}" '
+        f'font-family="{font_family}" font-size="{fmt(tag_size)}" '
+        f'font-weight="700" fill="{text_color}">'
+        f"{esc(kind)}</text>"
+    )
+
+    # First-operand guard (if any) sits just to the right of the tag.
+    if operands:
+        out.append(
+            f'<text x="{fmt(bx + tag_w + 14)}" y="{fmt(by + tag_h / 2 + tag_size / 3)}" '
+            f'font-family="{font_family}" font-size="{fmt(guard_size)}" '
+            f'fill="{text_color}">'
+            f"[{esc(str(operands[0]))}]</text>"
+        )
+
+    # Dashed dividers + per-operand guards (for alt/par)
+    for i, dy in enumerate(dividers):
+        out.append(
+            f'<line x1="{fmt(bx)}" y1="{fmt(dy)}" '
+            f'x2="{fmt(bx + bw)}" y2="{fmt(dy)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width * 0.8)}" '
+            f'stroke-dasharray="5,4"/>'
+        )
+        # Operand guard (1-indexed because the first operand sits in
+        # the tag region, the i-th divider precedes operand i+1).
+        guard_idx = i + 1
+        if guard_idx < len(operands):
+            out.append(
+                f'<text x="{fmt(bx + 8)}" y="{fmt(dy + guard_size + 4)}" '
+                f'font-family="{font_family}" font-size="{fmt(guard_size)}" '
+                f'fill="{text_color}">'
+                f"[{esc(str(operands[guard_idx]))}]</text>"
+            )
+
+    out.append("</g>")
+    return "\n".join(out)
+
+
 RENDERERS = {
     "uml.classifier_box": render_classifier_box,
     "uml.actor": render_actor,
@@ -1299,4 +1528,7 @@ RENDERERS = {
     "uml.swimlane": render_swimlane,
     "uml.state_box": render_state_box,
     "uml.pseudostate": render_pseudostate,
+    "uml.lifeline": render_lifeline,
+    "uml.activation_bar": render_activation_bar,
+    "uml.fragment_frame": render_fragment_frame,
 }
