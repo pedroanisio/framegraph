@@ -1,3 +1,13 @@
+---
+disclaimer:
+  notice: >-
+    No information within this document should be taken for granted.
+    Any statement or premise not backed by a real logical definition
+    or verifiable reference may be invalid, erroneous, or a hallucination.
+  generated_by: "GPT-5 via Codex"
+  date: "2026-05-07"
+---
+
 # Changelog
 
 All notable changes to `framegraph` are documented here.
@@ -17,23 +27,16 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
-### Planned (v1.5 — Data-Viz & Deck Polish)
-- `bar_chart` object — data-driven bar chart with axis labels, value labels, legend
-- `line_chart` object — multi-series line chart with legend
-- `$extends` in deck format — base slide inheritance
-- Speaker notes field on deck slides
-- `padding` on individual objects — exposes `inner_box` for child positioning
-- [SHIPPED] `outer_ring` generalised to rect — see 1.5.0 below
-
-### Planned (v2.0 — Architectural Pivot)
-- [SHIPPED] Modular renderer — see 2.0.0 below
-- `grid` and `row` containers (schema already forward-compatible from v1.4)
+### Planned (v2.0 line)
+- `grid` and `row` containers (schema already forward-compatible from `layout.kind`)
 - Full v1.x backward-compat regression report
 - `inner_box` reference syntax (`box: "$card.inner"`) for compound layouts
+- File-path image embedding to data URI at render time
+- `backdrop_blur` and `inner_ring` rendering support where the grammar already exposes them
 
 ---
 
-## [2.0.0-dev] — 2026-05-07  (modular renderer complete)
+## [2.0.0.dev0] — 2026-05-07  (modular renderer complete)
 
 ### Changed (breaking for contributors, not for YAML authors)
 - **Renderer split into per-object-type modules** (`framegraph/renderers/`)
@@ -69,18 +72,6 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 
 - **`framegraph/renderers/__init__.py`** — `ALL_MODULES` list for auto-discovery.
   Adding a new module and appending to `ALL_MODULES` is the full contribution path.
-
----
-
-### Planned (v1.4 — Authoring Enrichment + Architecture Seed)
-- [SHIPPED] Rich inline spans — see below
-- [SHIPPED] `bullet_list` object — see below
-- [SHIPPED] `container` type + `stack` layout engine — see below
-- `image` object: file-path → base64 data-URI embed at render time
-- Lifted `use` port resolution through symbol boundary to canvas space
-- Auto-layout schema + `stack` container (`layout: {kind: stack, gap, align, padding}`)
-- `backdrop_blur` on rect/ellipse (grammar-defined since v1.2; not yet rendered)
-- `inner_ring` on rect/ellipse
 
 ---
 
@@ -145,7 +136,7 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 
 ---
 
-## [1.4.0-dev] — 2026-05-07  (SP-2 partial — rich text family)
+## [1.4.0-dev] — 2026-05-07  (SP-2 rich text family)
 
 ### Added
 - **Inline spans** (`text.spans: [{text, weight?, color?, italic?, size?}]`)
@@ -159,16 +150,9 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
   - `items:` — list of strings or `{text, indent}` maps
   - `marker:` — bullet character (default `"•"`); `"1."` for ordered lists
   - `gap:` — extra px between items (default `0.3 × line_height`)
-  - `indent:` — px per indent level (default 12)
-  - `style:` — standard text style reference
+- `indent:` — px per indent level (default 12)
+- `style:` — standard text style reference
   Items are word-wrapped to available width. Multi-level indentation supported.
-- Rich inline text spans (`text.spans: [{text, weight, color}]`)
-- `bullet_list` object with `items`, `marker`, `indent`
-- `image` object: file-path → base64 data-URI embed at render time
-- Lifted `use` port resolution through symbol boundary to canvas space
-- Auto-layout schema + `stack` container (`layout: {kind: stack, gap, align, padding}`)
-- `backdrop_blur` on rect/ellipse (grammar-defined since v1.2; not yet rendered)
-- `inner_ring` on rect/ellipse
 
 ---
 

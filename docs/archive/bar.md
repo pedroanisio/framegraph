@@ -6,11 +6,20 @@ disclaimer: >
   before acting on them.
 document: bar.md
 version: 1.0
-status: draft — pending user sign-off
-phase: 0 (pre-flight gate for FrameGraph v1.4 → v2.0 roadmap)
+status: archived
+archived_on: 2026-05-07
+archive_reason: Superseded by the shipped repository state and retained for provenance only.
+phase: 0 (pre-flight gate for FrameGraph v1.4 -> v2.0 roadmap)
 ---
 
-# FrameGraph — Phase 0 Bar Definition
+# Archived: FrameGraph — Phase 0 Bar Definition
+
+This document is preserved as historical planning context. It is not the
+current source of truth for the repository state.
+
+---
+
+## Original Document
 
 This document settles the three decisions that the deliberation
 identified as user-gated before Phase 1 can begin.  It also records
@@ -49,7 +58,7 @@ A version is accepted if **all** of the following hold:
    in `ginga_one.deck.yml`) renders via `FrameGraphDeckRenderer` without
    errors, warnings, or skipped objects.
 
-2. **Render time ≤ 5 seconds** for the full 15-slide deck on a
+2. **Render time <= 5 seconds** for the full 15-slide deck on a
    single-core baseline (Apple M-series or equivalent x86).  Measured
    as wall time from `yaml.safe_load` to last SVG written.
 
@@ -70,8 +79,8 @@ unknown gaps (OBJ-9 mitigation).
 **Declared: 1 % pixel tolerance, not byte-identical**
 
 Definition: a rendered SVG passes the regression test if, for every
-pixel in the rasterised output, the maximum channel delta is ≤ 1 %
-(≤ 2.55 / 255).  Rasterisation is performed at 2× scale (1920×1080
+pixel in the rasterised output, the maximum channel delta is <= 1 %
+(<= 2.55 / 255).  Rasterisation is performed at 2× scale (1920×1080
 for a 960×540 canvas) using `cairosvg` or `resvg`.  Any drift above
 this threshold is a blocking regression.
 

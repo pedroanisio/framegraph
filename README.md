@@ -1,6 +1,23 @@
+---
+disclaimer:
+  notice: >-
+    No information within this document should be taken for granted.
+    Any statement or premise not backed by a real logical definition
+    or verifiable reference may be invalid, erroneous, or a hallucination.
+  generated_by: "GPT-5 via Codex"
+  date: "2026-05-07"
+---
+
 # framegraph
 
+## Disclaimer
+
+This work is subject to the methodological caveats and commitments described in [@DISCLAIMER.md](./DISCLAIMER.md).
+> No statement or premise not backed by a real logical definition or verifiable reference should be taken for granted.
+
 YAML-first hybrid semantic-visual diagram DSL that renders to clean SVG.
+
+Current package version: `2.0.0.dev0`.
 
 ```yaml
 dsl: FrameGraph
@@ -95,16 +112,20 @@ framegraph version
 |---|---|
 | `rect` | Rectangle with optional `radius`, `stroke`, `fill` |
 | `ellipse` | Ellipse with optional `outer_ring` |
-| `text` | Text with `wrap`, `v_align`, `style` reference |
+| `text` | Text with `wrap`, `v_align`, `style`, and inline `spans` |
+| `bullet_list` | Structured bullet or ordered list object |
 | `line` | Straight line with optional arrowhead |
 | `polyline` | Multi-segment line |
 | `path` | SVG path data |
-| `image` | Raster image via `href` |
+| `image` | Raster image object with SVG `<image>` output |
 | `component` | Styled box from `component_defs` |
 | `chip_row` | Horizontal row of pill chips |
 | `connector` | Semantic edge between bound objects |
 | `legend` | Auto-generated colour legend |
 | `group` | Container for nested objects |
+| `container` | Auto-layout container with `layout.kind: stack` |
+| `bar_chart` | Single- or multi-series bar chart |
+| `line_chart` | Multi-series line chart |
 | `icon` | Unicode glyph or icon-font character |
 | `use` | Stamp a `symbol` with slot/param substitution |
 
@@ -166,16 +187,15 @@ See `CHANGELOG.md` for full history.
 
 ---
 
-## Roadmap
+## Current development line
 
-| Version | Target | Key features |
+| Version | Status | Notes |
 |---|---|---|
-| v1.4 | Q3 2026 | Rich inline spans, `bullet_list`, `image` embed, `stack` container |
-| v1.5 | Q4 2026 | `bar_chart`, `line_chart`, `$extends` in deck, speaker notes |
-| v2.0 | Q1 2027 | `grid`/`row` containers, modular renderer, full v1.x compat audit |
+| `2.0.0.dev0` | Current | Modular renderer split is in tree; CLI, tests, and docs reflect the dev line |
+| Next 2.0 goals | In progress | `grid`/`row` layout completion, full v1.x compatibility audit, remaining rendering gaps such as `backdrop_blur` and `inner_ring` |
 
 ---
 
 ## License
 
-MIT
+MIT metadata is declared in `pyproject.toml`. A repository `LICENSE` file has not yet been added.

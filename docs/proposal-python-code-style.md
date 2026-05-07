@@ -28,7 +28,7 @@ disclaimer:
 | Mypy strict mode | **off** (`strict = false`) | [pyproject.toml:115](../pyproject.toml#L115) |
 | Ruff line-length | 100 | [pyproject.toml:105](../pyproject.toml#L105) |
 | Target Python | 3.10 | [pyproject.toml:106](../pyproject.toml#L106) |
-| Pre-commit config | absent (only declared as dev dep) | `.pre-commit-config.yaml` not present |
+| Pre-commit config | present; mirrors CI with advisory mypy | [.pre-commit-config.yaml](../.pre-commit-config.yaml) |
 
 ### Ruff failures by class (top offenders)
 
@@ -54,7 +54,7 @@ Concrete examples worth flagging:
   - `except: return default` at [_helpers.py:32, 37, 156, 161](../framegraph/_helpers.py#L32) and [renderer.py:93](../framegraph/renderer.py#L93)
 - Duplicate type aliases (cause of `F811`): `Box`/`Point` defined twice in [_helpers.py:10-11 & 18-19](../framegraph/_helpers.py#L10).
 - Untyped first argument across the renderer plug-in API: `def render_rect(r, obj: …)` etc. in [renderers/shapes.py](../framegraph/renderers/shapes.py), [renderers/layout.py:14, 147, 192, 221](../framegraph/renderers/layout.py#L14), [renderers/text_objects.py:9](../framegraph/renderers/text_objects.py#L9). `r` is the renderer instance; this is the public extension surface and should be typed.
-- One pure-`def` (no docstring) example surface: [renderers/shapes.py:9](../framegraph/renderers/shapes.py#L9) — both `render_rect` and `render_ellipse` lack module/function docstrings, despite being entry points enumerated in `RENDERERS`.
+- One remaining proposal gap worth preserving: mypy is still advisory in CI and pre-commit, so type-safety remains weaker than the intended target state.
 
 > ⚠ Note: `F821` (undefined name) is a real correctness signal, not a style issue. It must be triaged before any blanket "auto-fix everything" pass.
 

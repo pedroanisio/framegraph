@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 # ── Project metadata ──────────────────────────────────────────────────────────
 [project]
 name        = "framegraph"
-version     = "1.3.0"
+version     = "2.0.0.dev0"
 description = "YAML-first hybrid semantic-visual diagram DSL — renders to SVG"
 readme      = "README.md"
 license     = {text = "MIT"}
@@ -91,7 +91,7 @@ framegraph = [
 # MINOR (1.X.0) — new YAML keys/object types/renderer features, fully
 #                 backward-compatible with all prior MINOR versions in
 #                 the same MAJOR series.
-# PATCH (1.3.X) — bug fixes, renderer corrections, documentation updates.
+# PATCH (X.Y.Z+1) — bug fixes, renderer corrections, documentation updates.
 #                 No new YAML surface. Must pass all existing golden snapshots
 #                 within tolerance before release.
 #
