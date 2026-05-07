@@ -1216,9 +1216,7 @@ class UMLUseCaseDiagramModel(BaseModel):
     def _validate_at_least_one_element(self) -> UMLUseCaseDiagramModel:
         """Empty diagram has nothing to render — reject for clarity."""
         if not self.actors and not self.use_cases:
-            raise ValueError(
-                "use-case diagram must declare at least one actor or use case"
-            )
+            raise ValueError("use-case diagram must declare at least one actor or use case")
         return self
 
     @model_validator(mode="after")
@@ -1248,13 +1246,11 @@ class UMLUseCaseDiagramModel(BaseModel):
         for rel in self.relations:
             if rel.from_id not in valid_ids:
                 raise ValueError(
-                    f"use-case relation {rel.id!r} references unknown "
-                    f"source id {rel.from_id!r}"
+                    f"use-case relation {rel.id!r} references unknown source id {rel.from_id!r}"
                 )
             if rel.to_id not in valid_ids:
                 raise ValueError(
-                    f"use-case relation {rel.id!r} references unknown "
-                    f"target id {rel.to_id!r}"
+                    f"use-case relation {rel.id!r} references unknown target id {rel.to_id!r}"
                 )
         return self
 
@@ -1285,8 +1281,7 @@ class UMLUseCaseDiagramModel(BaseModel):
             for ref in sb.contains:
                 if ref not in use_case_ids:
                     raise ValueError(
-                        f"system boundary {sb.id!r} contains unknown use-case "
-                        f"id {ref!r}"
+                        f"system boundary {sb.id!r} contains unknown use-case id {ref!r}"
                     )
         return self
 
@@ -1443,8 +1438,11 @@ class UMLComponentDiagramModel(BaseModel):
 
     @model_validator(mode="after")
     def _validate_connector_endpoints_resolve(self) -> UMLComponentDiagramModel:
-        """Every connector endpoint must reference a component, port,
-        provided-interface name, or required-interface name."""
+        """Validate that every connector endpoint resolves.
+
+        Every connector endpoint must reference a component, port,
+        provided-interface name, or required-interface name.
+        """
         valid_ids: set[str] = set()
         for c in self.components:
             valid_ids.add(c.id)
@@ -1459,13 +1457,11 @@ class UMLComponentDiagramModel(BaseModel):
         for conn in self.connectors:
             if conn.from_id not in valid_ids:
                 raise ValueError(
-                    f"connector {conn.id!r} references unknown source "
-                    f"id {conn.from_id!r}"
+                    f"connector {conn.id!r} references unknown source id {conn.from_id!r}"
                 )
             if conn.to_id not in valid_ids:
                 raise ValueError(
-                    f"connector {conn.id!r} references unknown target "
-                    f"id {conn.to_id!r}"
+                    f"connector {conn.id!r} references unknown target id {conn.to_id!r}"
                 )
         return self
 
@@ -1483,13 +1479,223 @@ def validate_component_diagram(data: dict[str, Any]) -> UMLComponentDiagramModel
     return UMLComponentDiagramModel.model_validate(data)
 
 
+# ─────────────────────────────────────────────────────────────────
+# Deployment diagrams (Phase C.2)
+# ─────────────────────────────────────────────────────────────────
+
+
+NodeKind = Literal["device", "execution_environment"]
+"""Per UML 2.5.1 §19.4, a Node is either a hardware *Device* or a
+software *ExecutionEnvironment* (e.g., an OS, container runtime, JVM).
+The two render with the same 3D-box notation, optionally tagged with
+the corresponding stereotype."""
+
+
+DeploymentRelationKind = Literal["deploy", "manifest", "communication"]
+"""Three relations in a deployment diagram:
+
+- `deploy`: an artifact is deployed onto a node (rendered as a
+  dashed connector with `«deploy»` keyword).
+- `manifest`: an artifact manifests one or more components or
+  classifiers (rendered as a dashed connector with `«manifest»`).
+- `communication`: a node communicates with another node — typically
+  representing a network link (rendered as a plain solid line, often
+  labelled with the protocol)."""
+
+
+class UMLArtifact(BaseModel):
+    """A UML Artifact — a deployable physical piece of information.
+
+    Per UML 2.5.1 §19.4, an artifact is a deployable file
+    (`.jar`, `.war`, `.so`, configuration files, source code, …).
+    Renders as a rectangle with the `«artifact»` keyword and a
+    document-fold icon in the upper-right corner.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name (typically the file name).
+        stereotype: Optional sub-stereotype on top of the implicit
+            `«artifact»` (e.g., `«executable»`, `«library»`).
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    stereotype: str | None = None
+    position: Position | None = None
+
+
+class UMLDeploymentNode(BaseModel):
+    """A UML Node — a deployment target (device or runtime).
+
+    Renders as a 3D box (cuboid). When `kind="device"`, the box
+    represents physical hardware; when `kind="execution_environment"`,
+    it represents a software runtime hosted on another node.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+        kind: `device` or `execution_environment`. Defaults to
+            `device`.
+        stereotype: Optional sub-stereotype on top of the implicit
+            `«device»` / `«executionEnvironment»` keyword (e.g.,
+            `«server»`, `«container»`).
+        contains: Ids of other nodes nested inside this node (e.g.,
+            an OS execution-environment inside a server device).
+            Containment is rendered structurally — contained nodes
+            sit below their parent in the layered layout.
+        artifacts: Ids of artifacts deployed on this node. The
+            composer emits the `«deploy»` connector automatically;
+            authors who need explicit control can list relations
+            instead and leave this empty.
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    kind: NodeKind = "device"
+    stereotype: str | None = None
+    contains: list[str] = Field(default_factory=list)
+    artifacts: list[str] = Field(default_factory=list)
+    position: Position | None = None
+
+
+class UMLDeploymentRelation(BaseModel):
+    """A relation between two deployment-diagram elements.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Source element id.
+        to_id: Target element id.
+        kind: `deploy`, `manifest`, or `communication`.
+        label: Optional label (e.g., `"HTTPS"` on a communication
+            link).
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    kind: DeploymentRelationKind = "deploy"
+    label: str | None = None
+
+    @model_validator(mode="after")
+    def _validate_no_self_relation(self) -> UMLDeploymentRelation:
+        if self.from_id == self.to_id:
+            raise ValueError(
+                f"deployment relation {self.id!r} has from==to=={self.from_id!r}; "
+                f"a deployment element cannot relate to itself"
+            )
+        return self
+
+
+class UMLDeploymentDiagramModel(BaseModel):
+    """Top-level container for a deployment diagram's UML model.
+
+    Attributes:
+        nodes: All nodes (devices + execution environments). ≥ 1.
+        artifacts: All artifacts.
+        relations: Deployments, manifestations, communication links.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    nodes: list[UMLDeploymentNode] = Field(..., min_length=1)
+    artifacts: list[UMLArtifact] = Field(default_factory=list)
+    relations: list[UMLDeploymentRelation] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLDeploymentDiagramModel:
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("node", self.nodes),
+            ("artifact", self.artifacts),
+            ("relation", self.relations),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        return self
+
+    @model_validator(mode="after")
+    def _validate_endpoints_resolve(self) -> UMLDeploymentDiagramModel:
+        valid: set[str] = {n.id for n in self.nodes} | {a.id for a in self.artifacts}
+        # Validate `contains` references between nodes.
+        node_ids = {n.id for n in self.nodes}
+        for n in self.nodes:
+            for child in n.contains:
+                if child not in node_ids:
+                    raise ValueError(f"node {n.id!r} contains unknown node id {child!r}")
+        artifact_ids = {a.id for a in self.artifacts}
+        for n in self.nodes:
+            for art in n.artifacts:
+                if art not in artifact_ids:
+                    raise ValueError(f"node {n.id!r} declares unknown artifact id {art!r}")
+        # Validate relation endpoints.
+        for r in self.relations:
+            if r.from_id not in valid:
+                raise ValueError(
+                    f"deployment relation {r.id!r} references unknown source id {r.from_id!r}"
+                )
+            if r.to_id not in valid:
+                raise ValueError(
+                    f"deployment relation {r.id!r} references unknown target id {r.to_id!r}"
+                )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_no_containment_cycle(self) -> UMLDeploymentDiagramModel:
+        children = {n.id: list(n.contains) for n in self.nodes}
+        WHITE, GREY, BLACK = 0, 1, 2
+        color = dict.fromkeys(children, WHITE)
+
+        def visit(nid: str) -> None:
+            color[nid] = GREY
+            for c in children.get(nid, ()):
+                if color.get(c) == GREY:
+                    raise ValueError(f"node containment cycle detected at {nid!r} → {c!r}")
+                if color.get(c) == WHITE:
+                    visit(c)
+            color[nid] = BLACK
+
+        for nid in list(children):
+            if color[nid] == WHITE:
+                visit(nid)
+        return self
+
+
+def validate_deployment_diagram(data: dict[str, Any]) -> UMLDeploymentDiagramModel:
+    """Validate a parsed mapping as a UML deployment-diagram model.
+
+    Args:
+        data: A dict with `nodes` (≥ 1), optional `artifacts`,
+            `relations`, `notes`.
+
+    Returns:
+        A validated `UMLDeploymentDiagramModel`.
+    """
+    return UMLDeploymentDiagramModel.model_validate(data)
+
+
 __all__ = [
     "AssociationKind",
     "Classifier",
+    "DeploymentRelationKind",
+    "NodeKind",
     "PackageDependencyKind",
     "ParamDirection",
     "Position",
     "UMLActor",
+    "UMLArtifact",
     "UMLAssociation",
     "UMLAssociationEnd",
     "UMLAttribute",
@@ -1499,6 +1705,9 @@ __all__ = [
     "UMLComponentDiagramModel",
     "UMLConnector",
     "UMLDependency",
+    "UMLDeploymentDiagramModel",
+    "UMLDeploymentNode",
+    "UMLDeploymentRelation",
     "UMLEnumeration",
     "UMLGeneralization",
     "UMLInterface",
@@ -1518,6 +1727,7 @@ __all__ = [
     "Visibility",
     "validate_class_diagram",
     "validate_component_diagram",
+    "validate_deployment_diagram",
     "validate_package_diagram",
     "validate_use_case_diagram",
 ]

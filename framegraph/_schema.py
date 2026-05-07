@@ -457,6 +457,33 @@ class UMLSocketObject(_ObjectBase):
     style: dict[str, Any] | None = None
 
 
+class UMLNodeBoxObject(_ObjectBase):
+    """UML deployment Node — 3D-box (cuboid) with name + stereotype.
+
+    Phase C.2 of the UML support architecture. The deployment-diagram
+    composer emits these for `UMLDeploymentNode` semantic elements.
+    """
+
+    type: Literal["uml.node_box"]
+    name: str
+    kind: Literal["device", "execution_environment"] | None = None
+    stereotype: str | None = None
+    depth: float | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLArtifactBoxObject(_ObjectBase):
+    """UML Artifact — rectangle with «artifact» keyword + folded-document icon.
+
+    Phase C.2 primitive.
+    """
+
+    type: Literal["uml.artifact_box"]
+    name: str
+    stereotype: str | None = None
+    style: dict[str, Any] | None = None
+
+
 class _UnknownObject(_ObjectBase):
     """Fall-through for third-party `register(type_name, fn)` types.
 
@@ -492,7 +519,9 @@ KnownObject = Annotated[
     | UMLActorObject
     | UMLComponentBoxObject
     | UMLLollipopObject
-    | UMLSocketObject,
+    | UMLSocketObject
+    | UMLNodeBoxObject
+    | UMLArtifactBoxObject,
     Field(discriminator="type"),
 ]
 

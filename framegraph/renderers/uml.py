@@ -630,10 +630,210 @@ def render_socket(r: RendererContext, obj: Mapping[str, Any]) -> str:
     return "\n".join(out)
 
 
+def render_node_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a UML deployment Node — 3D box (cuboid).
+
+    The node is drawn as a face rectangle plus a top quadrilateral
+    (parallelogram) and a right quadrilateral, simulating a cuboid
+    in oblique projection.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.node_box
+        box:     [x, y, w, h]    — the front face
+        name:    <node name>
+
+    Optional:
+        kind:        device | execution_environment (selects the
+                     implicit stereotype)
+        stereotype:  string rendered as `«…»` above the name (when
+                     present, takes precedence over the implicit
+                     keyword from `kind`)
+        depth:       isometric depth offset in px (default 18)
+        style:
+            border_color:   default "#1A1A1A"
+            border_width:   default 1.0
+            fill:           default "#F5F2EC"
+            top_fill:       default same as fill (slightly darker)
+            name_size:      default 14
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 220, 130]))
+    name = str(obj.get("name", ""))
+    kind = str(obj.get("kind", "device"))
+    stereotype = obj.get("stereotype")
+    depth = fnum(obj.get("depth"), 18)
+    style = obj.get("style") or {}
+
+    border_color = r.color(style.get("border_color", "#1A1A1A"), "#1A1A1A")
+    border_width = fnum(style.get("border_width"), 1.0)
+    fill = r.fill_value(style.get("fill", "#F5F2EC"), "#F5F2EC")
+    top_fill = r.fill_value(style.get("top_fill", "#E8E2D2"), "#E8E2D2")
+    name_size = fnum(style.get("name_size"), 14)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+
+    # Top face (parallelogram): from (bx, by) shifted up-right by depth.
+    top_pts = (
+        f"{fmt(bx)},{fmt(by)} "
+        f"{fmt(bx + depth)},{fmt(by - depth)} "
+        f"{fmt(bx + bw + depth)},{fmt(by - depth)} "
+        f"{fmt(bx + bw)},{fmt(by)}"
+    )
+    out.append(
+        f'<polygon points="{top_pts}" '
+        f'fill="{top_fill}" stroke="{border_color}" stroke-width="{fmt(border_width)}"/>'
+    )
+
+    # Right face (parallelogram).
+    right_pts = (
+        f"{fmt(bx + bw)},{fmt(by)} "
+        f"{fmt(bx + bw + depth)},{fmt(by - depth)} "
+        f"{fmt(bx + bw + depth)},{fmt(by + bh - depth)} "
+        f"{fmt(bx + bw)},{fmt(by + bh)}"
+    )
+    out.append(
+        f'<polygon points="{right_pts}" '
+        f'fill="{top_fill}" stroke="{border_color}" stroke-width="{fmt(border_width)}"/>'
+    )
+
+    # Front face (rectangle).
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(bh)}" '
+        f'fill="{fill}" stroke="{border_color}" stroke-width="{fmt(border_width)}"/>'
+    )
+
+    # Stereotype (explicit > implicit kind keyword)
+    cx = bx + bw / 2
+    if stereotype:
+        keyword = stereotype
+    elif kind == "execution_environment":
+        keyword = "executionEnvironment"
+    else:
+        keyword = "device"
+
+    st_y = by + 22
+    out.append(
+        f'<text x="{fmt(cx)}" y="{fmt(st_y)}" '
+        f'font-family="{font_family}" font-size="10" '
+        f'fill="{text_color}" text-anchor="middle" font-style="italic">'
+        f"«{esc(keyword)}»</text>"
+    )
+    name_y = by + 42
+    out.append(
+        f'<text x="{fmt(cx)}" y="{fmt(name_y)}" '
+        f'font-family="{font_family}" font-size="{fmt(name_size)}" '
+        f'font-weight="700" fill="{text_color}" text-anchor="middle">'
+        f"{esc(name)}</text>"
+    )
+
+    out.append("</g>")
+    return "\n".join(out)
+
+
+def render_artifact_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a UML Artifact — rectangle with «artifact» + document icon.
+
+    The «artifact» keyword sits above the artifact name and a
+    folded-document icon is placed in the upper-right corner.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.artifact_box
+        box:     [x, y, w, h]
+        name:    <artifact name>
+
+    Optional:
+        stereotype:  sub-stereotype rendered above the implicit «artifact»
+        style:
+            border_color:   default "#1A1A1A"
+            border_width:   default 1.0
+            fill:           default "#FFFFFF"
+            name_size:      default 12
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 160, 80]))
+    name = str(obj.get("name", ""))
+    stereotype = obj.get("stereotype")
+    style = obj.get("style") or {}
+
+    border_color = r.color(style.get("border_color", "#1A1A1A"), "#1A1A1A")
+    border_width = fnum(style.get("border_width"), 1.0)
+    fill = r.fill_value(style.get("fill", "#FFFFFF"), "#FFFFFF")
+    name_size = fnum(style.get("name_size"), 12)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+
+    # Body
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(bh)}" '
+        f'fill="{fill}" stroke="{border_color}" stroke-width="{fmt(border_width)}"/>'
+    )
+
+    # Folded-document icon in the upper-right corner: a small rectangle
+    # with the upper-right corner cut.
+    icon_w = 16.0
+    icon_h = 18.0
+    fold = 5.0
+    ix = bx + bw - icon_w - 6
+    iy = by + 6
+    icon_pts = (
+        f"{fmt(ix)},{fmt(iy)} "
+        f"{fmt(ix + icon_w - fold)},{fmt(iy)} "
+        f"{fmt(ix + icon_w)},{fmt(iy + fold)} "
+        f"{fmt(ix + icon_w)},{fmt(iy + icon_h)} "
+        f"{fmt(ix)},{fmt(iy + icon_h)}"
+    )
+    out.append(
+        f'<polygon points="{icon_pts}" fill="{fill}" stroke="{border_color}" stroke-width="0.75"/>'
+    )
+    # Fold line
+    out.append(
+        f'<polyline points="{fmt(ix + icon_w - fold)},{fmt(iy)} '
+        f"{fmt(ix + icon_w - fold)},{fmt(iy + fold)} "
+        f'{fmt(ix + icon_w)},{fmt(iy + fold)}" '
+        f'fill="none" stroke="{border_color}" stroke-width="0.75"/>'
+    )
+
+    # «artifact» keyword + optional sub-stereotype above
+    cx = bx + bw / 2
+    next_y = by + 18
+    if stereotype:
+        out.append(
+            f'<text x="{fmt(cx)}" y="{fmt(next_y)}" '
+            f'font-family="{font_family}" font-size="10" '
+            f'fill="{text_color}" text-anchor="middle" font-style="italic">'
+            f"«{esc(stereotype)}»</text>"
+        )
+        next_y += 14
+    out.append(
+        f'<text x="{fmt(cx)}" y="{fmt(next_y)}" '
+        f'font-family="{font_family}" font-size="10" '
+        f'fill="{text_color}" text-anchor="middle" font-style="italic">'
+        f"«artifact»</text>"
+    )
+    name_y = next_y + 18
+    out.append(
+        f'<text x="{fmt(cx)}" y="{fmt(name_y)}" '
+        f'font-family="{font_family}" font-size="{fmt(name_size)}" '
+        f'font-weight="700" fill="{text_color}" text-anchor="middle">'
+        f"{esc(name)}</text>"
+    )
+
+    out.append("</g>")
+    return "\n".join(out)
+
+
 RENDERERS = {
     "uml.classifier_box": render_classifier_box,
     "uml.actor": render_actor,
     "uml.component_box": render_component_box,
     "uml.lollipop": render_lollipop,
     "uml.socket": render_socket,
+    "uml.node_box": render_node_box,
+    "uml.artifact_box": render_artifact_box,
 }
