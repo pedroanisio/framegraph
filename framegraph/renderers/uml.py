@@ -432,7 +432,208 @@ def render_actor(r: RendererContext, obj: Mapping[str, Any]) -> str:
     return "\n".join(out)
 
 
+def render_component_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a UML Component box — rectangle with the component icon glyph.
+
+    The UML 2.5.1 component icon is a small rectangle with two
+    protruding tabs on its left side. We draw it in the upper-right
+    corner of the component box per UML notation.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.component_box
+        box:     [x, y, w, h]
+        name:    <component name>
+
+    Optional:
+        stereotype:  string rendered as `«…»` above the name
+        style:
+            border_color:    default "#1A1A1A"
+            border_width:    default 1.0
+            fill:            default "#FFFFFF"
+            name_size:       default 14
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 200, 120]))
+    name = str(obj.get("name", ""))
+    stereotype = obj.get("stereotype")
+    style = obj.get("style") or {}
+
+    border_color = r.color(style.get("border_color", "#1A1A1A"), "#1A1A1A")
+    border_width = fnum(style.get("border_width"), 1.0)
+    fill = r.fill_value(style.get("fill", "#FFFFFF"), "#FFFFFF")
+    name_size = fnum(style.get("name_size"), 14)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+
+    # Outer body
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(bh)}" '
+        f'fill="{fill}" stroke="{border_color}" stroke-width="{fmt(border_width)}"/>'
+    )
+
+    # Component icon — small rect with two tabs on the left, in the
+    # upper-right corner of the body.
+    icon_w = 18.0
+    icon_h = 14.0
+    icon_x = bx + bw - icon_w - 8
+    icon_y = by + 8
+    tab_w = 6.0
+    tab_h = 4.0
+    # Main rectangle of the icon
+    out.append(
+        f'<rect x="{fmt(icon_x)}" y="{fmt(icon_y)}" width="{fmt(icon_w)}" height="{fmt(icon_h)}" '
+        f'fill="{fill}" stroke="{border_color}" stroke-width="0.75"/>'
+    )
+    # Two tabs protruding from the left edge of the icon
+    for tab_offset_y in (3.0, icon_h - 3.0 - tab_h):
+        out.append(
+            f'<rect x="{fmt(icon_x - tab_w / 2)}" y="{fmt(icon_y + tab_offset_y)}" '
+            f'width="{fmt(tab_w)}" height="{fmt(tab_h)}" '
+            f'fill="{fill}" stroke="{border_color}" stroke-width="0.75"/>'
+        )
+
+    # Optional stereotype above the name
+    cx = bx + bw / 2
+    if stereotype:
+        st_y = by + 22
+        out.append(
+            f'<text x="{fmt(cx)}" y="{fmt(st_y)}" '
+            f'font-family="{font_family}" font-size="10" '
+            f'fill="{text_color}" text-anchor="middle" font-style="italic">'
+            f"«{esc(stereotype)}»</text>"
+        )
+        name_y = by + 42
+    else:
+        name_y = by + 28
+
+    out.append(
+        f'<text x="{fmt(cx)}" y="{fmt(name_y)}" '
+        f'font-family="{font_family}" font-size="{fmt(name_size)}" '
+        f'font-weight="700" fill="{text_color}" text-anchor="middle">'
+        f"{esc(name)}</text>"
+    )
+
+    out.append("</g>")
+    return "\n".join(out)
+
+
+def render_lollipop(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a UML provided-interface lollipop — circle on a stem.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.lollipop
+        box:     [x, y, w, h]  — the stem extends across w from the
+                                  attachment point at (x, y+h/2);
+                                  the circle sits at the far end.
+        name:    <interface name>
+
+    Optional:
+        style:
+            stroke_color:  default "#1A1A1A"
+            stroke_width:  default 1.0
+            radius:        default 6
+            label_size:    default 10
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 40, 16]))
+    name = str(obj.get("name", ""))
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.0)
+    radius = fnum(style.get("radius"), 6)
+    label_size = fnum(style.get("label_size"), 10)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    # Anchor at left-middle; circle at right-middle
+    anchor_x = bx
+    anchor_y = by + bh / 2
+    circle_cx = bx + bw - radius
+    circle_cy = anchor_y
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+    # Stem
+    out.append(
+        f'<line x1="{fmt(anchor_x)}" y1="{fmt(anchor_y)}" '
+        f'x2="{fmt(circle_cx - radius)}" y2="{fmt(circle_cy)}" '
+        f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Circle (lollipop tip)
+    out.append(
+        f'<circle cx="{fmt(circle_cx)}" cy="{fmt(circle_cy)}" r="{fmt(radius)}" '
+        f'fill="none" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Label below the circle
+    out.append(
+        f'<text x="{fmt(circle_cx)}" y="{fmt(circle_cy + radius + label_size + 2)}" '
+        f'font-family="{font_family}" font-size="{fmt(label_size)}" '
+        f'fill="{text_color}" text-anchor="middle">{esc(name)}</text>'
+    )
+    out.append("</g>")
+    return "\n".join(out)
+
+
+def render_socket(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a UML required-interface socket — half-circle on a stem.
+
+    Same layout as the lollipop, but the tip is a leftward-facing
+    arc (semicircle) rather than a full circle. Authors connect a
+    socket to a lollipop visually by placing them at the same y on
+    adjacent components — the arc cradles the circle.
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 40, 16]))
+    name = str(obj.get("name", ""))
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.0)
+    radius = fnum(style.get("radius"), 7)
+    label_size = fnum(style.get("label_size"), 10)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    anchor_x = bx
+    anchor_y = by + bh / 2
+    arc_cx = bx + bw - radius
+    arc_cy = anchor_y
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+    # Stem
+    out.append(
+        f'<line x1="{fmt(anchor_x)}" y1="{fmt(anchor_y)}" '
+        f'x2="{fmt(arc_cx)}" y2="{fmt(arc_cy)}" '
+        f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Arc — open semicircle facing left (the "socket")
+    arc_top_x = arc_cx
+    arc_top_y = arc_cy - radius
+    arc_bot_x = arc_cx
+    arc_bot_y = arc_cy + radius
+    out.append(
+        f'<path d="M {fmt(arc_top_x)} {fmt(arc_top_y)} '
+        f"A {fmt(radius)} {fmt(radius)} 0 0 1 "
+        f'{fmt(arc_bot_x)} {fmt(arc_bot_y)}" '
+        f'fill="none" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Label
+    out.append(
+        f'<text x="{fmt(arc_cx)}" y="{fmt(arc_cy + radius + label_size + 2)}" '
+        f'font-family="{font_family}" font-size="{fmt(label_size)}" '
+        f'fill="{text_color}" text-anchor="middle">{esc(name)}</text>'
+    )
+    out.append("</g>")
+    return "\n".join(out)
+
+
 RENDERERS = {
     "uml.classifier_box": render_classifier_box,
     "uml.actor": render_actor,
+    "uml.component_box": render_component_box,
+    "uml.lollipop": render_lollipop,
+    "uml.socket": render_socket,
 }

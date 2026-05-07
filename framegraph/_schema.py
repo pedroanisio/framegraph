@@ -410,6 +410,53 @@ class UMLActorObject(_ObjectBase):
     style: dict[str, Any] | None = None
 
 
+class UMLComponentBoxObject(_ObjectBase):
+    """UML Component box — rectangle with the component icon glyph.
+
+    Phase C.1 of the UML support architecture. The component-diagram
+    composer emits these for `UMLComponent` semantic elements.
+
+    `provided_interfaces` and `required_interfaces` are accepted at
+    primitive level so authors can hand-place a component without
+    needing the composer.
+    """
+
+    type: Literal["uml.component_box"]
+    name: str
+    stereotype: str | None = None
+    provided_interfaces: list[str] | None = None
+    required_interfaces: list[str] | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLLollipopObject(_ObjectBase):
+    """UML provided-interface lollipop — circle on a stem.
+
+    Phase C.1 primitive. `attach` is one of `north|south|east|west`
+    and indicates which face of the parent component the stem
+    extends from. The label sits beyond the circle.
+    """
+
+    type: Literal["uml.lollipop"]
+    name: str
+    attach: Literal["north", "south", "east", "west"] | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLSocketObject(_ObjectBase):
+    """UML required-interface socket — half-circle on a stem.
+
+    Phase C.1 primitive. `attach` selects the parent face the stem
+    extends from. The arc opens away from the parent so it can
+    visually mate with a lollipop.
+    """
+
+    type: Literal["uml.socket"]
+    name: str
+    attach: Literal["north", "south", "east", "west"] | None = None
+    style: dict[str, Any] | None = None
+
+
 class _UnknownObject(_ObjectBase):
     """Fall-through for third-party `register(type_name, fn)` types.
 
@@ -442,7 +489,10 @@ KnownObject = Annotated[
     | LineChartObject
     | TableObject
     | UMLClassifierBoxObject
-    | UMLActorObject,
+    | UMLActorObject
+    | UMLComponentBoxObject
+    | UMLLollipopObject
+    | UMLSocketObject,
     Field(discriminator="type"),
 ]
 

@@ -1309,6 +1309,180 @@ def validate_use_case_diagram(data: dict[str, Any]) -> UMLUseCaseDiagramModel:
     return UMLUseCaseDiagramModel.model_validate(data)
 
 
+# ─────────────────────────────────────────────────────────────────
+# Component diagrams (Phase C.1)
+# ─────────────────────────────────────────────────────────────────
+
+
+class UMLPort(BaseModel):
+    """A UML Port — interaction point on a component's boundary.
+
+    Per UML 2.5.1 §11.4, a port is a typed feature on a component
+    that exposes part of its behavior to clients. Renders as a small
+    square on the component's edge.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name (rendered as a label near the port).
+        side: Which edge the port sits on. Defaults to `east`.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    side: Literal["north", "south", "east", "west"] = "east"
+
+
+class UMLComponent(BaseModel):
+    """A UML Component — a modular unit with provided/required interfaces.
+
+    Renders as a rectangle with a small "component" icon (UML 2.5
+    notation: a rectangle with two protrusions on its left side) in
+    the upper-right corner. Provided interfaces render as filled
+    circles ("lollipops"); required interfaces as half-circles
+    ("sockets").
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+        provided_interfaces: Names of provided interfaces (rendered
+            as labelled lollipops on the component's right edge).
+        required_interfaces: Names of required interfaces (rendered
+            as labelled sockets on the component's right edge).
+        ports: Optional named ports for fine-grained connections.
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    provided_interfaces: list[str] = Field(default_factory=list)
+    required_interfaces: list[str] = Field(default_factory=list)
+    ports: list[UMLPort] = Field(default_factory=list)
+    position: Position | None = None
+
+
+class UMLConnector(BaseModel):
+    """A UML Connector — links two components via interfaces or ports.
+
+    Per UML 2.5.1 §11.5, a connector represents a runtime link
+    between component instances. Renders as a solid line; the
+    `kind` selects the visual:
+
+    - `assembly`: a required interface of one component is wired
+      to a provided interface of another (the lollipop and socket
+      align visually). Renders as a plain line.
+    - `delegation`: a port on a containing component delegates to
+      a port on a contained component. Renders dashed with an
+      open arrow at the delegate end.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Source component or port id.
+        to_id: Target component or port id.
+        kind: One of `assembly`, `delegation`. Defaults to `assembly`.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    kind: Literal["assembly", "delegation"] = "assembly"
+
+    @model_validator(mode="after")
+    def _validate_no_self_connector(self) -> UMLConnector:
+        if self.from_id == self.to_id:
+            raise ValueError(
+                f"connector {self.id!r} has from==to=={self.from_id!r}; "
+                f"a component cannot connect to itself"
+            )
+        return self
+
+
+class UMLComponentDiagramModel(BaseModel):
+    """Top-level container for a component diagram's UML model.
+
+    Attributes:
+        components: All components in the diagram. Required (≥ 1).
+        connectors: Inter-component links (assembly or delegation).
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    components: list[UMLComponent] = Field(..., min_length=1)
+    connectors: list[UMLConnector] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLComponentDiagramModel:
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("component", self.components),
+            ("connector", self.connectors),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        # Ports also have ids; they share the global namespace.
+        for c in self.components:
+            for p in c.ports:
+                if p.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {p.id!r}: declared as "
+                        f"{seen[p.id]!r} and again as a port on component "
+                        f"{c.id!r}"
+                    )
+                seen[p.id] = "port"
+        return self
+
+    @model_validator(mode="after")
+    def _validate_connector_endpoints_resolve(self) -> UMLComponentDiagramModel:
+        """Every connector endpoint must reference a component, port,
+        provided-interface name, or required-interface name."""
+        valid_ids: set[str] = set()
+        for c in self.components:
+            valid_ids.add(c.id)
+            for p in c.ports:
+                valid_ids.add(p.id)
+            # Interface names are used as connector endpoints when
+            # connecting via the lollipop/socket convention.
+            for iface in c.provided_interfaces:
+                valid_ids.add(f"{c.id}.{iface}")
+            for iface in c.required_interfaces:
+                valid_ids.add(f"{c.id}.{iface}")
+        for conn in self.connectors:
+            if conn.from_id not in valid_ids:
+                raise ValueError(
+                    f"connector {conn.id!r} references unknown source "
+                    f"id {conn.from_id!r}"
+                )
+            if conn.to_id not in valid_ids:
+                raise ValueError(
+                    f"connector {conn.id!r} references unknown target "
+                    f"id {conn.to_id!r}"
+                )
+        return self
+
+
+def validate_component_diagram(data: dict[str, Any]) -> UMLComponentDiagramModel:
+    """Validate a parsed mapping as a UML component-diagram model.
+
+    Args:
+        data: A dict with `components` (≥ 1), optional `connectors`,
+            optional `notes`.
+
+    Returns:
+        A validated `UMLComponentDiagramModel`.
+    """
+    return UMLComponentDiagramModel.model_validate(data)
+
+
 __all__ = [
     "AssociationKind",
     "Classifier",
@@ -1321,6 +1495,9 @@ __all__ = [
     "UMLAttribute",
     "UMLClass",
     "UMLClassDiagramModel",
+    "UMLComponent",
+    "UMLComponentDiagramModel",
+    "UMLConnector",
     "UMLDependency",
     "UMLEnumeration",
     "UMLGeneralization",
@@ -1331,6 +1508,7 @@ __all__ = [
     "UMLPackageDependency",
     "UMLPackageDiagramModel",
     "UMLParameter",
+    "UMLPort",
     "UMLRealization",
     "UMLSystemBoundary",
     "UMLUseCase",
@@ -1339,6 +1517,7 @@ __all__ = [
     "UseCaseRelationKind",
     "Visibility",
     "validate_class_diagram",
+    "validate_component_diagram",
     "validate_package_diagram",
     "validate_use_case_diagram",
 ]
