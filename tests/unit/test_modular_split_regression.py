@@ -31,7 +31,6 @@ from framegraph.renderer import FrameGraphRenderer
 from framegraph.renderers import lines, shapes
 from framegraph.renderers.layout import offset_box, render_component
 
-
 # ── Method existence (Protocol contract) ────────────────────────────
 
 

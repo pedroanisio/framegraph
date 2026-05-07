@@ -13,7 +13,8 @@ from pathlib import Path
 import pytest
 
 from framegraph import __version__
-from framegraph.cli import build_parser, main as cli_main
+from framegraph.cli import build_parser
+from framegraph.cli import main as cli_main
 
 FIXTURE_DIR = Path(__file__).resolve().parents[1] / "fixtures"
 STANDALONE_FIXTURES = sorted(

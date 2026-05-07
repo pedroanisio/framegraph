@@ -75,8 +75,7 @@ def _write_png_4k(svg: str, out: Path) -> None:
         import cairosvg  # type: ignore
     except ImportError as exc:
         raise ImportError(
-            "cairosvg is required for --4k PNG output. "
-            "Install with: pip install cairosvg"
+            "cairosvg is required for --4k PNG output. Install with: pip install cairosvg"
         ) from exc
     cairosvg.svg2png(
         bytestring=svg.encode("utf-8"),

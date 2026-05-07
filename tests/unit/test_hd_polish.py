@@ -22,7 +22,6 @@ import xml.etree.ElementTree as ET
 
 from framegraph.renderer import FrameGraphRenderer
 
-
 # ── Render hints on <svg> root ──────────────────────────────────────
 
 

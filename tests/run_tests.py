@@ -38,9 +38,8 @@ import importlib.util
 import io
 import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
 
 import yaml
 
@@ -52,8 +51,8 @@ except ImportError:
     sys.exit(2)
 
 try:
-    from PIL import Image, ImageChops
     import numpy as np
+    from PIL import Image, ImageChops
 except ImportError:
     print("ERROR: Pillow + numpy required.  pip install Pillow numpy --break-system-packages", file=sys.stderr)
     sys.exit(2)
@@ -127,11 +126,11 @@ class RenderedSlide:
     height:    int
 
 
-def render_fixture(path: Path) -> List[RenderedSlide]:
+def render_fixture(path: Path) -> list[RenderedSlide]:
     """Return a list of RenderedSlide for a fixture file."""
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     kind = data.get("kind", "")
-    results: List[RenderedSlide] = []
+    results: list[RenderedSlide] = []
 
     if kind == "presentation-deck":
         lib   = _load_library()
@@ -184,7 +183,7 @@ class SlideResult:
     max_delta:  float        # 0–255
     tolerance:  float        # percent
     elapsed_ms: float
-    error:      Optional[str] = None
+    error:      str | None = None
 
     @property
     def pct_delta(self) -> float:
@@ -225,8 +224,8 @@ def bless_fixture(path: Path, verbose: bool = False) -> int:
 
 
 # ── Test run ──────────────────────────────────────────────────────────────────
-def test_fixture(path: Path, tolerance_pct: float, verbose: bool) -> List[SlideResult]:
-    results: List[SlideResult] = []
+def test_fixture(path: Path, tolerance_pct: float, verbose: bool) -> list[SlideResult]:
+    results: list[SlideResult] = []
     golden_dir = GOLDENS_DIR / path.stem
 
     try:
@@ -323,7 +322,7 @@ def main(argv=None) -> int:
     print(f"Running {len(fixtures)} fixture(s)  tolerance={tolerance:.1f}%  scale={SCALE}×")
     print()
 
-    all_results: List[SlideResult] = []
+    all_results: list[SlideResult] = []
     t0 = time.perf_counter()
     for path in fixtures:
         results = test_fixture(path, tolerance, args.verbose)
