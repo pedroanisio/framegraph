@@ -374,6 +374,29 @@ class TableObject(_ObjectBase):
     style: dict[str, Any] | None = None
 
 
+class UMLClassifierBoxObject(_ObjectBase):
+    """UML classifier box — three-compartment notation primitive.
+
+    Phase A.2 of the UML support architecture. The composer
+    (Phase A.3) generates instances of this from typed UML model
+    elements; authors may also instantiate it directly to hand-place
+    a classifier outside the composer's auto-layout.
+
+    `attributes` and `operations` accept the same field shapes as
+    `framegraph._uml.UMLAttribute` / `UMLOperation` — the renderer
+    is permissive on unknown extras, so feeding in raw model objects
+    via `model_dump()` works.
+    """
+
+    type: Literal["uml.classifier_box"]
+    name: str
+    stereotype: str | None = None
+    abstract: bool | None = None
+    attributes: list[dict[str, Any]] | None = None
+    operations: list[dict[str, Any]] | None = None
+    style: dict[str, Any] | None = None
+
+
 class _UnknownObject(_ObjectBase):
     """Fall-through for third-party `register(type_name, fn)` types.
 
@@ -404,7 +427,8 @@ KnownObject = Annotated[
     | ChipRowObject
     | BarChartObject
     | LineChartObject
-    | TableObject,
+    | TableObject
+    | UMLClassifierBoxObject,
     Field(discriminator="type"),
 ]
 
