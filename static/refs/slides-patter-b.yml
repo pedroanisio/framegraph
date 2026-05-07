@@ -1,0 +1,870 @@
+big4_consulting_slide_template_patterns:
+  - id: 51
+    name: Situation Complication Resolution
+    consulting_use: "Classic executive storyline structure."
+    layout_disposition: "Three stacked or side-by-side blocks explaining current state, tension, and proposed resolution."
+    zones:
+      - role: situation
+        position: left_or_top
+        size: equal_block
+      - role: complication
+        position: center
+        size: equal_block
+      - role: resolution
+        position: right_or_bottom
+        size: equal_block
+
+  - id: 52
+    name: Pyramid Principle Message Slide
+    consulting_use: "Top-down communication with answer-first logic."
+    layout_disposition: "One headline answer at top, supported by 3 to 5 grouped evidence blocks below."
+    zones:
+      - role: governing_thought
+        position: top
+        size: dominant
+      - role: support_arguments
+        position: middle_grid
+        size: equal_cards
+      - role: evidence_notes
+        position: bottom
+        size: small
+
+  - id: 53
+    name: Key Takeaway With Evidence
+    consulting_use: "Board-ready slide with conclusion first."
+    layout_disposition: "Sharp takeaway headline above one dominant visual or data table."
+    zones:
+      - role: takeaway_headline
+        position: top
+        size: large
+      - role: evidence_visual
+        position: center
+        size: dominant
+      - role: implication
+        position: bottom_right
+        size: medium
+
+  - id: 54
+    name: Issue Tree
+    consulting_use: "Problem decomposition into mutually exclusive, collectively exhaustive branches."
+    layout_disposition: "Left-to-right branching tree from main question to sub-issues."
+    zones:
+      - role: core_question
+        position: left
+        size: large_node
+      - role: issue_branches
+        position: center
+        size: tree_nodes
+      - role: sub_issues
+        position: right
+        size: smaller_nodes
+
+  - id: 55
+    name: Hypothesis Tree
+    consulting_use: "Structured validation of an initial business hypothesis."
+    layout_disposition: "Main hypothesis at top or left, with supporting hypotheses and tests beneath."
+    zones:
+      - role: main_hypothesis
+        position: top_or_left
+        size: dominant
+      - role: supporting_hypotheses
+        position: middle
+        size: branching_nodes
+      - role: validation_tests
+        position: bottom_or_right
+        size: small_cards
+
+  - id: 56
+    name: MECE Framework Slide
+    consulting_use: "Shows categories that are non-overlapping and exhaustive."
+    layout_disposition: "Clean segmented structure with equal buckets and no visual overlap."
+    zones:
+      - role: framework_title
+        position: top
+        size: medium
+      - role: mece_categories
+        position: center_grid
+        size: equal
+      - role: category_descriptions
+        position: inside_each_category
+        size: small
+
+  - id: 57
+    name: Driver Tree
+    consulting_use: "Breaks KPI or value metric into causal drivers."
+    layout_disposition: "Tree diagram flowing from target metric into first-order and second-order drivers."
+    zones:
+      - role: target_metric
+        position: left
+        size: large_node
+      - role: first_order_drivers
+        position: center
+        size: medium_nodes
+      - role: second_order_drivers
+        position: right
+        size: small_nodes
+
+  - id: 58
+    name: Value Driver Bridge
+    consulting_use: "Explains how initiatives translate into financial value."
+    layout_disposition: "Horizontal bridge from initiatives to operational levers to financial outcomes."
+    zones:
+      - role: initiatives
+        position: left_column
+        size: cards
+      - role: operational_levers
+        position: center_column
+        size: cards
+      - role: financial_impact
+        position: right_column
+        size: cards
+      - role: connectors
+        position: between_columns
+        size: arrows
+
+  - id: 59
+    name: Opportunity Sizing
+    consulting_use: "Quantifies market, cost, revenue, or efficiency opportunity."
+    layout_disposition: "Large headline number with supporting assumptions and calculation logic."
+    zones:
+      - role: opportunity_value
+        position: center_or_top_right
+        size: very_large
+      - role: assumptions
+        position: left_panel
+        size: list
+      - role: calculation_breakdown
+        position: bottom
+        size: table_or_equation_flow
+
+  - id: 60
+    name: Market Sizing TAM SAM SOM
+    consulting_use: "Shows total, serviceable, and obtainable market."
+    layout_disposition: "Nested circles, funnel, or stacked market-size blocks."
+    zones:
+      - role: tam
+        position: outer_or_top
+        size: largest
+      - role: sam
+        position: middle
+        size: medium
+      - role: som
+        position: inner_or_bottom
+        size: smallest
+      - role: assumptions
+        position: side_panel
+        size: small
+
+  - id: 61
+    name: Profit Pool Analysis
+    consulting_use: "Identifies where value is captured across an industry chain."
+    layout_disposition: "Value chain on x-axis with profit or margin bars over each segment."
+    zones:
+      - role: value_chain_segments
+        position: bottom_axis
+        size: full_width
+      - role: profit_bars
+        position: center
+        size: variable
+      - role: insight_callouts
+        position: near_largest_pools
+        size: medium
+
+  - id: 62
+    name: Cost Breakdown
+    consulting_use: "Decomposes cost base by category, function, or process."
+    layout_disposition: "Stacked bar, waterfall, or nested cost blocks."
+    zones:
+      - role: total_cost
+        position: top_left
+        size: large
+      - role: cost_categories
+        position: center
+        size: chart_or_blocks
+      - role: reduction_opportunities
+        position: right_panel
+        size: list
+
+  - id: 63
+    name: Cost Transformation Levers
+    consulting_use: "Shows efficiency levers and estimated savings."
+    layout_disposition: "Rows of levers with impact, feasibility, and ownership."
+    zones:
+      - role: levers
+        position: left_column
+        size: list
+      - role: savings_impact
+        position: center_column
+        size: metric_cells
+      - role: feasibility
+        position: right_column
+        size: score_cells
+      - role: owner_timing
+        position: far_right
+        size: small
+
+  - id: 64
+    name: Revenue Growth Levers
+    consulting_use: "Maps growth initiatives to revenue impact."
+    layout_disposition: "Grouped cards by acquisition, conversion, retention, pricing, and expansion."
+    zones:
+      - role: growth_categories
+        position: top_row
+        size: columns
+      - role: initiatives
+        position: below_each_category
+        size: cards
+      - role: revenue_uplift
+        position: bottom_row
+        size: metrics
+
+  - id: 65
+    name: EBITDA Improvement Bridge
+    consulting_use: "Shows path from baseline EBITDA to target EBITDA."
+    layout_disposition: "Waterfall chart with operational and financial improvement levers."
+    zones:
+      - role: baseline_ebitda
+        position: leftmost
+        size: bar
+      - role: improvement_levers
+        position: middle
+        size: waterfall_steps
+      - role: target_ebitda
+        position: rightmost
+        size: bar
+      - role: commentary
+        position: bottom
+        size: small
+
+  - id: 66
+    name: Business Case Summary
+    consulting_use: "Summarizes investment, benefits, payback, and risks."
+    layout_disposition: "Executive table or dashboard with financial metrics and assumptions."
+    zones:
+      - role: investment_required
+        position: top_left
+        size: metric_card
+      - role: expected_benefits
+        position: top_center
+        size: metric_card
+      - role: payback_period
+        position: top_right
+        size: metric_card
+      - role: assumptions_and_risks
+        position: bottom
+        size: table
+
+  - id: 67
+    name: NPV IRR Payback Slide
+    consulting_use: "Evaluates financial attractiveness of an initiative."
+    layout_disposition: "Three major financial metrics supported by cash-flow chart."
+    zones:
+      - role: npv
+        position: top_left
+        size: metric_card
+      - role: irr
+        position: top_center
+        size: metric_card
+      - role: payback
+        position: top_right
+        size: metric_card
+      - role: cash_flow_chart
+        position: bottom
+        size: wide_chart
+
+  - id: 68
+    name: Scenario Analysis
+    consulting_use: "Compares base, upside, and downside cases."
+    layout_disposition: "Three-column scenario comparison with key assumptions and outcomes."
+    zones:
+      - role: downside_case
+        position: left_column
+        size: equal
+      - role: base_case
+        position: center_column
+        size: equal
+      - role: upside_case
+        position: right_column
+        size: equal
+      - role: sensitivity_notes
+        position: bottom
+        size: small
+
+  - id: 69
+    name: Sensitivity Analysis
+    consulting_use: "Shows how outcomes change under variable assumptions."
+    layout_disposition: "Tornado chart, sensitivity table, or variable-impact matrix."
+    zones:
+      - role: variables
+        position: left_axis
+        size: list
+      - role: impact_ranges
+        position: center
+        size: horizontal_bars
+      - role: base_case_marker
+        position: chart_center
+        size: marker
+      - role: interpretation
+        position: right_panel
+        size: medium
+
+  - id: 70
+    name: Strategic Options Assessment
+    consulting_use: "Evaluates possible strategic moves."
+    layout_disposition: "Options listed as rows with criteria, scores, and recommendation status."
+    zones:
+      - role: strategic_options
+        position: left_column
+        size: rows
+      - role: evaluation_criteria
+        position: top_axis
+        size: columns
+      - role: scores
+        position: matrix_body
+        size: grid
+      - role: recommendation
+        position: right_column
+        size: highlight
+
+  - id: 71
+    name: Option Evaluation Matrix
+    consulting_use: "Ranks alternatives using weighted criteria."
+    layout_disposition: "Weighted score table with total score and preferred option highlighted."
+    zones:
+      - role: options
+        position: left_axis
+        size: rows
+      - role: criteria
+        position: top_axis
+        size: columns
+      - role: weighted_scores
+        position: matrix_body
+        size: cells
+      - role: total_score
+        position: right_column
+        size: numeric
+
+  - id: 72
+    name: Investment Prioritization Matrix
+    consulting_use: "Prioritizes initiatives by value and feasibility."
+    layout_disposition: "2x2 matrix with initiatives plotted and recommended zone highlighted."
+    zones:
+      - role: value_axis
+        position: vertical_axis
+        size: full_height
+      - role: feasibility_axis
+        position: horizontal_axis
+        size: full_width
+      - role: initiatives
+        position: matrix_body
+        size: bubbles
+      - role: priority_zone
+        position: top_right
+        size: highlighted_area
+
+  - id: 73
+    name: Initiative Portfolio
+    consulting_use: "Shows grouped initiatives across themes, value, timing, and dependency."
+    layout_disposition: "Portfolio grid with initiative cards grouped by strategic theme."
+    zones:
+      - role: strategic_themes
+        position: columns_or_rows
+        size: grouped_sections
+      - role: initiative_cards
+        position: within_theme_sections
+        size: cards
+      - role: impact_tags
+        position: card_top_or_corner
+        size: small
+      - role: timing_tags
+        position: card_bottom
+        size: small
+
+  - id: 74
+    name: Transformation Roadmap
+    consulting_use: "Shows multi-wave change program over time."
+    layout_disposition: "Horizontal roadmap divided into waves, workstreams, and milestones."
+    zones:
+      - role: time_periods
+        position: top_axis
+        size: columns
+      - role: workstreams
+        position: left_axis
+        size: rows
+      - role: initiatives
+        position: roadmap_body
+        size: bars_or_cards
+      - role: milestones
+        position: along_time_axis
+        size: markers
+
+  - id: 75
+    name: Wave Plan
+    consulting_use: "Breaks transformation into sequential execution waves."
+    layout_disposition: "Three to five large wave blocks arranged left to right."
+    zones:
+      - role: wave_blocks
+        position: horizontal_sequence
+        size: equal_or_progressive
+      - role: wave_objectives
+        position: inside_each_wave
+        size: text
+      - role: key_deliverables
+        position: below_each_wave
+        size: list
+      - role: transition_points
+        position: between_waves
+        size: arrows
+
+  - id: 76
+    name: 30 60 90 Day Plan
+    consulting_use: "Immediate action plan for execution or leadership transition."
+    layout_disposition: "Three-column timeline for first 30, 60, and 90 days."
+    zones:
+      - role: first_30_days
+        position: left_column
+        size: equal
+      - role: days_31_60
+        position: center_column
+        size: equal
+      - role: days_61_90
+        position: right_column
+        size: equal
+      - role: outcomes
+        position: bottom_row
+        size: summary
+
+  - id: 77
+    name: Workstream Plan
+    consulting_use: "Organizes delivery by parallel workstreams."
+    layout_disposition: "Rows for workstreams with activities, owners, milestones, and risks."
+    zones:
+      - role: workstreams
+        position: left_axis
+        size: rows
+      - role: activities
+        position: center_timeline
+        size: bars
+      - role: owners
+        position: right_column
+        size: labels
+      - role: risks_dependencies
+        position: far_right_or_bottom
+        size: small
+
+  - id: 78
+    name: Governance Model
+    consulting_use: "Defines decision forums, accountabilities, and escalation paths."
+    layout_disposition: "Layered hierarchy of steering committee, working groups, and execution teams."
+    zones:
+      - role: steering_committee
+        position: top
+        size: wide_block
+      - role: governance_forums
+        position: middle
+        size: grouped_blocks
+      - role: execution_teams
+        position: bottom
+        size: blocks
+      - role: escalation_paths
+        position: between_layers
+        size: arrows
+
+  - id: 79
+    name: Operating Model
+    consulting_use: "Describes how an organization should function."
+    layout_disposition: "Multi-pillar framework covering structure, process, people, technology, and governance."
+    zones:
+      - role: operating_model_pillars
+        position: center_grid
+        size: equal_columns
+      - role: current_state_notes
+        position: top_or_left
+        size: optional
+      - role: target_state_notes
+        position: bottom_or_right
+        size: optional
+      - role: integration_layer
+        position: across_pillars
+        size: horizontal_band
+
+  - id: 80
+    name: Capability Model
+    consulting_use: "Maps business capabilities by domain and maturity."
+    layout_disposition: "Capability blocks grouped into domains, often heatmapped by maturity."
+    zones:
+      - role: capability_domains
+        position: rows_or_columns
+        size: grouped_sections
+      - role: capabilities
+        position: inside_domains
+        size: blocks
+      - role: maturity_indicator
+        position: block_color_or_label
+        size: contextual
+      - role: legend
+        position: side_or_bottom
+        size: small
+
+  - id: 81
+    name: Maturity Assessment
+    consulting_use: "Assesses current maturity against target maturity."
+    layout_disposition: "Rows of dimensions with current and target levels on a maturity scale."
+    zones:
+      - role: dimensions
+        position: left_column
+        size: rows
+      - role: maturity_scale
+        position: center
+        size: horizontal_levels
+      - role: current_state_marker
+        position: on_scale
+        size: marker
+      - role: target_state_marker
+        position: on_scale
+        size: marker
+
+  - id: 82
+    name: Gap Analysis
+    consulting_use: "Compares current state to target state and identifies gaps."
+    layout_disposition: "Three-column layout: current state, gap, target state."
+    zones:
+      - role: current_state
+        position: left_column
+        size: equal
+      - role: gaps
+        position: center_column
+        size: equal
+      - role: target_state
+        position: right_column
+        size: equal
+      - role: actions
+        position: bottom
+        size: list
+
+  - id: 83
+    name: Current State Assessment
+    consulting_use: "Summarizes diagnostic findings."
+    layout_disposition: "Findings grouped by dimension with evidence and severity indicators."
+    zones:
+      - role: assessment_dimensions
+        position: left_or_top
+        size: labels
+      - role: findings
+        position: center_grid
+        size: cards
+      - role: severity
+        position: card_corner_or_right_column
+        size: icons
+      - role: evidence
+        position: bottom
+        size: small
+
+  - id: 84
+    name: Target State Blueprint
+    consulting_use: "Defines desired future-state architecture or organization."
+    layout_disposition: "Layered blueprint with target capabilities, processes, systems, and governance."
+    zones:
+      - role: target_layers
+        position: stacked_vertical
+        size: wide_bands
+      - role: future_capabilities
+        position: inside_layers
+        size: blocks
+      - role: enabling_systems
+        position: bottom_layer
+        size: blocks
+      - role: design_principles
+        position: side_panel
+        size: list
+
+  - id: 85
+    name: Design Principles
+    consulting_use: "States guiding principles for transformation or solution design."
+    layout_disposition: "Numbered principle cards with rationale and implications."
+    zones:
+      - role: principles
+        position: center_grid
+        size: cards
+      - role: rationale
+        position: inside_cards
+        size: small
+      - role: implications
+        position: bottom_of_cards
+        size: small
+      - role: headline
+        position: top
+        size: large
+
+  - id: 86
+    name: Decision Rights Matrix
+    consulting_use: "Clarifies who decides, recommends, informs, or executes."
+    layout_disposition: "Matrix mapping decision categories to roles and decision rights."
+    zones:
+      - role: decision_categories
+        position: left_axis
+        size: rows
+      - role: roles
+        position: top_axis
+        size: columns
+      - role: decision_rights
+        position: matrix_body
+        size: symbols
+      - role: legend
+        position: bottom
+        size: small
+
+  - id: 87
+    name: RACI Matrix
+    consulting_use: "Clarifies responsibility and accountability."
+    layout_disposition: "Responsibility table with tasks as rows and roles as columns."
+    zones:
+      - role: activities
+        position: left_axis
+        size: rows
+      - role: roles
+        position: top_axis
+        size: columns
+      - role: raci_cells
+        position: matrix_body
+        size: symbols
+      - role: legend
+        position: bottom_right
+        size: small
+
+  - id: 88
+    name: Stakeholder Influence Interest Map
+    consulting_use: "Segments stakeholders by influence and interest."
+    layout_disposition: "2x2 matrix with stakeholders plotted as labeled dots or cards."
+    zones:
+      - role: influence_axis
+        position: vertical_axis
+        size: full_height
+      - role: interest_axis
+        position: horizontal_axis
+        size: full_width
+      - role: stakeholders
+        position: matrix_body
+        size: markers
+      - role: engagement_strategy
+        position: quadrant_labels
+        size: small
+
+  - id: 89
+    name: Change Impact Assessment
+    consulting_use: "Shows who is impacted by a change and how strongly."
+    layout_disposition: "Heatmap by stakeholder group and change dimension."
+    zones:
+      - role: stakeholder_groups
+        position: left_axis
+        size: rows
+      - role: change_dimensions
+        position: top_axis
+        size: columns
+      - role: impact_scores
+        position: matrix_body
+        size: heatmap_cells
+      - role: mitigation_actions
+        position: right_panel
+        size: list
+
+  - id: 90
+    name: Change Adoption Curve
+    consulting_use: "Tracks adoption maturity over time."
+    layout_disposition: "Curve or staged path from awareness to commitment and adoption."
+    zones:
+      - role: adoption_stages
+        position: horizontal_axis
+        size: full_width
+      - role: adoption_curve
+        position: center
+        size: large
+      - role: interventions
+        position: below_curve
+        size: cards
+      - role: adoption_metrics
+        position: right_panel
+        size: metric_cards
+
+  - id: 91
+    name: Communications Plan
+    consulting_use: "Plans stakeholder messaging across audiences and channels."
+    layout_disposition: "Table with audience, message, channel, frequency, owner, and timing."
+    zones:
+      - role: audiences
+        position: left_column
+        size: rows
+      - role: key_messages
+        position: center_left
+        size: text_cells
+      - role: channels_frequency
+        position: center_right
+        size: cells
+      - role: owner_timing
+        position: right_column
+        size: cells
+
+  - id: 92
+    name: Risk Register Summary
+    consulting_use: "Summarizes key risks, severity, mitigation, and owner."
+    layout_disposition: "Table sorted by severity with color-coded risk status."
+    zones:
+      - role: risk_items
+        position: left_column
+        size: rows
+      - role: probability_impact
+        position: center_columns
+        size: score_cells
+      - role: mitigation
+        position: right_center
+        size: text_cells
+      - role: owner_status
+        position: right_column
+        size: labels
+
+  - id: 93
+    name: RAID Log
+    consulting_use: "Tracks risks, assumptions, issues, and dependencies."
+    layout_disposition: "Four-section table or quadrant layout for RAID categories."
+    zones:
+      - role: risks
+        position: top_left
+        size: quadrant
+      - role: assumptions
+        position: top_right
+        size: quadrant
+      - role: issues
+        position: bottom_left
+        size: quadrant
+      - role: dependencies
+        position: bottom_right
+        size: quadrant
+
+  - id: 94
+    name: Dependency Map
+    consulting_use: "Shows dependencies across teams, initiatives, systems, or milestones."
+    layout_disposition: "Network or timeline-based dependency diagram."
+    zones:
+      - role: dependency_nodes
+        position: canvas
+        size: variable
+      - role: dependency_links
+        position: between_nodes
+        size: arrows
+      - role: critical_dependencies
+        position: highlighted_nodes_or_links
+        size: contextual
+      - role: legend
+        position: bottom_or_side
+        size: small
+
+  - id: 95
+    name: Implementation Plan
+    consulting_use: "Defines execution activities across time, owners, and deliverables."
+    layout_disposition: "Gantt-like activity plan with swimlanes and milestones."
+    zones:
+      - role: activities
+        position: timeline_body
+        size: bars
+      - role: workstreams
+        position: left_axis
+        size: rows
+      - role: timeline
+        position: top_axis
+        size: columns
+      - role: milestones
+        position: across_timeline
+        size: markers
+
+  - id: 96
+    name: Benefits Realization Plan
+    consulting_use: "Connects initiatives to measurable business benefits."
+    layout_disposition: "Chain from initiative to KPI to benefit owner to realization timing."
+    zones:
+      - role: initiatives
+        position: left_column
+        size: cards
+      - role: kpis
+        position: center_left
+        size: metric_cards
+      - role: benefits
+        position: center_right
+        size: value_cards
+      - role: owners_timing
+        position: right_column
+        size: labels
+
+  - id: 97
+    name: KPI Tree
+    consulting_use: "Links strategic objectives to KPIs and operational metrics."
+    layout_disposition: "Hierarchical tree from objectives to KPIs to measures."
+    zones:
+      - role: strategic_objectives
+        position: left_or_top
+        size: large_nodes
+      - role: kpis
+        position: middle
+        size: medium_nodes
+      - role: operational_metrics
+        position: right_or_bottom
+        size: small_nodes
+      - role: connectors
+        position: between_levels
+        size: lines
+
+  - id: 98
+    name: Executive Decision Slide
+    consulting_use: "Asks leadership to approve a decision."
+    layout_disposition: "Decision request at top, options in middle, recommendation and ask at bottom."
+    zones:
+      - role: decision_required
+        position: top
+        size: large
+      - role: options_considered
+        position: middle
+        size: comparison_cards
+      - role: recommendation
+        position: bottom_left
+        size: highlighted_card
+      - role: leadership_ask
+        position: bottom_right
+        size: callout
+
+  - id: 99
+    name: Steering Committee Update
+    consulting_use: "Periodic program update for senior sponsors."
+    layout_disposition: "Status dashboard with progress, risks, decisions, and next milestones."
+    zones:
+      - role: overall_status
+        position: top_left
+        size: status_card
+      - role: progress_summary
+        position: top_center
+        size: card
+      - role: key_risks_issues
+        position: middle_left
+        size: table
+      - role: decisions_needed
+        position: middle_right
+        size: table
+      - role: next_milestones
+        position: bottom
+        size: timeline
+
+  - id: 100
+    name: Executive Appendix Detail
+    consulting_use: "Backup slide for detailed analysis behind a recommendation."
+    layout_disposition: "Dense but structured slide with detailed tables, assumptions, and references."
+    zones:
+      - role: analysis_title
+        position: top
+        size: medium
+      - role: detailed_table_or_model
+        position: center
+        size: dominant
+      - role: assumptions
+        position: side_or_bottom
+        size: small
+      - role: source_notes
+        position: footer
+        size: tiny
