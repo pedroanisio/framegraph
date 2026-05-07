@@ -1,790 +1,1095 @@
 slide_template_patterns:
-  - id: 1
-    name: Title Slide
-    layout_disposition: "Full-bleed or clean centered composition with a large title, optional subtitle, logo, date, and presenter name."
-    zones:
-      - role: title
-        position: center
-        size: large
-      - role: subtitle
-        position: below_title
-        size: medium
-      - role: metadata
-        position: bottom_left_or_bottom_right
-        size: small
-
-  - id: 2
-    name: Section Divider
-    layout_disposition: "Minimal slide separating major sections, usually with a large section number and title."
-    zones:
-      - role: section_number
-        position: left_or_top
-        size: large
-      - role: section_title
-        position: center_or_right
-        size: large
-      - role: decorative_element
-        position: background_or_edge
-        size: variable
-
-  - id: 3
-    name: Agenda Slide
-    layout_disposition: "Vertical numbered list of topics, often with the current section highlighted."
-    zones:
-      - role: heading
-        position: top
-        size: medium
-      - role: agenda_items
-        position: center
-        size: large_list
-      - role: progress_indicator
-        position: side_or_bottom
-        size: small
-
-  - id: 4
-    name: Executive Summary
-    layout_disposition: "Top headline followed by three to five key summary blocks or cards."
-    zones:
-      - role: headline
-        position: top
-        size: large
-      - role: summary_cards
-        position: middle_grid
-        size: equal
-      - role: takeaway
-        position: bottom
-        size: medium
-
-  - id: 5
-    name: Problem Statement
-    layout_disposition: "Large problem headline with supporting evidence, pain points, or context blocks."
-    zones:
-      - role: problem_headline
-        position: top_left
-        size: large
-      - role: evidence
-        position: right_or_bottom
-        size: medium
-      - role: pain_points
-        position: lower_section
-        size: list
-
-  - id: 6
-    name: Solution Overview
-    layout_disposition: "Central solution concept surrounded by benefits, capabilities, or supporting pillars."
-    zones:
-      - role: solution_name
-        position: center
-        size: large
-      - role: benefits
-        position: surrounding_or_below
-        size: cards
-      - role: visual
-        position: left_or_background
-        size: medium
-
-  - id: 7
-    name: Before / After
-    layout_disposition: "Two-column contrast layout showing current state versus future state."
-    zones:
-      - role: before
-        position: left_column
-        size: half_width
-      - role: after
-        position: right_column
-        size: half_width
-      - role: transition_arrow
-        position: center
-        size: small
-
-  - id: 8
-    name: Comparison Table
-    layout_disposition: "Rows of criteria compared across two or more options."
-    zones:
-      - role: heading
-        position: top
-        size: medium
-      - role: table
-        position: center
-        size: large
-      - role: highlight
-        position: table_cells
-        size: contextual
-
-  - id: 9
-    name: Feature Matrix
-    layout_disposition: "Grid comparing products, plans, or capabilities against feature rows."
-    zones:
-      - role: feature_rows
-        position: left_axis
-        size: list
-      - role: option_columns
-        position: top_axis
-        size: columns
-      - role: availability_cells
-        position: matrix_body
-        size: grid
-
-  - id: 10
-    name: SWOT Analysis
-    layout_disposition: "Four-quadrant matrix: strengths, weaknesses, opportunities, and threats."
-    zones:
-      - role: strengths
-        position: top_left
-        size: quadrant
-      - role: weaknesses
-        position: top_right
-        size: quadrant
-      - role: opportunities
-        position: bottom_left
-        size: quadrant
-      - role: threats
-        position: bottom_right
-        size: quadrant
-
-  - id: 11
-    name: Roadmap
-    layout_disposition: "Horizontal or vertical sequence of phases over time."
-    zones:
-      - role: time_axis
-        position: bottom_or_left
-        size: full_length
-      - role: phases
-        position: along_axis
-        size: cards
-      - role: milestones
-        position: inside_phases
-        size: small
-
-  - id: 12
-    name: Timeline
-    layout_disposition: "Linear chronological layout with events placed along a time axis."
-    zones:
-      - role: timeline_axis
-        position: center_horizontal
-        size: full_width
-      - role: event_markers
-        position: along_axis
-        size: small
-      - role: event_descriptions
-        position: above_and_below_axis
-        size: medium
-
-  - id: 13
-    name: Milestone Tracker
-    layout_disposition: "Progress-oriented sequence showing completed, active, and upcoming milestones."
-    zones:
-      - role: milestone_sequence
-        position: center
-        size: horizontal_steps
-      - role: status_indicators
-        position: on_each_milestone
-        size: small
-      - role: dates
-        position: below_each_milestone
-        size: small
-
-  - id: 14
-    name: Process Flow
-    layout_disposition: "Step-by-step flow connected by arrows or connectors."
-    zones:
-      - role: process_steps
-        position: left_to_right_or_top_to_bottom
-        size: equal_cards
-      - role: connectors
-        position: between_steps
-        size: small
-      - role: explanation
-        position: below_steps
-        size: optional
-
-  - id: 15
-    name: Workflow Diagram
-    layout_disposition: "Operational flow showing actors, systems, decisions, and handoffs."
-    zones:
-      - role: actors
-        position: swimlanes_or_columns
-        size: variable
-      - role: workflow_nodes
-        position: inside_lanes
-        size: cards
-      - role: connectors
-        position: between_nodes
-        size: arrows
-
-  - id: 16
-    name: Funnel Diagram
-    layout_disposition: "Descending stacked segments representing conversion stages."
-    zones:
-      - role: funnel_stages
-        position: center_vertical
-        size: decreasing_width
-      - role: metrics
-        position: inside_or_right_of_stages
-        size: medium
-      - role: stage_labels
-        position: left_or_inside
-        size: small
-
-  - id: 17
-    name: Flywheel Diagram
-    layout_disposition: "Circular loop showing reinforcing stages or feedback cycles."
-    zones:
-      - role: circular_flow
-        position: center
-        size: large
-      - role: cycle_steps
-        position: around_circle
-        size: equal
-      - role: central_concept
-        position: center
-        size: medium
-
-  - id: 18
-    name: Pyramid Diagram
-    layout_disposition: "Stacked hierarchy from broad base to focused top."
-    zones:
-      - role: hierarchy_layers
-        position: center_vertical
-        size: stacked_segments
-      - role: labels
-        position: inside_layers
-        size: medium
-      - role: explanation
-        position: right_side
-        size: optional
-
-  - id: 19
-    name: Venn Diagram
-    layout_disposition: "Overlapping circles showing shared and distinct attributes."
-    zones:
-      - role: circle_a
-        position: left_overlap
-        size: large
-      - role: circle_b
-        position: right_overlap
-        size: large
-      - role: intersection
-        position: center_overlap
-        size: medium
-      - role: labels
-        position: inside_or_near_circles
-        size: small
-
-  - id: 20
-    name: Matrix / 2x2 Grid
-    layout_disposition: "Two-axis grid dividing content into four conceptual zones."
-    zones:
-      - role: x_axis
-        position: bottom
-        size: full_width
-      - role: y_axis
-        position: left
-        size: full_height
-      - role: quadrants
-        position: grid_body
-        size: equal
-
-  - id: 21
-    name: Quadrant Analysis
-    layout_disposition: "Four-quadrant analysis with items plotted by two variables."
-    zones:
-      - role: axis_labels
-        position: edges
-        size: small
-      - role: plotted_items
-        position: quadrant_space
-        size: dots_or_labels
-      - role: recommended_zone
-        position: highlighted_quadrant
-        size: contextual
-
-  - id: 22
-    name: Scorecard
-    layout_disposition: "Compact evaluation table with criteria, scores, status, and notes."
-    zones:
-      - role: criteria
-        position: left_column
-        size: medium
-      - role: scores
-        position: middle_columns
-        size: numeric
-      - role: status
-        position: right_column
-        size: icons
-      - role: notes
-        position: far_right_or_bottom
-        size: small
-
-  - id: 23
-    name: KPI Dashboard
-    layout_disposition: "Dashboard grid with key metrics, charts, and status indicators."
-    zones:
-      - role: kpi_cards
-        position: top_row
-        size: equal
-      - role: charts
-        position: middle_grid
-        size: large
-      - role: insights
-        position: bottom_or_right
-        size: medium
-
-  - id: 24
-    name: Metrics Snapshot
-    layout_disposition: "Large numeric indicators with short labels and trends."
-    zones:
-      - role: metric_numbers
-        position: center_grid
-        size: very_large
-      - role: labels
-        position: below_numbers
-        size: small
-      - role: trend_indicators
-        position: near_numbers
-        size: small
-
-  - id: 25
-    name: Data Chart Slide
-    layout_disposition: "Single dominant chart with title, legend, and insight annotation."
-    zones:
-      - role: chart
-        position: center
-        size: dominant
-      - role: title
-        position: top
-        size: medium
-      - role: legend
-        position: right_or_bottom
-        size: small
-      - role: insight_annotation
-        position: near_chart_highlight
-        size: medium
-
-  - id: 26
-    name: Bar Chart Slide
-    layout_disposition: "Categorical comparison using horizontal or vertical bars."
-    zones:
-      - role: bar_chart
-        position: center
-        size: large
-      - role: category_axis
-        position: left_or_bottom
-        size: axis
-      - role: value_axis
-        position: bottom_or_left
-        size: axis
-      - role: callout
-        position: near_largest_or_smallest_bar
-        size: medium
-
-  - id: 27
-    name: Line Chart Slide
-    layout_disposition: "Trend visualization over time with one or more lines."
-    zones:
-      - role: line_chart
-        position: center
-        size: large
-      - role: time_axis
-        position: bottom
-        size: full_width
-      - role: value_axis
-        position: left
-        size: full_height
-      - role: trend_annotation
-        position: near_inflection_point
-        size: medium
-
-  - id: 28
-    name: Pie / Donut Chart Slide
-    layout_disposition: "Circular proportion chart with labels and a central or side insight."
-    zones:
-      - role: chart
-        position: left_or_center
-        size: large
-      - role: labels
-        position: around_chart_or_right
-        size: small
-      - role: key_takeaway
-        position: center_of_donut_or_right_panel
-        size: medium
-
-  - id: 29
-    name: Waterfall Chart Slide
-    layout_disposition: "Sequential bars showing positive and negative contributions to a final value."
-    zones:
-      - role: waterfall_chart
-        position: center
-        size: large
-      - role: start_value
-        position: leftmost_bar
-        size: bar
-      - role: changes
-        position: middle_bars
-        size: variable
-      - role: end_value
-        position: rightmost_bar
-        size: bar
-
-  - id: 30
-    name: Heatmap Slide
-    layout_disposition: "Grid where intensity indicates magnitude, risk, score, or frequency."
-    zones:
-      - role: matrix_grid
-        position: center
-        size: large
-      - role: row_labels
-        position: left_axis
-        size: small
-      - role: column_labels
-        position: top_axis
-        size: small
-      - role: color_legend
-        position: right_or_bottom
-        size: small
-
-  - id: 31
-    name: Map / Geographic Slide
-    layout_disposition: "Map-centered slide with regional markers, labels, or overlays."
-    zones:
-      - role: map
-        position: center_or_full_bleed
-        size: dominant
-      - role: markers
-        position: on_map
-        size: small
-      - role: regional_metrics
-        position: side_panel_or_callouts
-        size: medium
-
-  - id: 32
-    name: Org Chart
-    layout_disposition: "Hierarchical tree of people, teams, or reporting relationships."
-    zones:
-      - role: root_node
-        position: top_center
-        size: card
-      - role: child_nodes
-        position: lower_levels
-        size: cards
-      - role: connectors
-        position: between_nodes
-        size: lines
-
-  - id: 33
-    name: Team Introduction
-    layout_disposition: "Grid of profile cards with photo, name, role, and short bio."
-    zones:
-      - role: profile_cards
-        position: center_grid
-        size: equal
-      - role: photos
-        position: top_of_each_card
-        size: medium
-      - role: names_roles
-        position: below_photos
-        size: small
-      - role: heading
-        position: top
-        size: medium
-
-  - id: 34
-    name: Role & Responsibility Matrix
-    layout_disposition: "Matrix mapping roles to responsibilities, often using RACI symbols."
-    zones:
-      - role: roles
-        position: top_axis
-        size: columns
-      - role: responsibilities
-        position: left_axis
-        size: rows
-      - role: assignment_cells
-        position: matrix_body
-        size: grid
-
-  - id: 35
-    name: Stakeholder Map
-    layout_disposition: "Map of stakeholders positioned by influence, interest, or relationship."
-    zones:
-      - role: stakeholder_nodes
-        position: canvas_or_matrix
-        size: variable
-      - role: grouping_regions
-        position: background
-        size: large
-      - role: relationship_lines
-        position: between_nodes
-        size: thin
-
-  - id: 36
-    name: Customer Persona
-    layout_disposition: "Profile layout with customer photo, demographics, needs, pains, and goals."
-    zones:
-      - role: persona_image
-        position: left
-        size: large
-      - role: demographics
-        position: top_right
-        size: medium
-      - role: needs_pains_goals
-        position: lower_right
-        size: cards_or_lists
-      - role: quote
-        position: bottom_or_near_image
-        size: medium
-
-  - id: 37
-    name: Customer Journey Map
-    layout_disposition: "Horizontal journey stages with actions, emotions, pain points, and opportunities."
-    zones:
-      - role: journey_stages
-        position: top_row
-        size: columns
-      - role: customer_actions
-        position: row_1
-        size: grid
-      - role: emotions
-        position: row_2
-        size: line_or_icons
-      - role: pain_points
-        position: row_3
-        size: grid
-      - role: opportunities
-        position: bottom_row
-        size: grid
-
-  - id: 38
-    name: Use Case Slide
-    layout_disposition: "Scenario-focused layout describing actor, trigger, flow, and outcome."
-    zones:
-      - role: actor
-        position: left
-        size: medium
-      - role: scenario
-        position: top_center
-        size: large
-      - role: flow_steps
-        position: center
-        size: sequence
-      - role: outcome
-        position: right_or_bottom
-        size: medium
-
-  - id: 39
-    name: Case Study Slide
-    layout_disposition: "Story layout with context, challenge, solution, and results."
-    zones:
-      - role: client_or_context
-        position: top_left
-        size: medium
-      - role: challenge
-        position: left_column
-        size: card
-      - role: solution
-        position: center_column
-        size: card
-      - role: results
-        position: right_column
-        size: card
-      - role: metrics
-        position: bottom
-        size: highlighted
-
-  - id: 40
-    name: Architecture Diagram
-    layout_disposition: "Layered or node-link technical diagram showing components and connections."
-    zones:
-      - role: system_layers
-        position: stacked_or_grouped
-        size: large
-      - role: components
-        position: inside_layers
-        size: nodes
-      - role: connectors
-        position: between_components
-        size: arrows
-      - role: legend
-        position: side_or_bottom
-        size: small
-
-  - id: 41
-    name: System Context Diagram
-    layout_disposition: "Central system surrounded by external users, systems, and integrations."
-    zones:
-      - role: central_system
-        position: center
-        size: large
-      - role: external_actors
-        position: around_center
-        size: nodes
-      - role: integrations
-        position: between_center_and_actors
-        size: connectors
-      - role: boundary
-        position: around_system
-        size: container
-
-  - id: 42
-    name: Product Screenshot Slide
-    layout_disposition: "Large screenshot with annotations, callouts, or feature highlights."
-    zones:
-      - role: screenshot
-        position: center_or_right
-        size: dominant
-      - role: callouts
-        position: around_screenshot
-        size: small
-      - role: explanation
-        position: left_panel_or_bottom
-        size: medium
-
-  - id: 43
-    name: Demo Flow Slide
-    layout_disposition: "Sequential screens or steps showing how a demo will proceed."
-    zones:
-      - role: demo_steps
-        position: horizontal_sequence
-        size: equal_cards
-      - role: screenshots
-        position: inside_steps
-        size: medium
-      - role: step_labels
-        position: above_or_below_steps
-        size: small
-      - role: arrows
-        position: between_steps
-        size: small
-
-  - id: 44
-    name: Business Model Canvas
-    layout_disposition: "Nine-block canvas showing key business model components."
-    zones:
-      - role: key_partners
-        position: far_left
-        size: vertical_block
-      - role: key_activities
-        position: upper_left_center
-        size: block
-      - role: key_resources
-        position: lower_left_center
-        size: block
-      - role: value_propositions
-        position: center
-        size: tall_block
-      - role: customer_relationships
-        position: upper_right_center
-        size: block
-      - role: channels
-        position: lower_right_center
-        size: block
-      - role: customer_segments
-        position: far_right
-        size: vertical_block
-      - role: cost_structure
-        position: bottom_left
-        size: wide_block
-      - role: revenue_streams
-        position: bottom_right
-        size: wide_block
-
-  - id: 45
-    name: Pricing Table
-    layout_disposition: "Columns for pricing plans with features, price, and recommended option highlight."
-    zones:
-      - role: pricing_columns
-        position: center_grid
-        size: equal_or_featured
-      - role: price
-        position: top_of_each_column
-        size: large
-      - role: feature_list
-        position: middle_of_each_column
-        size: list
-      - role: call_to_action
-        position: bottom_of_each_column
-        size: button_like
-
-  - id: 46
-    name: Go-to-Market Plan
-    layout_disposition: "Structured plan across target segments, channels, tactics, timeline, and metrics."
-    zones:
-      - role: target_segments
-        position: left_column
-        size: cards
-      - role: channels
-        position: center_column
-        size: cards
-      - role: tactics
-        position: right_column
-        size: cards
-      - role: timeline_or_metrics
-        position: bottom
-        size: horizontal_band
-
-  - id: 47
-    name: Risk Matrix
-    layout_disposition: "Likelihood-impact grid with risks plotted into severity zones."
-    zones:
-      - role: impact_axis
-        position: vertical_axis
-        size: full_height
-      - role: likelihood_axis
-        position: horizontal_axis
-        size: full_width
-      - role: risk_items
-        position: matrix_body
-        size: markers
-      - role: severity_zones
-        position: background_grid
-        size: quadrants_or_cells
-
-  - id: 48
-    name: Decision Tree
-    layout_disposition: "Branching diagram showing decisions, paths, and outcomes."
-    zones:
-      - role: root_decision
-        position: left_or_top
-        size: node
-      - role: branches
-        position: outward_from_root
-        size: connectors
-      - role: intermediate_decisions
-        position: middle_levels
-        size: nodes
-      - role: outcomes
-        position: right_or_bottom
-        size: terminal_nodes
-
-  - id: 49
-    name: Recommendations Slide
-    layout_disposition: "Prioritized list of recommendations with rationale and next actions."
-    zones:
-      - role: recommendation_cards
-        position: center_vertical_or_grid
-        size: medium
-      - role: priority_labels
-        position: left_of_each_card
-        size: small
-      - role: rationale
-        position: inside_cards
-        size: text
-      - role: next_steps
-        position: bottom
-        size: list
-
-  - id: 50
-    name: Closing / Thank You Slide
-    layout_disposition: "Minimal closing slide with thank-you message, contact details, and optional call to action."
-    zones:
-      - role: thank_you_message
-        position: center
-        size: large
-      - role: contact_info
-        position: bottom
-        size: small
-      - role: logo
-        position: top_or_bottom_corner
-        size: small
-      - role: final_call_to_action
-        position: below_message
-        size: medium
+- id: 1
+  name: Title Slide
+  layout_disposition: Full-bleed or clean centered composition with a large title, optional subtitle, logo, date, and presenter
+    name.
+  zones:
+  - role: title
+    size: large
+    placement: &id001
+      anchor:
+        h: center
+        v: middle
+  - role: subtitle
+    size: medium
+    placement:
+      relative:
+        relation: below
+        target: title
+  - role: metadata
+    size: small
+    placement:
+      anchor:
+        h: left
+        v: bottom
+- id: 2
+  name: Section Divider
+  layout_disposition: Minimal slide separating major sections, usually with a large section number and title.
+  zones:
+  - role: section_number
+    size: large
+    placement: &id028
+      anchor:
+        h: left
+        v: top
+  - role: section_title
+    size: large
+    placement: &id023
+      anchor:
+        h: center
+        v: middle
+  - role: decorative_element
+    size: variable
+    placement:
+      anchor:
+        h: center
+        v: middle
+- id: 3
+  name: Agenda Slide
+  layout_disposition: Vertical numbered list of topics, often with the current section highlighted.
+  zones:
+  - role: heading
+    size: medium
+    placement: &id002
+      anchor:
+        h: center
+        v: top
+  - role: agenda_items
+    size: large
+    placement: *id001
+  - role: progress_indicator
+    size: small
+    placement: &id022
+      anchor:
+        h: right
+        v: bottom
+- id: 4
+  name: Executive Summary
+  layout_disposition: Top headline followed by three to five key summary blocks or cards.
+  zones:
+  - role: headline
+    size: large
+    placement: *id002
+  - role: summary_cards
+    size: equal
+    placement: &id009
+      anchor:
+        h: center
+        v: middle
+  - role: takeaway
+    size: medium
+    placement: &id006
+      anchor:
+        h: center
+        v: bottom
+- id: 5
+  name: Problem Statement
+  layout_disposition: Large problem headline with supporting evidence, pain points, or context blocks.
+  zones:
+  - role: problem_headline
+    size: large
+    placement: &id003
+      anchor:
+        h: left
+        v: top
+  - role: evidence
+    size: medium
+    placement: &id010
+      anchor:
+        h: right
+        v: bottom
+  - role: pain_points
+    size: medium
+    placement:
+      anchor:
+        h: center
+        v: bottom
+    shape: list
+- id: 6
+  name: Solution Overview
+  layout_disposition: Central solution concept surrounded by benefits, capabilities, or supporting pillars.
+  zones:
+  - role: solution_name
+    size: large
+    placement: *id001
+  - role: benefits
+    size: medium
+    placement:
+      relative:
+        relation: around
+        target: solution_name
+    shape: card
+  - role: visual
+    size: medium
+    placement:
+      anchor:
+        h: left
+        v: middle
+- id: 7
+  name: Before / After
+  layout_disposition: Two-column contrast layout showing current state versus future state.
+  zones:
+  - role: before
+    size: medium
+    placement: &id007
+      anchor:
+        h: left
+        v: middle
+  - role: after
+    size: medium
+    placement: &id008
+      anchor:
+        h: right
+        v: middle
+  - role: transition_arrow
+    size: small
+    placement: *id001
+- id: 8
+  name: Comparison Table
+  layout_disposition: Rows of criteria compared across two or more options.
+  zones:
+  - role: heading
+    size: medium
+    placement: *id002
+  - role: table
+    size: large
+    placement: *id001
+  - role: highlight
+    size: contextual
+    placement:
+      region: matrix_body
+- id: 9
+  name: Feature Matrix
+  layout_disposition: Grid comparing products, plans, or capabilities against feature rows.
+  zones:
+  - role: feature_rows
+    size: medium
+    placement: &id013
+      anchor:
+        h: left
+        v: middle
+    shape: list
+  - role: option_columns
+    size: equal
+    placement: &id014
+      anchor:
+        h: center
+        v: top
+  - role: availability_cells
+    size: equal
+    placement: &id017
+      region: matrix_body
+- id: 10
+  name: SWOT Analysis
+  layout_disposition: 'Four-quadrant matrix: strengths, weaknesses, opportunities, and threats.'
+  zones:
+  - role: strengths
+    size: equal
+    placement: *id003
+  - role: weaknesses
+    size: equal
+    placement: &id018
+      anchor:
+        h: right
+        v: top
+  - role: opportunities
+    size: equal
+    placement: &id025
+      anchor:
+        h: left
+        v: bottom
+  - role: threats
+    size: equal
+    placement: &id026
+      anchor:
+        h: right
+        v: bottom
+- id: 11
+  name: Roadmap
+  layout_disposition: Horizontal or vertical sequence of phases over time.
+  zones:
+  - role: time_axis
+    size: full
+    placement: &id011
+      anchor:
+        h: center
+        v: bottom
+  - role: phases
+    size: medium
+    placement: &id004
+      relative:
+        relation: 'on'
+        target: timeline_axis
+    shape: card
+  - role: milestones
+    size: small
+    placement:
+      relative:
+        relation: inside
+        target: phases
+- id: 12
+  name: Timeline
+  layout_disposition: Linear chronological layout with events placed along a time axis.
+  zones:
+  - role: timeline_axis
+    size: full
+    placement:
+      anchor:
+        h: center
+        v: middle
+  - role: event_markers
+    size: small
+    placement: *id004
+  - role: event_descriptions
+    size: medium
+    placement:
+      relative:
+        relation: around
+        target: timeline_axis
+- id: 13
+  name: Milestone Tracker
+  layout_disposition: Progress-oriented sequence showing completed, active, and upcoming milestones.
+  zones:
+  - role: milestone_sequence
+    size: equal
+    placement: *id001
+  - role: status_indicators
+    size: small
+    placement:
+      relative:
+        relation: 'on'
+        target: milestone_sequence
+  - role: dates
+    size: small
+    placement:
+      relative:
+        relation: below
+        target: milestone_sequence
+- id: 14
+  name: Process Flow
+  layout_disposition: Step-by-step flow connected by arrows or connectors.
+  zones:
+  - role: process_steps
+    size: equal
+    placement:
+      anchor:
+        h: left
+        v: middle
+    shape: card
+  - role: connectors
+    size: small
+    placement: &id024
+      relative:
+        relation: between
+        target: process_steps
+  - role: explanation
+    size: contextual
+    placement:
+      relative:
+        relation: below
+        target: process_steps
+- id: 15
+  name: Workflow Diagram
+  layout_disposition: Operational flow showing actors, systems, decisions, and handoffs.
+  zones:
+  - role: actors
+    size: variable
+    placement:
+      region: swimlanes
+  - role: workflow_nodes
+    size: medium
+    placement:
+      relative:
+        relation: inside
+        target: actors
+    shape: card
+  - role: connectors
+    size: small
+    placement: &id015
+      relative:
+        relation: between
+        target: nodes
+    shape: connector
+- id: 16
+  name: Funnel Diagram
+  layout_disposition: Descending stacked segments representing conversion stages.
+  zones:
+  - role: funnel_stages
+    size: equal
+    placement: &id005
+      anchor:
+        h: center
+        v: middle
+  - role: metrics
+    size: medium
+    placement:
+      relative:
+        relation: inside
+        target: funnel_stages
+  - role: stage_labels
+    size: small
+    placement:
+      anchor:
+        h: left
+        v: middle
+- id: 17
+  name: Flywheel Diagram
+  layout_disposition: Circular loop showing reinforcing stages or feedback cycles.
+  zones:
+  - role: circular_flow
+    size: large
+    placement: *id001
+  - role: cycle_steps
+    size: equal
+    placement:
+      relative:
+        relation: around
+        target: circular_flow
+  - role: central_concept
+    size: medium
+    placement: *id001
+- id: 18
+  name: Pyramid Diagram
+  layout_disposition: Stacked hierarchy from broad base to focused top.
+  zones:
+  - role: hierarchy_layers
+    size: equal
+    placement: *id005
+  - role: labels
+    size: medium
+    placement: &id021
+      relative:
+        relation: inside
+        target: system_layers
+  - role: explanation
+    size: contextual
+    placement:
+      anchor:
+        h: right
+        v: middle
+- id: 19
+  name: Venn Diagram
+  layout_disposition: Overlapping circles showing shared and distinct attributes.
+  zones:
+  - role: circle_a
+    size: large
+    placement:
+      relative:
+        relation: left_of
+        target: intersection
+  - role: circle_b
+    size: large
+    placement:
+      relative:
+        relation: right_of
+        target: intersection
+  - role: intersection
+    size: medium
+    placement:
+      relative:
+        relation: inside
+        target: intersection
+  - role: labels
+    size: small
+    placement:
+      relative:
+        relation: inside
+        target: circle_a
+- id: 20
+  name: Matrix / 2x2 Grid
+  layout_disposition: Two-axis grid dividing content into four conceptual zones.
+  zones:
+  - role: x_axis
+    size: full
+    placement: *id006
+  - role: y_axis
+    size: full
+    placement: &id012
+      anchor:
+        h: left
+        v: middle
+  - role: quadrants
+    size: equal
+    placement:
+      region: matrix_body
+- id: 21
+  name: Quadrant Analysis
+  layout_disposition: Four-quadrant analysis with items plotted by two variables.
+  zones:
+  - role: axis_labels
+    size: small
+    placement:
+      anchor:
+        h: left
+        v: middle
+  - role: plotted_items
+    size: small
+    placement:
+      region: quadrant
+    shape: marker
+  - role: recommended_zone
+    size: contextual
+    placement:
+      region: quadrant
+- id: 22
+  name: Scorecard
+  layout_disposition: Compact evaluation table with criteria, scores, status, and notes.
+  zones:
+  - role: criteria
+    size: medium
+    placement: *id007
+  - role: scores
+    size: medium
+    placement:
+      anchor:
+        h: center
+        v: middle
+    shape: metric
+  - role: status
+    size: small
+    placement: *id008
+    shape: icon
+  - role: notes
+    size: small
+    placement:
+      anchor:
+        h: right
+        v: middle
+- id: 23
+  name: KPI Dashboard
+  layout_disposition: Dashboard grid with key metrics, charts, and status indicators.
+  zones:
+  - role: kpi_cards
+    size: equal
+    placement: &id019
+      anchor:
+        h: center
+        v: top
+  - role: charts
+    size: large
+    placement: *id009
+  - role: insights
+    size: medium
+    placement:
+      anchor:
+        h: right
+        v: bottom
+- id: 24
+  name: Metrics Snapshot
+  layout_disposition: Large numeric indicators with short labels and trends.
+  zones:
+  - role: metric_numbers
+    size: xl
+    placement: &id016
+      anchor:
+        h: center
+        v: middle
+  - role: labels
+    size: small
+    placement:
+      relative:
+        relation: below
+        target: metric_numbers
+  - role: trend_indicators
+    size: small
+    placement:
+      relative:
+        relation: near
+        target: metric_numbers
+- id: 25
+  name: Data Chart Slide
+  layout_disposition: Single dominant chart with title, legend, and insight annotation.
+  zones:
+  - role: chart
+    size: xl
+    placement: *id001
+  - role: title
+    size: medium
+    placement: *id002
+  - role: legend
+    size: small
+    placement: *id010
+  - role: insight_annotation
+    size: medium
+    placement:
+      relative:
+        relation: near
+        target: chart
+- id: 26
+  name: Bar Chart Slide
+  layout_disposition: Categorical comparison using horizontal or vertical bars.
+  zones:
+  - role: bar_chart
+    size: large
+    placement: *id001
+  - role: category_axis
+    size: full
+    placement:
+      anchor:
+        h: left
+        v: bottom
+    shape: axis
+  - role: value_axis
+    size: full
+    placement: *id011
+    shape: axis
+  - role: callout
+    size: medium
+    placement:
+      relative:
+        relation: near
+        target: bar_chart
+- id: 27
+  name: Line Chart Slide
+  layout_disposition: Trend visualization over time with one or more lines.
+  zones:
+  - role: line_chart
+    size: large
+    placement: *id001
+  - role: time_axis
+    size: full
+    placement: *id006
+  - role: value_axis
+    size: full
+    placement: *id012
+  - role: trend_annotation
+    size: medium
+    placement:
+      relative:
+        relation: near
+        target: line_chart
+- id: 28
+  name: Pie / Donut Chart Slide
+  layout_disposition: Circular proportion chart with labels and a central or side insight.
+  zones:
+  - role: chart
+    size: large
+    placement:
+      anchor:
+        h: left
+        v: middle
+  - role: labels
+    size: small
+    placement:
+      relative:
+        relation: around
+        target: chart
+  - role: key_takeaway
+    size: medium
+    placement:
+      relative:
+        relation: inside
+        target: chart
+- id: 29
+  name: Waterfall Chart Slide
+  layout_disposition: Sequential bars showing positive and negative contributions to a final value.
+  zones:
+  - role: waterfall_chart
+    size: large
+    placement: *id001
+  - role: start_value
+    size: medium
+    placement:
+      region: waterfall_start
+    shape: bar
+  - role: changes
+    size: variable
+    placement:
+      anchor:
+        h: center
+        v: middle
+  - role: end_value
+    size: medium
+    placement:
+      region: waterfall_end
+    shape: bar
+- id: 30
+  name: Heatmap Slide
+  layout_disposition: Grid where intensity indicates magnitude, risk, score, or frequency.
+  zones:
+  - role: matrix_grid
+    size: large
+    placement: *id001
+  - role: row_labels
+    size: small
+    placement: *id013
+  - role: column_labels
+    size: small
+    placement: *id014
+  - role: color_legend
+    size: small
+    placement: *id010
+- id: 31
+  name: Map / Geographic Slide
+  layout_disposition: Map-centered slide with regional markers, labels, or overlays.
+  zones:
+  - role: map
+    size: xl
+    placement:
+      anchor:
+        h: center
+        v: middle
+  - role: markers
+    size: small
+    placement:
+      region: map_overlay
+  - role: regional_metrics
+    size: medium
+    placement:
+      anchor:
+        h: right
+        v: middle
+- id: 32
+  name: Org Chart
+  layout_disposition: Hierarchical tree of people, teams, or reporting relationships.
+  zones:
+  - role: root_node
+    size: medium
+    placement: &id020
+      anchor:
+        h: center
+        v: top
+    shape: card
+  - role: child_nodes
+    size: medium
+    placement:
+      anchor:
+        h: center
+        v: bottom
+    shape: card
+  - role: connectors
+    size: small
+    placement: *id015
+    shape: connector
+- id: 33
+  name: Team Introduction
+  layout_disposition: Grid of profile cards with photo, name, role, and short bio.
+  zones:
+  - role: profile_cards
+    size: equal
+    placement: *id016
+  - role: photos
+    size: medium
+    placement:
+      relative:
+        relation: inside
+        target: profile_cards
+  - role: names_roles
+    size: small
+    placement:
+      relative:
+        relation: below
+        target: photos
+  - role: heading
+    size: medium
+    placement: *id002
+- id: 34
+  name: Role & Responsibility Matrix
+  layout_disposition: Matrix mapping roles to responsibilities, often using RACI symbols.
+  zones:
+  - role: roles
+    size: equal
+    placement: *id014
+  - role: responsibilities
+    size: equal
+    placement: *id013
+  - role: assignment_cells
+    size: equal
+    placement: *id017
+- id: 35
+  name: Stakeholder Map
+  layout_disposition: Map of stakeholders positioned by influence, interest, or relationship.
+  zones:
+  - role: stakeholder_nodes
+    size: variable
+    placement:
+      region: canvas
+  - role: grouping_regions
+    size: large
+    placement:
+      region: background
+  - role: relationship_lines
+    size: small
+    placement: *id015
+- id: 36
+  name: Customer Persona
+  layout_disposition: Profile layout with customer photo, demographics, needs, pains, and goals.
+  zones:
+  - role: persona_image
+    size: large
+    placement: *id012
+  - role: demographics
+    size: medium
+    placement: *id018
+  - role: needs_pains_goals
+    size: medium
+    placement:
+      anchor:
+        h: right
+        v: bottom
+    shape: card
+  - role: quote
+    size: medium
+    placement:
+      relative:
+        relation: near
+        target: persona_image
+- id: 37
+  name: Customer Journey Map
+  layout_disposition: Horizontal journey stages with actions, emotions, pain points, and opportunities.
+  zones:
+  - role: journey_stages
+    size: equal
+    placement: *id019
+  - role: customer_actions
+    size: equal
+    placement:
+      region: row_1
+  - role: emotions
+    size: small
+    placement:
+      region: row_2
+    shape: icon
+  - role: pain_points
+    size: equal
+    placement:
+      region: row_3
+  - role: opportunities
+    size: equal
+    placement:
+      anchor:
+        h: center
+        v: bottom
+- id: 38
+  name: Use Case Slide
+  layout_disposition: Scenario-focused layout describing actor, trigger, flow, and outcome.
+  zones:
+  - role: actor
+    size: medium
+    placement: *id012
+  - role: scenario
+    size: large
+    placement: *id020
+  - role: flow_steps
+    size: large
+    placement: *id001
+    shape: sequence
+  - role: outcome
+    size: medium
+    placement: *id010
+- id: 39
+  name: Case Study Slide
+  layout_disposition: Story layout with context, challenge, solution, and results.
+  zones:
+  - role: client_or_context
+    size: medium
+    placement: *id003
+  - role: challenge
+    size: medium
+    placement: *id007
+    shape: card
+  - role: solution
+    size: medium
+    placement: &id027
+      anchor:
+        h: center
+        v: middle
+    shape: card
+  - role: results
+    size: medium
+    placement: *id008
+    shape: card
+  - role: metrics
+    size: large
+    placement: *id006
+- id: 40
+  name: Architecture Diagram
+  layout_disposition: Layered or node-link technical diagram showing components and connections.
+  zones:
+  - role: system_layers
+    size: large
+    placement:
+      anchor:
+        h: center
+        v: middle
+  - role: components
+    size: medium
+    placement: *id021
+    shape: node
+  - role: connectors
+    size: small
+    placement:
+      relative:
+        relation: between
+        target: components
+    shape: connector
+  - role: legend
+    size: small
+    placement: *id022
+- id: 41
+  name: System Context Diagram
+  layout_disposition: Central system surrounded by external users, systems, and integrations.
+  zones:
+  - role: central_system
+    size: large
+    placement: *id001
+  - role: external_actors
+    size: medium
+    placement:
+      relative:
+        relation: around
+        target: central_system
+    shape: node
+  - role: integrations
+    size: small
+    placement:
+      relative:
+        relation: between
+        target: central_system
+    shape: connector
+  - role: boundary
+    size: large
+    placement:
+      relative:
+        relation: around
+        target: central_system
+    shape: container
+- id: 42
+  name: Product Screenshot Slide
+  layout_disposition: Large screenshot with annotations, callouts, or feature highlights.
+  zones:
+  - role: screenshot
+    size: xl
+    placement: *id023
+  - role: callouts
+    size: small
+    placement:
+      relative:
+        relation: around
+        target: screenshot
+  - role: explanation
+    size: medium
+    placement:
+      anchor:
+        h: left
+        v: middle
+- id: 43
+  name: Demo Flow Slide
+  layout_disposition: Sequential screens or steps showing how a demo will proceed.
+  zones:
+  - role: demo_steps
+    size: equal
+    placement:
+      anchor:
+        h: center
+        v: middle
+    shape: card
+  - role: screenshots
+    size: medium
+    placement:
+      relative:
+        relation: inside
+        target: demo_steps
+  - role: step_labels
+    size: small
+    placement:
+      relative:
+        relation: above
+        target: demo_steps
+  - role: arrows
+    size: small
+    placement: *id024
+- id: 44
+  name: Business Model Canvas
+  layout_disposition: Nine-block canvas showing key business model components.
+  zones:
+  - role: key_partners
+    size: medium
+    placement:
+      anchor:
+        h: left
+        v: middle
+  - role: key_activities
+    size: medium
+    placement:
+      anchor:
+        h: left
+        v: top
+  - role: key_resources
+    size: medium
+    placement:
+      anchor:
+        h: left
+        v: bottom
+  - role: value_propositions
+    size: large
+    placement: *id001
+  - role: customer_relationships
+    size: medium
+    placement:
+      anchor:
+        h: right
+        v: top
+  - role: channels
+    size: medium
+    placement:
+      anchor:
+        h: right
+        v: bottom
+  - role: customer_segments
+    size: medium
+    placement:
+      anchor:
+        h: right
+        v: middle
+  - role: cost_structure
+    size: large
+    placement: *id025
+  - role: revenue_streams
+    size: large
+    placement: *id026
+- id: 45
+  name: Pricing Table
+  layout_disposition: Columns for pricing plans with features, price, and recommended option highlight.
+  zones:
+  - role: pricing_columns
+    size: equal
+    placement: *id016
+  - role: price
+    size: large
+    placement:
+      relative:
+        relation: inside
+        target: pricing_columns
+  - role: feature_list
+    size: medium
+    placement:
+      relative:
+        relation: inside
+        target: pricing_columns
+    shape: list
+  - role: call_to_action
+    size: small
+    placement:
+      relative:
+        relation: inside
+        target: pricing_columns
+    shape: button
+- id: 46
+  name: Go-to-Market Plan
+  layout_disposition: Structured plan across target segments, channels, tactics, timeline, and metrics.
+  zones:
+  - role: target_segments
+    size: medium
+    placement: *id007
+    shape: card
+  - role: channels
+    size: medium
+    placement: *id027
+    shape: card
+  - role: tactics
+    size: medium
+    placement: *id008
+    shape: card
+  - role: timeline_or_metrics
+    size: full
+    placement: *id006
+- id: 47
+  name: Risk Matrix
+  layout_disposition: Likelihood-impact grid with risks plotted into severity zones.
+  zones:
+  - role: impact_axis
+    size: full
+    placement:
+      anchor:
+        h: left
+        v: middle
+  - role: likelihood_axis
+    size: full
+    placement:
+      anchor:
+        h: center
+        v: bottom
+  - role: risk_items
+    size: small
+    placement: *id017
+    shape: marker
+  - role: severity_zones
+    size: equal
+    placement:
+      region: matrix_body
+- id: 48
+  name: Decision Tree
+  layout_disposition: Branching diagram showing decisions, paths, and outcomes.
+  zones:
+  - role: root_decision
+    size: medium
+    placement: *id028
+    shape: node
+  - role: branches
+    size: small
+    placement:
+      relative:
+        relation: around
+        target: root_decision
+    shape: connector
+  - role: intermediate_decisions
+    size: medium
+    placement:
+      anchor:
+        h: center
+        v: middle
+    shape: node
+  - role: outcomes
+    size: medium
+    placement: *id010
+    shape: node
+- id: 49
+  name: Recommendations Slide
+  layout_disposition: Prioritized list of recommendations with rationale and next actions.
+  zones:
+  - role: recommendation_cards
+    size: medium
+    placement:
+      anchor:
+        h: center
+        v: middle
+  - role: priority_labels
+    size: small
+    placement:
+      relative:
+        relation: left_of
+        target: recommendation_cards
+  - role: rationale
+    size: medium
+    placement:
+      relative:
+        relation: inside
+        target: recommendation_cards
+    shape: text
+  - role: next_steps
+    size: medium
+    placement: *id006
+    shape: list
+- id: 50
+  name: Closing / Thank You Slide
+  layout_disposition: Minimal closing slide with thank-you message, contact details, and optional call to action.
+  zones:
+  - role: thank_you_message
+    size: large
+    placement: *id001
+  - role: contact_info
+    size: small
+    placement: *id006
+  - role: logo
+    size: small
+    placement:
+      anchor:
+        h: right
+        v: top
+  - role: final_call_to_action
+    size: medium
+    placement:
+      relative:
+        relation: below
+        target: thank_you_message
