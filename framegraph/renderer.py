@@ -363,6 +363,12 @@ class FrameGraphRenderer:
         self.marker_colors: list[str] = []
         self.warnings: list[str] = []
 
+        # ── HD effect filter registry (lazy) ──────────────────────────
+        # Keyed by deterministic SVG id; value is the resolved <filter>
+        # element string. `effect_filter_id(kind, spec)` populates this
+        # on first use; defs_svg() emits the collected filters.
+        self.effect_filters: dict[str, str] = {}
+
         self._dispatch: dict[str, Any] = {}
         self._register_all()
         self._build_gradients()  # must come before _build_markers (may add colors)
@@ -468,6 +474,142 @@ class FrameGraphRenderer:
                 self.marker_colors.append(c)
         if "#000000" not in seen:
             self.marker_colors.append("#000000")
+
+    # ── HD effect filters: shadow + glow ──────────────────────────────
+    # Presets are tuned for slide-grade output at 960×660+ canvases.
+    # Inline mappings override presets per-object.
+    _SHADOW_PRESETS: dict[str, dict[str, Any]] = {
+        "small":  {"dx": 0, "dy": 1, "blur": 1.5, "color": "#000000", "opacity": 0.10},
+        "medium": {"dx": 0, "dy": 2, "blur": 4.0, "color": "#000000", "opacity": 0.14},
+        "large":  {"dx": 0, "dy": 4, "blur": 8.0, "color": "#000000", "opacity": 0.18},
+    }
+    _GLOW_PRESETS: dict[str, dict[str, Any]] = {
+        "small":  {"blur": 2.0, "color": "#FFD700", "opacity": 0.45},
+        "medium": {"blur": 4.0, "color": "#FFD700", "opacity": 0.55},
+        "large":  {"blur": 8.0, "color": "#FFD700", "opacity": 0.65},
+    }
+
+    def _resolve_effect_spec(
+        self, kind: str, spec: Any
+    ) -> dict[str, Any] | None:
+        """Normalize a `shadow:` / `glow:` field to a parameter mapping.
+
+        Accepted forms:
+          - None / falsy / "none" → no effect
+          - "small" / "medium" / "large" → preset lookup
+          - mapping → preset lookup for `preset` key (default "medium"),
+            then merged with caller-supplied overrides
+        """
+        if spec is None or spec is False:
+            return None
+        presets = self._SHADOW_PRESETS if kind == "shadow" else self._GLOW_PRESETS
+        if isinstance(spec, str):
+            if spec.lower() in ("none", ""):
+                return None
+            base = presets.get(spec.lower())
+            if base is None:
+                # Unknown preset name → treat as no-op rather than error,
+                # mirroring the renderer's "tolerant" stance on token misses.
+                return None
+            return dict(base)
+        if isinstance(spec, Mapping):
+            preset_name = str(spec.get("preset", "medium")).lower()
+            base = dict(presets.get(preset_name, presets["medium"]))
+            for k, v in spec.items():
+                if k == "preset":
+                    continue
+                base[k] = v
+            return base
+        return None
+
+    def effect_filter_id(self, kind: str, spec: Any) -> str | None:
+        """Resolve an effect spec to a stable filter id, registering the
+        `<filter>` element on first use.
+
+        Args:
+            kind: "shadow" or "glow".
+            spec: A preset name, mapping, or None. See
+                `_resolve_effect_spec` for accepted forms.
+
+        Returns:
+            The SVG element id (without `#`) suitable for use in
+            `filter="url(#…)"`, or None when `spec` resolves to no effect.
+        """
+        params = self._resolve_effect_spec(kind, spec)
+        if params is None:
+            return None
+        # Deterministic id from params so identical effects share one <filter>.
+        if kind == "shadow":
+            key = (
+                f"sh_{fmt(fnum(params.get('dx'), 0))}_"
+                f"{fmt(fnum(params.get('dy'), 2))}_"
+                f"{fmt(fnum(params.get('blur'), 4))}_"
+                f"{self.color(params.get('color'), '#000000').lstrip('#').upper()}_"
+                f"{fmt(fnum(params.get('opacity'), 0.14))}"
+            )
+        else:  # glow
+            key = (
+                f"gl_{fmt(fnum(params.get('blur'), 4))}_"
+                f"{self.color(params.get('color'), '#FFD700').lstrip('#').upper()}_"
+                f"{fmt(fnum(params.get('opacity'), 0.55))}"
+            )
+        fid = sid("fg-fx-" + key)
+        if fid in self.effect_filters:
+            return fid
+        if kind == "shadow":
+            dx = fnum(params.get("dx"), 0)
+            dy = fnum(params.get("dy"), 2)
+            blur = fnum(params.get("blur"), 4)
+            color = self.color(params.get("color"), "#000000")
+            opacity = fnum(params.get("opacity"), 0.14)
+            # Filter region must be larger than the source to avoid
+            # clipping the shadow at the edges.
+            filt = (
+                f'<filter id="{fid}"'
+                f' x="-20%" y="-20%" width="140%" height="140%">'
+                f'<feGaussianBlur in="SourceAlpha" stdDeviation="{fmt(blur)}"/>'
+                f'<feOffset dx="{fmt(dx)}" dy="{fmt(dy)}" result="off"/>'
+                f'<feFlood flood-color="{esc(color)}"'
+                f' flood-opacity="{fmt(opacity)}"/>'
+                f'<feComposite in2="off" operator="in" result="shadow"/>'
+                f'<feMerge>'
+                f'<feMergeNode in="shadow"/>'
+                f'<feMergeNode in="SourceGraphic"/>'
+                f'</feMerge>'
+                f'</filter>'
+            )
+        else:  # glow
+            blur = fnum(params.get("blur"), 4)
+            color = self.color(params.get("color"), "#FFD700")
+            opacity = fnum(params.get("opacity"), 0.55)
+            filt = (
+                f'<filter id="{fid}"'
+                f' x="-50%" y="-50%" width="200%" height="200%">'
+                f'<feGaussianBlur in="SourceAlpha" stdDeviation="{fmt(blur)}"/>'
+                f'<feFlood flood-color="{esc(color)}"'
+                f' flood-opacity="{fmt(opacity)}"/>'
+                f'<feComposite in2="SourceAlpha" operator="in" result="glow"/>'
+                f'<feMerge>'
+                f'<feMergeNode in="glow"/>'
+                f'<feMergeNode in="SourceGraphic"/>'
+                f'</feMerge>'
+                f'</filter>'
+            )
+        self.effect_filters[fid] = filt
+        return fid
+
+    def effect_filter_attrs(self, obj: Mapping[str, Any]) -> dict[str, Any]:
+        """Return SVG attributes wiring `shadow` / `glow` fields on an object.
+
+        Resolves both fields; if both are present, glow wins (it's the
+        more visually-dominant effect). Returns an empty dict when no
+        effect is declared, so call sites can `.update()` unconditionally.
+        """
+        for kind in ("glow", "shadow"):
+            fid = self.effect_filter_id(kind, obj.get(kind))
+            if fid is not None:
+                return {"filter": f"url(#{fid})"}
+        return {}
 
     # ------------------------------------------------------------------
     # Object index  (pass 1)
@@ -799,8 +941,13 @@ class FrameGraphRenderer:
         return "ah-" + color.lstrip("#").upper()
 
     def defs_svg(self) -> str:
-        """Emit: optional Tabler Icons @import, gradient defs, per-color arrow markers."""
-        has_content = self.marker_colors or self.gradient_defs or self._uses_icon_font
+        """Emit: optional Tabler Icons @import, gradient defs, per-color arrow markers, effect filters."""
+        has_content = (
+            self.marker_colors
+            or self.gradient_defs
+            or self._uses_icon_font
+            or self.effect_filters
+        )
         if not has_content:
             return ""
         out = ["<defs>"]
@@ -813,6 +960,9 @@ class FrameGraphRenderer:
                 "</style>"
             )
         out.extend(self.gradient_defs)
+        # HD effect filters (shadow, glow) — emitted in registration order
+        # for deterministic <defs> output across runs.
+        out.extend(self.effect_filters.values())
         for c in self.marker_colors:
             mid = self.marker_id(c)
             out.append(
@@ -845,6 +995,21 @@ class FrameGraphRenderer:
             return {"stroke": "none"}
         color = self.color(st.get("color"), "#000000")
         width = fnum(st.get("width"), 1)
+        # ── Hairline guard ──────────────────────────────────────────────
+        # Sub-px strokes shimmer / disappear under non-integer raster
+        # scaling. When `rendering_contract.hairline_guard` is true,
+        # promote any stroke under the threshold (default 0.75px) to
+        # the threshold. Opt-in: existing v1.x fixtures keep their
+        # exact stroke widths and pinned goldens stay valid.
+        if width > 0 and deep_get(
+            self.scene, ["rendering_contract", "hairline_guard"], False
+        ):
+            min_w = fnum(
+                deep_get(self.scene, ["rendering_contract", "hairline_min"], 0.75),
+                0.75,
+            )
+            if width < min_w:
+                width = min_w
         a: dict[str, Any] = {
             "stroke": color,
             "stroke-width": fmt(width),
@@ -948,11 +1113,25 @@ class FrameGraphRenderer:
                 body.append("  " + rendered.replace("\n", "\n  "))
             body.append("</g>")
         defs = self.defs_svg()
+        # ── HD render hints ──────────────────────────────────────────────
+        # `render_quality: legacy` reverts to v1.x behaviour (no hints).
+        # Default is `hd`: enables sharper geometry + glyph rasterisation
+        # without changing layout, attribute names, or the DOM shape.
+        quality = str(
+            deep_get(self.scene, ["rendering_contract", "render_quality"], "hd")
+        ).lower()
+        hd_attrs = (
+            ' shape-rendering="geometricPrecision"'
+            ' text-rendering="optimizeLegibility"'
+            if quality != "legacy"
+            else ""
+        )
         out = [
             '<?xml version="1.0" encoding="UTF-8"?>',
             f'<svg xmlns="http://www.w3.org/2000/svg"'
             f' width="{fmt(width)}" height="{fmt(height)}"'
             f' viewBox="0 0 {fmt(width)} {fmt(height)}"'
+            f'{hd_attrs}'
             f' role="img" aria-labelledby="svg-title svg-desc">',
             f'<title id="svg-title">{title}</title>',
             f'<desc  id="svg-desc">{desc}</desc>',

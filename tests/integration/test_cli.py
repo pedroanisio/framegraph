@@ -237,3 +237,124 @@ def test_cli_build_parser_deck_args_round_trip() -> None:
     assert args.output == "out_dir"
     assert args.lib == "lib_dir"
     assert args.quiet is True
+
+
+# ── --4k flag (PNG companion output) ────────────────────────────────
+
+cairosvg = pytest.importorskip(
+    "cairosvg",
+    reason="cairosvg required for --4k PNG output tests",
+)
+
+
+def test_cli_build_parser_render_4k_flag_round_trip() -> None:
+    """`--4k` on render maps to `args.four_k` (digit-prefixed dest renamed)."""
+    args = build_parser().parse_args(
+        ["render", "in.yml", "-o", "out.svg", "--4k"]
+    )
+    assert args.four_k is True
+
+
+def test_cli_build_parser_render_4k_default_false() -> None:
+    """When `--4k` is omitted, `args.four_k` defaults to False."""
+    args = build_parser().parse_args(["render", "in.yml", "-o", "out.svg"])
+    assert args.four_k is False
+
+
+def test_cli_build_parser_deck_4k_flag_round_trip() -> None:
+    """`--4k` is also wired on the deck subcommand."""
+    args = build_parser().parse_args(
+        ["deck", "deck.yml", "-o", "out_dir", "--4k"]
+    )
+    assert args.four_k is True
+
+
+def test_cli_render_4k_writes_png_alongside_svg(tmp_path: Path) -> None:
+    """`render --4k` writes both an SVG and a sibling 3840-wide PNG."""
+    out = tmp_path / "out.svg"
+    rc = cli_main(
+        ["render", str(STANDALONE_FIXTURES[0]), "-o", str(out), "--4k", "--quiet"]
+    )
+    assert rc == 0
+    assert out.exists() and out.stat().st_size > 0
+    png = out.with_suffix(".png")
+    assert png.exists() and png.stat().st_size > 0
+    # PNG width is exactly 3840; height is auto-derived from SVG aspect ratio
+    from PIL import Image
+
+    with Image.open(png) as im:
+        assert im.size[0] == 3840
+        assert im.size[1] > 0
+
+
+def test_cli_render_without_4k_does_not_write_png(tmp_path: Path) -> None:
+    """Without `--4k`, no PNG is produced (SVG-only path is unchanged)."""
+    out = tmp_path / "out.svg"
+    rc = cli_main(
+        ["render", str(STANDALONE_FIXTURES[0]), "-o", str(out), "--quiet"]
+    )
+    assert rc == 0
+    assert not out.with_suffix(".png").exists()
+
+
+def test_cli_render_4k_prints_png_path_when_not_quiet(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Non-quiet `render --4k` prints both wrote-lines (SVG and PNG)."""
+    out = tmp_path / "out.svg"
+    rc = cli_main(
+        ["render", str(STANDALONE_FIXTURES[0]), "-o", str(out), "--4k"]
+    )
+    assert rc == 0
+    captured = capsys.readouterr().out
+    assert str(out) in captured
+    assert str(out.with_suffix(".png")) in captured
+
+
+def test_cli_deck_4k_writes_png_per_slide(tmp_path: Path) -> None:
+    """`deck --4k` writes a PNG sibling for every slide SVG."""
+    rc = cli_main(
+        [
+            "deck",
+            str(DECK_FIXTURES[0]),
+            "-o",
+            str(tmp_path),
+            "--lib",
+            str(LIB_DIR),
+            "--4k",
+            "--quiet",
+        ]
+    )
+    assert rc == 0
+    svgs = list(tmp_path.glob("*.svg"))
+    pngs = list(tmp_path.glob("*.png"))
+    assert len(svgs) >= 1
+    # One PNG per SVG, with matching stems
+    assert {p.stem for p in pngs} == {p.stem for p in svgs}
+    # Every PNG is 3840 wide
+    from PIL import Image
+
+    for png in pngs:
+        with Image.open(png) as im:
+            assert im.size[0] == 3840
+
+
+def test_cli_render_4k_png_uses_manifesto_aspect_ratio(tmp_path: Path) -> None:
+    """The PNG height matches the SVG aspect ratio (no distortion).
+
+    Manifesto canvas is 960 × 660 → aspect 16:11 → PNG should be
+    3840 × 2640 (or within 1 px of the rounded ratio).
+    """
+    manifesto = Path(__file__).resolve().parents[2] / "faz-ai-manifesto.yml"
+    if not manifesto.exists():
+        pytest.skip("manifesto fixture not present")
+    out = tmp_path / "manifesto.svg"
+    rc = cli_main(["render", str(manifesto), "-o", str(out), "--4k", "--quiet"])
+    assert rc == 0
+    from PIL import Image
+
+    with Image.open(out.with_suffix(".png")) as im:
+        w, h = im.size
+        assert w == 3840
+        # 3840 * 660 / 960 = 2640
+        assert abs(h - 2640) <= 1, f"expected ~2640px tall, got {h}"

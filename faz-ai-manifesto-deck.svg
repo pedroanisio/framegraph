@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" viewBox="0 0 1000 600" role="img" aria-labelledby="svg-title svg-desc">
+<title id="svg-title">FrameGraph</title>
+<desc  id="svg-desc">Generated from FrameGraph YAML</desc>
+<defs>
+<marker id="ah-000000" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#000000"/></marker>
+</defs>
+</svg>

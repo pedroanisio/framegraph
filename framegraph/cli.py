@@ -23,7 +23,8 @@ def cmd_render(args: argparse.Namespace) -> int:
     Args:
         args: Parsed `argparse` namespace. Required: `args.input` (YAML
             path). Optional: `args.output` (SVG path; defaults to
-            `<input>.svg`), `args.strict`, `args.quiet`.
+            `<input>.svg`), `args.strict`, `args.quiet`, `args.four_k`
+            (also write a 3840-wide PNG alongside the SVG).
 
     Returns:
         Process exit code: 0 on success, 1 on YAML load or render
@@ -48,7 +49,40 @@ def cmd_render(args: argparse.Namespace) -> int:
     out.write_text(svg, encoding="utf-8")
     if not args.quiet:
         print(f"wrote {out}  ({out.stat().st_size / 1024:.1f} KB)")
+    if getattr(args, "four_k", False):
+        png_out = out.with_suffix(".png")
+        try:
+            _write_png_4k(svg, png_out)
+        except Exception as e:
+            print(f"ERROR writing PNG: {e}", file=sys.stderr)
+            return 1
+        if not args.quiet:
+            print(f"wrote {png_out}  ({png_out.stat().st_size / 1024:.1f} KB)")
     return 0
+
+
+def _write_png_4k(svg: str, out: Path) -> None:
+    """Rasterize an SVG string to a 3840-wide PNG (4K UHD width).
+
+    cairosvg auto-derives the height from the SVG's aspect ratio, so
+    the resulting raster is 3840 × (3840 × svg_h / svg_w).
+
+    Raises:
+        ImportError: When `cairosvg` is not installed. Surfaced as a
+            clear actionable message rather than a stack trace.
+    """
+    try:
+        import cairosvg  # type: ignore
+    except ImportError as exc:
+        raise ImportError(
+            "cairosvg is required for --4k PNG output. "
+            "Install with: pip install cairosvg"
+        ) from exc
+    cairosvg.svg2png(
+        bytestring=svg.encode("utf-8"),
+        write_to=str(out),
+        output_width=3840,
+    )
 
 
 def cmd_deck(args: argparse.Namespace) -> int:
@@ -86,6 +120,16 @@ def cmd_deck(args: argparse.Namespace) -> int:
     if not args.quiet:
         for p in paths:
             print(f"  wrote {p.name}  ({p.stat().st_size / 1024:.1f} KB)")
+    if getattr(args, "four_k", False):
+        for p in paths:
+            png_out = p.with_suffix(".png")
+            try:
+                _write_png_4k(p.read_text(encoding="utf-8"), png_out)
+            except Exception as e:
+                print(f"ERROR writing PNG for {p.name}: {e}", file=sys.stderr)
+                return 1
+            if not args.quiet:
+                print(f"  wrote {png_out.name}  ({png_out.stat().st_size / 1024:.1f} KB)")
     return 0
 
 
@@ -118,6 +162,12 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("-o", "--output", help="Output SVG path (default: <input>.svg)")
     rp.add_argument("--strict", action="store_true", help="Error on unknown keys")
     rp.add_argument("--quiet", action="store_true", help="Suppress progress output")
+    rp.add_argument(
+        "--4k",
+        dest="four_k",
+        action="store_true",
+        help="Also write a 3840-wide PNG alongside the SVG (requires cairosvg)",
+    )
 
     # deck
     dp = sub.add_parser("deck", help="Render a multi-slide deck.yml to per-slide SVGs")
@@ -125,6 +175,12 @@ def build_parser() -> argparse.ArgumentParser:
     dp.add_argument("-o", "--output", help="Output directory (default: ./output)")
     dp.add_argument("--lib", help="Path to lib/ token directory")
     dp.add_argument("--quiet", action="store_true", help="Suppress progress output")
+    dp.add_argument(
+        "--4k",
+        dest="four_k",
+        action="store_true",
+        help="Also write a 3840-wide PNG per slide (requires cairosvg)",
+    )
 
     # version
     sub.add_parser("version", help="Print version and exit")
