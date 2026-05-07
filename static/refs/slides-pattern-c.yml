@@ -1,0 +1,900 @@
+big4_consulting_slide_template_patterns_extension:
+  - id: 101
+    name: So What / Now What Slide
+    consulting_use: "Translates analysis into executive implication and action."
+    layout_disposition: "Two-column or three-block structure separating fact, implication, and action."
+    zones:
+      - role: finding
+        position: left_column
+        size: equal_block
+      - role: so_what
+        position: center_column
+        size: equal_block
+      - role: now_what
+        position: right_column
+        size: equal_block
+
+  - id: 102
+    name: Executive One Pager
+    consulting_use: "Condenses a full workstream or recommendation into one board-ready page."
+    layout_disposition: "Dense but structured page with headline, context, analysis, recommendation, and next steps."
+    zones:
+      - role: headline_message
+        position: top
+        size: dominant
+      - role: context_summary
+        position: upper_left
+        size: medium_card
+      - role: core_analysis
+        position: center
+        size: large
+      - role: recommendation
+        position: upper_right
+        size: medium_card
+      - role: next_steps
+        position: bottom
+        size: horizontal_band
+
+  - id: 103
+    name: Board Memo Slide
+    consulting_use: "Frames an issue for board-level discussion."
+    layout_disposition: "Memo-like layout with decision context, key facts, options, and requested decision."
+    zones:
+      - role: decision_context
+        position: top_left
+        size: medium
+      - role: key_facts
+        position: center_left
+        size: list
+      - role: options
+        position: center_right
+        size: comparison_cards
+      - role: decision_request
+        position: bottom
+        size: highlighted_band
+
+  - id: 104
+    name: Key Questions Slide
+    consulting_use: "Defines the critical questions that guide the engagement."
+    layout_disposition: "Numbered questions arranged vertically or in a grid."
+    zones:
+      - role: engagement_objective
+        position: top
+        size: large
+      - role: key_questions
+        position: center_grid_or_vertical_list
+        size: cards
+      - role: expected_outputs
+        position: bottom
+        size: small
+
+  - id: 105
+    name: Answer Map
+    consulting_use: "Maps key questions to answers, evidence, and implications."
+    layout_disposition: "Table mapping question, answer, supporting evidence, and decision impact."
+    zones:
+      - role: questions
+        position: left_column
+        size: rows
+      - role: answers
+        position: center_left
+        size: rows
+      - role: evidence
+        position: center_right
+        size: rows
+      - role: implications
+        position: right_column
+        size: rows
+
+  - id: 106
+    name: Case for Change
+    consulting_use: "Explains why transformation is necessary."
+    layout_disposition: "Current pressure points on one side, future imperative on the other, with urgency callout."
+    zones:
+      - role: external_pressures
+        position: left_column
+        size: cards
+      - role: internal_challenges
+        position: center_column
+        size: cards
+      - role: change_imperative
+        position: right_column
+        size: highlighted_card
+      - role: urgency_message
+        position: bottom
+        size: banner
+
+  - id: 107
+    name: Burning Platform Slide
+    consulting_use: "Shows risks of inaction."
+    layout_disposition: "Descending or escalating visual showing worsening outcomes without intervention."
+    zones:
+      - role: current_state
+        position: left_or_top
+        size: medium
+      - role: deterioration_path
+        position: center
+        size: large
+      - role: risk_of_inaction
+        position: right_or_bottom
+        size: highlighted
+      - role: evidence_points
+        position: side_panel
+        size: small
+
+  - id: 108
+    name: Strategic Narrative Arc
+    consulting_use: "Builds a persuasive sequence from context to recommendation."
+    layout_disposition: "Horizontal storyline with five to seven narrative beats."
+    zones:
+      - role: narrative_steps
+        position: horizontal_sequence
+        size: equal_cards
+      - role: transition_logic
+        position: between_cards
+        size: arrows
+      - role: final_recommendation
+        position: far_right
+        size: highlighted_card
+
+  - id: 109
+    name: Fact Base Summary
+    consulting_use: "Summarizes the evidence gathered during diagnosis."
+    layout_disposition: "Evidence grouped by source type, theme, or analytical dimension."
+    zones:
+      - role: fact_categories
+        position: columns
+        size: equal
+      - role: evidence_points
+        position: inside_categories
+        size: bullet_lists
+      - role: source_notes
+        position: footer
+        size: tiny
+      - role: key_inference
+        position: bottom_right
+        size: callout
+
+  - id: 110
+    name: Evidence Stack
+    consulting_use: "Shows multiple independent proof points supporting one conclusion."
+    layout_disposition: "Stacked evidence blocks underneath a single conclusion."
+    zones:
+      - role: conclusion
+        position: top
+        size: dominant
+      - role: evidence_layers
+        position: center_vertical_stack
+        size: cards
+      - role: confidence_assessment
+        position: right_side
+        size: small
+
+  - id: 111
+    name: Diagnostic Summary
+    consulting_use: "Summarizes what was found in a business or operational diagnostic."
+    layout_disposition: "Diagnostic dimensions as rows with status, finding, evidence, and implication."
+    zones:
+      - role: dimensions
+        position: left_axis
+        size: rows
+      - role: status
+        position: center_left
+        size: icon_cells
+      - role: findings
+        position: center
+        size: text_cells
+      - role: implications
+        position: right_column
+        size: text_cells
+
+  - id: 112
+    name: Root Cause Analysis
+    consulting_use: "Identifies underlying causes behind symptoms."
+    layout_disposition: "Problem statement connected to cause categories and root causes."
+    zones:
+      - role: symptom
+        position: left
+        size: large_node
+      - role: cause_categories
+        position: center
+        size: grouped_nodes
+      - role: root_causes
+        position: right
+        size: small_nodes
+      - role: evidence
+        position: bottom
+        size: small
+
+  - id: 113
+    name: Fishbone / Ishikawa Diagram
+    consulting_use: "Structures root causes by category."
+    layout_disposition: "Central spine with cause branches feeding into a problem statement."
+    zones:
+      - role: problem_statement
+        position: right
+        size: large
+      - role: main_spine
+        position: center_horizontal
+        size: full_width
+      - role: cause_branches
+        position: above_and_below_spine
+        size: angled_groups
+      - role: sub_causes
+        position: along_branches
+        size: small_labels
+
+  - id: 114
+    name: Five Whys Slide
+    consulting_use: "Documents progressive causal questioning."
+    layout_disposition: "Sequential chain from observed problem to root cause."
+    zones:
+      - role: observed_problem
+        position: left
+        size: card
+      - role: why_chain
+        position: center_sequence
+        size: cards
+      - role: root_cause
+        position: right
+        size: highlighted_card
+      - role: corrective_action
+        position: bottom
+        size: band
+
+  - id: 115
+    name: Constraint Analysis
+    consulting_use: "Shows bottlenecks limiting business performance."
+    layout_disposition: "Flow or system diagram with constraints highlighted."
+    zones:
+      - role: process_or_system_flow
+        position: center
+        size: large
+      - role: constraints
+        position: highlighted_nodes
+        size: contextual
+      - role: impact_quantification
+        position: right_panel
+        size: metric_cards
+      - role: remediation_options
+        position: bottom
+        size: list
+
+  - id: 116
+    name: Bottleneck Analysis
+    consulting_use: "Identifies process steps causing delay, cost, or capacity loss."
+    layout_disposition: "Process flow with cycle time or throughput shown at each step."
+    zones:
+      - role: process_steps
+        position: horizontal_sequence
+        size: equal_blocks
+      - role: bottleneck_step
+        position: highlighted_step
+        size: emphasized
+      - role: performance_metrics
+        position: below_steps
+        size: small
+      - role: improvement_levers
+        position: right_side
+        size: list
+
+  - id: 117
+    name: Process Pain Point Map
+    consulting_use: "Maps operational pain points across a workflow."
+    layout_disposition: "Workflow swimlane with pain points tagged at relevant steps."
+    zones:
+      - role: workflow_steps
+        position: center_timeline
+        size: blocks
+      - role: pain_points
+        position: callouts_above_or_below
+        size: labels
+      - role: severity_tags
+        position: on_callouts
+        size: small
+      - role: quick_wins
+        position: bottom
+        size: list
+
+  - id: 118
+    name: Process Mining Findings
+    consulting_use: "Shows deviations, rework, delays, and process variants."
+    layout_disposition: "Dominant process map with side panel for quantified findings."
+    zones:
+      - role: process_map
+        position: left_or_center
+        size: dominant
+      - role: variant_summary
+        position: right_panel
+        size: table
+      - role: rework_loops
+        position: on_process_map
+        size: highlighted_paths
+      - role: cycle_time_metrics
+        position: bottom
+        size: metric_cards
+
+  - id: 119
+    name: Lean Waste Analysis
+    consulting_use: "Classifies waste using lean categories."
+    layout_disposition: "Waste categories arranged as cards with examples and impact."
+    zones:
+      - role: waste_categories
+        position: center_grid
+        size: cards
+      - role: examples
+        position: inside_cards
+        size: small
+      - role: estimated_impact
+        position: card_footer
+        size: metric
+      - role: priority_actions
+        position: bottom
+        size: band
+
+  - id: 120
+    name: Value Stream Map
+    consulting_use: "Maps material, information, and value flow."
+    layout_disposition: "End-to-end process map with cycle time, wait time, and value-added indicators."
+    zones:
+      - role: process_flow
+        position: center_horizontal
+        size: dominant
+      - role: information_flow
+        position: top
+        size: connectors
+      - role: timing_ladder
+        position: bottom
+        size: timeline
+      - role: improvement_opportunities
+        position: side_panel
+        size: callouts
+
+  - id: 121
+    name: Benchmark Comparison
+    consulting_use: "Compares client performance against peers or best practice."
+    layout_disposition: "Client metric shown against peer range, median, and top quartile."
+    zones:
+      - role: benchmark_metric
+        position: top
+        size: large
+      - role: peer_distribution
+        position: center
+        size: chart
+      - role: client_position
+        position: on_chart
+        size: marker
+      - role: performance_gap
+        position: right_panel
+        size: metric_card
+
+  - id: 122
+    name: Best Practice Gap
+    consulting_use: "Shows gaps between current practice and leading practice."
+    layout_disposition: "Rows of practices with current, leading, and required change."
+    zones:
+      - role: practice_areas
+        position: left_axis
+        size: rows
+      - role: current_practice
+        position: center_left
+        size: text_cells
+      - role: leading_practice
+        position: center_right
+        size: text_cells
+      - role: required_change
+        position: right_column
+        size: action_cells
+
+  - id: 123
+    name: Competitive Positioning Map
+    consulting_use: "Shows where competitors sit across two strategic dimensions."
+    layout_disposition: "2x2 or perceptual map with competitors plotted as logos or bubbles."
+    zones:
+      - role: x_axis
+        position: bottom
+        size: full_width
+      - role: y_axis
+        position: left
+        size: full_height
+      - role: competitor_markers
+        position: matrix_body
+        size: bubbles_or_logos
+      - role: strategic_white_space
+        position: highlighted_area
+        size: contextual
+
+  - id: 124
+    name: Competitor Capability Comparison
+    consulting_use: "Compares client and competitors across capabilities."
+    layout_disposition: "Heatmap or scorecard with players as columns and capabilities as rows."
+    zones:
+      - role: capabilities
+        position: left_axis
+        size: rows
+      - role: competitors
+        position: top_axis
+        size: columns
+      - role: capability_scores
+        position: matrix_body
+        size: heatmap_cells
+      - role: client_gap_summary
+        position: right_panel
+        size: callout
+
+  - id: 125
+    name: Industry Structure Analysis
+    consulting_use: "Summarizes market participants, economics, and power dynamics."
+    layout_disposition: "Value-chain or ecosystem map with participants and value capture."
+    zones:
+      - role: industry_segments
+        position: horizontal_chain
+        size: blocks
+      - role: participant_examples
+        position: inside_segments
+        size: lists
+      - role: economics
+        position: below_segments
+        size: metric_row
+      - role: power_dynamics
+        position: top_or_side
+        size: callouts
+
+  - id: 126
+    name: Porter Five Forces
+    consulting_use: "Assesses industry attractiveness."
+    layout_disposition: "Central industry rivalry box surrounded by four external force boxes."
+    zones:
+      - role: industry_rivalry
+        position: center
+        size: large_box
+      - role: supplier_power
+        position: left
+        size: box
+      - role: buyer_power
+        position: right
+        size: box
+      - role: threat_of_substitutes
+        position: bottom
+        size: box
+      - role: threat_of_new_entrants
+        position: top
+        size: box
+
+  - id: 127
+    name: Ecosystem Map
+    consulting_use: "Shows partners, platforms, channels, regulators, and customers."
+    layout_disposition: "Central company or platform surrounded by ecosystem actor groups."
+    zones:
+      - role: focal_organization
+        position: center
+        size: large_node
+      - role: ecosystem_actors
+        position: surrounding_clusters
+        size: grouped_nodes
+      - role: relationship_types
+        position: connectors
+        size: labeled_lines
+      - role: strategic_implications
+        position: side_panel
+        size: list
+
+  - id: 128
+    name: Value Chain Analysis
+    consulting_use: "Breaks the business into primary and support activities."
+    layout_disposition: "Horizontal value chain with activity blocks and margin overlay."
+    zones:
+      - role: primary_activities
+        position: center_horizontal
+        size: connected_blocks
+      - role: support_activities
+        position: top_or_bottom_bands
+        size: horizontal_bands
+      - role: margin_or_value_capture
+        position: right_side
+        size: wedge_or_card
+      - role: improvement_notes
+        position: below
+        size: callouts
+
+  - id: 129
+    name: Customer Segmentation
+    consulting_use: "Segments customers by needs, value, behavior, or profitability."
+    layout_disposition: "Segment cards or matrix with size, needs, economics, and priority."
+    zones:
+      - role: segments
+        position: center_grid
+        size: cards
+      - role: segment_size
+        position: card_header
+        size: metric
+      - role: needs_behaviors
+        position: card_body
+        size: text
+      - role: priority_level
+        position: card_footer
+        size: label
+
+  - id: 130
+    name: Segment Attractiveness
+    consulting_use: "Ranks market or customer segments."
+    layout_disposition: "Matrix or table scoring each segment by attractiveness and ability to win."
+    zones:
+      - role: segments
+        position: left_axis
+        size: rows
+      - role: attractiveness_criteria
+        position: top_axis
+        size: columns
+      - role: scores
+        position: matrix_body
+        size: cells
+      - role: priority_recommendation
+        position: right_column
+        size: highlight
+
+  - id: 131
+    name: Customer Profitability Curve
+    consulting_use: "Shows distribution of profit across customers or accounts."
+    layout_disposition: "Cumulative profitability curve with profitable and unprofitable customer zones."
+    zones:
+      - role: profitability_curve
+        position: center
+        size: large_chart
+      - role: customer_percentile_axis
+        position: bottom
+        size: full_width
+      - role: profit_axis
+        position: left
+        size: full_height
+      - role: segment_callouts
+        position: on_curve
+        size: labels
+
+  - id: 132
+    name: Wallet Share Analysis
+    consulting_use: "Shows current share of customer spend and expansion potential."
+    layout_disposition: "Stacked bars or account cards comparing current share and remaining opportunity."
+    zones:
+      - role: accounts_or_segments
+        position: left_axis
+        size: rows
+      - role: current_wallet_share
+        position: center
+        size: bars
+      - role: addressable_gap
+        position: right_of_bars
+        size: bars_or_metrics
+      - role: expansion_actions
+        position: right_panel
+        size: list
+
+  - id: 133
+    name: Churn Driver Analysis
+    consulting_use: "Explains why customers leave and where to intervene."
+    layout_disposition: "Driver tree or ranked bar chart of churn causes with mitigation actions."
+    zones:
+      - role: churn_metric
+        position: top_left
+        size: metric_card
+      - role: churn_drivers
+        position: center
+        size: chart_or_tree
+      - role: affected_segments
+        position: right_panel
+        size: list
+      - role: retention_levers
+        position: bottom
+        size: action_cards
+
+  - id: 134
+    name: Pricing Waterfall
+    consulting_use: "Shows leakage from list price to net realized price."
+    layout_disposition: "Waterfall from list price through discounts, rebates, incentives, and net price."
+    zones:
+      - role: list_price
+        position: leftmost_bar
+        size: bar
+      - role: price_leakage_items
+        position: middle_bars
+        size: waterfall_steps
+      - role: net_price
+        position: rightmost_bar
+        size: bar
+      - role: leakage_insights
+        position: bottom_or_right
+        size: callouts
+
+  - id: 135
+    name: Price Volume Mix Analysis
+    consulting_use: "Separates revenue change into price, volume, and mix effects."
+    layout_disposition: "Bridge chart decomposing revenue movement by driver."
+    zones:
+      - role: prior_revenue
+        position: leftmost
+        size: bar
+      - role: price_effect
+        position: middle_left
+        size: waterfall_step
+      - role: volume_effect
+        position: middle
+        size: waterfall_step
+      - role: mix_effect
+        position: middle_right
+        size: waterfall_step
+      - role: current_revenue
+        position: rightmost
+        size: bar
+
+  - id: 136
+    name: Unit Economics Slide
+    consulting_use: "Shows revenue, cost, margin, CAC, LTV, or payback at unit level."
+    layout_disposition: "Metric cards on top with economics breakdown below."
+    zones:
+      - role: headline_unit_metric
+        position: top_left
+        size: large_card
+      - role: core_metrics
+        position: top_row
+        size: cards
+      - role: economics_breakdown
+        position: center
+        size: table_or_chart
+      - role: implication
+        position: bottom
+        size: callout
+
+  - id: 137
+    name: Margin Decomposition
+    consulting_use: "Explains margin by revenue, cost, mix, and operating drivers."
+    layout_disposition: "Stacked or bridge visualization with explanatory side notes."
+    zones:
+      - role: margin_metric
+        position: top
+        size: large
+      - role: decomposition_chart
+        position: center
+        size: dominant
+      - role: driver_notes
+        position: right_panel
+        size: list
+      - role: improvement_potential
+        position: bottom
+        size: highlighted_band
+
+  - id: 138
+    name: Spend Cube
+    consulting_use: "Analyzes procurement spend by supplier, category, and business unit."
+    layout_disposition: "Cube or three-dimensional matrix with supporting breakdown charts."
+    zones:
+      - role: spend_dimensions
+        position: center
+        size: cube_or_matrix
+      - role: category_breakdown
+        position: left_panel
+        size: chart
+      - role: supplier_breakdown
+        position: right_panel
+        size: chart
+      - role: savings_opportunities
+        position: bottom
+        size: cards
+
+  - id: 139
+    name: Procurement Savings Waterfall
+    consulting_use: "Shows how sourcing levers produce savings."
+    layout_disposition: "Waterfall from baseline spend to target spend after savings levers."
+    zones:
+      - role: baseline_spend
+        position: leftmost_bar
+        size: bar
+      - role: savings_levers
+        position: middle_steps
+        size: waterfall_steps
+      - role: residual_spend
+        position: rightmost_bar
+        size: bar
+      - role: confidence_level
+        position: below_steps
+        size: labels
+
+  - id: 140
+    name: Supplier Segmentation
+    consulting_use: "Classifies suppliers by risk, value, or strategic importance."
+    layout_disposition: "2x2 matrix or portfolio grid with suppliers plotted."
+    zones:
+      - role: value_axis
+        position: vertical_axis
+        size: full_height
+      - role: risk_axis
+        position: horizontal_axis
+        size: full_width
+      - role: supplier_markers
+        position: matrix_body
+        size: bubbles
+      - role: supplier_strategy
+        position: quadrant_labels
+        size: small
+
+  - id: 141
+    name: Zero Based Budgeting Slide
+    consulting_use: "Frames cost reset from required activities rather than prior budget."
+    layout_disposition: "Cost categories mapped to must-have, should-have, and optional spend."
+    zones:
+      - role: cost_categories
+        position: left_axis
+        size: rows
+      - role: necessity_tiers
+        position: top_axis
+        size: columns
+      - role: spend_items
+        position: matrix_body
+        size: cells
+      - role: reset_opportunity
+        position: right_column
+        size: metric
+
+  - id: 142
+    name: Organization Span And Layers
+    consulting_use: "Diagnoses organizational complexity."
+    layout_disposition: "Org layer diagram with spans of control and management layers shown."
+    zones:
+      - role: org_layers
+        position: center_vertical
+        size: stacked_bands
+      - role: span_metrics
+        position: right_side
+        size: metric_cards
+      - role: benchmark_comparison
+        position: bottom
+        size: chart
+      - role: design_implications
+        position: left_panel
+        size: list
+
+  - id: 143
+    name: Workforce Pyramid
+    consulting_use: "Shows workforce composition by level, role, cost, or location."
+    layout_disposition: "Pyramid or stacked structure showing headcount distribution."
+    zones:
+      - role: workforce_levels
+        position: center_vertical
+        size: stacked_segments
+      - role: headcount
+        position: inside_segments
+        size: numeric
+      - role: cost_or_mix_metrics
+        position: right_panel
+        size: cards
+      - role: benchmark_notes
+        position: bottom
+        size: small
+
+  - id: 144
+    name: Talent Heatmap
+    consulting_use: "Assesses talent capability, capacity, or readiness."
+    layout_disposition: "Heatmap by role family and capability dimension."
+    zones:
+      - role: role_families
+        position: left_axis
+        size: rows
+      - role: capability_dimensions
+        position: top_axis
+        size: columns
+      - role: readiness_scores
+        position: matrix_body
+        size: heatmap_cells
+      - role: talent_actions
+        position: right_panel
+        size: list
+
+  - id: 145
+    name: Skills Gap Matrix
+    consulting_use: "Identifies gaps between current and required skills."
+    layout_disposition: "Rows of skills with current proficiency, target proficiency, and gap."
+    zones:
+      - role: skills
+        position: left_column
+        size: rows
+      - role: current_level
+        position: center_left
+        size: scale_cells
+      - role: target_level
+        position: center_right
+        size: scale_cells
+      - role: gap_closure_plan
+        position: right_column
+        size: action_cells
+
+  - id: 146
+    name: Technology Debt Assessment
+    consulting_use: "Summarizes technical debt by domain, severity, and business impact."
+    layout_disposition: "Portfolio view of debt items grouped by system or capability."
+    zones:
+      - role: technology_domains
+        position: rows_or_columns
+        size: grouped_sections
+      - role: debt_items
+        position: inside_domains
+        size: cards
+      - role: severity
+        position: card_corner
+        size: label
+      - role: business_impact
+        position: right_panel_or_bottom
+        size: metric_cards
+
+  - id: 147
+    name: Application Portfolio Rationalization
+    consulting_use: "Classifies applications for retain, retire, replace, or modernize decisions."
+    layout_disposition: "Matrix or table mapping applications to business value and technical fit."
+    zones:
+      - role: applications
+        position: matrix_body_or_left_axis
+        size: markers_or_rows
+      - role: business_value_axis
+        position: vertical_axis
+        size: full_height
+      - role: technical_fit_axis
+        position: horizontal_axis
+        size: full_width
+      - role: disposition_decision
+        position: labels_or_right_column
+        size: tags
+
+  - id: 148
+    name: IT Cost Transparency
+    consulting_use: "Explains IT cost by service, function, or consumption driver."
+    layout_disposition: "Cost tower or service-cost model with allocation logic."
+    zones:
+      - role: cost_pools
+        position: left_column
+        size: stacked_blocks
+      - role: allocation_drivers
+        position: center_column
+        size: arrows_or_table
+      - role: consuming_units
+        position: right_column
+        size: blocks
+      - role: transparency_insight
+        position: bottom
+        size: callout
+
+  - id: 149
+    name: Cloud Migration Wave Plan
+    consulting_use: "Plans application migration to cloud by wave and dependency."
+    layout_disposition: "Timeline with application groups organized into migration waves."
+    zones:
+      - role: migration_waves
+        position: horizontal_sequence
+        size: columns
+      - role: application_groups
+        position: inside_waves
+        size: cards
+      - role: dependencies
+        position: between_cards
+        size: connectors
+      - role: readiness_status
+        position: card_tags
+        size: small
+
+  - id: 150
+    name: Digital Transformation Architecture
+    consulting_use: "Shows how digital capabilities, platforms, data, and channels fit together."
+    layout_disposition: "Layered architecture from customer channels to data, platforms, and operations."
+    zones:
+      - role: customer_channels
+        position: top_layer
+        size: horizontal_band
+      - role: digital_capabilities
+        position: upper_middle_layer
+        size: grouped_blocks
+      - role: platform_services
+        position: lower_middle_layer
+        size: blocks
+      - role: data_and_integration
+        position: bottom_layer
+        size: horizontal_band
+      - role: governance_security
+        position: side_or_cross_cutting_layer
+        size: vertical_band
