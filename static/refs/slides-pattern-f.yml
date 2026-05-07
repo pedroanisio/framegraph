@@ -1,0 +1,939 @@
+expert_designed_slide_template_patterns_extension_50:
+  - id: 276
+    name: Claim Evidence Reasoning Slide
+    consulting_use: "Turns an analytical conclusion into an auditable argument."
+    layout_disposition: "One main claim at the top, evidence blocks in the middle, reasoning chain at the bottom."
+    zones:
+      - role: claim
+        position: top
+        size: dominant
+      - role: evidence_blocks
+        position: middle_grid
+        size: equal_cards
+      - role: reasoning_chain
+        position: bottom
+        size: horizontal_flow
+      - role: confidence_marker
+        position: top_right
+        size: small_label
+
+  - id: 277
+    name: Assumption Stack
+    consulting_use: "Makes hidden assumptions explicit before a recommendation."
+    layout_disposition: "Layered stack of assumptions ordered from foundational to fragile."
+    zones:
+      - role: foundational_assumptions
+        position: bottom_layer
+        size: widest
+      - role: operational_assumptions
+        position: middle_layer
+        size: medium
+      - role: fragile_assumptions
+        position: top_layer
+        size: narrow
+      - role: validation_status
+        position: right_panel
+        size: status_table
+
+  - id: 278
+    name: Assumption Stress Test
+    consulting_use: "Shows which assumptions could break the strategy."
+    layout_disposition: "Matrix of assumptions by likelihood of failure and impact if wrong."
+    zones:
+      - role: failure_likelihood_axis
+        position: horizontal_axis
+        size: full_width
+      - role: business_impact_axis
+        position: vertical_axis
+        size: full_height
+      - role: assumptions
+        position: matrix_body
+        size: markers
+      - role: stress_test_actions
+        position: right_panel
+        size: list
+
+  - id: 279
+    name: Decision Traceability Slide
+    consulting_use: "Connects final recommendation to facts, assumptions, criteria, and trade-offs."
+    layout_disposition: "Left-to-right trace from evidence to decision."
+    zones:
+      - role: facts
+        position: left_column
+        size: cards
+      - role: assumptions
+        position: center_left
+        size: cards
+      - role: decision_criteria
+        position: center
+        size: cards
+      - role: tradeoffs
+        position: center_right
+        size: cards
+      - role: recommendation
+        position: right_column
+        size: highlighted_card
+
+  - id: 280
+    name: Unknowns Map
+    consulting_use: "Separates known facts, known unknowns, assumptions, and open risks."
+    layout_disposition: "Four-quadrant knowledge-status map."
+    zones:
+      - role: known_facts
+        position: top_left
+        size: quadrant
+      - role: known_unknowns
+        position: top_right
+        size: quadrant
+      - role: assumptions
+        position: bottom_left
+        size: quadrant
+      - role: open_risks
+        position: bottom_right
+        size: quadrant
+
+  - id: 281
+    name: Evidence Confidence Ladder
+    consulting_use: "Ranks evidence by reliability from anecdote to verified operational data."
+    layout_disposition: "Vertical ladder with evidence items placed by strength."
+    zones:
+      - role: evidence_levels
+        position: center_vertical
+        size: ladder
+      - role: evidence_items
+        position: on_ladder_rungs
+        size: labels
+      - role: weak_evidence_notes
+        position: left_panel
+        size: list
+      - role: strong_evidence_notes
+        position: right_panel
+        size: list
+
+  - id: 282
+    name: Proof Gap Slide
+    consulting_use: "Shows what is proven, what is plausible, and what still needs validation."
+    layout_disposition: "Three-column evidence maturity view."
+    zones:
+      - role: proven
+        position: left_column
+        size: equal
+      - role: plausible
+        position: center_column
+        size: equal
+      - role: unproven
+        position: right_column
+        size: equal
+      - role: validation_next_steps
+        position: bottom
+        size: horizontal_band
+
+  - id: 283
+    name: Contradiction Map
+    consulting_use: "Surfaces conflicting signals, stakeholder positions, or data points."
+    layout_disposition: "Two opposing evidence clusters with synthesis in the center."
+    zones:
+      - role: evidence_for
+        position: left_cluster
+        size: cards
+      - role: evidence_against
+        position: right_cluster
+        size: cards
+      - role: contradiction
+        position: center
+        size: highlighted_node
+      - role: synthesis
+        position: bottom
+        size: wide_card
+
+  - id: 284
+    name: Constraint Satisfaction Slide
+    consulting_use: "Shows whether a proposal satisfies mandatory constraints."
+    layout_disposition: "Constraint checklist with pass, fail, mitigation, and residual risk."
+    zones:
+      - role: constraints
+        position: left_column
+        size: rows
+      - role: satisfaction_status
+        position: center_left
+        size: icons
+      - role: mitigation
+        position: center_right
+        size: text_cells
+      - role: residual_risk
+        position: right_column
+        size: labels
+
+  - id: 285
+    name: Decision Gate Slide
+    consulting_use: "Supports go, no-go, hold, or pivot decisions."
+    layout_disposition: "Gate criteria table with recommendation and decision ask."
+    zones:
+      - role: gate_name
+        position: top
+        size: large
+      - role: gate_criteria
+        position: center
+        size: table
+      - role: recommendation
+        position: bottom_left
+        size: highlighted_card
+      - role: decision_ask
+        position: bottom_right
+        size: action_card
+
+  - id: 286
+    name: Reversibility Matrix
+    consulting_use: "Distinguishes reversible from irreversible decisions."
+    layout_disposition: "2x2 matrix by decision impact and reversibility."
+    zones:
+      - role: impact_axis
+        position: vertical_axis
+        size: full_height
+      - role: reversibility_axis
+        position: horizontal_axis
+        size: full_width
+      - role: decisions
+        position: matrix_body
+        size: markers
+      - role: governance_rule
+        position: right_panel
+        size: callout
+
+  - id: 287
+    name: One-Way Door / Two-Way Door
+    consulting_use: "Frames decisions by reversibility and required governance."
+    layout_disposition: "Two-column decision classification with governance implications."
+    zones:
+      - role: one_way_door_decisions
+        position: left_column
+        size: cards
+      - role: two_way_door_decisions
+        position: right_column
+        size: cards
+      - role: escalation_policy
+        position: bottom
+        size: wide_band
+
+  - id: 288
+    name: Irreducible Trade-Off Slide
+    consulting_use: "Clarifies trade-offs that cannot be optimized simultaneously."
+    layout_disposition: "Triangular or tension-line layout showing competing objectives."
+    zones:
+      - role: objective_a
+        position: left
+        size: node
+      - role: objective_b
+        position: right
+        size: node
+      - role: objective_c
+        position: bottom_or_top
+        size: node
+      - role: chosen_position
+        position: inside_tension_space
+        size: marker
+      - role: rationale
+        position: side_panel
+        size: text
+
+  - id: 289
+    name: Trade-Off Frontier
+    consulting_use: "Shows the efficient frontier among strategic options."
+    layout_disposition: "Scatter plot with dominated options and frontier options marked."
+    zones:
+      - role: value_axis
+        position: vertical_axis
+        size: full_height
+      - role: cost_or_risk_axis
+        position: horizontal_axis
+        size: full_width
+      - role: options
+        position: chart_body
+        size: markers
+      - role: efficient_frontier
+        position: overlaid_curve
+        size: line
+      - role: recommended_option
+        position: highlighted_marker
+        size: emphasized
+
+  - id: 290
+    name: Optionality Portfolio
+    consulting_use: "Separates immediate bets from options worth preserving."
+    layout_disposition: "Portfolio grid of commit, defer, preserve, and abandon options."
+    zones:
+      - role: commit_now
+        position: top_right
+        size: quadrant
+      - role: preserve_option
+        position: top_left
+        size: quadrant
+      - role: defer
+        position: bottom_right
+        size: quadrant
+      - role: abandon
+        position: bottom_left
+        size: quadrant
+
+  - id: 291
+    name: Bet Portfolio Slide
+    consulting_use: "Balances core bets, adjacent bets, and exploratory bets."
+    layout_disposition: "Three-zone portfolio by certainty and upside."
+    zones:
+      - role: core_bets
+        position: left_zone
+        size: grouped_cards
+      - role: adjacent_bets
+        position: center_zone
+        size: grouped_cards
+      - role: exploratory_bets
+        position: right_zone
+        size: grouped_cards
+      - role: investment_allocation
+        position: bottom
+        size: metric_row
+
+  - id: 292
+    name: Strategic Sequencing Slide
+    consulting_use: "Shows why initiatives must happen in a specific order."
+    layout_disposition: "Dependency-aware timeline with prerequisites and unlocks."
+    zones:
+      - role: prerequisites
+        position: left
+        size: cards
+      - role: sequence_steps
+        position: center_timeline
+        size: connected_cards
+      - role: unlocked_capabilities
+        position: right
+        size: cards
+      - role: dependency_links
+        position: between_cards
+        size: arrows
+
+  - id: 293
+    name: Unlock Map
+    consulting_use: "Shows which foundational actions unlock later strategic moves."
+    layout_disposition: "Network map with unlock dependencies flowing from foundations to outcomes."
+    zones:
+      - role: foundational_moves
+        position: left_column
+        size: nodes
+      - role: unlocked_moves
+        position: center
+        size: nodes
+      - role: strategic_outcomes
+        position: right_column
+        size: highlighted_nodes
+      - role: dependency_edges
+        position: between_nodes
+        size: connectors
+
+  - id: 294
+    name: No-Regret Moves
+    consulting_use: "Identifies actions valuable across most future scenarios."
+    layout_disposition: "Scenario columns with actions shown as common or scenario-specific."
+    zones:
+      - role: scenarios
+        position: top_axis
+        size: columns
+      - role: actions
+        position: left_axis
+        size: rows
+      - role: scenario_fit
+        position: matrix_body
+        size: cells
+      - role: no_regret_moves
+        position: highlighted_rows
+        size: contextual
+
+  - id: 295
+    name: Scenario Robustness Matrix
+    consulting_use: "Tests options against multiple future scenarios."
+    layout_disposition: "Options as rows, scenarios as columns, robustness as cell score."
+    zones:
+      - role: options
+        position: left_axis
+        size: rows
+      - role: scenarios
+        position: top_axis
+        size: columns
+      - role: robustness_scores
+        position: matrix_body
+        size: heatmap_cells
+      - role: recommended_portfolio
+        position: right_panel
+        size: callout
+
+  - id: 296
+    name: Premortem Slide
+    consulting_use: "Imagines failure in advance to identify preventable causes."
+    layout_disposition: "Failure statement at top, failure causes in middle, mitigations at bottom."
+    zones:
+      - role: imagined_failure
+        position: top
+        size: dominant
+      - role: failure_causes
+        position: center_grid
+        size: cards
+      - role: leading_indicators
+        position: right_panel
+        size: list
+      - role: mitigations
+        position: bottom
+        size: action_cards
+
+  - id: 297
+    name: Early Warning Indicators
+    consulting_use: "Defines signals that strategy or execution is going off-track."
+    layout_disposition: "Indicator dashboard with thresholds and response actions."
+    zones:
+      - role: indicators
+        position: left_column
+        size: rows
+      - role: thresholds
+        position: center_left
+        size: cells
+      - role: current_signal
+        position: center_right
+        size: status_cells
+      - role: response_action
+        position: right_column
+        size: action_cells
+
+  - id: 298
+    name: Kill Criteria Slide
+    consulting_use: "Defines when to stop, pivot, or scale an initiative."
+    layout_disposition: "Criteria table split into scale, continue, pivot, and stop conditions."
+    zones:
+      - role: scale_criteria
+        position: top_left
+        size: quadrant
+      - role: continue_criteria
+        position: top_right
+        size: quadrant
+      - role: pivot_criteria
+        position: bottom_left
+        size: quadrant
+      - role: stop_criteria
+        position: bottom_right
+        size: quadrant
+      - role: governance_owner
+        position: footer
+        size: small
+
+  - id: 299
+    name: Learning Loop Slide
+    consulting_use: "Shows how pilots, metrics, feedback, and decisions create learning."
+    layout_disposition: "Circular loop from hypothesis to experiment to measurement to decision."
+    zones:
+      - role: hypothesis
+        position: top
+        size: node
+      - role: experiment
+        position: right
+        size: node
+      - role: measurement
+        position: bottom
+        size: node
+      - role: decision
+        position: left
+        size: node
+      - role: learning_repository
+        position: center
+        size: small_node
+
+  - id: 300
+    name: Experiment Result Card
+    consulting_use: "Summarizes one experiment and its decision implication."
+    layout_disposition: "Compact card layout with hypothesis, test, result, confidence, and next decision."
+    zones:
+      - role: hypothesis
+        position: top_left
+        size: text_block
+      - role: test_design
+        position: top_right
+        size: text_block
+      - role: result
+        position: center
+        size: dominant_metric
+      - role: confidence
+        position: bottom_left
+        size: label
+      - role: decision
+        position: bottom_right
+        size: highlighted_label
+
+  - id: 301
+    name: System Dynamics Loop
+    consulting_use: "Explains reinforcing and balancing loops in complex systems."
+    layout_disposition: "Causal loop diagram with loop polarity and leverage points."
+    zones:
+      - role: causal_variables
+        position: canvas
+        size: nodes
+      - role: causal_links
+        position: between_nodes
+        size: arrows
+      - role: reinforcing_loops
+        position: loop_annotations
+        size: labels
+      - role: balancing_loops
+        position: loop_annotations
+        size: labels
+      - role: leverage_points
+        position: highlighted_nodes
+        size: emphasized
+
+  - id: 302
+    name: Causal Chain Slide
+    consulting_use: "Connects intervention to intermediate outcomes and final impact."
+    layout_disposition: "Linear or branching chain of cause and effect."
+    zones:
+      - role: intervention
+        position: left
+        size: card
+      - role: intermediate_effects
+        position: center
+        size: connected_cards
+      - role: final_outcome
+        position: right
+        size: highlighted_card
+      - role: assumptions
+        position: bottom
+        size: small_notes
+
+  - id: 303
+    name: Causal Layered Analysis
+    consulting_use: "Separates visible symptoms from systemic, worldview, and narrative layers."
+    layout_disposition: "Four stacked layers from surface events to deep narrative."
+    zones:
+      - role: visible_events
+        position: top_layer
+        size: wide_band
+      - role: systemic_causes
+        position: upper_middle_layer
+        size: wide_band
+      - role: mental_models
+        position: lower_middle_layer
+        size: wide_band
+      - role: deep_narrative
+        position: bottom_layer
+        size: wide_band
+      - role: intervention_points
+        position: right_panel
+        size: callouts
+
+  - id: 304
+    name: Abstraction Ladder
+    consulting_use: "Moves from concrete observations to general principles and back to actions."
+    layout_disposition: "Vertical ladder from data to insight to principle to action."
+    zones:
+      - role: observations
+        position: bottom_rung
+        size: cards
+      - role: patterns
+        position: lower_middle_rung
+        size: cards
+      - role: principles
+        position: upper_middle_rung
+        size: cards
+      - role: actions
+        position: top_rung
+        size: highlighted_cards
+      - role: ladder_connector
+        position: center
+        size: vertical_line
+
+  - id: 305
+    name: Concept Compression Slide
+    consulting_use: "Compresses complex findings into a small set of memorable concepts."
+    layout_disposition: "Central compressed concept with detailed evidence collapsed into expandable side notes."
+    zones:
+      - role: compressed_concept
+        position: center
+        size: dominant
+      - role: source_findings
+        position: left_panel
+        size: small_cards
+      - role: implications
+        position: right_panel
+        size: small_cards
+      - role: mnemonic_structure
+        position: bottom
+        size: short_labels
+
+  - id: 306
+    name: Mental Model Shift
+    consulting_use: "Shows the mindset change required for transformation."
+    layout_disposition: "Before and after mental model columns with behavior implications."
+    zones:
+      - role: old_mental_model
+        position: left_column
+        size: large_card
+      - role: new_mental_model
+        position: right_column
+        size: large_card
+      - role: behavior_changes
+        position: bottom
+        size: action_cards
+      - role: transition_message
+        position: center
+        size: arrow_or_callout
+
+  - id: 307
+    name: Narrative Reframe Slide
+    consulting_use: "Reframes a problem in a more powerful strategic narrative."
+    layout_disposition: "Old framing, limitations, new framing, and unlocked actions."
+    zones:
+      - role: old_frame
+        position: left_column
+        size: card
+      - role: limitations
+        position: center_left
+        size: card
+      - role: new_frame
+        position: center_right
+        size: highlighted_card
+      - role: unlocked_actions
+        position: right_column
+        size: card
+
+  - id: 308
+    name: Pattern Recognition Board
+    consulting_use: "Groups many observations into recurring patterns."
+    layout_disposition: "Clustered board with observations grouped into named patterns."
+    zones:
+      - role: observation_cards
+        position: clustered_canvas
+        size: small_cards
+      - role: pattern_clusters
+        position: background_regions
+        size: grouped_areas
+      - role: pattern_labels
+        position: cluster_headers
+        size: labels
+      - role: synthesis
+        position: bottom
+        size: highlighted_band
+
+  - id: 309
+    name: Signal vs Noise Slide
+    consulting_use: "Distinguishes meaningful signals from distractions."
+    layout_disposition: "Two-column or filter-funnel layout separating signal and noise."
+    zones:
+      - role: raw_inputs
+        position: left
+        size: list
+      - role: filtering_logic
+        position: center
+        size: funnel_or_rules
+      - role: signals
+        position: top_right
+        size: cards
+      - role: noise
+        position: bottom_right
+        size: muted_cards
+
+  - id: 310
+    name: Insight Density Slide
+    consulting_use: "Presents many findings while preserving one dominant message."
+    layout_disposition: "Dominant headline with compact supporting insight tiles."
+    zones:
+      - role: dominant_message
+        position: top
+        size: dominant
+      - role: insight_tiles
+        position: center_grid
+        size: compact_cards
+      - role: evidence_tags
+        position: tile_footer
+        size: tiny
+      - role: synthesis_note
+        position: bottom
+        size: callout
+
+  - id: 311
+    name: Decision Quality Scorecard
+    consulting_use: "Evaluates the quality of a decision process, not only the outcome."
+    layout_disposition: "Scorecard across clarity, evidence, options, trade-offs, alignment, and reversibility."
+    zones:
+      - role: quality_dimensions
+        position: left_axis
+        size: rows
+      - role: score
+        position: center_left
+        size: numeric_cells
+      - role: evidence
+        position: center
+        size: text_cells
+      - role: improvement_action
+        position: right_column
+        size: action_cells
+
+  - id: 312
+    name: Recommendation Robustness Slide
+    consulting_use: "Shows why a recommendation holds under uncertainty."
+    layout_disposition: "Recommendation at center, stress tests around it."
+    zones:
+      - role: recommendation
+        position: center
+        size: dominant_card
+      - role: stress_tests
+        position: surrounding_cards
+        size: equal_cards
+      - role: failure_modes
+        position: bottom_left
+        size: list
+      - role: mitigations
+        position: bottom_right
+        size: list
+
+  - id: 313
+    name: Strategic Logic Chain
+    consulting_use: "Shows the logic from context to choice to action to value."
+    layout_disposition: "Four-stage logic chain connected by arrows."
+    zones:
+      - role: context
+        position: left
+        size: card
+      - role: strategic_choice
+        position: center_left
+        size: card
+      - role: execution_action
+        position: center_right
+        size: card
+      - role: value_created
+        position: right
+        size: highlighted_card
+      - role: logic_connectors
+        position: between_cards
+        size: arrows
+
+  - id: 314
+    name: First Principles Decomposition
+    consulting_use: "Breaks a problem into irreducible primitives before rebuilding the solution."
+    layout_disposition: "Problem on left, primitive components in middle, reconstructed solution on right."
+    zones:
+      - role: original_problem
+        position: left
+        size: large_card
+      - role: primitives
+        position: center_grid
+        size: small_cards
+      - role: recomposed_solution
+        position: right
+        size: highlighted_card
+      - role: assumptions_removed
+        position: bottom
+        size: note_band
+
+  - id: 315
+    name: Capability Dependency Graph
+    consulting_use: "Shows which capabilities depend on others."
+    layout_disposition: "Node-link dependency graph with foundational capabilities emphasized."
+    zones:
+      - role: capabilities
+        position: graph_canvas
+        size: nodes
+      - role: dependencies
+        position: between_nodes
+        size: directed_edges
+      - role: foundational_capabilities
+        position: highlighted_nodes
+        size: emphasized
+      - role: sequencing_implications
+        position: right_panel
+        size: list
+
+  - id: 316
+    name: Architecture Decision Record Slide
+    consulting_use: "Summarizes an important design or architecture decision."
+    layout_disposition: "ADR-like layout with context, options, decision, consequences, and status."
+    zones:
+      - role: context
+        position: top_left
+        size: card
+      - role: options_considered
+        position: center_left
+        size: cards
+      - role: decision
+        position: top_right
+        size: highlighted_card
+      - role: consequences
+        position: center_right
+        size: card
+      - role: status
+        position: bottom
+        size: label_band
+
+  - id: 317
+    name: Control Point Architecture
+    consulting_use: "Shows where controls, approvals, or policies must be embedded in a system."
+    layout_disposition: "Architecture or process flow with control points overlaid."
+    zones:
+      - role: system_or_process_flow
+        position: center
+        size: dominant
+      - role: control_points
+        position: on_flow_nodes
+        size: markers
+      - role: control_owner
+        position: near_markers
+        size: labels
+      - role: audit_trail
+        position: bottom
+        size: horizontal_band
+
+  - id: 318
+    name: Human in the Loop Design
+    consulting_use: "Defines where human judgment is required in an automated or AI-enabled process."
+    layout_disposition: "Automation flow with human review gates and escalation paths."
+    zones:
+      - role: automated_steps
+        position: horizontal_flow
+        size: blocks
+      - role: human_review_gates
+        position: inserted_between_steps
+        size: highlighted_blocks
+      - role: escalation_paths
+        position: above_or_below_flow
+        size: arrows
+      - role: decision_policy
+        position: right_panel
+        size: table
+
+  - id: 319
+    name: Trust Boundary Map
+    consulting_use: "Clarifies where data, systems, users, and vendors cross trust boundaries."
+    layout_disposition: "System map with trust zones and boundary crossings."
+    zones:
+      - role: trust_zones
+        position: background_regions
+        size: containers
+      - role: systems
+        position: inside_zones
+        size: nodes
+      - role: boundary_crossings
+        position: between_zones
+        size: connectors
+      - role: controls
+        position: on_crossings
+        size: labels
+
+  - id: 320
+    name: Governance by Risk Tier
+    consulting_use: "Matches governance intensity to risk level."
+    layout_disposition: "Risk tiers as rows with required controls, approvals, and monitoring."
+    zones:
+      - role: risk_tiers
+        position: left_axis
+        size: rows
+      - role: required_controls
+        position: center_left
+        size: cells
+      - role: approval_level
+        position: center
+        size: cells
+      - role: monitoring_frequency
+        position: center_right
+        size: cells
+      - role: escalation_rule
+        position: right_column
+        size: cells
+
+  - id: 321
+    name: Operating Cadence Map
+    consulting_use: "Shows the rhythm of meetings, decisions, reviews, and reporting."
+    layout_disposition: "Cadence calendar with daily, weekly, monthly, quarterly, and annual routines."
+    zones:
+      - role: cadence_levels
+        position: left_axis
+        size: rows
+      - role: routines
+        position: timeline_body
+        size: cards
+      - role: decision_outputs
+        position: right_column
+        size: list
+      - role: escalation_links
+        position: between_levels
+        size: arrows
+
+  - id: 322
+    name: Metrics Integrity Slide
+    consulting_use: "Validates whether KPIs are reliable, owned, and decision-useful."
+    layout_disposition: "Metric quality table with definition, source, owner, latency, and use case."
+    zones:
+      - role: metrics
+        position: left_column
+        size: rows
+      - role: definitions
+        position: center_left
+        size: text_cells
+      - role: data_sources
+        position: center
+        size: cells
+      - role: owners
+        position: center_right
+        size: cells
+      - role: decision_use
+        position: right_column
+        size: text_cells
+
+  - id: 323
+    name: Minimum Viable Governance
+    consulting_use: "Defines the lightest governance model sufficient for risk and quality."
+    layout_disposition: "Governance controls organized by must-have, should-have, and optional layers."
+    zones:
+      - role: must_have_controls
+        position: bottom_layer
+        size: wide_band
+      - role: should_have_controls
+        position: middle_layer
+        size: medium_band
+      - role: optional_controls
+        position: top_layer
+        size: narrow_band
+      - role: rationale
+        position: right_panel
+        size: notes
+
+  - id: 324
+    name: Complexity Reduction Slide
+    consulting_use: "Identifies where complexity can be removed without losing value."
+    layout_disposition: "Complexity sources mapped to simplification actions and expected benefits."
+    zones:
+      - role: complexity_sources
+        position: left_column
+        size: cards
+      - role: simplification_actions
+        position: center_column
+        size: cards
+      - role: retained_value
+        position: right_column
+        size: metric_cards
+      - role: removal_risk
+        position: bottom
+        size: warning_notes
+
+  - id: 325
+    name: Executive Synthesis Slide
+    consulting_use: "Final high-density synthesis combining conclusion, rationale, risk, and action."
+    layout_disposition: "Single dominant conclusion supported by rationale, implications, risks, and next actions."
+    zones:
+      - role: conclusion
+        position: top
+        size: dominant
+      - role: rationale
+        position: center_left
+        size: cards
+      - role: implications
+        position: center
+        size: cards
+      - role: risks
+        position: center_right
+        size: cards
+      - role: next_actions
+        position: bottom
+        size: horizontal_band

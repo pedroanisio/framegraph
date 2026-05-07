@@ -1,0 +1,972 @@
+expert_only_slide_template_patterns:
+  - id: 326
+    name: Inference Audit Trail
+    expert_use: "Used when recommendations must be traceable from raw evidence to final judgment."
+    layout_disposition: "A left-to-right chain showing source data, interpretation, inference, conclusion, and decision."
+    zones:
+      - role: source_evidence
+        position: left_column
+        size: cards
+      - role: interpretation
+        position: center_left
+        size: cards
+      - role: inference
+        position: center
+        size: cards
+      - role: conclusion
+        position: center_right
+        size: highlighted_card
+      - role: decision
+        position: right_column
+        size: action_card
+
+  - id: 327
+    name: Epistemic Status Slide
+    expert_use: "Separates what is known, estimated, inferred, assumed, and speculative."
+    layout_disposition: "Five-tier status model with claims distributed by certainty level."
+    zones:
+      - role: known
+        position: top_row
+        size: wide_band
+      - role: estimated
+        position: second_row
+        size: wide_band
+      - role: inferred
+        position: third_row
+        size: wide_band
+      - role: assumed
+        position: fourth_row
+        size: wide_band
+      - role: speculative
+        position: bottom_row
+        size: wide_band
+
+  - id: 328
+    name: Claim Validity Matrix
+    expert_use: "Tests each major claim against evidence, logic, counterevidence, and action relevance."
+    layout_disposition: "Claims as rows, validation dimensions as columns."
+    zones:
+      - role: claims
+        position: left_axis
+        size: rows
+      - role: evidence_strength
+        position: center_left
+        size: score_cells
+      - role: logical_validity
+        position: center
+        size: score_cells
+      - role: counterevidence
+        position: center_right
+        size: text_cells
+      - role: action_relevance
+        position: right_column
+        size: labels
+
+  - id: 329
+    name: Falsifiability Slide
+    expert_use: "Defines what evidence would disprove a hypothesis or recommendation."
+    layout_disposition: "Hypothesis at top with falsification tests and decision consequences below."
+    zones:
+      - role: hypothesis
+        position: top
+        size: dominant
+      - role: falsification_tests
+        position: center_grid
+        size: cards
+      - role: disconfirming_evidence
+        position: right_panel
+        size: list
+      - role: decision_consequence
+        position: bottom
+        size: highlighted_band
+
+  - id: 330
+    name: Counterfactual Analysis
+    expert_use: "Explains what would likely happen under alternative decisions or absent intervention."
+    layout_disposition: "Actual path contrasted with counterfactual paths."
+    zones:
+      - role: actual_path
+        position: top_timeline
+        size: full_width
+      - role: counterfactual_paths
+        position: lower_timelines
+        size: parallel_rows
+      - role: divergence_points
+        position: aligned_markers
+        size: markers
+      - role: implication
+        position: right_panel
+        size: callout
+
+  - id: 331
+    name: Causal Identification Strategy
+    expert_use: "Clarifies how causality will be inferred rather than merely correlated."
+    layout_disposition: "Causal question, identification method, assumptions, threats, and robustness checks."
+    zones:
+      - role: causal_question
+        position: top
+        size: dominant
+      - role: identification_method
+        position: center_left
+        size: card
+      - role: required_assumptions
+        position: center
+        size: card
+      - role: validity_threats
+        position: center_right
+        size: card
+      - role: robustness_checks
+        position: bottom
+        size: horizontal_band
+
+  - id: 332
+    name: Confounder Map
+    expert_use: "Shows variables that may distort the apparent relationship between cause and outcome."
+    layout_disposition: "Directed causal graph with confounders highlighted."
+    zones:
+      - role: treatment_or_intervention
+        position: left
+        size: node
+      - role: outcome
+        position: right
+        size: node
+      - role: confounders
+        position: top_or_bottom
+        size: highlighted_nodes
+      - role: causal_edges
+        position: between_nodes
+        size: arrows
+      - role: control_strategy
+        position: side_panel
+        size: list
+
+  - id: 333
+    name: Causal DAG Slide
+    expert_use: "Communicates causal assumptions using a directed acyclic graph."
+    layout_disposition: "Central DAG with nodes, arrows, adjustment set, and causal estimand."
+    zones:
+      - role: causal_graph
+        position: center
+        size: dominant
+      - role: adjustment_set
+        position: right_panel
+        size: list
+      - role: estimand
+        position: top
+        size: formula_or_statement
+      - role: assumptions
+        position: bottom
+        size: notes
+
+  - id: 334
+    name: Sensitivity to Assumptions
+    expert_use: "Shows how conclusions change as key assumptions vary."
+    layout_disposition: "Assumption sliders or ranges mapped to outcome movement."
+    zones:
+      - role: assumptions
+        position: left_axis
+        size: rows
+      - role: sensitivity_ranges
+        position: center
+        size: horizontal_bars
+      - role: outcome_shift
+        position: right_column
+        size: metric_cells
+      - role: stability_zone
+        position: chart_overlay
+        size: highlighted_area
+
+  - id: 335
+    name: Robustness Check Grid
+    expert_use: "Documents whether conclusions survive alternative methods, samples, definitions, and assumptions."
+    layout_disposition: "Grid of robustness tests with pass, fail, or mixed results."
+    zones:
+      - role: robustness_tests
+        position: left_axis
+        size: rows
+      - role: baseline_result
+        position: center_left
+        size: cells
+      - role: alternative_result
+        position: center
+        size: cells
+      - role: interpretation
+        position: center_right
+        size: text_cells
+      - role: confidence_update
+        position: right_column
+        size: labels
+
+  - id: 336
+    name: Model Risk Register
+    expert_use: "Tracks risks in analytical, financial, AI, or forecasting models."
+    layout_disposition: "Risk register focused on model assumptions, limitations, failure modes, and controls."
+    zones:
+      - role: model_risks
+        position: left_column
+        size: rows
+      - role: source_of_risk
+        position: center_left
+        size: text_cells
+      - role: severity
+        position: center
+        size: score_cells
+      - role: controls
+        position: center_right
+        size: text_cells
+      - role: residual_risk
+        position: right_column
+        size: labels
+
+  - id: 337
+    name: Forecast Error Decomposition
+    expert_use: "Explains why a forecast missed: data, assumptions, method, regime change, or execution."
+    layout_disposition: "Error bridge from forecast to actual with categorized error sources."
+    zones:
+      - role: forecast_value
+        position: leftmost
+        size: bar
+      - role: error_components
+        position: middle
+        size: waterfall_steps
+      - role: actual_value
+        position: rightmost
+        size: bar
+      - role: learning_actions
+        position: bottom
+        size: action_cards
+
+  - id: 338
+    name: Bayesian Update Slide
+    expert_use: "Shows how new evidence changes belief, confidence, or probability of success."
+    layout_disposition: "Prior belief, new evidence, likelihood impact, posterior belief."
+    zones:
+      - role: prior
+        position: left
+        size: metric_card
+      - role: new_evidence
+        position: center_left
+        size: cards
+      - role: update_logic
+        position: center_right
+        size: flow
+      - role: posterior
+        position: right
+        size: highlighted_metric
+      - role: decision_implication
+        position: bottom
+        size: band
+
+  - id: 339
+    name: Confidence Calibration Slide
+    expert_use: "Compares stated confidence to historical accuracy or evidence strength."
+    layout_disposition: "Calibration chart plus confidence buckets and decision guidance."
+    zones:
+      - role: calibration_chart
+        position: center
+        size: dominant
+      - role: confidence_buckets
+        position: left_panel
+        size: list
+      - role: historical_accuracy
+        position: right_panel
+        size: metrics
+      - role: decision_rule
+        position: bottom
+        size: highlighted_band
+
+  - id: 340
+    name: Uncertainty Distribution Slide
+    expert_use: "Shows full range of possible outcomes rather than a single-point estimate."
+    layout_disposition: "Distribution plot with median, percentile bands, and downside threshold."
+    zones:
+      - role: outcome_distribution
+        position: center
+        size: dominant_chart
+      - role: central_estimate
+        position: on_chart
+        size: marker
+      - role: percentile_bands
+        position: on_chart
+        size: shaded_ranges
+      - role: downside_threshold
+        position: on_chart
+        size: vertical_marker
+      - role: implication
+        position: right_panel
+        size: callout
+
+  - id: 341
+    name: Decision Under Uncertainty
+    expert_use: "Compares options by expected value, downside risk, optionality, and regret."
+    layout_disposition: "Decision table with uncertainty-aware criteria."
+    zones:
+      - role: options
+        position: left_axis
+        size: rows
+      - role: expected_value
+        position: center_left
+        size: metric_cells
+      - role: downside_risk
+        position: center
+        size: metric_cells
+      - role: optionality
+        position: center_right
+        size: score_cells
+      - role: regret
+        position: right_column
+        size: score_cells
+
+  - id: 342
+    name: Minimax Regret Slide
+    expert_use: "Selects options by minimizing worst-case regret across scenarios."
+    layout_disposition: "Scenario payoff table with regret matrix and recommended least-regret option."
+    zones:
+      - role: options
+        position: left_axis
+        size: rows
+      - role: scenarios
+        position: top_axis
+        size: columns
+      - role: regret_values
+        position: matrix_body
+        size: cells
+      - role: maximum_regret
+        position: right_column
+        size: numeric
+      - role: least_regret_recommendation
+        position: bottom
+        size: highlighted_band
+
+  - id: 343
+    name: Real Options Valuation Slide
+    expert_use: "Frames strategic flexibility as an option with value under uncertainty."
+    layout_disposition: "Option structure showing upfront cost, trigger conditions, upside, and abandonment value."
+    zones:
+      - role: option_description
+        position: top
+        size: dominant
+      - role: upfront_cost
+        position: left_panel
+        size: metric_card
+      - role: trigger_conditions
+        position: center
+        size: cards
+      - role: upside_potential
+        position: right_panel
+        size: metric_card
+      - role: decision_timing
+        position: bottom
+        size: timeline
+
+  - id: 344
+    name: Value of Information Slide
+    expert_use: "Determines whether collecting more information is worth the delay or cost."
+    layout_disposition: "Decision now versus research first comparison with information value."
+    zones:
+      - role: decision_now
+        position: left_column
+        size: card
+      - role: collect_more_information
+        position: center_column
+        size: card
+      - role: value_of_information
+        position: right_column
+        size: highlighted_metric
+      - role: cost_of_delay
+        position: bottom_left
+        size: metric_card
+      - role: recommendation
+        position: bottom_right
+        size: action_card
+
+  - id: 345
+    name: Irreversibility Cost Slide
+    expert_use: "Quantifies or explains the cost of making a premature irreversible decision."
+    layout_disposition: "Decision path comparison with lock-in points and reversal cost."
+    zones:
+      - role: decision_paths
+        position: center_timeline
+        size: branching_paths
+      - role: lock_in_points
+        position: on_paths
+        size: markers
+      - role: reversal_costs
+        position: right_panel
+        size: metric_cards
+      - role: mitigation_options
+        position: bottom
+        size: list
+
+  - id: 346
+    name: Strategic Regret Map
+    expert_use: "Shows future regrets that may result from current choices."
+    layout_disposition: "Current decisions mapped to possible future regret states."
+    zones:
+      - role: current_choices
+        position: left_column
+        size: cards
+      - role: future_states
+        position: center
+        size: scenario_cards
+      - role: regret_points
+        position: right_column
+        size: highlighted_cards
+      - role: prevention_moves
+        position: bottom
+        size: action_cards
+
+  - id: 347
+    name: Blind Spot Inventory
+    expert_use: "Documents areas the team may be underweighting or ignoring."
+    layout_disposition: "Inventory table of blind spots, why missed, detection method, and mitigation."
+    zones:
+      - role: blind_spots
+        position: left_column
+        size: rows
+      - role: why_missed
+        position: center_left
+        size: text_cells
+      - role: detection_method
+        position: center_right
+        size: text_cells
+      - role: mitigation
+        position: right_column
+        size: action_cells
+
+  - id: 348
+    name: Red Team Challenge Slide
+    expert_use: "Captures adversarial critique of a strategy, model, or recommendation."
+    layout_disposition: "Recommendation on one side, red-team objections and responses on the other."
+    zones:
+      - role: original_recommendation
+        position: left_panel
+        size: large_card
+      - role: red_team_objections
+        position: center_panel
+        size: cards
+      - role: response_or_revision
+        position: right_panel
+        size: cards
+      - role: net_change
+        position: bottom
+        size: highlighted_band
+
+  - id: 349
+    name: Steelman / Weakman Slide
+    expert_use: "Separates the strongest opposing argument from weaker objections."
+    layout_disposition: "Three-column argument quality comparison."
+    zones:
+      - role: weak_objections
+        position: left_column
+        size: cards
+      - role: strongest_opposing_case
+        position: center_column
+        size: highlighted_card
+      - role: response
+        position: right_column
+        size: cards
+      - role: implications_for_recommendation
+        position: bottom
+        size: band
+
+  - id: 350
+    name: Adversarial Scenario Slide
+    expert_use: "Tests a plan against competitor, regulator, attacker, or market reaction."
+    layout_disposition: "Plan versus adversary response sequence."
+    zones:
+      - role: initial_plan
+        position: left
+        size: card
+      - role: adversary_response
+        position: center_left
+        size: card
+      - role: second_order_effect
+        position: center_right
+        size: card
+      - role: revised_plan
+        position: right
+        size: highlighted_card
+      - role: monitoring_signals
+        position: bottom
+        size: list
+
+  - id: 351
+    name: Second-Order Effects Map
+    expert_use: "Shows downstream consequences beyond the immediate effect."
+    layout_disposition: "Ripple or network map from first-order to second- and third-order effects."
+    zones:
+      - role: initial_action
+        position: left_or_center
+        size: dominant_node
+      - role: first_order_effects
+        position: adjacent_ring_or_column
+        size: nodes
+      - role: second_order_effects
+        position: next_ring_or_column
+        size: nodes
+      - role: third_order_effects
+        position: outer_ring_or_right_column
+        size: nodes
+      - role: unintended_consequences
+        position: highlighted_nodes
+        size: emphasized
+
+  - id: 352
+    name: Feedback Loop Risk Slide
+    expert_use: "Identifies self-reinforcing risks or stabilizing loops."
+    layout_disposition: "Feedback loop diagram with risk amplification and damping mechanisms."
+    zones:
+      - role: loop_variables
+        position: circular_flow
+        size: nodes
+      - role: reinforcing_links
+        position: between_nodes
+        size: arrows
+      - role: damping_controls
+        position: side_panel
+        size: cards
+      - role: risk_threshold
+        position: bottom
+        size: metric_band
+
+  - id: 353
+    name: System Leverage Points
+    expert_use: "Identifies where small interventions can create large system effects."
+    layout_disposition: "System map with leverage points ranked by depth and feasibility."
+    zones:
+      - role: system_map
+        position: center
+        size: dominant
+      - role: leverage_points
+        position: highlighted_nodes
+        size: markers
+      - role: leverage_depth
+        position: right_panel
+        size: ranked_list
+      - role: intervention_options
+        position: bottom
+        size: cards
+
+  - id: 354
+    name: Policy Stack Slide
+    expert_use: "Shows how principles, policies, standards, controls, and procedures fit together."
+    layout_disposition: "Vertical governance stack from abstract principles to operational procedures."
+    zones:
+      - role: principles
+        position: top_layer
+        size: wide_band
+      - role: policies
+        position: upper_middle_layer
+        size: wide_band
+      - role: standards
+        position: middle_layer
+        size: wide_band
+      - role: controls
+        position: lower_middle_layer
+        size: wide_band
+      - role: procedures
+        position: bottom_layer
+        size: wide_band
+
+  - id: 355
+    name: Normative vs Descriptive Slide
+    expert_use: "Separates what is currently true from what should be true."
+    layout_disposition: "Two-track layout comparing observed reality, desired standard, and transition logic."
+    zones:
+      - role: descriptive_reality
+        position: left_column
+        size: large_card
+      - role: normative_standard
+        position: right_column
+        size: large_card
+      - role: gap
+        position: center
+        size: highlighted_node
+      - role: transition_logic
+        position: bottom
+        size: flow
+
+  - id: 356
+    name: Principle Conflict Resolution
+    expert_use: "Resolves cases where valid principles point to different actions."
+    layout_disposition: "Competing principles mapped to decision rules and precedence logic."
+    zones:
+      - role: principle_a
+        position: left_panel
+        size: card
+      - role: principle_b
+        position: right_panel
+        size: card
+      - role: conflict_case
+        position: center
+        size: highlighted_node
+      - role: precedence_rule
+        position: bottom_left
+        size: card
+      - role: final_decision
+        position: bottom_right
+        size: action_card
+
+  - id: 357
+    name: Boundary Conditions Slide
+    expert_use: "Defines where a recommendation, model, or policy applies and where it does not."
+    layout_disposition: "Applicability map with included cases, excluded cases, and edge cases."
+    zones:
+      - role: applies_to
+        position: left_column
+        size: cards
+      - role: does_not_apply_to
+        position: right_column
+        size: cards
+      - role: edge_cases
+        position: center
+        size: highlighted_cards
+      - role: escalation_rule
+        position: bottom
+        size: band
+
+  - id: 358
+    name: Validity Domain Slide
+    expert_use: "Specifies the domain in which an analysis or conclusion remains valid."
+    layout_disposition: "Domain map with valid range, invalid range, and uncertainty zone."
+    zones:
+      - role: valid_domain
+        position: center
+        size: large_region
+      - role: invalid_domain
+        position: outside_region
+        size: surrounding_area
+      - role: uncertainty_zone
+        position: boundary_region
+        size: highlighted_band
+      - role: assumptions
+        position: right_panel
+        size: list
+
+  - id: 359
+    name: Exception Handling Slide
+    expert_use: "Shows how non-standard cases should be routed, governed, or escalated."
+    layout_disposition: "Decision tree for normal, exception, and critical exception cases."
+    zones:
+      - role: standard_case
+        position: left_path
+        size: nodes
+      - role: exception_case
+        position: center_path
+        size: nodes
+      - role: critical_exception
+        position: right_path
+        size: highlighted_nodes
+      - role: escalation_owner
+        position: bottom
+        size: table
+
+  - id: 360
+    name: Taxonomy Reconciliation Slide
+    expert_use: "Aligns conflicting classifications, definitions, or category systems."
+    layout_disposition: "Two source taxonomies mapped into a reconciled canonical taxonomy."
+    zones:
+      - role: taxonomy_a
+        position: left_column
+        size: tree
+      - role: taxonomy_b
+        position: right_column
+        size: tree
+      - role: mapping_rules
+        position: center
+        size: connectors
+      - role: canonical_taxonomy
+        position: bottom
+        size: wide_tree
+
+  - id: 361
+    name: Semantic Drift Slide
+    expert_use: "Tracks how meanings, definitions, or strategic labels changed over time."
+    layout_disposition: "Timeline of term meaning with drift points and alignment actions."
+    zones:
+      - role: term
+        position: top_left
+        size: label
+      - role: meaning_timeline
+        position: center
+        size: timeline
+      - role: drift_points
+        position: on_timeline
+        size: markers
+      - role: current_definition
+        position: right_panel
+        size: highlighted_card
+      - role: alignment_actions
+        position: bottom
+        size: list
+
+  - id: 362
+    name: Definition of Done / Definition of True
+    expert_use: "Separates completion criteria from truth or validation criteria."
+    layout_disposition: "Two-column criteria slide with acceptance and verification logic."
+    zones:
+      - role: definition_of_done
+        position: left_column
+        size: checklist
+      - role: definition_of_true
+        position: right_column
+        size: checklist
+      - role: validation_method
+        position: bottom
+        size: horizontal_band
+      - role: owner
+        position: footer
+        size: small
+
+  - id: 363
+    name: Ontology Map
+    expert_use: "Defines core entities, relationships, attributes, and constraints in a complex domain."
+    layout_disposition: "Entity-relation diagram with semantic groups and constraint notes."
+    zones:
+      - role: entities
+        position: graph_canvas
+        size: nodes
+      - role: relationships
+        position: between_entities
+        size: edges
+      - role: attributes
+        position: inside_or_near_nodes
+        size: small_labels
+      - role: constraints
+        position: right_panel
+        size: list
+
+  - id: 364
+    name: Concept Lattice Slide
+    expert_use: "Shows relationships between concepts by generality, specificity, and shared attributes."
+    layout_disposition: "Lattice structure from general concepts at top to specific instances at bottom."
+    zones:
+      - role: abstract_concepts
+        position: top_layer
+        size: nodes
+      - role: intermediate_concepts
+        position: middle_layers
+        size: nodes
+      - role: concrete_instances
+        position: bottom_layer
+        size: nodes
+      - role: attribute_links
+        position: between_nodes
+        size: lines
+
+  - id: 365
+    name: Primitive Decomposition Grammar
+    expert_use: "Breaks complex business objects into primitives that can be recomposed systematically."
+    layout_disposition: "Original object decomposed into primitives, grammar rules, and recomposed structures."
+    zones:
+      - role: complex_object
+        position: left
+        size: large_card
+      - role: primitives
+        position: center_left
+        size: small_cards
+      - role: grammar_rules
+        position: center_right
+        size: rule_cards
+      - role: recompositions
+        position: right
+        size: examples
+
+  - id: 366
+    name: Interface Contract Slide
+    expert_use: "Defines expectations between teams, systems, functions, or vendors."
+    layout_disposition: "Contract table showing inputs, outputs, service levels, owners, and failure handling."
+    zones:
+      - role: provider
+        position: left_header
+        size: label
+      - role: consumer
+        position: right_header
+        size: label
+      - role: inputs_outputs
+        position: center_table
+        size: rows
+      - role: service_levels
+        position: center_right
+        size: cells
+      - role: failure_handling
+        position: bottom
+        size: band
+
+  - id: 367
+    name: Capability Contract Slide
+    expert_use: "Specifies what a capability must provide independent of organization or technology implementation."
+    layout_disposition: "Capability definition with inputs, outputs, policies, KPIs, and dependencies."
+    zones:
+      - role: capability_name
+        position: top
+        size: dominant
+      - role: inputs
+        position: left_column
+        size: card
+      - role: outputs
+        position: right_column
+        size: card
+      - role: policies
+        position: center
+        size: card
+      - role: kpis_dependencies
+        position: bottom
+        size: table
+
+  - id: 368
+    name: Invariant Slide
+    expert_use: "Identifies what must remain true across transformation, scaling, or change."
+    layout_disposition: "Invariant statement with allowed variation, prohibited variation, and enforcement mechanism."
+    zones:
+      - role: invariant_statement
+        position: top
+        size: dominant
+      - role: allowed_variation
+        position: left_column
+        size: cards
+      - role: prohibited_variation
+        position: right_column
+        size: cards
+      - role: enforcement_mechanism
+        position: bottom
+        size: highlighted_band
+
+  - id: 369
+    name: Constraint Envelope Slide
+    expert_use: "Shows the feasible solution space created by constraints."
+    layout_disposition: "Solution space diagram with hard constraints, soft constraints, and optimal region."
+    zones:
+      - role: solution_space
+        position: center
+        size: dominant_chart
+      - role: hard_constraints
+        position: boundary_lines
+        size: emphasized
+      - role: soft_constraints
+        position: shaded_regions
+        size: contextual
+      - role: feasible_region
+        position: highlighted_region
+        size: central_area
+      - role: recommended_point
+        position: inside_feasible_region
+        size: marker
+
+  - id: 370
+    name: Design Space Exploration
+    expert_use: "Explores families of possible solutions instead of prematurely choosing one."
+    layout_disposition: "Multi-axis design space with options clustered by design archetype."
+    zones:
+      - role: design_axes
+        position: chart_axes
+        size: full_area
+      - role: solution_options
+        position: chart_body
+        size: markers
+      - role: archetype_clusters
+        position: background_regions
+        size: grouped_areas
+      - role: exploration_findings
+        position: right_panel
+        size: notes
+
+  - id: 371
+    name: Solution Space Pruning
+    expert_use: "Shows how candidate options were eliminated by constraints and criteria."
+    layout_disposition: "Funnel from all options to feasible options to recommended shortlist."
+    zones:
+      - role: initial_options
+        position: left_or_top
+        size: large_group
+      - role: pruning_filters
+        position: center
+        size: sequential_filters
+      - role: remaining_options
+        position: right_or_bottom
+        size: shortlist_cards
+      - role: elimination_reasons
+        position: side_panel
+        size: list
+
+  - id: 372
+    name: Architecture Fitness Function
+    expert_use: "Defines measurable criteria used to judge whether an architecture remains healthy."
+    layout_disposition: "Fitness functions mapped to architectural qualities, measurement methods, and thresholds."
+    zones:
+      - role: architectural_qualities
+        position: left_axis
+        size: rows
+      - role: fitness_functions
+        position: center_left
+        size: text_cells
+      - role: measurement_method
+        position: center_right
+        size: text_cells
+      - role: threshold
+        position: right_column
+        size: numeric_cells
+      - role: action_if_failed
+        position: bottom
+        size: band
+
+  - id: 373
+    name: Resilience Pattern Slide
+    expert_use: "Shows how a system, organization, or strategy absorbs shocks and recovers."
+    layout_disposition: "Shock-response-recovery model with buffers, redundancies, and adaptation loops."
+    zones:
+      - role: shock_event
+        position: left
+        size: card
+      - role: absorption_mechanisms
+        position: center_left
+        size: cards
+      - role: recovery_path
+        position: center_right
+        size: timeline
+      - role: adaptation_loop
+        position: right
+        size: circular_flow
+      - role: resilience_metrics
+        position: bottom
+        size: metric_cards
+
+  - id: 374
+    name: Fragility / Antifragility Slide
+    expert_use: "Classifies what breaks, survives, or improves under volatility."
+    layout_disposition: "Three-column classification: fragile, robust, antifragile."
+    zones:
+      - role: fragile_elements
+        position: left_column
+        size: cards
+      - role: robust_elements
+        position: center_column
+        size: cards
+      - role: antifragile_elements
+        position: right_column
+        size: cards
+      - role: design_implications
+        position: bottom
+        size: highlighted_band
+
+  - id: 375
+    name: Expert Judgment Calibration
+    expert_use: "Combines expert opinion with evidence, uncertainty, bias checks, and calibration."
+    layout_disposition: "Expert judgment table with confidence, evidence basis, disagreement, and calibration adjustment."
+    zones:
+      - role: expert_judgments
+        position: left_column
+        size: rows
+      - role: evidence_basis
+        position: center_left
+        size: text_cells
+      - role: confidence
+        position: center
+        size: score_cells
+      - role: disagreement
+        position: center_right
+        size: text_cells
+      - role: calibrated_position
+        position: right_column
+        size: highlighted_cells
