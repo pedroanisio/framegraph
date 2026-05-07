@@ -72,8 +72,10 @@ def render_rect(r: RendererContext, obj: Mapping[str, Any]) -> str:
         "stroke": rc,
         "stroke-width": fmt(rw),
     }
-    # Corner radius: grow proportionally so the ring follows the rect corner
-    if r:
+    # Corner radius: grow proportionally so the ring follows the rect corner.
+    # Only apply when the inner rect is rounded — a square inner rect must
+    # not get rounded outer corners.
+    if radius:
         ra["rx"] = fmt(radius + expand)
         ra["ry"] = fmt(radius + expand)
 

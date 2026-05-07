@@ -380,20 +380,6 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
     # Resolve marker width
     marker_w = r._str_width(marker + " ", fs, bold)
     text_x = x + indent_px
-    avail_w = w - indent_px
-
-    def wrap(text: str) -> list[str]:
-        lines, line = [], ""
-        for word in text.split():
-            test = (line + " " + word).strip()
-            if line and r._str_width(test, fs, bold) > avail_w:
-                lines.append(line)
-                line = word
-            else:
-                line = test
-        if line:
-            lines.append(line)
-        return lines or [""]
 
     fa = {
         "font-family": style.get("font"),

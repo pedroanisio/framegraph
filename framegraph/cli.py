@@ -72,7 +72,7 @@ def _write_png_4k(svg: str, out: Path) -> None:
             clear actionable message rather than a stack trace.
     """
     try:
-        import cairosvg  # type: ignore
+        import cairosvg
     except ImportError as exc:
         raise ImportError(
             "cairosvg is required for --4k PNG output. Install with: pip install cairosvg"
@@ -115,7 +115,7 @@ def cmd_deck(args: argparse.Namespace) -> int:
 
     if not args.quiet:
         print(f"Rendering {len(deck.slides_raw)} slide(s) → {out_dir}")
-    paths = deck.render_all(out_dir)
+    paths = deck.render_all(out_dir, yaml_source_dir=Path(args.input).parent)
     if not args.quiet:
         for p in paths:
             print(f"  wrote {p.name}  ({p.stat().st_size / 1024:.1f} KB)")

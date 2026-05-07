@@ -1,25 +1,13 @@
-#!/usr/bin/env python3
-"""FrameGraph YAML -> SVG renderer  (v3.0)
+"""FrameGraph YAML -> SVG renderer.
 
-New in v3 vs v2:
-  - visual.symbols  +  type: use   — reusable multi-shape templates (SVG <symbol>/<use>)
-  - type: icon  +  tokens.glyph_map — icon-font or Unicode glyph objects
-  - tokens.fill_styles gradients   — LinearGradient / RadialGradient resolved as url(#id)
-  - layer.opacity                  — fade an entire layer with one field
-  - EllipseObject outer_ring       — second concentric stroke (halo / ring effect)
-  All v2 features preserved; no existing YAML breaks.
-
-Usage:
-    python framegraph_to_svg_v3.py input.yml -o output.svg [--strict] [--no-validate] [--quiet]
+Hosts the `FrameGraphRenderer` class — the concrete `RendererContext`
+implementation that drives the per-type renderer modules in
+`framegraph.renderers.*`. The package's user-facing CLI lives in
+`framegraph.cli`; per-type rendering helpers live in `framegraph._helpers`.
 """
 
 from __future__ import annotations
 
-import argparse
-import html
-import math
-import re
-import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -29,260 +17,19 @@ try:
 except ImportError as exc:
     raise SystemExit("PyYAML is required: python -m pip install pyyaml") from exc
 
-Point = tuple[float, float]
-Box = tuple[float, float, float, float]
-
-
-# ── Lorem ipsum word bank (deterministic, no randomness) ─────────────────────
-_LOREM_WORDS = [
-    "Lorem",
-    "ipsum",
-    "dolor",
-    "sit",
-    "amet",
-    "consectetur",
-    "adipiscing",
-    "elit",
-    "sed",
-    "do",
-    "eiusmod",
-    "tempor",
-    "incididunt",
-    "ut",
-    "labore",
-    "et",
-    "dolore",
-    "magna",
-    "aliqua",
-    "Ut",
-    "enim",
-    "ad",
-    "minim",
-    "veniam",
-    "quis",
-    "nostrud",
-    "exercitation",
-    "ullamco",
-    "laboris",
-    "nisi",
-    "ut",
-    "aliquip",
-    "ex",
-    "ea",
-    "commodo",
-    "consequat",
-    "Duis",
-    "aute",
-    "irure",
-    "dolor",
-    "in",
-    "reprehenderit",
-    "in",
-    "voluptate",
-    "velit",
-    "esse",
-    "cillum",
-    "dolore",
-    "eu",
-    "fugiat",
-    "nulla",
-    "pariatur",
-    "Excepteur",
-    "sint",
-    "occaecat",
-    "cupidatat",
-    "non",
-    "proident",
-    "sunt",
-    "in",
-    "culpa",
-    "qui",
-    "officia",
-    "deserunt",
-    "mollit",
-    "anim",
-    "id",
-    "est",
-    "laborum",
-    "Sed",
-    "ut",
-    "perspiciatis",
-    "unde",
-    "omnis",
-    "iste",
-    "natus",
-    "error",
-    "sit",
-    "voluptatem",
-    "accusantium",
-    "doloremque",
-    "laudantium",
-    "totam",
-    "rem",
-    "aperiam",
-    "eaque",
-    "ipsa",
-    "quae",
-    "ab",
-    "illo",
-    "inventore",
-    "veritatis",
-    "et",
-    "quasi",
-    "architecto",
-    "beatae",
-    "vitae",
-    "dicta",
-    "sunt",
-    "explicabo",
-    "Nemo",
-    "enim",
-    "ipsam",
-    "voluptatem",
-    "quia",
-    "voluptas",
-    "sit",
-    "aspernatur",
-    "aut",
-    "odit",
-    "aut",
-    "fugit",
-    "sed",
-    "quia",
-    "consequuntur",
-    "magni",
-    "dolores",
-    "eos",
-    "qui",
-    "ratione",
-    "voluptatem",
-    "sequi",
-    "nesciunt",
-    "neque",
-    "porro",
-    "quisquam",
-    "est",
-    "qui",
-    "dolorem",
-    "ipsum",
-    "quia",
-    "dolor",
-    "sit",
-    "amet",
-    "consectetur",
-    "adipisci",
-    "velit",
-]
-
-
-def _lorem(n_words: int = 30) -> str:
-    """Return N words of lorem ipsum, cycling through the word bank."""
-    if n_words <= 0:
-        n_words = 30
-    words = []
-    for i in range(n_words):
-        w = _LOREM_WORDS[i % len(_LOREM_WORDS)]
-        words.append(w)
-    # Capitalise first word, add a period at the end
-    if words:
-        words[0] = words[0].capitalize()
-        words[-1] = words[-1].rstrip(".") + "."
-    return " ".join(words)
-
-
-def _expand_lorem(text: str) -> str:
-    """Expand lorem placeholder strings:
-      "lorem"      → 30 words
-      "lorem:N"    → N words
-    Non-lorem strings are returned unchanged.
-    """
-    t = str(text).strip()
-    tl = t.lower()
-    if tl == "lorem":
-        return _lorem(30)
-    if tl.startswith("lorem:"):
-        try:
-            n = int(tl[6:].strip())
-            return _lorem(n)
-        except ValueError:
-            return _lorem(30)
-    return text
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def esc(v: Any) -> str:
-    return html.escape(str(v), quote=True)
-
-
-def fnum(v: Any, default: float = 0.0) -> float:
-    if v is None:
-        return default
-    try:
-        return float(v)
-    except (TypeError, ValueError):
-        return default
-
-
-def fmt(v: Any) -> str:
-    try:
-        n = float(v)
-    except (TypeError, ValueError):
-        return esc(v)
-    if math.isfinite(n) and abs(n - round(n)) < 1e-9:
-        return str(int(round(n)))
-    return f"{n:.3f}".rstrip("0").rstrip(".")
-
-
-def sid(v: Any) -> str:
-    s = re.sub(r"[^A-Za-z0-9_.:-]+", "_", str(v))
-    if not s or not re.match(r"^[A-Za-z_]", s):
-        s = "id_" + s
-    return s
-
-
-def attrs(a: Mapping[str, Any]) -> str:
-    out: list[str] = []
-    for k, v in a.items():
-        if v is None or v is False:
-            continue
-        if v is True:
-            v = "true"
-        out.append(f'{k}="{esc(v)}"')
-    return " ".join(out)
-
-
-def box(v: Any) -> Box:
-    if not isinstance(v, Sequence) or isinstance(v, (str, bytes)) or len(v) != 4:
-        raise ValueError(f"expected box [x,y,w,h], got {v!r}")
-    return fnum(v[0]), fnum(v[1]), fnum(v[2]), fnum(v[3])
-
-
-def pt(v: Any) -> Point:
-    if not isinstance(v, Sequence) or isinstance(v, (str, bytes)) or len(v) != 2:
-        raise ValueError(f"expected point [x,y], got {v!r}")
-    return fnum(v[0]), fnum(v[1])
-
-
-def deep_get(m: Mapping[str, Any], path: Sequence[str], default: Any = None) -> Any:
-    cur: Any = m
-    for key in path:
-        if not isinstance(cur, Mapping) or key not in cur:
-            return default
-        cur = cur[key]
-    return cur
-
-
-def pts_attr(points: Sequence[Point]) -> str:
-    return " ".join(f"{fmt(x)},{fmt(y)}" for x, y in points)
-
-
-# ---------------------------------------------------------------------------
-# Renderer
-# ---------------------------------------------------------------------------
+from framegraph._helpers import (
+    Box,
+    Point,
+    attrs,
+    box,
+    deep_get,
+    esc,
+    fmt,
+    fnum,
+    pt,
+    pts_attr,
+    sid,
+)
 
 
 class FrameGraphRenderer:
@@ -370,11 +117,18 @@ class FrameGraphRenderer:
         ]
 
         # ── v3 additions ──────────────────────────────────────────────
-        self.glyph_map: dict[str, str] = dict(self.tokens.get("glyph_map", {}) or {})
+        # Annotated to match the `RendererContext` Protocol exactly —
+        # mypy treats Protocol attributes invariantly, so the class
+        # annotation must equal the Protocol's annotation.
+        self.glyph_map: Mapping[str, str] = dict(self.tokens.get("glyph_map", {}) or {})
         self.fill_styles: dict[str, Any] = dict(self.tokens.get("fill_styles", {}) or {})
-        self.symbols: dict[str, Any] = dict(self.visual.get("symbols", {}) or {})
+        self.symbols: Mapping[str, Any] = dict(self.visual.get("symbols", {}) or {})
         self.gradient_defs: list[str] = []
         self._uses_icon_font: bool = False
+        # `yaml_source_dir` is set by the CLI / deck renderer after
+        # construction so that `<image>` objects can resolve relative
+        # `href` values. Empty string when no source path is known.
+        self.yaml_source_dir: str = ""
         # ──────────────────────────────────────────────────────────────
 
         self.object_index: dict[str, dict[str, Any]] = {}
@@ -439,7 +193,8 @@ class FrameGraphRenderer:
 
     # ── v3: gradient defs ─────────────────────────────────────────────
     def _build_gradients(self) -> None:
-        """Convert fill_styles entries into SVG gradient <defs> strings.
+        """Convert fill_styles entries into SVG gradient `<defs>` strings.
+
         Gradient coordinates use objectBoundingBox so they scale with each shape.
         """
         for name, fs in self.fill_styles.items():
@@ -470,7 +225,8 @@ class FrameGraphRenderer:
 
     # ── v3: fill resolution (color token OR gradient IdRef) ────────────
     def fill_value(self, v: Any, default: str = "none") -> str:
-        """Resolve a fill value:
+        """Resolve a fill value to an SVG paint string.
+
         - None / "none"  → default
         - fill_styles key → url(#grad_name)
         - color token / literal → hex string
@@ -540,8 +296,9 @@ class FrameGraphRenderer:
         return None
 
     def effect_filter_id(self, kind: str, spec: Any) -> str | None:
-        """Resolve an effect spec to a stable filter id, registering the
-        `<filter>` element on first use.
+        """Resolve an effect spec to a stable filter id.
+
+        Registers the `<filter>` element on first use.
 
         Args:
             kind: "shadow" or "glow".
@@ -1236,7 +993,7 @@ class FrameGraphRenderer:
             type has no registered handler.
 
         """
-        t = obj.get("type")
+        t = str(obj.get("type") or "")
         fn = self._dispatch.get(t)
         if fn:
             return fn(self, obj)
@@ -1524,133 +1281,3 @@ class FrameGraphRenderer:
             geom.update(self.stroke_attrs(st, arrows=True))
             svg = f"<polyline {attrs(geom)}/>"
         return f"<g {attrs(self.group_attrs(obj))}>{svg}</g>"
-
-    def render_connector(self, obj):
-        start = self.endpoint(obj.get("from"))
-        end = self.endpoint(obj.get("to"))
-        route = obj.get("route", {}) or {"type": "straight"}
-        rtype = str(route.get("type", "straight"))
-        if rtype == "straight":
-            points = [start, end]
-        elif rtype in ("orthogonal", "polyline"):
-            if route.get("points"):
-                points = [pt(p) for p in route["points"]]
-                if points and points[0] != start:
-                    points.insert(0, start)
-                if points and points[-1] != end:
-                    points.append(end)
-            else:
-                mid_x = (start[0] + end[0]) / 2
-                points = [start, (mid_x, start[1]), (mid_x, end[1]), end]
-        elif rtype == "bezier":
-            c1 = pt(route.get("control1", route.get("c1", start)))
-            c2 = pt(route.get("control2", route.get("c2", end)))
-            d = f"M {fmt(start[0])} {fmt(start[1])} C {fmt(c1[0])} {fmt(c1[1])} {fmt(c2[0])} {fmt(c2[1])} {fmt(end[0])} {fmt(end[1])}"
-            points = []
-        else:
-            raise ValueError(f"unsupported route type '{rtype}'")
-        if rtype != "bezier":
-            d = self.path_d(points)
-        st = self.stroke_style(
-            obj.get("stroke_style"),
-            obj.get("stroke") if isinstance(obj.get("stroke"), Mapping) else None,
-        )
-        a: dict[str, Any] = {"d": d, "fill": "none"}
-        a.update(self.stroke_attrs(st, arrows=True))
-        out = [f"<g {attrs(self.group_attrs(obj))}>", f"<path {attrs(a)}/>"]
-        label = obj.get("label")
-        if isinstance(label, Mapping):
-            out.append(
-                self.text_svg(
-                    label.get("text", ""),
-                    box(label.get("box", [0, 0, 0, 0])),
-                    self.text_style(label.get("style", "tiny")),
-                )
-            )
-        out.append("</g>")
-        return "\n".join(out)
-
-    def render_legend(self, obj):
-        out = [f"<g {attrs(self.group_attrs(obj))}>"]
-        for item in obj.get("items", []) or []:
-            if not isinstance(item, Mapping):
-                continue
-            sample = item.get("sample", {}) or {}
-            item_id = item.get("id", "legend_item")
-            if sample.get("type") == "line":
-                pseudo = {
-                    "id": str(item_id) + ".sample",
-                    "type": "legend_sample",
-                    "bind": item.get("bind"),
-                    "stroke_style": sample.get("stroke_style"),
-                }
-                out.append(
-                    self.line_svg(
-                        pseudo,
-                        [pt(sample.get("from", [0, 0])), pt(sample.get("to", [0, 0]))],
-                        sample.get("stroke_style"),
-                    )
-                )
-            elif sample.get("type") in ("rounded_rect", "rect"):
-                pseudo = {
-                    "id": str(item_id) + ".sample",
-                    "type": "legend_sample",
-                    "bind": item.get("bind"),
-                    "box": sample.get("box", [0, 0, 0, 0]),
-                    "radius": sample.get("radius", 0),
-                    "fill": sample.get("fill", "none"),
-                    "stroke": sample.get("stroke"),
-                }
-                out.append(self.render_rect(pseudo))
-            label = item.get("label")
-            if isinstance(label, Mapping):
-                out.append(
-                    self.text_svg(
-                        label.get("text", ""),
-                        box(label.get("box", [0, 0, 0, 0])),
-                        self.text_style(label.get("style", "legend")),
-                    )
-                )
-        out.append("</g>")
-        return "\n".join(out)
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
-
-
-def parse_args(argv=None):
-    p = argparse.ArgumentParser(description="FrameGraph YAML → SVG renderer v3")
-    p.add_argument("input", type=Path)
-    p.add_argument("output_positional", type=Path, nargs="?")
-    p.add_argument("-o", "--output", type=Path)
-    p.add_argument("--strict", action="store_true")
-    p.add_argument("--no-validate", action="store_true")
-    p.add_argument("--quiet", action="store_true")
-    return p.parse_args(argv)
-
-
-def main(argv=None):
-    args = parse_args(argv)
-    output = args.output or args.output_positional
-    try:
-        renderer = FrameGraphRenderer.from_yaml_file(args.input)
-        if not args.no_validate:
-            for w in renderer.validate():
-                print(f"warning: {w}", file=sys.stderr)
-        svg = renderer.render_svg()
-        if output:
-            output.write_text(svg, encoding="utf-8")
-            if not args.quiet:
-                print(f"wrote {output}  ({output.stat().st_size / 1024:.1f} KB)", file=sys.stderr)
-        else:
-            print(svg, end="")
-        return 0
-    except Exception as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        return 1
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

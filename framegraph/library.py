@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -229,6 +228,11 @@ class FrameGraphComposer:
 
 
 def cmd_compose(args: argparse.Namespace, lib: FrameGraphLibrary) -> int:
+    """Compose a diagram against the library and write/print the merged YAML.
+
+    The composer's only job is YAML expansion. Use the package CLI
+    (`framegraph render <input>`) to convert the composed YAML to SVG.
+    """
     composer = FrameGraphComposer(lib)
     diagram = load_yaml(args.input)
 
@@ -236,19 +240,6 @@ def cmd_compose(args: argparse.Namespace, lib: FrameGraphLibrary) -> int:
     built = composer.compose(diagram, theme_override=args.theme, extra_symbols=extra_syms)
 
     output = args.output
-    if args.render:
-        # Write to a temp YAML, then invoke the renderer
-        import tempfile
-
-        tmp = Path(tempfile.mkstemp(suffix=".yml")[1])
-        dump_yaml(built, tmp)
-        svg_out = output or args.input.with_suffix(".svg")
-        renderer = args.renderer or (Path(__file__).parent.parent / "framegraph_to_svg_v3.py")
-        rc = subprocess.run(
-            [sys.executable, str(renderer), str(tmp), "-o", str(svg_out)], check=False
-        ).returncode
-        tmp.unlink(missing_ok=True)
-        return rc
     if output:
         dump_yaml(built, output)
         print(f"wrote {output}", file=sys.stderr)
@@ -303,11 +294,9 @@ def build_parser() -> argparse.ArgumentParser:
     # compose
     cp = sub.add_parser("compose", help="Merge library into a diagram YAML")
     cp.add_argument("input", type=Path, help="Diagram .fg.yml source")
-    cp.add_argument("-o", "--output", type=Path, help="Output path (.yml or .svg with --render)")
+    cp.add_argument("-o", "--output", type=Path, help="Output YAML path")
     cp.add_argument("-t", "--theme", help="Theme id (overrides $theme in file)")
     cp.add_argument("-s", "--symbols", help="Comma-separated extra symbol refs")
-    cp.add_argument("--render", action="store_true", help="Pipe to renderer, emit SVG")
-    cp.add_argument("--renderer", type=Path, help="Path to framegraph_to_svg_v3.py")
 
     # list-themes
     sub.add_parser("list-themes", help="List available token packs")
@@ -319,28 +308,12 @@ def build_parser() -> argparse.ArgumentParser:
     # list-symbols
     sub.add_parser("list-symbols", help="List available symbol packs")
 
+    # render-deck
+    rp = sub.add_parser("render-deck", help="Render a multi-page deck YAML into per-slide SVGs")
+    rp.add_argument("input", type=Path, help="Deck YAML (.deck.yml)")
+    rp.add_argument("-o", "--output", type=Path, help="Output directory (default: ./output)")
+
     return p
-
-
-def main(argv=None) -> int:
-    parser = build_parser()
-    args = parser.parse_args(argv)
-    lib = FrameGraphLibrary(args.lib_path)
-
-    if args.command == "compose":
-        return cmd_compose(args, lib)
-    if args.command == "list-themes":
-        return cmd_list_themes(lib)
-    if args.command == "show-theme":
-        return cmd_show_theme(args, lib)
-    if args.command == "list-symbols":
-        return cmd_list_symbols(lib)
-    parser.print_help()
-    return 1
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
 
 
 # ---------------------------------------------------------------------------
@@ -563,80 +536,78 @@ class FrameGraphDeckRenderer:
         path.write_text("\n".join(lines), encoding="utf-8")
         return path
 
-    def render_all(self, output_dir: Path) -> list[Path]:
-        """Render every slide, return list of output paths."""
-        import importlib.util
-        import sys as _sys
+    def render_all(
+        self,
+        output_dir: Path,
+        *,
+        yaml_source_dir: str | Path | None = None,
+    ) -> list[Path]:
+        """Render every slide; return the per-slide output paths.
 
-        # Locate the v3 renderer relative to this file
-        renderer_path = Path(__file__).parent / "renderer.py"
-        spec = importlib.util.spec_from_file_location("fg_renderer", renderer_path)
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        FGR = mod.FrameGraphRenderer
+        Args:
+            output_dir: Directory to receive `slide_<N>_<id>.svg` files.
+            yaml_source_dir: Absolute directory of the deck YAML, used by
+                `<image>` objects to resolve relative `href`s. When
+                None, image paths must be absolute.
+
+        """
+        # Deferred import: `framegraph.renderer` imports `framegraph.library`
+        # via the package's `__init__.py`, so a top-level import here would
+        # close the cycle.
+        from framegraph.renderer import FrameGraphRenderer
 
         output_dir.mkdir(parents=True, exist_ok=True)
+        source_dir = str(Path(yaml_source_dir).resolve()) if yaml_source_dir else ""
         out_paths: list[Path] = []
         for slide in self.slides_raw:
             n = slide.get("slide", 0)
             sid = slide.get("id", f"slide_{n:02d}")
             doc = self.build_slide_doc(slide)
-            renderer = FGR(doc)
+            renderer = FrameGraphRenderer(doc)
+            renderer.yaml_source_dir = source_dir
             svg = renderer.render_svg()
             path = output_dir / f"slide_{n:02d}_{sid}.svg"
             path.write_text(svg, encoding="utf-8")
             kb = path.stat().st_size / 1024
-            print(f"  slide {n:02d}  →  {path.name}  ({kb:.1f} KB)", file=_sys.stderr)
+            print(f"  slide {n:02d}  →  {path.name}  ({kb:.1f} KB)", file=sys.stderr)
             out_paths.append(path)
         # Write speaker notes if any slide declares them
         notes_path = self.render_notes(output_dir)
         if notes_path:
-            print(f"  notes   →  {notes_path.name}", file=_sys.stderr)
+            print(f"  notes   →  {notes_path.name}", file=sys.stderr)
         return out_paths
 
 
-def cmd_render_deck(args, lib):
+def cmd_render_deck(args: argparse.Namespace, lib: FrameGraphLibrary) -> int:
+    """Handle `render-deck` — render every slide of a deck YAML to SVG."""
     deck_data = load_yaml(args.input)
     renderer = FrameGraphDeckRenderer(deck_data, library=lib)
     out_dir = args.output or args.input.parent / "output"
     print(f"Rendering {len(renderer.slides_raw)} slides → {out_dir}", file=sys.stderr)
-    paths = renderer.render_all(out_dir)
+    paths = renderer.render_all(out_dir, yaml_source_dir=args.input.parent)
     print(f"Done. {len(paths)} SVGs written.", file=sys.stderr)
     return 0
 
 
-# Patch build_parser to add render-deck subcommand
-_orig_build_parser = build_parser
-
-
-def build_parser():
-    p = _orig_build_parser()
-    sub = p._subparsers._group_actions[0]
-    rp = sub.add_parser("render-deck", help="Render a multi-page deck YAML into per-slide SVGs")
-    rp.add_argument("input", type=Path, help="Deck YAML (.deck.yml)")
-    rp.add_argument("-o", "--output", type=Path, help="Output directory (default: ./output)")
-    return p
-
-
-build_parser_original = build_parser  # keep reference
-
-
-def main(argv=None):
+def main(argv: list[str] | None = None) -> int:
+    """Composer CLI dispatch — `compose`, `list-themes`, `show-theme`,
+    `list-symbols`, `render-deck`.
+    """
     parser = build_parser()
     args = parser.parse_args(argv)
     lib = FrameGraphLibrary(args.lib_path)
-    if args.command == "compose":
-        return cmd_compose(args, lib)
-    if args.command == "list-themes":
-        return cmd_list_themes(lib)
-    if args.command == "show-theme":
-        return cmd_show_theme(args, lib)
-    if args.command == "list-symbols":
-        return cmd_list_symbols(lib)
-    if args.command == "render-deck":
-        return cmd_render_deck(args, lib)
-    parser.print_help()
-    return 1
+    dispatch = {
+        "compose": lambda: cmd_compose(args, lib),
+        "list-themes": lambda: cmd_list_themes(lib),
+        "show-theme": lambda: cmd_show_theme(args, lib),
+        "list-symbols": lambda: cmd_list_symbols(lib),
+        "render-deck": lambda: cmd_render_deck(args, lib),
+    }
+    handler = dispatch.get(args.command)
+    if handler is None:
+        parser.print_help()
+        return 1
+    return handler()
 
 
 if __name__ == "__main__":

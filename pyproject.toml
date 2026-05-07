@@ -136,32 +136,19 @@ convention = "google"
 # noise. Also exempt from F401 since `Box`/`Point` re-exports are
 # legitimate public re-exports for plug-in authors.
 "framegraph/_helpers.py" = ["D"]
-# `library.py` ships a second, embedded composer CLI (`cmd_compose`,
-# `cmd_list_themes`, …) plus helper functions that we deliberately did
-# NOT document in Step 4 — that work belongs to a separate "remove or
-# document the composer CLI" decision. Until then, exempt it from D.
+# `library.py` ships an embedded composer CLI (`cmd_compose`,
+# `cmd_list_themes`, …) plus helper functions that we deliberately
+# did NOT document in Step 4. Until that work happens, exempt it from D.
 "framegraph/library.py" = ["D"]
-# `renderer.py` defines a second, module-level copy of the
-# `_helpers.py` API (`esc`, `fnum`, `fmt`, `attrs`, `box`, `pt`,
-# `deep_get`, `pts_attr`). Those duplicates are flagged for cleanup
-# in a follow-up pass — see Step 2's "Notable architectural finding".
-# Until that cleanup lands, the `D` rules would fight us at every
-# turn; exempt the file. The class itself (FrameGraphRenderer) is
-# fully documented; D rules on the class methods are still satisfied
-# at the source level — this exemption only removes the noise from
-# the orphan free functions.
-"framegraph/renderer.py" = ["D"]
 # Test fixtures and harness scripts: D rules are overkill.
 "tests/**" = ["D"]
 
 # ── Mypy ──────────────────────────────────────────────────────────────────────
-# Strict mode is intentionally NOT enabled yet. The renderer codebase
-# contains a known v2.0 modular-split regression where `r.text_svg`,
-# `r.render_rect`, and `r.eval_length` are called by plug-ins but not
-# implemented on `FrameGraphRenderer` (documented in `_types.py`).
-# Switching to strict mode now would block CI on a backlog item, not
-# on type drift in new code. Strictness should be turned on as part of
-# the "v2.0 regression repair" follow-up.
+# Strict mode is intentionally NOT enabled yet. Most renderer call sites
+# pass plain `Mapping[str, Any]` records into typed helpers — flipping
+# `strict = true` would force pervasive `# type: ignore` clutter without
+# catching real defects. Re-evaluate after the schema models in
+# `_schema.py` are threaded through the renderer pipeline.
 [tool.mypy]
 python_version         = "3.10"
 strict                 = false

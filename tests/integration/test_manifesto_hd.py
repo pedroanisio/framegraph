@@ -14,15 +14,11 @@ from pathlib import Path
 
 from framegraph.renderer import FrameGraphRenderer
 
-MANIFESTO_YML = (
-    Path(__file__).resolve().parents[2] / "faz-ai-manifesto.yml"
-)
+MANIFESTO_YML = Path(__file__).resolve().parents[2] / "faz-ai-manifesto.yml"
 
 
 def test_manifesto_yml_exists() -> None:
-    assert MANIFESTO_YML.exists(), (
-        f"manifesto fixture missing at {MANIFESTO_YML}"
-    )
+    assert MANIFESTO_YML.exists(), f"manifesto fixture missing at {MANIFESTO_YML}"
 
 
 def test_manifesto_renders_with_hd_root_hints() -> None:

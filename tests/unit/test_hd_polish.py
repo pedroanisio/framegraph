@@ -76,9 +76,7 @@ def test_shadow_preset_emits_filter_def_and_object_attr() -> None:
 def test_shadow_inline_overrides_preset_params() -> None:
     """Inline mapping overrides preset: dx/dy/blur/color/opacity flow through."""
     svg = _render(
-        _doc_with_rect(
-            {"shadow": {"preset": "medium", "dx": 5, "dy": 7, "color": "#FF0000"}}
-        )
+        _doc_with_rect({"shadow": {"preset": "medium", "dx": 5, "dy": 7, "color": "#FF0000"}})
     )
     # Filter id is content-addressed: the override values appear in the id
     assert "fg-fx-sh_5_7_4_FF0000_" in svg
@@ -110,10 +108,8 @@ def test_identical_shadow_specs_share_one_filter_def() -> None:
                 {
                     "id": "L",
                     "objects": [
-                        {"type": "rect", "id": "a", "box": [0, 0, 10, 10],
-                         "shadow": "medium"},
-                        {"type": "rect", "id": "b", "box": [20, 0, 10, 10],
-                         "shadow": "medium"},
+                        {"type": "rect", "id": "a", "box": [0, 0, 10, 10], "shadow": "medium"},
+                        {"type": "rect", "id": "b", "box": [20, 0, 10, 10], "shadow": "medium"},
                     ],
                 }
             ]
@@ -149,9 +145,7 @@ def test_glow_wins_when_both_shadow_and_glow_declared() -> None:
     svg = _render(_doc_with_rect({"shadow": "small", "glow": "medium"}))
     # The rect's filter= refers to a glow id, not a shadow id
     # (glow filter def is still emitted only when chosen)
-    rect_line = [
-        line for line in svg.split("\n") if 'id="r1"' in line and "filter=" in line
-    ]
+    rect_line = [line for line in svg.split("\n") if 'id="r1"' in line and "filter=" in line]
     assert rect_line, "rect should carry a filter= attribute"
     assert "fg-fx-gl_" in rect_line[0]
     assert "fg-fx-sh_" not in rect_line[0]
@@ -229,10 +223,13 @@ def test_hairline_guard_promotes_sub_px_stroke_when_opted_in() -> None:
                 {
                     "id": "L",
                     "objects": [
-                        {"type": "rect", "id": "a", "box": [0, 0, 10, 10],
-                         "stroke_style": "thin"},
-                        {"type": "rect", "id": "b", "box": [20, 0, 10, 10],
-                         "stroke_style": "thick"},
+                        {"type": "rect", "id": "a", "box": [0, 0, 10, 10], "stroke_style": "thin"},
+                        {
+                            "type": "rect",
+                            "id": "b",
+                            "box": [20, 0, 10, 10],
+                            "stroke_style": "thick",
+                        },
                     ],
                 }
             ],
@@ -248,9 +245,7 @@ def test_hairline_guard_promotes_sub_px_stroke_when_opted_in() -> None:
 def test_hairline_guard_respects_custom_minimum() -> None:
     """`hairline_min` is configurable; sub-min strokes promote to it."""
     doc = {
-        "scene": {
-            "rendering_contract": {"hairline_guard": True, "hairline_min": 1.25}
-        },
+        "scene": {"rendering_contract": {"hairline_guard": True, "hairline_min": 1.25}},
         "visual": {
             "tokens": {
                 "stroke_styles": {"thin": {"color": "#000", "width": 1.0}},
@@ -312,7 +307,7 @@ def test_defs_block_emitted_when_only_effect_filters_present() -> None:
     assert "<defs>" in svg
     assert "</defs>" in svg
     # Defs block precedes the layer body
-    assert svg.index("<defs>") < svg.index("<g id=\"layer_L\"")
+    assert svg.index("<defs>") < svg.index('<g id="layer_L"')
 
 
 def test_well_formed_xml_with_all_primitives_active() -> None:
@@ -332,10 +327,14 @@ def test_well_formed_xml_with_all_primitives_active() -> None:
                 {
                     "id": "L",
                     "objects": [
-                        {"type": "rect", "id": "a", "box": [0, 0, 10, 10],
-                         "shadow": "medium", "stroke_style": "hair"},
-                        {"type": "ellipse", "id": "b", "box": [20, 0, 10, 10],
-                         "glow": "small"},
+                        {
+                            "type": "rect",
+                            "id": "a",
+                            "box": [0, 0, 10, 10],
+                            "shadow": "medium",
+                            "stroke_style": "hair",
+                        },
+                        {"type": "ellipse", "id": "b", "box": [20, 0, 10, 10], "glow": "small"},
                     ],
                 }
             ],

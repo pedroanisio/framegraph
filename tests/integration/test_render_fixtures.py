@@ -26,9 +26,7 @@ from framegraph import FrameGraphDeckRenderer, FrameGraphLibrary, FrameGraphRend
 FIXTURE_DIR = Path(__file__).resolve().parents[1] / "fixtures"
 LIB_DIR = Path(__file__).resolve().parents[2] / "framegraph" / "lib"
 
-STANDALONE_FIXTURES = sorted(
-    p for p in FIXTURE_DIR.glob("*.yml") if ".deck." not in p.name
-)
+STANDALONE_FIXTURES = sorted(p for p in FIXTURE_DIR.glob("*.yml") if ".deck." not in p.name)
 DECK_FIXTURES = sorted(FIXTURE_DIR.glob("*.deck.yml"))
 
 
@@ -103,9 +101,7 @@ def test_deck_fixture_renders_all_slides(deck_fixture: Path, tmp_path: Path) -> 
 
 def test_deck_collect_notes_returns_dict_per_slide() -> None:
     """`collect_notes()` returns a dict keyed by slide id with per-slide notes."""
-    data = yaml.safe_load(
-        (FIXTURE_DIR / "ginga_one_full.deck.yml").read_text(encoding="utf-8")
-    )
+    data = yaml.safe_load((FIXTURE_DIR / "ginga_one_full.deck.yml").read_text(encoding="utf-8"))
     lib = FrameGraphLibrary(LIB_DIR)
     deck = FrameGraphDeckRenderer(data, library=lib)
     notes = deck.collect_notes()

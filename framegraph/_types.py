@@ -31,8 +31,13 @@ class RendererContext(Protocol):
     """
 
     # ── Document state ────────────────────────────────────────────────
+    # `object_index` is intentionally a concrete `dict[..., dict[...]]`
+    # rather than `Mapping[..., Mapping[...]]`: container layout
+    # (`renderers/layout.py`) writes resolved child boxes back into the
+    # index after a layout pass. Read-only consumers can still treat
+    # this as a Mapping structurally.
     scene: Mapping[str, Any]
-    object_index: Mapping[str, Mapping[str, Any]]
+    object_index: dict[str, dict[str, Any]]
     symbols: Mapping[str, Any]
     component_defs: Mapping[str, Mapping[str, Any]]
     glyph_map: Mapping[str, str]
@@ -40,6 +45,12 @@ class RendererContext(Protocol):
     # `_uses_icon_font` is mutated by plug-ins that emit icon-font glyphs;
     # `defs_svg()` reads it to decide whether to inject the Tabler webfont.
     _uses_icon_font: bool
+
+    # `yaml_source_dir` is the absolute directory of the source YAML
+    # document. `renderers/image.py` reads it through `getattr` to
+    # resolve relative `<image>` `href`s; the CLI / deck renderer set
+    # it after construction. Optional — plug-ins must tolerate absence.
+    yaml_source_dir: str
 
     # ── Token resolution ──────────────────────────────────────────────
     def color(self, v: Any, default: str = ...) -> str: ...
@@ -59,6 +70,9 @@ class RendererContext(Protocol):
         obj: Mapping[str, Any],
         extra: Mapping[str, Any] | None = ...,
     ) -> dict[str, Any]: ...
+
+    # ── HD effect filters (shadow / glow) ─────────────────────────────
+    def effect_filter_attrs(self, obj: Mapping[str, Any]) -> dict[str, Any]: ...
 
     # ── Object-index queries ──────────────────────────────────────────
     def object_box(self, obj: Mapping[str, Any]) -> Box | None: ...
@@ -82,25 +96,12 @@ class RendererContext(Protocol):
     def render_object(self, obj: Mapping[str, Any]) -> str: ...
     def register(self, type_name: str, fn: RenderFn) -> None: ...
 
-    # ── Plug-in helpers expected but currently MISSING from
-    #    FrameGraphRenderer (v2.0 modular-split regression).
-    #    They are declared here so mypy flags the gap; runtime calls
-    #    raise AttributeError, which is silently caught by render_svg's
-    #    per-object try/except and recorded in `self.warnings`.
-    #
-    #    Tracking: `text_svg` and `render_rect` are needed by the
-    #    `connector` and `legend` paths in renderers/lines.py; in
-    #    renderer.py the duplicate in-class `render_connector` /
-    #    `render_legend` (lines ~1032+) is unreachable dead code from
-    #    the pre-modular era.
-    #    `eval_length` is needed by container offset resolution in
-    #    renderers/layout.py.
-    #
-    #    These three should be implemented on FrameGraphRenderer (or
-    #    moved to free helpers and the call sites updated) in a follow-
-    #    up step. They are intentionally listed in the Protocol so that
-    #    the contract is honest about what plug-ins assume.
-    # ──────────────────────────────────────────────────────────────────
+    # ── Plug-in helpers delegated to per-type renderer modules ────────
+    # `text_svg` lives in `renderers.text_objects`, `render_rect` in
+    # `renderers.shapes`, `eval_length` in `renderers.layout`. The
+    # `FrameGraphRenderer` methods are thin delegates so plug-ins can
+    # call them through the `r` parameter without importing the
+    # modules directly.
     def text_svg(
         self,
         content: Any,

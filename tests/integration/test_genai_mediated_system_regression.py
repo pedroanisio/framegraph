@@ -59,9 +59,9 @@ CONTAINER_HEADINGS = (
 )
 
 CHIP_LABELS = (
-    "intent",     # actors.humans chip row
-    "agents",     # actors.genai_systems chip row
-    "tools",      # execution interfaces chip row
+    "intent",  # actors.humans chip row
+    "agents",  # actors.genai_systems chip row
+    "tools",  # execution interfaces chip row
 )
 
 LEGEND_LABELS = (
@@ -87,9 +87,7 @@ def test_genai_fixture_renders_container_headings(fixture_name: str) -> None:
     substrate containers. The modular-split regression dropped every text
     object whose render path resolved through `r.text_svg`.
     """
-    doc = yaml.safe_load(
-        (FIXTURE_DIR / fixture_name).read_text(encoding="utf-8")
-    )
+    doc = yaml.safe_load((FIXTURE_DIR / fixture_name).read_text(encoding="utf-8"))
     svg = FrameGraphRenderer(doc).render_svg()
     missing = [s for s in CONTAINER_HEADINGS if not _appears_in_svg(s, svg)]
     assert not missing, (
@@ -113,14 +111,10 @@ def test_genai_fixture_renders_chip_row_items(fixture_name: str) -> None:
     helper called the missing `r.text_svg`. After the repair every
     chip's text appears in the SVG.
     """
-    doc = yaml.safe_load(
-        (FIXTURE_DIR / fixture_name).read_text(encoding="utf-8")
-    )
+    doc = yaml.safe_load((FIXTURE_DIR / fixture_name).read_text(encoding="utf-8"))
     svg = FrameGraphRenderer(doc).render_svg()
     missing = [s for s in CHIP_LABELS if not _appears_in_svg(s, svg)]
-    assert not missing, (
-        f"{fixture_name}: chip-row labels missing from SVG: {missing!r}"
-    )
+    assert not missing, f"{fixture_name}: chip-row labels missing from SVG: {missing!r}"
 
 
 @pytest.mark.parametrize(
@@ -138,14 +132,10 @@ def test_genai_fixture_renders_legend_labels(fixture_name: str) -> None:
     with `r.text_svg` for the label. Both legs of the regression are
     exercised here; if either reverts, the legend label disappears.
     """
-    doc = yaml.safe_load(
-        (FIXTURE_DIR / fixture_name).read_text(encoding="utf-8")
-    )
+    doc = yaml.safe_load((FIXTURE_DIR / fixture_name).read_text(encoding="utf-8"))
     svg = FrameGraphRenderer(doc).render_svg()
     missing = [s for s in LEGEND_LABELS if not _appears_in_svg(s, svg)]
-    assert not missing, (
-        f"{fixture_name}: legend labels missing from SVG: {missing!r}"
-    )
+    assert not missing, f"{fixture_name}: legend labels missing from SVG: {missing!r}"
 
 
 @pytest.mark.parametrize(
@@ -165,9 +155,7 @@ def test_genai_fixture_emits_minimum_text_object_count(fixture_name: str) -> Non
     50 is well below the current count (>100) but well above what the
     pre-fix output produced.
     """
-    doc = yaml.safe_load(
-        (FIXTURE_DIR / fixture_name).read_text(encoding="utf-8")
-    )
+    doc = yaml.safe_load((FIXTURE_DIR / fixture_name).read_text(encoding="utf-8"))
     svg = FrameGraphRenderer(doc).render_svg()
     text_count = svg.count("<text")
     assert text_count >= 50, (

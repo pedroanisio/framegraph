@@ -1,8 +1,8 @@
 """Unit tests for `framegraph.renderer.FrameGraphRenderer`.
 
 Drive the renderer with small in-memory dict documents. File I/O paths
-(`from_yaml_file`, `write_svg`) use real `tmp_path` files. The CLI
-entrypoint (`main`, `parse_args`) is exercised via its `argv` parameter.
+(`from_yaml_file`, `write_svg`) use real `tmp_path` files. The user-facing
+CLI lives in `framegraph.cli` and is covered by `tests/integration/test_cli.py`.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from framegraph.renderer import FrameGraphRenderer, main, parse_args
+from framegraph.renderer import FrameGraphRenderer
 
 # ── Construction ────────────────────────────────────────────────────
 
@@ -165,9 +165,7 @@ def test_write_svg_writes_to_disk(tmp_path: Path) -> None:
 
 
 def test_render_svg_minimal_doc_returns_well_formed_svg() -> None:
-    svg = FrameGraphRenderer(
-        {"visual": {"layers": [{"id": "L1", "objects": []}]}}
-    ).render_svg()
+    svg = FrameGraphRenderer({"visual": {"layers": [{"id": "L1", "objects": []}]}}).render_svg()
     ET.fromstring(svg)
 
 
@@ -177,16 +175,12 @@ def test_render_svg_includes_canvas_size_when_specified() -> None:
         "visual": {"layers": []},
     }
     svg = FrameGraphRenderer(doc).render_svg()
-    assert 'width="300"' in svg or 'viewBox' in svg
+    assert 'width="300"' in svg or "viewBox" in svg
 
 
 def test_render_svg_with_unknown_object_type_emits_comment() -> None:
     doc = {
-        "visual": {
-            "layers": [
-                {"id": "L1", "objects": [{"type": "definitely_unknown", "id": "x"}]}
-            ]
-        }
+        "visual": {"layers": [{"id": "L1", "objects": [{"type": "definitely_unknown", "id": "x"}]}]}
     }
     svg = FrameGraphRenderer(doc).render_svg()
     assert "unsupported object type" in svg
@@ -211,9 +205,7 @@ def test_canvas_size_overridden_by_scene_canvas() -> None:
 
 
 def test_color_resolves_token_lookup() -> None:
-    r = FrameGraphRenderer(
-        {"visual": {"tokens": {"colors": {"brand": "#abcdef"}}}}
-    )
+    r = FrameGraphRenderer({"visual": {"tokens": {"colors": {"brand": "#abcdef"}}}})
     assert r.color("brand") == "#abcdef"
 
 
@@ -263,13 +255,7 @@ def test_fill_value_gradient_ref_returns_url() -> None:
 
 def test_text_style_returns_dict_for_known_ref() -> None:
     r = FrameGraphRenderer(
-        {
-            "visual": {
-                "tokens": {
-                    "text_styles": {"title": {"size": 24, "bold": True}}
-                }
-            }
-        }
+        {"visual": {"tokens": {"text_styles": {"title": {"size": 24, "bold": True}}}}}
     )
     style = r.text_style("title")
     assert style["size"] == 24
@@ -338,9 +324,7 @@ def test_endpoint_literal_pair_returns_point() -> None:
 def test_endpoint_object_string_returns_object_center() -> None:
     doc = {
         "visual": {
-            "layers": [
-                {"id": "L", "objects": [{"type": "rect", "id": "a", "box": [0, 0, 10, 10]}]}
-            ]
+            "layers": [{"id": "L", "objects": [{"type": "rect", "id": "a", "box": [0, 0, 10, 10]}]}]
         }
     }
     r = FrameGraphRenderer(doc)
@@ -351,9 +335,7 @@ def test_endpoint_object_string_returns_object_center() -> None:
 def test_endpoint_dot_notation_resolves_named_port() -> None:
     doc = {
         "visual": {
-            "layers": [
-                {"id": "L", "objects": [{"type": "rect", "id": "a", "box": [0, 0, 10, 10]}]}
-            ]
+            "layers": [{"id": "L", "objects": [{"type": "rect", "id": "a", "box": [0, 0, 10, 10]}]}]
         }
     }
     r = FrameGraphRenderer(doc)
@@ -364,9 +346,7 @@ def test_endpoint_dot_notation_resolves_named_port() -> None:
 def test_endpoint_object_dict_with_port_resolves() -> None:
     doc = {
         "visual": {
-            "layers": [
-                {"id": "L", "objects": [{"type": "rect", "id": "a", "box": [0, 0, 10, 10]}]}
-            ]
+            "layers": [{"id": "L", "objects": [{"type": "rect", "id": "a", "box": [0, 0, 10, 10]}]}]
         }
     }
     r = FrameGraphRenderer(doc)
@@ -377,9 +357,7 @@ def test_endpoint_object_dict_with_port_resolves() -> None:
 def test_endpoint_object_dict_with_side_returns_side_anchor() -> None:
     doc = {
         "visual": {
-            "layers": [
-                {"id": "L", "objects": [{"type": "rect", "id": "a", "box": [0, 0, 10, 10]}]}
-            ]
+            "layers": [{"id": "L", "objects": [{"type": "rect", "id": "a", "box": [0, 0, 10, 10]}]}]
         }
     }
     r = FrameGraphRenderer(doc)
@@ -503,263 +481,30 @@ def test_str_width_classifies_each_char_class(char: str) -> None:
     assert w > 0
 
 
-# ── connector / legend (in-class duplicates) ────────────────────────
+# ── Regression: in-class connector/legend duplicates and the legacy
+# CLI in renderer.py (parse_args/main) were removed. The free functions
+# in `framegraph.renderers.lines` are covered by
+# `tests/unit/test_modular_split_regression.py` and the user-facing CLI
+# (`framegraph.cli.main`) by `tests/integration/test_cli.py`.
 
 
-def test_render_connector_straight_route_emits_path() -> None:
-    doc = {
-        "visual": {
-            "layers": [
-                {
-                    "id": "L",
-                    "objects": [
-                        {"type": "rect", "id": "a", "box": [0, 0, 10, 10]},
-                        {"type": "rect", "id": "b", "box": [50, 50, 10, 10]},
-                    ],
-                }
-            ]
-        }
-    }
-    r = FrameGraphRenderer(doc)
-    svg = r.render_connector(
-        {"type": "connector", "id": "c1", "from": "a", "to": "b"}
-    )
-    assert "<path" in svg
-
-
-def test_render_connector_orthogonal_route() -> None:
-    doc = {
-        "visual": {
-            "layers": [
-                {
-                    "id": "L",
-                    "objects": [
-                        {"type": "rect", "id": "a", "box": [0, 0, 10, 10]},
-                        {"type": "rect", "id": "b", "box": [50, 50, 10, 10]},
-                    ],
-                }
-            ]
-        }
-    }
-    r = FrameGraphRenderer(doc)
-    svg = r.render_connector(
-        {
-            "type": "connector",
-            "id": "c1",
-            "from": "a",
-            "to": "b",
-            "route": {"type": "orthogonal"},
-        }
-    )
-    assert "<path" in svg
-
-
-def test_render_connector_bezier_route_emits_C_path() -> None:
-    doc = {
-        "visual": {
-            "layers": [
-                {
-                    "id": "L",
-                    "objects": [
-                        {"type": "rect", "id": "a", "box": [0, 0, 10, 10]},
-                        {"type": "rect", "id": "b", "box": [50, 50, 10, 10]},
-                    ],
-                }
-            ]
-        }
-    }
-    r = FrameGraphRenderer(doc)
-    svg = r.render_connector(
-        {
-            "type": "connector",
-            "id": "c1",
-            "from": "a",
-            "to": "b",
-            "route": {"type": "bezier"},
-        }
-    )
-    assert "C " in svg
-
-
-def test_render_connector_unknown_route_raises() -> None:
+def test_renderer_does_not_expose_in_class_connector_or_legend() -> None:
+    """Regression: dead in-class duplicates were removed."""
     r = FrameGraphRenderer({})
-    with pytest.raises(ValueError, match="unsupported route type"):
-        r.render_connector(
-            {
-                "type": "connector",
-                "from": [0, 0],
-                "to": [1, 1],
-                "route": {"type": "spline"},
-            }
-        )
+    assert not hasattr(r, "render_connector")
+    assert not hasattr(r, "render_legend")
 
 
-def test_render_legend_with_line_sample_emits_group() -> None:
-    """Legend with a `line` sample uses `line_svg` which is implemented on the renderer."""
-    r = FrameGraphRenderer({})
-    svg = r.render_legend(
-        {
-            "type": "legend",
-            "id": "leg",
-            "items": [
-                {
-                    "id": "item1",
-                    "sample": {"type": "line", "from": [0, 0], "to": [10, 0]},
-                },
-            ],
-        }
-    )
-    assert svg.startswith("<g")
+def test_renderer_module_does_not_expose_legacy_cli() -> None:
+    """Regression: the second CLI in renderer.py was removed.
 
-
-def test_render_legend_empty_items_emits_empty_group() -> None:
-    """Legend with no items still emits a wrapper `<g>` element."""
-    r = FrameGraphRenderer({})
-    svg = r.render_legend({"type": "legend", "id": "leg", "items": []})
-    assert svg.startswith("<g") and svg.endswith("</g>")
-
-
-# ── parse_args / main (renderer-module CLI) ─────────────────────────
-
-
-def test_parse_args_minimal_input_only() -> None:
-    args = parse_args(["in.yml"])
-    assert str(args.input) == "in.yml"
-
-
-def test_parse_args_with_output_flag() -> None:
-    args = parse_args(["in.yml", "-o", "out.svg"])
-    assert str(args.output) == "out.svg"
-
-
-def test_parse_args_strict_no_validate_quiet_flags() -> None:
-    args = parse_args(["in.yml", "--strict", "--no-validate", "--quiet"])
-    assert args.strict and args.no_validate and args.quiet
-
-
-def test_renderer_main_writes_svg_for_valid_input(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    in_yml = tmp_path / "in.yml"
-    in_yml.write_text(
-        yaml.dump(
-            {
-                "dsl": "FrameGraph",
-                "version": 1.5,
-                "scene": {"id": "test", "canvas": {"size": [100, 100]}},
-                "visual": {"layers": []},
-            }
-        )
-    )
-    out_svg = tmp_path / "out.svg"
-    rc = main([str(in_yml), "-o", str(out_svg), "--quiet"])
-    assert rc == 0
-    assert out_svg.exists()
-
-
-def test_renderer_main_prints_svg_to_stdout_when_no_output(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    in_yml = tmp_path / "in.yml"
-    in_yml.write_text(
-        yaml.dump(
-            {
-                "dsl": "FrameGraph",
-                "version": 1.5,
-                "scene": {"id": "test", "canvas": {"size": [100, 100]}},
-                "visual": {"layers": []},
-            }
-        )
-    )
-    rc = main([str(in_yml), "--no-validate", "--quiet"])
-    assert rc == 0
-    out = capsys.readouterr().out
-    assert "<svg" in out
-
-
-def test_renderer_main_prints_validation_warnings_to_stderr(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    in_yml = tmp_path / "in.yml"
-    in_yml.write_text(
-        yaml.dump(
-            {
-                "dsl": "FrameGraph",
-                "version": 1.5,
-                "scene": {"id": "test", "canvas": {"size": [100, 100]}},
-                "visual": {
-                    "layers": [
-                        {
-                            "id": "L",
-                            "objects": [
-                                {"type": "rect", "id": "x", "box": [0, 0, 10, 10]}
-                            ],
-                        }
-                    ]
-                },
-            }
-        )
-    )
-    out_svg = tmp_path / "out.svg"
-    rc = main([str(in_yml), "-o", str(out_svg)])
-    assert rc == 0
-    # progress message goes to stderr
-    err = capsys.readouterr().err
-    # might be empty if no warnings; that's OK — just exercise the path
-    assert "wrote" in err or err == "" or "warning" in err
-
-
-def test_renderer_main_returns_1_on_invalid_yaml(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    in_yml = tmp_path / "bad.yml"
-    in_yml.write_text("not: valid: : yaml: : :")
-    rc = main([str(in_yml), "--quiet"])
-    assert rc == 1
-    assert "error" in capsys.readouterr().err.lower()
-
-
-# ── Module-level free functions in renderer.py (duplicates of _helpers) ─────
-# These are real public symbols at the module level even though most callers
-# go through framegraph._helpers. Test them directly to pull their coverage.
-
-
-def test_renderer_module_helpers_are_callable() -> None:
-    """The module-level free functions in renderer.py mirror _helpers semantics."""
+    The package's only CLI entry point is `framegraph.cli:main`,
+    declared in `pyproject.toml` under `[project.scripts]`.
+    """
     from framegraph import renderer as R
 
-    assert R.esc("<x>") == "&lt;x&gt;"
-    assert R.fnum("3.5") == 3.5
-    assert R.fnum(None, default=7.0) == 7.0
-    assert R.fmt(42) == "42"
-    assert R.fmt(1.5) == "1.5"
-    assert R.fmt("abc") == "abc"
-    assert R.sid("123abc").startswith("id_")
-    assert R.attrs({"x": 1, "y": None}) == 'x="1"'
-    assert R.box([1, 2, 3, 4]) == (1.0, 2.0, 3.0, 4.0)
-    with pytest.raises(ValueError):
-        R.box([1, 2])
-    assert R.pt([1, 2]) == (1.0, 2.0)
-    with pytest.raises(ValueError):
-        R.pt([1])
-    assert R.deep_get({"a": {"b": 1}}, ["a", "b"]) == 1
-    assert R.deep_get({"a": 1}, ["b"], default="z") == "z"
-    assert R.pts_attr([(1, 2), (3, 4)]) == "1,2 3,4"
-
-
-def test_renderer_module_lorem_helpers() -> None:
-    """`_lorem` and `_expand_lorem` at the module level mirror _helpers."""
-    from framegraph import renderer as R
-
-    assert len(R._lorem(5).split()) == 5
-    # negative / zero defaults to 30
-    assert len(R._lorem(0).split()) == 30
-    assert len(R._expand_lorem("lorem").split()) == 30
-    assert len(R._expand_lorem("lorem:7").split()) == 7
-    # invalid count → 30
-    assert len(R._expand_lorem("lorem:notnum").split()) == 30
-    # passthrough
-    assert R._expand_lorem("hello") == "hello"
+    assert not hasattr(R, "parse_args")
+    assert not hasattr(R, "main")
 
 
 # ── Container layout edge cases (lifts renderers/layout.py coverage) ─────
@@ -913,6 +658,7 @@ def test_container_child_render_failure_emits_inline_comment() -> None:
     from framegraph.renderers.layout import render_container
 
     r = FrameGraphRenderer({})
+
     # Register a custom type that always raises
     def boom(_r, _obj):
         raise RuntimeError("boom")

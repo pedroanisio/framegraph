@@ -17,9 +17,7 @@ from framegraph.cli import build_parser
 from framegraph.cli import main as cli_main
 
 FIXTURE_DIR = Path(__file__).resolve().parents[1] / "fixtures"
-STANDALONE_FIXTURES = sorted(
-    p for p in FIXTURE_DIR.glob("*.yml") if ".deck." not in p.name
-)
+STANDALONE_FIXTURES = sorted(p for p in FIXTURE_DIR.glob("*.yml") if ".deck." not in p.name)
 DECK_FIXTURES = sorted(FIXTURE_DIR.glob("*.deck.yml"))
 LIB_DIR = Path(__file__).resolve().parents[2] / "framegraph" / "lib"
 
@@ -27,12 +25,8 @@ LIB_DIR = Path(__file__).resolve().parents[2] / "framegraph" / "lib"
 # ── render subcommand ────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize(
-    "fixture", STANDALONE_FIXTURES, ids=lambda p: p.stem
-)
-def test_cli_render_writes_svg_for_each_fixture(
-    fixture: Path, tmp_path: Path
-) -> None:
+@pytest.mark.parametrize("fixture", STANDALONE_FIXTURES, ids=lambda p: p.stem)
+def test_cli_render_writes_svg_for_each_fixture(fixture: Path, tmp_path: Path) -> None:
     """`framegraph render <fixture> -o <out>` exits 0 and writes a non-empty SVG."""
     out = tmp_path / f"{fixture.stem}.svg"
     rc = cli_main(["render", str(fixture), "-o", str(out), "--quiet"])
@@ -106,9 +100,7 @@ def test_cli_render_unrenderable_doc_returns_nonzero(
 
 
 @pytest.mark.parametrize("deck_fixture", DECK_FIXTURES, ids=lambda p: p.stem)
-def test_cli_deck_renders_each_slide_to_output_dir(
-    deck_fixture: Path, tmp_path: Path
-) -> None:
+def test_cli_deck_renders_each_slide_to_output_dir(deck_fixture: Path, tmp_path: Path) -> None:
     """`framegraph deck <fixture> -o <dir>` writes one SVG per slide."""
     rc = cli_main(
         [
@@ -218,9 +210,7 @@ def test_cli_build_parser_returns_parser_with_required_subcommand() -> None:
 
 def test_cli_build_parser_render_args_round_trip() -> None:
     """`render` subcommand parses input + flags into the expected namespace."""
-    args = build_parser().parse_args(
-        ["render", "in.yml", "-o", "out.svg", "--strict", "--quiet"]
-    )
+    args = build_parser().parse_args(["render", "in.yml", "-o", "out.svg", "--strict", "--quiet"])
     assert args.command == "render"
     assert args.input == "in.yml"
     assert args.output == "out.svg"
@@ -250,9 +240,7 @@ cairosvg = pytest.importorskip(
 
 def test_cli_build_parser_render_4k_flag_round_trip() -> None:
     """`--4k` on render maps to `args.four_k` (digit-prefixed dest renamed)."""
-    args = build_parser().parse_args(
-        ["render", "in.yml", "-o", "out.svg", "--4k"]
-    )
+    args = build_parser().parse_args(["render", "in.yml", "-o", "out.svg", "--4k"])
     assert args.four_k is True
 
 
@@ -264,18 +252,14 @@ def test_cli_build_parser_render_4k_default_false() -> None:
 
 def test_cli_build_parser_deck_4k_flag_round_trip() -> None:
     """`--4k` is also wired on the deck subcommand."""
-    args = build_parser().parse_args(
-        ["deck", "deck.yml", "-o", "out_dir", "--4k"]
-    )
+    args = build_parser().parse_args(["deck", "deck.yml", "-o", "out_dir", "--4k"])
     assert args.four_k is True
 
 
 def test_cli_render_4k_writes_png_alongside_svg(tmp_path: Path) -> None:
     """`render --4k` writes both an SVG and a sibling 3840-wide PNG."""
     out = tmp_path / "out.svg"
-    rc = cli_main(
-        ["render", str(STANDALONE_FIXTURES[0]), "-o", str(out), "--4k", "--quiet"]
-    )
+    rc = cli_main(["render", str(STANDALONE_FIXTURES[0]), "-o", str(out), "--4k", "--quiet"])
     assert rc == 0
     assert out.exists() and out.stat().st_size > 0
     png = out.with_suffix(".png")
@@ -291,9 +275,7 @@ def test_cli_render_4k_writes_png_alongside_svg(tmp_path: Path) -> None:
 def test_cli_render_without_4k_does_not_write_png(tmp_path: Path) -> None:
     """Without `--4k`, no PNG is produced (SVG-only path is unchanged)."""
     out = tmp_path / "out.svg"
-    rc = cli_main(
-        ["render", str(STANDALONE_FIXTURES[0]), "-o", str(out), "--quiet"]
-    )
+    rc = cli_main(["render", str(STANDALONE_FIXTURES[0]), "-o", str(out), "--quiet"])
     assert rc == 0
     assert not out.with_suffix(".png").exists()
 
@@ -303,9 +285,7 @@ def test_cli_render_4k_prints_png_path_when_not_quiet(
 ) -> None:
     """Non-quiet `render --4k` prints both wrote-lines (SVG and PNG)."""
     out = tmp_path / "out.svg"
-    rc = cli_main(
-        ["render", str(STANDALONE_FIXTURES[0]), "-o", str(out), "--4k"]
-    )
+    rc = cli_main(["render", str(STANDALONE_FIXTURES[0]), "-o", str(out), "--4k"])
     assert rc == 0
     captured = capsys.readouterr().out
     assert str(out) in captured

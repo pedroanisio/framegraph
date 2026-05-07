@@ -52,10 +52,7 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
     coordinate pairs, etc. `route` selects the path style:
     `straight` (default), `orthogonal`, or `bezier`.
 
-    Note: emits an inner label via `r.text_svg` when `obj.label` is
-    a mapping. `r.text_svg` is part of the v2.0 plug-in contract but
-    is currently missing from `FrameGraphRenderer`; calls fail with
-    `AttributeError` and are demoted to comments by `render_svg`.
+    Emits an inner label via `r.text_svg` when `obj.label` is a mapping.
     """
     start = r.endpoint(obj.get("from"))
     end = r.endpoint(obj.get("to"))
@@ -108,10 +105,6 @@ def render_legend(r: RendererContext, obj: Mapping[str, Any]) -> str:
     Each item's `sample` describes either a `line` (rendered via
     `r.line_svg`) or a `rect`/`rounded_rect` swatch (rendered via
     `r.render_rect`) followed by a label rendered via `r.text_svg`.
-
-    Note: depends on `r.render_rect` and `r.text_svg`, which are
-    part of the v2.0 plug-in contract but currently missing from
-    `FrameGraphRenderer`; failures are demoted to comments.
     """
     out = [f"<g {attrs(r.group_attrs(obj))}>"]
     for item in obj.get("items", []) or []:
@@ -155,11 +148,6 @@ def render_legend(r: RendererContext, obj: Mapping[str, Any]) -> str:
             )
     out.append("</g>")
     return "\n".join(out)
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
 
 
 RENDERERS = {
