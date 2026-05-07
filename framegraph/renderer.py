@@ -330,7 +330,26 @@ class FrameGraphRenderer:
                 contain a `visual` block; `scene` and `semantic` are
                 optional (default to empty mappings).
 
+        Raises:
+            pydantic.ValidationError: When `doc` declares
+                `dsl: FrameGraph` but its structure does not satisfy
+                the Pydantic schema in `framegraph._schema`. Documents
+                without the `dsl: FrameGraph` marker (empty dicts,
+                partial test fixtures, deck-composed slide docs that
+                omit the marker) skip validation — see the schema
+                module's `validate_document` for the gate logic.
+
         """
+        # Validation gate: real FrameGraph documents always carry the
+        # `dsl: FrameGraph` marker. Internal/partial dicts without it
+        # are passed through unvalidated so the renderer remains
+        # usable for unit tests and the deck composer's intermediate
+        # slide builds. See framegraph._schema for the rationale.
+        if isinstance(doc, Mapping) and doc.get("dsl") == "FrameGraph":
+            from framegraph._schema import validate_document
+
+            validate_document(dict(doc))
+
         self.doc = doc
         self.scene = doc.get("scene", {}) or {}
         self.semantic = doc.get("semantic", {}) or {}
@@ -479,19 +498,17 @@ class FrameGraphRenderer:
     # Presets are tuned for slide-grade output at 960×660+ canvases.
     # Inline mappings override presets per-object.
     _SHADOW_PRESETS: dict[str, dict[str, Any]] = {
-        "small":  {"dx": 0, "dy": 1, "blur": 1.5, "color": "#000000", "opacity": 0.10},
+        "small": {"dx": 0, "dy": 1, "blur": 1.5, "color": "#000000", "opacity": 0.10},
         "medium": {"dx": 0, "dy": 2, "blur": 4.0, "color": "#000000", "opacity": 0.14},
-        "large":  {"dx": 0, "dy": 4, "blur": 8.0, "color": "#000000", "opacity": 0.18},
+        "large": {"dx": 0, "dy": 4, "blur": 8.0, "color": "#000000", "opacity": 0.18},
     }
     _GLOW_PRESETS: dict[str, dict[str, Any]] = {
-        "small":  {"blur": 2.0, "color": "#FFD700", "opacity": 0.45},
+        "small": {"blur": 2.0, "color": "#FFD700", "opacity": 0.45},
         "medium": {"blur": 4.0, "color": "#FFD700", "opacity": 0.55},
-        "large":  {"blur": 8.0, "color": "#FFD700", "opacity": 0.65},
+        "large": {"blur": 8.0, "color": "#FFD700", "opacity": 0.65},
     }
 
-    def _resolve_effect_spec(
-        self, kind: str, spec: Any
-    ) -> dict[str, Any] | None:
+    def _resolve_effect_spec(self, kind: str, spec: Any) -> dict[str, Any] | None:
         """Normalize a `shadow:` / `glow:` field to a parameter mapping.
 
         Accepted forms:
@@ -572,11 +589,11 @@ class FrameGraphRenderer:
                 f'<feFlood flood-color="{esc(color)}"'
                 f' flood-opacity="{fmt(opacity)}"/>'
                 f'<feComposite in2="off" operator="in" result="shadow"/>'
-                f'<feMerge>'
+                f"<feMerge>"
                 f'<feMergeNode in="shadow"/>'
                 f'<feMergeNode in="SourceGraphic"/>'
-                f'</feMerge>'
-                f'</filter>'
+                f"</feMerge>"
+                f"</filter>"
             )
         else:  # glow
             blur = fnum(params.get("blur"), 4)
@@ -589,11 +606,11 @@ class FrameGraphRenderer:
                 f'<feFlood flood-color="{esc(color)}"'
                 f' flood-opacity="{fmt(opacity)}"/>'
                 f'<feComposite in2="SourceAlpha" operator="in" result="glow"/>'
-                f'<feMerge>'
+                f"<feMerge>"
                 f'<feMergeNode in="glow"/>'
                 f'<feMergeNode in="SourceGraphic"/>'
-                f'</feMerge>'
-                f'</filter>'
+                f"</feMerge>"
+                f"</filter>"
             )
         self.effect_filters[fid] = filt
         return fid
@@ -943,10 +960,7 @@ class FrameGraphRenderer:
     def defs_svg(self) -> str:
         """Emit: optional Tabler Icons @import, gradient defs, per-color arrow markers, effect filters."""
         has_content = (
-            self.marker_colors
-            or self.gradient_defs
-            or self._uses_icon_font
-            or self.effect_filters
+            self.marker_colors or self.gradient_defs or self._uses_icon_font or self.effect_filters
         )
         if not has_content:
             return ""
@@ -1001,9 +1015,7 @@ class FrameGraphRenderer:
         # promote any stroke under the threshold (default 0.75px) to
         # the threshold. Opt-in: existing v1.x fixtures keep their
         # exact stroke widths and pinned goldens stay valid.
-        if width > 0 and deep_get(
-            self.scene, ["rendering_contract", "hairline_guard"], False
-        ):
+        if width > 0 and deep_get(self.scene, ["rendering_contract", "hairline_guard"], False):
             min_w = fnum(
                 deep_get(self.scene, ["rendering_contract", "hairline_min"], 0.75),
                 0.75,
@@ -1117,12 +1129,9 @@ class FrameGraphRenderer:
         # `render_quality: legacy` reverts to v1.x behaviour (no hints).
         # Default is `hd`: enables sharper geometry + glyph rasterisation
         # without changing layout, attribute names, or the DOM shape.
-        quality = str(
-            deep_get(self.scene, ["rendering_contract", "render_quality"], "hd")
-        ).lower()
+        quality = str(deep_get(self.scene, ["rendering_contract", "render_quality"], "hd")).lower()
         hd_attrs = (
-            ' shape-rendering="geometricPrecision"'
-            ' text-rendering="optimizeLegibility"'
+            ' shape-rendering="geometricPrecision" text-rendering="optimizeLegibility"'
             if quality != "legacy"
             else ""
         )
@@ -1131,7 +1140,7 @@ class FrameGraphRenderer:
             f'<svg xmlns="http://www.w3.org/2000/svg"'
             f' width="{fmt(width)}" height="{fmt(height)}"'
             f' viewBox="0 0 {fmt(width)} {fmt(height)}"'
-            f'{hd_attrs}'
+            f"{hd_attrs}"
             f' role="img" aria-labelledby="svg-title svg-desc">',
             f'<title id="svg-title">{title}</title>',
             f'<desc  id="svg-desc">{desc}</desc>',

@@ -29,7 +29,6 @@ from framegraph.library import (
     strip_meta,
 )
 
-
 # ── lib_tree factory ─────────────────────────────────────────────────
 
 
@@ -316,8 +315,8 @@ def _make_minimal_deck(root: Path, with_lib: bool = True) -> tuple[Path, dict]:
         "deck": {
             "canvas": {"size": [800, 600]},
             "tokens": {"colors": {"deck_color": "#ff0000"}},
-            "symbols": {"deck_sym": {"shape": "rect"}},
-            "component_defs": {"deck_cdef": {"type": "rect"}},
+            "symbols": {"deck_sym": {"box": [0, 0, 100, 100], "objects": []}},
+            "component_defs": {"deck_cdef": {"fill": "#cccccc"}},
         },
         "slides": [
             {

@@ -15,7 +15,6 @@ import yaml
 
 from framegraph.renderer import FrameGraphRenderer, main, parse_args
 
-
 # ── Construction ────────────────────────────────────────────────────
 
 
@@ -128,6 +127,8 @@ def test_from_yaml_file_loads_and_constructs(tmp_path: Path) -> None:
         yaml.dump(
             {
                 "dsl": "FrameGraph",
+                "version": 1.5,
+                "scene": {"id": "test", "canvas": {"size": [100, 100]}},
                 "visual": {"layers": []},
             }
         )
@@ -641,7 +642,14 @@ def test_renderer_main_writes_svg_for_valid_input(
 ) -> None:
     in_yml = tmp_path / "in.yml"
     in_yml.write_text(
-        yaml.dump({"dsl": "FrameGraph", "visual": {"layers": []}})
+        yaml.dump(
+            {
+                "dsl": "FrameGraph",
+                "version": 1.5,
+                "scene": {"id": "test", "canvas": {"size": [100, 100]}},
+                "visual": {"layers": []},
+            }
+        )
     )
     out_svg = tmp_path / "out.svg"
     rc = main([str(in_yml), "-o", str(out_svg), "--quiet"])
@@ -654,7 +662,14 @@ def test_renderer_main_prints_svg_to_stdout_when_no_output(
 ) -> None:
     in_yml = tmp_path / "in.yml"
     in_yml.write_text(
-        yaml.dump({"dsl": "FrameGraph", "visual": {"layers": []}})
+        yaml.dump(
+            {
+                "dsl": "FrameGraph",
+                "version": 1.5,
+                "scene": {"id": "test", "canvas": {"size": [100, 100]}},
+                "visual": {"layers": []},
+            }
+        )
     )
     rc = main([str(in_yml), "--no-validate", "--quiet"])
     assert rc == 0
@@ -670,6 +685,8 @@ def test_renderer_main_prints_validation_warnings_to_stderr(
         yaml.dump(
             {
                 "dsl": "FrameGraph",
+                "version": 1.5,
+                "scene": {"id": "test", "canvas": {"size": [100, 100]}},
                 "visual": {
                     "layers": [
                         {

@@ -35,10 +35,11 @@ classifiers = [
 ]
 
 # ── Runtime dependencies ──────────────────────────────────────────────────────
-# Core renderer: only PyYAML required.
+# Core renderer: PyYAML for ingest, Pydantic for the document schema.
 # Optional extras declared below.
 dependencies = [
     "PyYAML>=6.0",
+    "pydantic>=2.7",
 ]
 
 # ── Optional extras ───────────────────────────────────────────────────────────

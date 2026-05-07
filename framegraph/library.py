@@ -388,7 +388,19 @@ class FrameGraphDeckRenderer:
                 references (`tokens: theme:bcg_built` etc.). When
                 None, theme references in the deck are unresolved.
 
+        Raises:
+            pydantic.ValidationError: When `deck_yaml` declares
+                `dsl: FrameGraph` but its structure does not satisfy
+                the Pydantic schema. Inputs without the marker pass
+                through unvalidated — see framegraph._schema.
+
         """
+        # Validation gate — symmetric with FrameGraphRenderer.__init__.
+        if isinstance(deck_yaml, dict) and deck_yaml.get("dsl") == "FrameGraph":
+            from framegraph._schema import validate_deck
+
+            validate_deck(deck_yaml)
+
         self.raw = deck_yaml
         self.library = library
         self.deck_config = deck_yaml.get("deck", {}) or {}
