@@ -828,6 +828,241 @@ def render_artifact_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
     return "\n".join(out)
 
 
+def render_activity_node(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render an activity-diagram node (initial / final / decision / fork / join / etc.).
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.activity_node
+        box:     [x, y, w, h]    — the bounding box.
+        kind:    initial | final | flow_final | decision | merge |
+                 fork | join
+
+    Optional:
+        name:    text label (rendered above or beside the node
+                 depending on kind)
+        orientation: horizontal | vertical (only relevant for fork/join;
+                     defaults to horizontal — a thick horizontal bar)
+        style:
+            fill:           default "#1A1A1A" for filled circles,
+                            "#FFFFFF" for diamonds
+            stroke_color:   default "#1A1A1A"
+            stroke_width:   default 1.5
+            label_size:     default 11
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 32, 32]))
+    kind = str(obj.get("kind", "action"))
+    name = obj.get("name")
+    orientation = str(obj.get("orientation", "horizontal"))
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.5)
+    label_size = fnum(style.get("label_size"), 11)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    cx = bx + bw / 2
+    cy = by + bh / 2
+    radius = min(bw, bh) / 2
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+
+    if kind == "initial":
+        fill = r.fill_value(style.get("fill", "#1A1A1A"), "#1A1A1A")
+        out.append(
+            f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(radius)}" '
+            f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+    elif kind == "final":
+        outer_fill = "#FFFFFF"
+        inner_fill = r.fill_value(style.get("fill", "#1A1A1A"), "#1A1A1A")
+        # Outer ring
+        out.append(
+            f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(radius)}" '
+            f'fill="{outer_fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        # Inner solid disc (~60% of outer radius)
+        inner_r = radius * 0.55
+        out.append(
+            f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(inner_r)}" '
+            f'fill="{inner_fill}" stroke="none"/>'
+        )
+    elif kind == "flow_final":
+        # Hollow circle with an X
+        out.append(
+            f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(radius)}" '
+            f'fill="#FFFFFF" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        offset = radius * 0.55
+        out.append(
+            f'<line x1="{fmt(cx - offset)}" y1="{fmt(cy - offset)}" '
+            f'x2="{fmt(cx + offset)}" y2="{fmt(cy + offset)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        out.append(
+            f'<line x1="{fmt(cx + offset)}" y1="{fmt(cy - offset)}" '
+            f'x2="{fmt(cx - offset)}" y2="{fmt(cy + offset)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+    elif kind in ("decision", "merge"):
+        # Diamond: four corners on the box midpoints.
+        fill = r.fill_value(style.get("fill", "#FFFFFF"), "#FFFFFF")
+        pts = (
+            f"{fmt(cx)},{fmt(by)} "
+            f"{fmt(bx + bw)},{fmt(cy)} "
+            f"{fmt(cx)},{fmt(by + bh)} "
+            f"{fmt(bx)},{fmt(cy)}"
+        )
+        out.append(
+            f'<polygon points="{pts}" '
+            f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        if name:
+            out.append(
+                f'<text x="{fmt(cx)}" y="{fmt(cy + label_size / 3)}" '
+                f'font-family="{font_family}" font-size="{fmt(label_size)}" '
+                f'fill="{text_color}" text-anchor="middle">{esc(str(name))}</text>'
+            )
+    elif kind in ("fork", "join"):
+        # Thick bar — horizontal by default, vertical when requested.
+        fill = r.fill_value(style.get("fill", "#1A1A1A"), "#1A1A1A")
+        if orientation == "vertical":
+            bar_x = cx - 3
+            out.append(
+                f'<rect x="{fmt(bar_x)}" y="{fmt(by)}" width="6" height="{fmt(bh)}" '
+                f'fill="{fill}" stroke="none"/>'
+            )
+        else:
+            bar_y = cy - 3
+            out.append(
+                f'<rect x="{fmt(bx)}" y="{fmt(bar_y)}" width="{fmt(bw)}" height="6" '
+                f'fill="{fill}" stroke="none"/>'
+            )
+    else:
+        # Fallback: small open circle to make malformed input visible.
+        out.append(
+            f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(radius)}" '
+            f'fill="#FFFFFF" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+
+    # External label for filled circles (initial/final/flow_final)
+    # and for fork/join. Placed below the node.
+    if name and kind in ("initial", "final", "flow_final", "fork", "join"):
+        label_y = by + bh + label_size + 4
+        out.append(
+            f'<text x="{fmt(cx)}" y="{fmt(label_y)}" '
+            f'font-family="{font_family}" font-size="{fmt(label_size)}" '
+            f'fill="{text_color}" text-anchor="middle">{esc(str(name))}</text>'
+        )
+
+    out.append("</g>")
+    return "\n".join(out)
+
+
+def render_action(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render an activity Action — rounded rectangle with a name label.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.action
+        box:     [x, y, w, h]
+        name:    <action name>
+
+    Optional:
+        style:
+            fill:           default "#FFFFFF"
+            stroke_color:   default "#1A1A1A"
+            stroke_width:   default 1.0
+            radius:         corner radius (default 12)
+            name_size:      default 12
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 140, 50]))
+    name = str(obj.get("name", ""))
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.0)
+    fill = r.fill_value(style.get("fill", "#FFFFFF"), "#FFFFFF")
+    radius = fnum(style.get("radius"), 12)
+    name_size = fnum(style.get("name_size"), 12)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    cx = bx + bw / 2
+    cy = by + bh / 2
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(bh)}" '
+        f'rx="{fmt(radius)}" ry="{fmt(radius)}" '
+        f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    out.append(
+        f'<text x="{fmt(cx)}" y="{fmt(cy + name_size / 3)}" '
+        f'font-family="{font_family}" font-size="{fmt(name_size)}" '
+        f'fill="{text_color}" text-anchor="middle">{esc(name)}</text>'
+    )
+    out.append("</g>")
+    return "\n".join(out)
+
+
+def render_swimlane(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a vertical swim-lane (UML ActivityPartition).
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.swimlane
+        box:     [x, y, w, h]    — the lane rectangle including header.
+        name:    <lane name>
+
+    Optional:
+        style:
+            fill:           default "#FFFFFF"
+            stroke_color:   default "#1A1A1A"
+            stroke_width:   default 1.0
+            header_height:  default 24
+            header_fill:    default "#F0EDE6"
+            name_size:      default 12
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 200, 400]))
+    name = str(obj.get("name", ""))
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.0)
+    fill = r.fill_value(style.get("fill", "#FFFFFF"), "#FFFFFF")
+    header_h = fnum(style.get("header_height"), 24)
+    header_fill = r.fill_value(style.get("header_fill", "#F0EDE6"), "#F0EDE6")
+    name_size = fnum(style.get("name_size"), 12)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+    # Body
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(bh)}" '
+        f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Header band
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(header_h)}" '
+        f'fill="{header_fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Name
+    out.append(
+        f'<text x="{fmt(bx + bw / 2)}" y="{fmt(by + header_h / 2 + name_size / 3)}" '
+        f'font-family="{font_family}" font-size="{fmt(name_size)}" '
+        f'font-weight="700" fill="{text_color}" text-anchor="middle">'
+        f"{esc(name)}</text>"
+    )
+    out.append("</g>")
+    return "\n".join(out)
+
+
 RENDERERS = {
     "uml.classifier_box": render_classifier_box,
     "uml.actor": render_actor,
@@ -836,4 +1071,7 @@ RENDERERS = {
     "uml.socket": render_socket,
     "uml.node_box": render_node_box,
     "uml.artifact_box": render_artifact_box,
+    "uml.activity_node": render_activity_node,
+    "uml.action": render_action,
+    "uml.swimlane": render_swimlane,
 }

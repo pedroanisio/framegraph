@@ -9,13 +9,17 @@ Currently provides:
     compose_use_case_diagram    — use-case-diagram composer (Phase B.2)
     compose_component_diagram   — component-diagram composer (Phase C.1)
     compose_deployment_diagram  — deployment-diagram composer (Phase C.2)
+    compose_activity_diagram    — activity-diagram composer (Phase C.3)
 
 Future composers (per the v2 architecture proposal):
-    activity_diagram, state_machine,
-    sequence_diagram (custom temporal layout), …
+    state_machine, sequence_diagram (custom temporal layout), …
 """
 
 from framegraph.uml._composer_base import ComposedDiagram, HierarchicalComposer
+from framegraph.uml.activity_diagram import (
+    ActivityDiagramOptions,
+    compose_activity_diagram,
+)
 from framegraph.uml.class_diagram import (
     ClassDiagramOptions,
     compose_class_diagram,
@@ -38,6 +42,7 @@ from framegraph.uml.use_case_diagram import (
 )
 
 __all__ = [
+    "ActivityDiagramOptions",
     "ClassDiagramOptions",
     "ComponentDiagramOptions",
     "ComposedDiagram",
@@ -45,6 +50,7 @@ __all__ = [
     "HierarchicalComposer",
     "PackageDiagramOptions",
     "UseCaseDiagramOptions",
+    "compose_activity_diagram",
     "compose_class_diagram",
     "compose_component_diagram",
     "compose_deployment_diagram",

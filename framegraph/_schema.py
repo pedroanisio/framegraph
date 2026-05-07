@@ -484,6 +484,52 @@ class UMLArtifactBoxObject(_ObjectBase):
     style: dict[str, Any] | None = None
 
 
+class UMLActivityNodeObject(_ObjectBase):
+    """UML activity node — initial / final / decision / fork / etc.
+
+    Phase C.3 of the UML support architecture. The activity-diagram
+    composer emits these for non-action nodes; actions use
+    `uml.action` (a rounded rectangle). The renderer dispatches
+    on `kind` to draw the appropriate glyph.
+    """
+
+    type: Literal["uml.activity_node"]
+    kind: Literal[
+        "initial",
+        "final",
+        "flow_final",
+        "decision",
+        "merge",
+        "fork",
+        "join",
+    ]
+    name: str | None = None
+    orientation: Literal["horizontal", "vertical"] | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLActionObject(_ObjectBase):
+    """UML Action — rounded rectangle with a name label.
+
+    Phase C.3 primitive.
+    """
+
+    type: Literal["uml.action"]
+    name: str
+    style: dict[str, Any] | None = None
+
+
+class UMLSwimlaneObject(_ObjectBase):
+    """UML swim-lane (ActivityPartition) — column with header band.
+
+    Phase C.3 primitive.
+    """
+
+    type: Literal["uml.swimlane"]
+    name: str
+    style: dict[str, Any] | None = None
+
+
 class _UnknownObject(_ObjectBase):
     """Fall-through for third-party `register(type_name, fn)` types.
 
@@ -521,7 +567,10 @@ KnownObject = Annotated[
     | UMLLollipopObject
     | UMLSocketObject
     | UMLNodeBoxObject
-    | UMLArtifactBoxObject,
+    | UMLArtifactBoxObject
+    | UMLActivityNodeObject
+    | UMLActionObject
+    | UMLSwimlaneObject,
     Field(discriminator="type"),
 ]
 

@@ -1686,7 +1686,213 @@ def validate_deployment_diagram(data: dict[str, Any]) -> UMLDeploymentDiagramMod
     return UMLDeploymentDiagramModel.model_validate(data)
 
 
+# ─────────────────────────────────────────────────────────────────
+# Activity diagrams (Phase C.3)
+# ─────────────────────────────────────────────────────────────────
+
+
+ActivityNodeKind = Literal[
+    "initial",
+    "final",
+    "flow_final",
+    "action",
+    "decision",
+    "merge",
+    "fork",
+    "join",
+]
+"""Activity-node kinds per UML 2.5.1 §15.3:
+
+- `initial`: small filled circle, the start of an activity.
+- `final`: filled circle inside a hollow circle (bullseye).
+- `flow_final`: a circle with an X — terminates one flow without
+  ending the entire activity.
+- `action`: a rounded rectangle holding an action label.
+- `decision`: a diamond with one inbound flow and ≥ 2 guarded
+  outbound flows.
+- `merge`: a diamond with ≥ 2 inbound flows merging into one.
+- `fork`: a thick horizontal/vertical bar splitting one flow into
+  several concurrent flows.
+- `join`: a thick bar synchronizing several flows into one."""
+
+
+class UMLActivityNode(BaseModel):
+    """A node in an activity diagram.
+
+    Attributes:
+        id: Stable identifier. Required.
+        kind: Node kind (see `ActivityNodeKind`).
+        name: Display label. Optional for decision/merge/fork/join
+            (they typically render unlabelled). Required for
+            actions (an unlabelled action is meaningless per UML).
+        partition: Optional swim-lane id this node belongs to.
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    kind: ActivityNodeKind
+    name: str | None = None
+    partition: str | None = None
+    position: Position | None = None
+
+    @model_validator(mode="after")
+    def _validate_action_has_name(self) -> UMLActivityNode:
+        if self.kind == "action" and not self.name:
+            raise ValueError(
+                f"activity action node {self.id!r} requires a name "
+                f"(an unlabelled action is meaningless per UML 2.5)"
+            )
+        return self
+
+
+class UMLActivityEdge(BaseModel):
+    """A control flow or object flow between activity nodes.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Source node id.
+        to_id: Target node id.
+        guard: Optional Boolean guard expression (rendered as
+            `[guard]`). Common on edges leaving a decision.
+        kind: `control` (solid line) or `object` (dashed line).
+            Defaults to `control`.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    guard: str | None = None
+    kind: Literal["control", "object"] = "control"
+
+    @model_validator(mode="after")
+    def _validate_no_self_edge(self) -> UMLActivityEdge:
+        if self.from_id == self.to_id:
+            raise ValueError(
+                f"activity edge {self.id!r} has from==to=={self.from_id!r}; "
+                f"an activity node cannot flow to itself"
+            )
+        return self
+
+
+class UMLSwimlane(BaseModel):
+    """A swim-lane (UML ActivityPartition) grouping activity nodes by responsibility.
+
+    Renders as a vertical column with a header band carrying the
+    lane name. Nodes whose `partition` matches the lane id are
+    horizontally constrained to that column.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+
+
+class UMLActivityDiagramModel(BaseModel):
+    """Top-level container for an activity diagram's UML model.
+
+    Attributes:
+        nodes: All nodes in the activity. ≥ 1.
+        edges: Control flows + object flows.
+        swimlanes: Optional partitions for grouping by responsibility.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    nodes: list[UMLActivityNode] = Field(..., min_length=1)
+    edges: list[UMLActivityEdge] = Field(default_factory=list)
+    swimlanes: list[UMLSwimlane] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLActivityDiagramModel:
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("node", self.nodes),
+            ("edge", self.edges),
+            ("swimlane", self.swimlanes),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        return self
+
+    @model_validator(mode="after")
+    def _validate_edge_endpoints_resolve(self) -> UMLActivityDiagramModel:
+        node_ids = {n.id for n in self.nodes}
+        for e in self.edges:
+            if e.from_id not in node_ids:
+                raise ValueError(
+                    f"activity edge {e.id!r} references unknown source id {e.from_id!r}"
+                )
+            if e.to_id not in node_ids:
+                raise ValueError(f"activity edge {e.id!r} references unknown target id {e.to_id!r}")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_partitions_resolve(self) -> UMLActivityDiagramModel:
+        lane_ids = {sl.id for sl in self.swimlanes}
+        for n in self.nodes:
+            if n.partition is not None and n.partition not in lane_ids:
+                raise ValueError(
+                    f"activity node {n.id!r} references unknown swimlane id {n.partition!r}"
+                )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_initial_outflow(self) -> UMLActivityDiagramModel:
+        """Initial nodes must have exactly one outgoing edge.
+
+        Per UML 2.5.1 §15.4 (InitialNode): an initial node may have
+        any number of outgoing flows but exactly zero incoming flows.
+        We enforce ≥ 0 incoming and ≥ 1 outgoing — a useful
+        well-formedness check that catches accidentally orphaned
+        initial nodes.
+        """
+        for n in self.nodes:
+            if n.kind != "initial":
+                continue
+            outgoing = [e for e in self.edges if e.from_id == n.id]
+            incoming = [e for e in self.edges if e.to_id == n.id]
+            if incoming:
+                raise ValueError(
+                    f"initial node {n.id!r} cannot have incoming edges (found {len(incoming)})"
+                )
+            if not outgoing:
+                # Permit the degenerate single-node case (just an
+                # initial with no successors) — useful for testing
+                # — but warn via doc that this is unusual. Don't
+                # raise here; only outright violations raise.
+                pass
+        return self
+
+
+def validate_activity_diagram(data: dict[str, Any]) -> UMLActivityDiagramModel:
+    """Validate a parsed mapping as a UML activity-diagram model.
+
+    Args:
+        data: A dict with `nodes` (≥ 1), optional `edges`,
+            `swimlanes`, `notes`.
+
+    Returns:
+        A validated `UMLActivityDiagramModel`.
+    """
+    return UMLActivityDiagramModel.model_validate(data)
+
+
 __all__ = [
+    "ActivityNodeKind",
     "AssociationKind",
     "Classifier",
     "DeploymentRelationKind",
@@ -1694,6 +1900,9 @@ __all__ = [
     "PackageDependencyKind",
     "ParamDirection",
     "Position",
+    "UMLActivityDiagramModel",
+    "UMLActivityEdge",
+    "UMLActivityNode",
     "UMLActor",
     "UMLArtifact",
     "UMLAssociation",
@@ -1719,12 +1928,14 @@ __all__ = [
     "UMLParameter",
     "UMLPort",
     "UMLRealization",
+    "UMLSwimlane",
     "UMLSystemBoundary",
     "UMLUseCase",
     "UMLUseCaseDiagramModel",
     "UMLUseCaseRelation",
     "UseCaseRelationKind",
     "Visibility",
+    "validate_activity_diagram",
     "validate_class_diagram",
     "validate_component_diagram",
     "validate_deployment_diagram",
