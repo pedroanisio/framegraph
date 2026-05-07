@@ -2324,12 +2324,700 @@ def validate_sequence_diagram(data: dict[str, Any]) -> UMLSequenceDiagramModel:
     return UMLSequenceDiagramModel.model_validate(data)
 
 
+# ─────────────────────────────────────────────────────────────────
+# Timing diagrams (Phase E.1)
+# ─────────────────────────────────────────────────────────────────
+
+
+class UMLTimingLifeline(BaseModel):
+    """A participant in a timing diagram.
+
+    Each timing lifeline declares the discrete states it can occupy
+    (in stack order, top → bottom). The composer renders a horizontal
+    lane per lifeline; vertical positions inside the lane correspond
+    to states.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+        states: Ordered list of state names this lifeline can be in
+            (top of the lane = first entry). ≥ 1.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    states: list[str] = Field(..., min_length=1)
+
+
+class UMLTimingChange(BaseModel):
+    """A state change of a timing lifeline at a specific time.
+
+    Attributes:
+        id: Stable identifier. Required.
+        lifeline: The id of the lifeline whose state changes.
+        state: The state the lifeline enters. Must be one of the
+            states declared on that lifeline.
+        at: Time coordinate (any non-negative float — the composer
+            normalizes the full range to the diagram width).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    lifeline: str = Field(..., min_length=1)
+    state: str = Field(..., min_length=1)
+    at: float = Field(..., ge=0)
+
+
+class UMLTimingDiagramModel(BaseModel):
+    """Top-level container for a timing-diagram UML model.
+
+    Attributes:
+        lifelines: Participants tracked over time. ≥ 1.
+        changes: State-change events on those lifelines.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    lifelines: list[UMLTimingLifeline] = Field(..., min_length=1)
+    changes: list[UMLTimingChange] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_lifeline_ids(self) -> UMLTimingDiagramModel:
+        seen = set()
+        for ll in self.lifelines:
+            if ll.id in seen:
+                raise ValueError(f"duplicate timing lifeline id {ll.id!r}")
+            seen.add(ll.id)
+        change_ids = set()
+        for c in self.changes:
+            if c.id in change_ids:
+                raise ValueError(f"duplicate timing change id {c.id!r}")
+            change_ids.add(c.id)
+        return self
+
+    @model_validator(mode="after")
+    def _validate_change_lifelines_resolve(self) -> UMLTimingDiagramModel:
+        ll_by_id = {ll.id: ll for ll in self.lifelines}
+        for c in self.changes:
+            if c.lifeline not in ll_by_id:
+                raise ValueError(
+                    f"timing change {c.id!r} references unknown lifeline id {c.lifeline!r}"
+                )
+            if c.state not in ll_by_id[c.lifeline].states:
+                raise ValueError(
+                    f"timing change {c.id!r} references unknown state "
+                    f"{c.state!r} on lifeline {c.lifeline!r}; declared "
+                    f"states are {ll_by_id[c.lifeline].states}"
+                )
+        return self
+
+
+def validate_timing_diagram(data: dict[str, Any]) -> UMLTimingDiagramModel:
+    """Validate a parsed mapping as a UML timing-diagram model.
+
+    Args:
+        data: A dict with `lifelines` (≥ 1), optional `changes`,
+            `notes`.
+
+    Returns:
+        A validated `UMLTimingDiagramModel`.
+    """
+    return UMLTimingDiagramModel.model_validate(data)
+
+
+# ─────────────────────────────────────────────────────────────────
+# Communication diagrams (Phase E.2)
+# ─────────────────────────────────────────────────────────────────
+
+
+class UMLCommLifeline(BaseModel):
+    """A participant in a communication diagram.
+
+    Renders as a labelled rectangle (similar to a sequence-diagram
+    lifeline head) at a free-form position. Communication diagrams
+    show *who* talks to *whom* with numbered links — they don't
+    require a strict time axis.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+        type_name: Optional class/type label rendered as `name:Type`.
+        position: Optional layout hint. When omitted the composer
+            arranges lifelines on a circle.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    type_name: str | None = None
+    position: Position | None = None
+
+
+class UMLCommMessage(BaseModel):
+    """A numbered message between two communication-diagram lifelines.
+
+    Per UML 2.5.1 §17.4, communication-diagram messages carry a
+    sequence number (e.g. `1`, `1.1`, `2.3.1`) reflecting the
+    nested call sequence. The composer renders the number along with
+    the message label near the link's midpoint.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Source lifeline id.
+        to_id: Target lifeline id.
+        sequence: UML sequence number string (e.g. `"1.1"`). Required.
+        name: Optional message label.
+        kind: `sync` (default) or `async` — selects the arrowhead.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    sequence: str = Field(..., min_length=1)
+    name: str | None = None
+    kind: Literal["sync", "async"] = "sync"
+
+
+class UMLCommunicationDiagramModel(BaseModel):
+    """Top-level container for a communication-diagram UML model.
+
+    Attributes:
+        lifelines: Participants. ≥ 1.
+        messages: Numbered links between lifelines.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    lifelines: list[UMLCommLifeline] = Field(..., min_length=1)
+    messages: list[UMLCommMessage] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLCommunicationDiagramModel:
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("lifeline", self.lifelines),
+            ("message", self.messages),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        return self
+
+    @model_validator(mode="after")
+    def _validate_message_endpoints(self) -> UMLCommunicationDiagramModel:
+        ll_ids = {ll.id for ll in self.lifelines}
+        for m in self.messages:
+            if m.from_id not in ll_ids:
+                raise ValueError(
+                    f"comm message {m.id!r} references unknown source lifeline id {m.from_id!r}"
+                )
+            if m.to_id not in ll_ids:
+                raise ValueError(
+                    f"comm message {m.id!r} references unknown target lifeline id {m.to_id!r}"
+                )
+        return self
+
+
+def validate_communication_diagram(
+    data: dict[str, Any],
+) -> UMLCommunicationDiagramModel:
+    """Validate a parsed mapping as a UML communication-diagram model."""
+    return UMLCommunicationDiagramModel.model_validate(data)
+
+
+# ─────────────────────────────────────────────────────────────────
+# Interaction-overview diagrams (Phase E.3)
+# ─────────────────────────────────────────────────────────────────
+
+
+InteractionOverviewNodeKind = Literal[
+    "initial",
+    "final",
+    "decision",
+    "merge",
+    "fork",
+    "join",
+    "interaction_use",
+    "sd_inline",
+]
+"""Per UML 2.5.1 §17.6.7, an interaction-overview diagram is an
+activity-flow whose action nodes are *interaction uses* or *inline
+sequence diagrams*. We support the same control-flow nodes as
+activity diagrams plus two interaction-aware kinds:
+
+- `interaction_use`: a `ref` frame referring to a named interaction
+  (rendered as a labelled rectangle with `ref` in the operator tag).
+- `sd_inline`: an inline sequence-diagram fragment (rendered as an
+  `sd` frame; the composer leaves the body empty).
+"""
+
+
+class UMLInteractionOverviewNode(BaseModel):
+    """A node in an interaction-overview diagram.
+
+    Attributes:
+        id: Stable identifier. Required.
+        kind: Node kind.
+        name: Required for `interaction_use` and `sd_inline`; otherwise
+            optional.
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    kind: InteractionOverviewNodeKind
+    name: str | None = None
+    position: Position | None = None
+
+    @model_validator(mode="after")
+    def _validate_interaction_node_has_name(self) -> UMLInteractionOverviewNode:
+        if self.kind in ("interaction_use", "sd_inline") and not self.name:
+            raise ValueError(
+                f"interaction-overview node {self.id!r} of kind {self.kind!r} requires a name"
+            )
+        return self
+
+
+class UMLInteractionOverviewEdge(BaseModel):
+    """A control-flow edge between two interaction-overview nodes.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Source node id.
+        to_id: Target node id.
+        guard: Optional Boolean guard (rendered as `[guard]`).
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    guard: str | None = None
+
+    @model_validator(mode="after")
+    def _validate_no_self_edge(self) -> UMLInteractionOverviewEdge:
+        if self.from_id == self.to_id:
+            raise ValueError(f"interaction-overview edge {self.id!r} has from==to")
+        return self
+
+
+class UMLInteractionOverviewModel(BaseModel):
+    """Top-level container for an interaction-overview UML model.
+
+    Attributes:
+        nodes: Activity-style nodes (initial, decision, fork, etc.)
+            and interaction-use frames.
+        edges: Control flows between nodes.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    nodes: list[UMLInteractionOverviewNode] = Field(..., min_length=1)
+    edges: list[UMLInteractionOverviewEdge] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLInteractionOverviewModel:
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("node", self.nodes),
+            ("edge", self.edges),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        return self
+
+    @model_validator(mode="after")
+    def _validate_edge_endpoints(self) -> UMLInteractionOverviewModel:
+        node_ids = {n.id for n in self.nodes}
+        for e in self.edges:
+            if e.from_id not in node_ids:
+                raise ValueError(
+                    f"interaction-overview edge {e.id!r} references unknown source id {e.from_id!r}"
+                )
+            if e.to_id not in node_ids:
+                raise ValueError(
+                    f"interaction-overview edge {e.id!r} references unknown target id {e.to_id!r}"
+                )
+        return self
+
+
+def validate_interaction_overview(
+    data: dict[str, Any],
+) -> UMLInteractionOverviewModel:
+    """Validate a parsed mapping as a UML interaction-overview model."""
+    return UMLInteractionOverviewModel.model_validate(data)
+
+
+# ─────────────────────────────────────────────────────────────────
+# Profile diagrams (Phase E.4)
+# ─────────────────────────────────────────────────────────────────
+
+
+class UMLStereotype(BaseModel):
+    """A UML stereotype (the core element of a profile).
+
+    Per UML 2.5.1 §12.3.3, a stereotype extends a metaclass with
+    additional properties. Renders as a class-style box with the
+    `«stereotype»` keyword above the name.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+        properties: Optional list of property names.
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    properties: list[str] = Field(default_factory=list)
+    position: Position | None = None
+
+
+class UMLMetaclassRef(BaseModel):
+    """A reference to a UML metaclass (e.g., `Class`, `Property`).
+
+    Renders as a class-style box with the `«metaclass»` keyword.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Metaclass name (e.g., `Class`, `Property`, `Operation`).
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    position: Position | None = None
+
+
+class UMLProfileExtension(BaseModel):
+    """An Extension between a stereotype and a metaclass.
+
+    Per UML 2.5.1 §12.3.4 (Extension), a stereotype extends a
+    metaclass via an Extension association. Renders as a connector
+    with a filled-triangle arrow at the metaclass end.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Stereotype id (the extending end).
+        to_id: Metaclass id (the extended end).
+        required: When True, the extension is required.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    required: bool = False
+
+
+class UMLProfileDiagramModel(BaseModel):
+    """Top-level container for a UML profile-diagram model.
+
+    Attributes:
+        stereotypes: Stereotype boxes.
+        metaclasses: Metaclass reference boxes.
+        extensions: Extension connectors.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    stereotypes: list[UMLStereotype] = Field(default_factory=list)
+    metaclasses: list[UMLMetaclassRef] = Field(default_factory=list)
+    extensions: list[UMLProfileExtension] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _at_least_one_classifier(self) -> UMLProfileDiagramModel:
+        if not self.stereotypes and not self.metaclasses:
+            raise ValueError("profile diagram must declare at least one stereotype or metaclass")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLProfileDiagramModel:
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("stereotype", self.stereotypes),
+            ("metaclass", self.metaclasses),
+            ("extension", self.extensions),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        return self
+
+    @model_validator(mode="after")
+    def _validate_extension_endpoints(self) -> UMLProfileDiagramModel:
+        st_ids = {s.id for s in self.stereotypes}
+        mc_ids = {m.id for m in self.metaclasses}
+        for ext in self.extensions:
+            if ext.from_id not in st_ids:
+                raise ValueError(
+                    f"profile extension {ext.id!r} 'from' must be a "
+                    f"declared stereotype id; got {ext.from_id!r}"
+                )
+            if ext.to_id not in mc_ids:
+                raise ValueError(
+                    f"profile extension {ext.id!r} 'to' must be a "
+                    f"declared metaclass id; got {ext.to_id!r}"
+                )
+        return self
+
+
+def validate_profile_diagram(data: dict[str, Any]) -> UMLProfileDiagramModel:
+    """Validate a parsed mapping as a UML profile-diagram model."""
+    return UMLProfileDiagramModel.model_validate(data)
+
+
+# ─────────────────────────────────────────────────────────────────
+# Composite-structure diagrams (Phase E.5)
+# ─────────────────────────────────────────────────────────────────
+
+
+class UMLPart(BaseModel):
+    """A part inside a composite-structure classifier.
+
+    Per UML 2.5.1 §11.7, a part is a property typed by a classifier
+    that lives inside another classifier's internal structure.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+        type_name: Optional type label (`name:Type`).
+        ports: Optional list of port ids on this part's boundary.
+        position: Optional layout hint (relative to enclosing
+            classifier when `manual` layout is selected).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    type_name: str | None = None
+    ports: list[str] = Field(default_factory=list)
+    position: Position | None = None
+
+
+class UMLCompositeStructureModel(BaseModel):
+    """Top-level container for a UML composite-structure diagram.
+
+    A composite-structure diagram shows the *internal structure* of
+    a single classifier — its parts, ports on the classifier
+    boundary, and the connectors that wire them together.
+
+    Attributes:
+        classifier_id: Id of the enclosing classifier (used for the
+            outer-frame label).
+        classifier_name: Display name for the outer frame.
+        parts: Internal parts. ≥ 1.
+        ports: Ports on the OUTER classifier boundary.
+        connectors: Wires between parts/ports.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    classifier_id: str = Field(..., min_length=1)
+    classifier_name: str = Field(..., min_length=1)
+    parts: list[UMLPart] = Field(..., min_length=1)
+    ports: list[UMLPort] = Field(default_factory=list)
+    connectors: list[UMLConnector] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLCompositeStructureModel:
+        seen: dict[str, str] = {self.classifier_id: "classifier"}
+        for kind, items in (
+            ("part", self.parts),
+            ("port", self.ports),
+            ("connector", self.connectors),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        # Part-internal port ids share the same global namespace.
+        for p in self.parts:
+            for port_id in p.ports:
+                if port_id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {port_id!r}: declared as "
+                        f"{seen[port_id]!r} and again as a port on part "
+                        f"{p.id!r}"
+                    )
+                seen[port_id] = "port"
+        return self
+
+    @model_validator(mode="after")
+    def _validate_connector_endpoints(self) -> UMLCompositeStructureModel:
+        valid: set[str] = {self.classifier_id}
+        valid.update(p.id for p in self.parts)
+        valid.update(p.id for p in self.ports)
+        for part in self.parts:
+            valid.update(part.ports)
+        for c in self.connectors:
+            if c.from_id not in valid:
+                raise ValueError(f"connector {c.id!r} references unknown source id {c.from_id!r}")
+            if c.to_id not in valid:
+                raise ValueError(f"connector {c.id!r} references unknown target id {c.to_id!r}")
+        return self
+
+
+def validate_composite_structure(
+    data: dict[str, Any],
+) -> UMLCompositeStructureModel:
+    """Validate a parsed mapping as a UML composite-structure model."""
+    return UMLCompositeStructureModel.model_validate(data)
+
+
+# ─────────────────────────────────────────────────────────────────
+# Object diagrams (Phase E.6)
+# ─────────────────────────────────────────────────────────────────
+
+
+class UMLSlot(BaseModel):
+    """A slot — name/value pair on an instance specification.
+
+    Attributes:
+        name: Slot name.
+        value: Slot value (rendered as a string).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    name: str = Field(..., min_length=1)
+    value: str = ""
+
+
+class UMLInstance(BaseModel):
+    """A UML InstanceSpecification.
+
+    Per UML 2.5.1 §9.8, an instance specification represents a
+    runtime instance of a classifier. Renders as a class-style box
+    with an underlined header `name:Type` and a body compartment
+    listing slot values.
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Instance name. Optional (anonymous instances render
+            as just `:Type`).
+        type_name: Class name. Required.
+        slots: Slot values.
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    name: str | None = None
+    type_name: str = Field(..., min_length=1)
+    slots: list[UMLSlot] = Field(default_factory=list)
+    position: Position | None = None
+
+
+class UMLLink(BaseModel):
+    """A link — instance of an Association — between two UML instances.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Source instance id.
+        to_id: Target instance id.
+        name: Optional link label (the association name).
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    name: str | None = None
+
+
+class UMLObjectDiagramModel(BaseModel):
+    """Top-level container for a UML object-diagram model.
+
+    Attributes:
+        instances: Instance specifications. ≥ 1.
+        links: Links between instances.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    instances: list[UMLInstance] = Field(..., min_length=1)
+    links: list[UMLLink] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLObjectDiagramModel:
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("instance", self.instances),
+            ("link", self.links),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        return self
+
+    @model_validator(mode="after")
+    def _validate_link_endpoints(self) -> UMLObjectDiagramModel:
+        instance_ids = {i.id for i in self.instances}
+        for ln in self.links:
+            if ln.from_id not in instance_ids:
+                raise ValueError(
+                    f"link {ln.id!r} references unknown source instance id {ln.from_id!r}"
+                )
+            if ln.to_id not in instance_ids:
+                raise ValueError(
+                    f"link {ln.id!r} references unknown target instance id {ln.to_id!r}"
+                )
+        return self
+
+
+def validate_object_diagram(data: dict[str, Any]) -> UMLObjectDiagramModel:
+    """Validate a parsed mapping as a UML object-diagram model."""
+    return UMLObjectDiagramModel.model_validate(data)
+
+
 __all__ = [
     "ActivityNodeKind",
     "AssociationKind",
     "Classifier",
     "CombinedFragmentKind",
     "DeploymentRelationKind",
+    "InteractionOverviewNodeKind",
     "MessageKind",
     "NodeKind",
     "PackageDependencyKind",
@@ -2347,8 +3035,12 @@ __all__ = [
     "UMLClass",
     "UMLClassDiagramModel",
     "UMLCombinedFragment",
+    "UMLCommLifeline",
+    "UMLCommMessage",
+    "UMLCommunicationDiagramModel",
     "UMLComponent",
     "UMLComponentDiagramModel",
+    "UMLCompositeStructureModel",
     "UMLConnector",
     "UMLDependency",
     "UMLDeploymentDiagramModel",
@@ -2356,23 +3048,38 @@ __all__ = [
     "UMLDeploymentRelation",
     "UMLEnumeration",
     "UMLGeneralization",
+    "UMLInstance",
+    "UMLInteractionOverviewEdge",
+    "UMLInteractionOverviewModel",
+    "UMLInteractionOverviewNode",
     "UMLInterface",
     "UMLLifeline",
+    "UMLLink",
     "UMLMessage",
+    "UMLMetaclassRef",
     "UMLNote",
+    "UMLObjectDiagramModel",
     "UMLOperation",
     "UMLPackage",
     "UMLPackageDependency",
     "UMLPackageDiagramModel",
     "UMLParameter",
+    "UMLPart",
     "UMLPort",
+    "UMLProfileDiagramModel",
+    "UMLProfileExtension",
     "UMLPseudostate",
     "UMLRealization",
     "UMLSequenceDiagramModel",
+    "UMLSlot",
     "UMLState",
     "UMLStateMachineModel",
+    "UMLStereotype",
     "UMLSwimlane",
     "UMLSystemBoundary",
+    "UMLTimingChange",
+    "UMLTimingDiagramModel",
+    "UMLTimingLifeline",
     "UMLTransition",
     "UMLUseCase",
     "UMLUseCaseDiagramModel",
@@ -2381,10 +3088,16 @@ __all__ = [
     "Visibility",
     "validate_activity_diagram",
     "validate_class_diagram",
+    "validate_communication_diagram",
     "validate_component_diagram",
+    "validate_composite_structure",
     "validate_deployment_diagram",
+    "validate_interaction_overview",
+    "validate_object_diagram",
     "validate_package_diagram",
+    "validate_profile_diagram",
     "validate_sequence_diagram",
     "validate_state_machine",
+    "validate_timing_diagram",
     "validate_use_case_diagram",
 ]

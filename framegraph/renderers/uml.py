@@ -1515,6 +1515,95 @@ def render_fragment_frame(r: RendererContext, obj: Mapping[str, Any]) -> str:
     return "\n".join(out)
 
 
+def render_timing_lane(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a timing-diagram lane — labelled rectangle with state ticks.
+
+    A timing lane stacks the declared states vertically with a thin
+    label band on the left listing the state names. The composer
+    overlays the state-change step lines on top of this lane.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.timing_lane
+        box:     [x, y, w, h]
+        name:    <lifeline name>
+        states:  list of state names (top → bottom)
+
+    Optional:
+        label_width:  width reserved for the state-name label column
+                      (default 70)
+        style:
+            stroke_color:   default "#1A1A1A"
+            stroke_width:   default 1.0
+            fill:           default "#FFFFFF"
+            label_fill:     default "#F0EDE6"
+            name_size:      default 12
+            state_size:     default 10
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 600, 100]))
+    name = str(obj.get("name", ""))
+    states = list(obj.get("states") or [])
+    label_w = fnum(obj.get("label_width"), 70)
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.0)
+    fill = r.fill_value(style.get("fill", "#FFFFFF"), "#FFFFFF")
+    label_fill = r.fill_value(style.get("label_fill", "#F0EDE6"), "#F0EDE6")
+    name_size = fnum(style.get("name_size"), 12)
+    state_size = fnum(style.get("state_size"), 10)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+    # Lane body
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(bh)}" '
+        f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Label column
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(label_w)}" height="{fmt(bh)}" '
+        f'fill="{label_fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+    # Lifeline name (rotated 90° in the label band's top portion)
+    out.append(
+        f'<text x="{fmt(bx + label_w / 2)}" y="{fmt(by + name_size + 4)}" '
+        f'font-family="{font_family}" font-size="{fmt(name_size)}" '
+        f'font-weight="700" fill="{text_color}" text-anchor="middle">'
+        f"{esc(name)}</text>"
+    )
+    # State labels (stacked vertically)
+    if states:
+        n = len(states)
+        # Reserve top of lane for the lifeline name; states stack
+        # below.
+        states_top = by + name_size + 12
+        states_h = bh - (states_top - by) - 8
+        slot_h = states_h / n
+        for i, s in enumerate(states):
+            y_center = states_top + i * slot_h + slot_h / 2
+            # State label inside the column
+            out.append(
+                f'<text x="{fmt(bx + label_w - 6)}" y="{fmt(y_center + state_size / 3)}" '
+                f'font-family="{font_family}" font-size="{fmt(state_size)}" '
+                f'fill="{text_color}" text-anchor="end">{esc(s)}</text>'
+            )
+            # Light horizontal grid line spanning the lane body
+            grid_y = states_top + (i + 1) * slot_h
+            if i < n - 1:
+                out.append(
+                    f'<line x1="{fmt(bx + label_w)}" y1="{fmt(grid_y)}" '
+                    f'x2="{fmt(bx + bw)}" y2="{fmt(grid_y)}" '
+                    f'stroke="#CCCCCC" stroke-width="0.5" '
+                    f'stroke-dasharray="2,3"/>'
+                )
+
+    out.append("</g>")
+    return "\n".join(out)
+
+
 RENDERERS = {
     "uml.classifier_box": render_classifier_box,
     "uml.actor": render_actor,
@@ -1531,4 +1620,5 @@ RENDERERS = {
     "uml.lifeline": render_lifeline,
     "uml.activation_bar": render_activation_bar,
     "uml.fragment_frame": render_fragment_frame,
+    "uml.timing_lane": render_timing_lane,
 }

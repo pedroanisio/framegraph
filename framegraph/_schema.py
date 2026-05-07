@@ -618,9 +618,27 @@ class UMLFragmentFrameObject(_ObjectBase):
         "ignore",
         "consider",
         "assert",
+        # Interaction-overview-only operators (Phase E.3): `ref` for
+        # an interaction use, `sd` for an inline sequence fragment.
+        "ref",
+        "sd",
     ]
     operands: list[str] | None = None
     dividers: list[float] | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLTimingLaneObject(_ObjectBase):
+    """UML timing-diagram lane — labelled rectangle with state ticks.
+
+    Phase E.1 primitive. The composer overlays state-change step lines
+    on top of this lane in a separate layer.
+    """
+
+    type: Literal["uml.timing_lane"]
+    name: str
+    states: list[str]
+    label_width: float | None = None
     style: dict[str, Any] | None = None
 
 
@@ -669,7 +687,8 @@ KnownObject = Annotated[
     | UMLPseudostateObject
     | UMLLifelineObject
     | UMLActivationBarObject
-    | UMLFragmentFrameObject,
+    | UMLFragmentFrameObject
+    | UMLTimingLaneObject,
     Field(discriminator="type"),
 ]
 
