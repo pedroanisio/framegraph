@@ -3,6 +3,22 @@
   Version:  2.0.0-dev
   Updated:  2026-05-07
 
+  Recent edits (grammar-cleanup pass)
+  -----------------------------------
+  - Deleted vestigial `HexColor` reference; COLOR already covers
+    hex literals.
+  - Documented when to use Symbols vs Components.
+  - Marked image-placeholder legacy paths and chart-label aliases
+    (`src`, `href: "placeholder"`, `x_labels`/`labels`) as
+    DEPRECATED in their EBNF comments.
+  - Annotated `coordinate_mode: "absolute"` as RESERVED.
+  - Annotated `Layer.z` as INTER-layer painter order; added prose
+    that intra-layer order is list position.
+  - Added the token-substitution invariant to the primitive table.
+  - Noted that node/edge property schemas are renderer-defined
+    and reserved a v3.0 path for declarable schemas.
+  - Documented the compass/screen `side` aliases as deliberate.
+
   Notation
   --------
   A = B           definition
@@ -24,6 +40,16 @@
   ID              STRING — unique identifier within document
   TYPE_NAME       STRING — object type discriminator
   PATH            STRING — file-system path or URL
+
+  Token-substitution invariant
+  ----------------------------
+  Anywhere a COLOR is accepted, a token id from
+  `visual.tokens.colors` is also accepted; the renderer resolves
+  the id through the active token table and falls back to the
+  literal string when no token matches. The same substitution rule
+  holds for `text_style`, `stroke_style`, and `fill_style`
+  references — these always accept either an inline mapping or an
+  id resolved through the corresponding token table.
 *)
 
 (* ─────────────────────────────────────────────────────────────
@@ -66,7 +92,7 @@ Canvas =
 
 RenderingContract =
     "rendering_contract" ":"
-      [ "coordinate_mode"              ":" "absolute" ]
+      [ "coordinate_mode"              ":" "absolute" ]   (* RESERVED — only "absolute" is implemented; other modes (e.g. "relative", "polar") are reserved for a future MAJOR version. Authors should set this to "absolute" or omit it. *)
       [ "text"                         ":" TextContract ]
       [ "semantics"                    ":" SemanticsContract ]
       [ "debug_boxes"                  ":" BOOL ]   (* v1.4 authoring aid *)
@@ -117,11 +143,23 @@ NodeList =
     "nodes" ":" { NodeEntry }
     ;
 
+(*
+  Node/edge property schemas are NOT enforced at the grammar layer.
+  The trailing `{ STRING ":" YAML_VALUE }` accepts arbitrary
+  user-defined keys; their type and meaning are defined by the
+  consuming renderer or downstream tool, not by this grammar.
+
+  Reservation: a future MAJOR version may extend `node_types[T]`
+  and `edge_types[T]` with a `properties: { name: TypeRef }` map
+  to declare per-type property schemas the grammar can check.
+  Until then, treat the property bag as opaque and validate it
+  in your own pipeline.
+*)
 NodeEntry =
     "id"    ":" ID
     "type"  ":" ID
   [ "label" ":" STRING ]
-  { STRING ":" YAML_VALUE }  (* arbitrary semantic properties *)
+  { STRING ":" YAML_VALUE }  (* arbitrary semantic properties — schema is renderer/consumer-defined *)
     ;
 
 EdgeList =
@@ -134,7 +172,7 @@ EdgeEntry =
     "from"  ":" ID
     "to"    ":" ID
   [ "label" ":" STRING ]
-  { STRING ":" YAML_VALUE }
+  { STRING ":" YAML_VALUE }  (* arbitrary semantic properties — schema is renderer/consumer-defined *)
     ;
 
 
@@ -162,7 +200,7 @@ Tokens =
       [ "glyph_map"    ":" { GlyphEntry } ]
     ;
 
-ColorToken  = ID ":" ( COLOR | HexColor )  ;
+ColorToken  = ID ":" COLOR                 ;  (* COLOR already covers hex literals *)
 FontToken   = ID ":" STRING                ;  (* font-family string *)
 GlyphEntry  = ID ":" STRING                ;  (* maps alias → Unicode char / codepoint *)
 
@@ -221,6 +259,36 @@ GradientStop =
 
 (* ── Symbols ─────────────────────────────────────────────────── *)
 
+(*
+  Symbols vs Components — when to use which
+  -----------------------------------------
+  FrameGraph offers two reuse mechanisms. The grammar enforces a
+  structural distinction; this comment names it so authors don't use
+  them interchangeably.
+
+  Use a SYMBOL when:
+    - the reusable unit is a free-form arrangement of FrameGraph
+      objects (rect + text + line + nested use, in any combination),
+    - per-instance content lives in named text/value slots,
+    - per-instance connection points are exposed as named ports,
+    - styling lives inside the symbol's child objects (not on the
+      symbol itself).
+    Symbols are SVG <use>-style stamps. Authoring substrate.
+
+  Use a COMPONENT when:
+    - the reusable unit is a styled product widget (a card, a chip,
+      a labelled box) with one well-defined geometry,
+    - its visual identity (`fill`, `stroke`, `radius`, `text_style`)
+      should swap as a unit via THEME `variants`,
+    - layout of slot content is positional and uniform across the
+      `internal_layout` map, not free-form.
+    Components are React-style typed templates. Design-system surface.
+
+  Rule of thumb: if your reusable thing has more than one rect/text
+  pair or any nested `use`, it is a Symbol. If it is one shape with
+  variant-styling and slot-positioned text, it is a Component.
+*)
+
 Symbols =
     "symbols" ":"
         { ID ":" SymbolDef }
@@ -272,11 +340,18 @@ Layers =
 
 Layer =
     "id"       ":" ID
-  [ "z"        ":" NUMBER ]          (* z-order; higher = front *)
+  [ "z"        ":" NUMBER ]          (* INTER-layer painter order; ascending = back-to-front. Layers without `z` sort as 0. *)
   [ "opacity"  ":" NUMBER ]          (* 0.0–1.0 *)
     "objects"  ":" ObjectList
     ;
 
+(*
+  ObjectList — INTRA-layer painter order is list position
+  (objects are drawn in the order they appear in YAML).
+  CommonFields has no `z`. To control front/back inside a single
+  layer, reorder the list; to lift an object above a layer, move
+  it into a higher-`z` layer.
+*)
 ObjectList = { Object } ;
 
 
@@ -457,12 +532,21 @@ PathObject =
 
 (* ── Image object ────────────────────────────────────────────── *)
 
+(*
+  Placeholder image: `placeholder: true` is the canonical form.
+  The legacy paths (`href: "placeholder"` and an absent/empty `href`)
+  remain accepted by the renderer for back-compat with v1.4 fixtures
+  but are DEPRECATED and may be removed in a future MAJOR version.
+
+  Asset path: `href` is canonical. `src` is a DEPRECATED alias kept
+  for back-compat with very early authoring tools.
+*)
 ImageObject =
     "type"   ":" "image"
     "box"    ":" Box
-  [ "href"   ":" ( PATH | "placeholder" ) ]  (* v1.4: local path → base64; omit or "placeholder" for placeholder box *)
-  [ "src"    ":" PATH ]                       (* alias for href *)
-  [ "placeholder" ":" BOOL ]                 (* v1.4: explicit placeholder flag *)
+  [ "href"   ":" ( PATH | "placeholder" ) ]  (* v1.4: local path → base64; "placeholder" form is DEPRECATED — prefer `placeholder: true` *)
+  [ "src"    ":" PATH ]                       (* DEPRECATED alias for href *)
+  [ "placeholder" ":" BOOL ]                 (* canonical placeholder flag *)
   [ "label"       ":" STRING ]               (* caption shown on placeholder *)
   [ "fill"        ":" COLOR ]                (* placeholder background color *)
   [ "radius"      ":" NUMBER ]               (* placeholder corner radius *)
@@ -516,6 +600,10 @@ Endpoint =
     [ "port"   ":" ID ]
     [ "side"   ":" ( "north" | "south" | "east" | "west"
                    | "top"   | "bottom"| "left" | "right" | "center" ) ]
+                   (* compass and screen aliases are equivalent and
+                      both supported deliberately: north=top,
+                      south=bottom, east=right, west=left. Pick the
+                      vocabulary that reads better in context. *)
     [ "offset" ":" NUMBER ]
     "}"
     ;
@@ -627,10 +715,10 @@ BarChartObject =
 
 BarChartData =
     ( "values" ":" "[" { NUMBER } "]"
-      "labels" ":" "[" { STRING } "]" )      (* single series *)
+      "labels" ":" "[" { STRING } "]" )      (* single series; `labels` is canonical *)
   | ( "series" ":" { ChartSeries } )         (* multi series *)
   [ "labels"  ":" "[" { STRING } "]" ]
-  [ "x_labels"":" "[" { STRING } "]" ]       (* alias for labels *)
+  [ "x_labels"":" "[" { STRING } "]" ]       (* DEPRECATED alias for labels *)
   [ "note"    ":" STRING ]                   (* caption below chart *)
     ;
 
@@ -669,8 +757,8 @@ LineChartObject =
 
 LineChartData =
     "series"   ":" { ChartSeries }
-  [ "x_labels" ":" "[" { STRING } "]" ]
-  [ "labels"   ":" "[" { STRING } "]" ]    (* alias for x_labels *)
+  [ "x_labels" ":" "[" { STRING } "]" ]    (* canonical — line charts have only an x axis to label *)
+  [ "labels"   ":" "[" { STRING } "]" ]    (* DEPRECATED alias for x_labels *)
   [ "note"     ":" STRING ]
     ;
 
