@@ -175,25 +175,114 @@ def _layout_stack(
     return resolved
 
 
+def _layout_grid(
+    r: RendererContext,
+    container_box: Box,
+    children_raw: list[Mapping[str, Any]],
+    layout: Mapping[str, Any],
+) -> list[Mapping[str, Any]]:
+    """Compute absolute boxes for children of a grid container.
+
+    Children are placed left-to-right, top-to-bottom into a fixed-column
+    grid. Cell width is uniform; cell height is uniform per row and
+    derives from `row_height` (when set) or from the first child in
+    each row that declares a `box` height.
+
+    Args:
+        r: Active renderer context.
+        container_box: The container's `(x, y, w, h)` bounding box.
+        children_raw: The list of child object mappings.
+        layout: The container's `layout:` mapping. Reads `columns`,
+            `gap` (or `row_gap`/`col_gap` for axis-specific gaps),
+            `padding`, `row_height`. `columns` defaults to 1.
+
+    Returns:
+        Shallow-copy children with resolved `box` fields and
+        registered entries in `r.object_index` for connector
+        resolution.
+    """
+    cx, cy, cw, ch = container_box
+    columns = max(1, int(fnum(layout.get("columns"), 1)))
+
+    # Gaps — `gap: N` or `gap: [hgap, vgap]` or explicit row_gap/col_gap
+    gap_raw = layout.get("gap", 0)
+    if isinstance(gap_raw, (list, tuple)) and len(gap_raw) == 2:
+        col_gap = fnum(gap_raw[0])
+        row_gap = fnum(gap_raw[1])
+    else:
+        col_gap = row_gap = fnum(gap_raw)
+    col_gap = fnum(layout.get("col_gap", col_gap))
+    row_gap = fnum(layout.get("row_gap", row_gap))
+
+    # Padding — scalar or [horizontal, vertical]
+    pad_raw = layout.get("padding", 0)
+    if isinstance(pad_raw, (list, tuple)) and len(pad_raw) == 2:
+        pad_h, pad_v = fnum(pad_raw[0]), fnum(pad_raw[1])
+    else:
+        pad_h = pad_v = fnum(pad_raw)
+
+    content_x = cx + pad_h
+    content_y = cy + pad_v
+    content_w = cw - 2 * pad_h
+    content_h = ch - 2 * pad_v
+
+    n = len(children_raw)
+    if n == 0:
+        return []
+
+    # Cell width = (content_w - (cols-1)*col_gap) / cols
+    cell_w = max(0.0, (content_w - (columns - 1) * col_gap) / columns)
+
+    # Determine row count and per-row height
+    rows = (n + columns - 1) // columns
+    row_height_explicit = layout.get("row_height")
+    if row_height_explicit is not None:
+        row_h = fnum(row_height_explicit)
+    else:
+        # Distribute remaining height equally; subtract row gaps
+        row_h = max(0.0, (content_h - max(0, rows - 1) * row_gap) / max(1, rows))
+
+    resolved: list[Mapping[str, Any]] = []
+    for idx, child in enumerate(children_raw):
+        col = idx % columns
+        row = idx // columns
+        x = content_x + col * (cell_w + col_gap)
+        y = content_y + row * (row_h + row_gap)
+        child_copy = dict(child)
+        child_copy["box"] = [x, y, cell_w, row_h]
+        # Register resolved box in object_index so connectors can target
+        # grid children by id.
+        if child_copy.get("id"):
+            cid = str(child_copy["id"])
+            cb = r.object_box(child_copy)
+            cpts = r.object_ports(child_copy, cb)
+            r.object_index[cid] = {"box": cb, "ports": cpts, "raw": child_copy}
+        resolved.append(child_copy)
+
+    return resolved
+
+
 def render_container(r: RendererContext, obj: Mapping[str, Any]) -> str:
     """Render an auto-layout container.
 
-    Currently supports `kind: stack` (vertical or horizontal). The
-    `grid` and `row` kinds are reserved for v2.0 — the schema is
-    forward-compatible.
+    Supports `kind: stack` (horizontal or vertical) and `kind: grid`
+    (column-major auto-placement). The `row` kind remains reserved.
     """
     layout = dict(obj.get("layout") or {})
     kind = str(layout.get("kind", "stack")).lower()
 
-    if kind not in ("stack",):
-        return (
-            f"<g {attrs(r.group_attrs(obj))}>"
-            + f'<!-- container kind="{esc(kind)}" not yet implemented --></g>'
-        )
-
     container_b = box(obj.get("box", [0, 0, 0, 0]))
     children_raw = list(obj.get("children") or obj.get("objects") or [])
-    resolved_children = _layout_stack(r, container_b, children_raw, layout)
+
+    if kind == "stack":
+        resolved_children = _layout_stack(r, container_b, children_raw, layout)
+    elif kind == "grid":
+        resolved_children = _layout_grid(r, container_b, children_raw, layout)
+    else:
+        return (
+            f"<g {attrs(r.group_attrs(obj))}>"
+            f'<!-- container kind="{esc(kind)}" not yet implemented --></g>'
+        )
 
     ga = r.group_attrs(obj)
     out = [f"<g {attrs(ga)}>"]

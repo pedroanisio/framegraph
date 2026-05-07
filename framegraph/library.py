@@ -30,6 +30,8 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
+from framegraph._helpers import fnum
+
 try:
     import yaml
 except ImportError as exc:
@@ -490,6 +492,19 @@ class FrameGraphDeckRenderer:
         if slide_cdefs:
             slide_visual["component_defs"] = slide_cdefs
 
+        # ── Master-slide chrome ──────────────────────────────────────────
+        # `deck.chrome:` declares a symbol auto-stamped on every slide as
+        # a chrome layer (z=0). The slide may opt out via `chrome: false`,
+        # or override params/slot values via `chrome: {params: …, …}`.
+        chrome_layer = self._build_chrome_layer(slide, canvas)
+        if chrome_layer is not None:
+            existing_layers = list(slide_visual.get("layers") or [])
+            # Prepend so the chrome paints first; same-id slide layer
+            # would override via the existing dict-keyed merge above.
+            chrome_id = str(chrome_layer.get("id", "_chrome"))
+            if not any(str(lyr.get("id", "")) == chrome_id for lyr in existing_layers):
+                slide_visual["layers"] = [chrome_layer] + existing_layers
+
         # Canonical semantic fallback if the slide omits it
         slide_semantic = slide.get("semantic") or {
             "ontology": {"node_types": {}, "edge_types": {}},
@@ -515,6 +530,86 @@ class FrameGraphDeckRenderer:
             },
             "semantic": slide_semantic,
             "visual": slide_visual,
+        }
+
+    def _build_chrome_layer(
+        self, slide: dict[str, Any], canvas: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        """Build the auto-prepended chrome layer for a slide.
+
+        Reads `deck.chrome` (the master-slide chrome declaration) and the
+        slide's own `chrome:` field. The slide may opt out
+        (`chrome: false`) or override the deck's params / slot values
+        (`chrome: {params: …, slot1: …}`).
+
+        Args:
+            slide: The slide entry from `self.slides_raw`.
+            canvas: The deck-level canvas mapping (size: [w, h]).
+
+        Returns:
+            A layer mapping ready to prepend to `visual.layers`, or
+            None when no chrome should be emitted.
+        """
+        deck_chrome = self.deck_config.get("chrome")
+        if not deck_chrome:
+            return None
+        # Per-slide opt-out: `chrome: false` (or null/0)
+        slide_chrome = slide.get("chrome", {})
+        if slide_chrome is False or slide_chrome == 0:
+            return None
+
+        # Normalize deck.chrome — accept either a string (symbol id) or a mapping.
+        if isinstance(deck_chrome, str):
+            deck_cfg: dict[str, Any] = {"symbol": deck_chrome}
+        elif isinstance(deck_chrome, dict):
+            deck_cfg = dict(deck_chrome)
+        else:
+            return None
+
+        symbol = deck_cfg.get("symbol")
+        if not symbol or symbol not in self.global_symbols:
+            return None
+
+        # Per-slide overrides — merged on top of deck.chrome's defaults.
+        override_cfg = dict(slide_chrome) if isinstance(slide_chrome, dict) else {}
+
+        # Build the `use` object. Top-level fields are slot pass-through;
+        # `params` is the nested parameter map. Both layers contribute.
+        size = canvas.get("size") or [960, 540]
+        canvas_box = [0, 0, fnum(size[0], 960), fnum(size[1], 540)]
+
+        use_obj: dict[str, Any] = {
+            "type": "use",
+            "id": "_chrome.use",
+            "decorative": True,
+            "symbol": str(symbol),
+            "box": canvas_box,
+        }
+        # Slot pass-through fields from deck.chrome (everything that isn't
+        # a structural key) become top-level fields on the use object.
+        structural_keys = {"symbol", "params", "id"}
+        for k, v in deck_cfg.items():
+            if k not in structural_keys:
+                use_obj[k] = v
+        for k, v in override_cfg.items():
+            if k not in structural_keys:
+                use_obj[k] = v
+
+        # Merged params: deck-level first, slide-level overrides last.
+        params: dict[str, Any] = {}
+        deck_params = deck_cfg.get("params")
+        if isinstance(deck_params, dict):
+            params.update(deck_params)
+        slide_params = override_cfg.get("params")
+        if isinstance(slide_params, dict):
+            params.update(slide_params)
+        if params:
+            use_obj["params"] = params
+
+        return {
+            "id": "_chrome",
+            "z": deck_cfg.get("z", 0),
+            "objects": [use_obj],
         }
 
     def collect_notes(self) -> dict[str, str]:

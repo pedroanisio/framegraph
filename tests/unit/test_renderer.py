@@ -896,12 +896,15 @@ def test_container_unsupported_kind_emits_comment() -> None:
     from framegraph.renderers.layout import render_container
 
     r = FrameGraphRenderer({})
+    # `row` is reserved in the schema but not implemented; `grid` and
+    # `stack` are both implemented as of the master-slide-chrome /
+    # grid-container / table-object feature pass.
     out = render_container(
         r,
         {
             "type": "container",
             "box": [0, 0, 100, 100],
-            "layout": {"kind": "grid"},
+            "layout": {"kind": "row"},
             "children": [],
         },
     )

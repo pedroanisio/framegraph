@@ -1,0 +1,906 @@
+dsl: FrameGraph
+version: 1.5
+kind: presentation-deck
+
+# ─────────────────────────────────────────────────────────────────────────
+# FrameGraph — Project Overview Deck
+# A 12-slide self-contained presentation of the FrameGraph project:
+# concept, architecture, core components, style system, and current state.
+# Self-contained — does not depend on a theme pack.
+# ─────────────────────────────────────────────────────────────────────────
+
+deck:
+  canvas:
+    size: [1280, 720]
+    units: px
+
+  tokens:
+    colors:
+      # Brand palette — slate + amber + parchment
+      primary:        "#1B2940"     # deep slate
+      primary_2:      "#2C3E5C"     # mid slate
+      accent:         "#C99000"     # amber (the spec/architectural-rule color)
+      accent_warm:    "#9A4D2C"     # rust (warnings / regressions)
+      accent_sage:    "#2A5A3A"     # sage (passed / verified)
+      accent_slate:   "#3A4566"     # cool slate (data / metadata)
+      text:           "#1A1A1A"
+      text_muted:     "#777570"
+      page_bg:        "#F7F4EE"     # parchment
+      slide_bg:       "#FFFFFF"
+      panel:          "#F0EDE6"
+      panel_dark:     "#1B2940"
+      chrome_line:    "#D0CEC8"
+      divider:        "#D0CEC8"
+      # Object-type accent palette (matches debug_boxes color coding)
+      type_text:      "#E35205"
+      type_image:     "#009A44"
+      type_container: "#002060"
+      type_use:       "#8B00FF"
+      type_chart:     "#1A6FA8"
+      type_other:     "#888780"
+      # Architecture-stack palette (slide 11) — coherent slate-to-amber gradient.
+      # Each tint pairs with `primary` text for ≥4.5:1 contrast (WCAG AA).
+      stack_1:        "#E8DFC9"     # warmest tint (author surface)
+      stack_2:        "#D4C7A0"     # mid tint
+      stack_3:        "#1B2940"     # primary slate (renderer core)
+      stack_4:        "#3F526F"     # mid slate
+      stack_5:        "#2A5A3A"     # sage (output)
+
+    fonts:
+      primary: "Helvetica, Arial, sans-serif"
+      mono:    "Menlo, Monaco, 'Courier New', monospace"
+
+    text_styles:
+      # Chrome — every slide
+      chrome_brand:   {font: primary, size: 11, weight: 700, color: primary,    align: left}
+      chrome_section: {font: primary, size: 10, weight: 400, color: text_muted, align: left}
+      chrome_num:     {font: primary, size: 10, weight: 400, color: text_muted, align: right}
+      slide_title:    {font: primary, size: 22, weight: 700, color: primary,    align: left, line_height: 28, wrap: true}
+      slide_kicker:   {font: primary, size: 10, weight: 700, color: accent,     align: left}
+
+      # Body
+      body_lg:        {font: primary, size: 16, weight: 400, color: text,       align: left, line_height: 24, wrap: true}
+      body:           {font: primary, size: 13, weight: 400, color: text,       align: left, line_height: 19, wrap: true}
+      body_em:        {font: primary, size: 13, weight: 700, color: text,       align: left, line_height: 19, wrap: true}
+      body_muted:     {font: primary, size: 12, weight: 400, color: text_muted, align: left, line_height: 17, wrap: true, italic: true}
+      caption:        {font: primary, size: 10, weight: 400, color: text_muted, align: left, line_height: 14, wrap: true}
+
+      mono_sm:        {font: mono,    size: 11, weight: 400, color: primary,    align: left, line_height: 16}
+      mono_xs:        {font: mono,    size: 10, weight: 400, color: text,       align: left, line_height: 14}
+      mono_xs_inv:    {font: mono,    size: 10, weight: 400, color: page_bg,    align: left, line_height: 14}
+      mono_xs_dim:    {font: mono,    size: 10, weight: 400, color: chrome_line, align: left, line_height: 14}
+
+      # Cover
+      cover_title:    {font: primary, size: 64, weight: 700, color: primary,    align: center, line_height: 72}
+      cover_dot:      {font: primary, size: 64, weight: 700, color: accent,     align: center, line_height: 72}
+      cover_tagline:  {font: primary, size: 18, weight: 400, color: text,       align: center, line_height: 26}
+      cover_meta:     {font: primary, size: 11, weight: 400, color: text_muted, align: center, line_height: 16, italic: true}
+
+      # Card / block
+      card_label:     {font: primary, size: 9,  weight: 700, color: accent,     align: left}
+      card_title:     {font: primary, size: 14, weight: 700, color: text,       align: left, line_height: 19, wrap: true}
+      card_body:      {font: primary, size: 11, weight: 400, color: text,       align: left, line_height: 16, wrap: true}
+      card_meta:      {font: primary, size: 9,  weight: 400, color: text_muted, align: left, italic: true}
+
+      # Stack / arch diagram — dark-text variant (for light tints)
+      layer_name_dk:  {font: primary, size: 17, weight: 700, color: primary,    align: center, line_height: 22}
+      layer_role_dk:  {font: primary, size: 12, weight: 400, color: text,       align: center, line_height: 16, italic: true}
+      # Stack / arch diagram — light-text variant (for dark tints; ≥4.5:1 contrast)
+      layer_name_lt:  {font: primary, size: 17, weight: 700, color: page_bg,    align: center, line_height: 22}
+      layer_role_lt:  {font: primary, size: 12, weight: 400, color: chrome_line, align: center, line_height: 16, italic: true}
+
+      # Closing
+      close_em:       {font: primary, size: 36, weight: 700, color: primary,    align: center, line_height: 44}
+      close_em_warm:  {font: primary, size: 36, weight: 700, color: accent,     align: center, line_height: 44}
+
+    stroke_styles:
+      flow:        {color: text_muted, width: 1.25, arrow_end: true}
+      flow_bold:   {color: primary,    width: 4,    arrow_end: true}
+      thin:        {color: divider, width: 0.5}
+      thick:       {color: primary, width: 1.5}
+      accent_line: {color: accent, width: 2}
+
+  symbols:
+    # ── Standard chrome on every slide ───────────────────────────────
+    chrome:
+      box: [0, 0, 1280, 720]
+      slots: [section_label, slide_num]
+      objects:
+        - {type: rect, id: bg,      box: [0, 0, 1280, 720], fill: slide_bg}
+        - {type: rect, id: top,     box: [0, 0, 1280, 6],   fill: "$phase_color"}
+        - {type: text, id: brand,   box: [40, 22, 200, 18], text: "FrameGraph",       style: chrome_brand}
+        - {type: text, id: section, box: [240, 22, 760, 18], text: "$section_label",  style: chrome_section}
+        - {type: text, id: num,     box: [1040, 22, 200, 18], text: "$slide_num",     style: chrome_num}
+        - {type: line, id: top_rule, from: [40, 50],  to: [1240, 50],  stroke_style: thin}
+        - {type: line, id: foot_rule, from: [40, 686], to: [1240, 686], stroke_style: thin}
+        - {type: text, id: foot_l,  box: [40, 692, 800, 16], text: "FrameGraph · YAML-first diagram & deck DSL · pure-Python SVG renderer", style: caption}
+        - {type: text, id: foot_r,  box: [840, 692, 400, 16], text: "v2.0-dev · 2026-05-07", style: {font: primary, size: 10, weight: 400, color: text_muted, align: right}}
+
+    # ── Block card — title + body in a bordered panel ────────────────
+    block_card:
+      box: [0, 0, 380, 200]
+      slots: [label, title, body]
+      objects:
+        - {type: rect, id: bg,    box: [0, 0, 380, 200], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+        - {type: rect, id: stripe, box: [0, 0, 4, 200],   fill: "$accent"}
+        - {type: text, id: lbl,   box: [20, 18, 340, 12], text: "$label", style: card_label}
+        - {type: text, id: ttl,   box: [20, 36, 340, 36], text: "$title", style: card_title}
+        - {type: text, id: bdy,   box: [20, 76, 340, 116], text: "$body", style: card_body}
+
+    # ── Object-type chip — used in slide 5 ───────────────────────────
+    type_chip:
+      box: [0, 0, 200, 56]
+      slots: [type_name, family]
+      objects:
+        - {type: rect, id: bg,    box: [0, 0, 200, 56], fill: panel, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+        - {type: rect, id: dot,   box: [12, 12, 8, 8],  fill: "$dot_color", radius: 4}
+        - {type: text, id: name,  box: [28, 8, 160, 18], text: "$type_name", style: {font: mono, size: 12, weight: 700, color: text, align: left}}
+        - {type: text, id: fam,   box: [28, 28, 160, 18], text: "$family",   style: caption}
+
+    # ── Stack-layer card — dark-text variant for light tints ──────────
+    stack_layer_lt:
+      box: [0, 0, 760, 72]
+      slots: [name, role]
+      objects:
+        - {type: rect, id: bg, box: [0, 0, 760, 72], fill: "$layer_fill", radius: 6}
+        - {type: text, id: nm, box: [40, 12, 680, 26], text: "$name",      style: layer_name_dk}
+        - {type: text, id: rl, box: [40, 40, 680, 20], text: "$role",      style: layer_role_dk}
+
+    # ── Stack-layer card — light-text variant for dark tints ──────────
+    stack_layer_dk:
+      box: [0, 0, 760, 72]
+      slots: [name, role]
+      objects:
+        - {type: rect, id: bg, box: [0, 0, 760, 72], fill: "$layer_fill", radius: 6}
+        - {type: text, id: nm, box: [40, 12, 680, 26], text: "$name",      style: layer_name_lt}
+        - {type: text, id: rl, box: [40, 40, 680, 20], text: "$role",      style: layer_role_lt}
+
+slides:
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 01 — Cover
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 1
+    id: s1_cover
+    title: "FrameGraph"
+    description: "Cover — what the project is, in one sentence."
+    notes: |
+      Open with the line. Diagrams as source code. Pause before the next slide.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "Project Overview",
+               slide_num: "01 / 12",
+               params: {phase_color: primary}}
+        - id: cover
+          z: 10
+          objects:
+            - {type: rect, id: v.frame, decorative: true, box: [120, 200, 1040, 320], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}}
+            - {type: rect, id: v.frame_l, decorative: true, box: [120, 200, 4, 320], fill: accent}
+            - {type: text, id: v.title_a, decorative: true,
+               text: "Frame", box: [120, 240, 1040, 80], style: cover_title}
+            - {type: text, id: v.title_b, decorative: true,
+               text: "Graph", box: [120, 320, 1040, 80], style: cover_dot}
+            - {type: line, id: v.rule, decorative: true, from: [580, 420], to: [700, 420], stroke: {color: accent, width: 2}}
+            - {type: text, id: v.tag, decorative: true,
+               text: "YAML-first DSL and pure-Python renderer\nfor diagrams and slides as source code.",
+               box: [120, 432, 1040, 70], style: cover_tagline}
+            - {type: text, id: v.meta, decorative: true,
+               text: "Project Overview Deck  ·  v2.0-dev  ·  2026-05-07",
+               box: [120, 600, 1040, 18], style: cover_meta}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 02 — The problem
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 2
+    id: s2_problem
+    title: "The problem: diagrams drift from the systems they describe."
+    description: "Why this exists. Two failure modes lined up. One sentence each."
+    notes: |
+      Architects draw diagrams once, then ship code, then ship more code, and the
+      diagram goes stale. The diagram becomes a lie. FrameGraph treats the diagram
+      as source so the diff makes drift visible.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "01 — The problem",
+               slide_num: "02 / 12",
+               params: {phase_color: accent_warm}}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: v.k, decorative: true, text: "01 · MOTIVATION", box: [40, 70, 1200, 14], style: slide_kicker}
+            - {type: text, id: v.t, decorative: true, text: "Diagrams drift from the systems they describe.", box: [40, 92, 1200, 36], style: slide_title}
+        - id: failures
+          z: 20
+          objects:
+            - {type: use, id: v.f1, symbol: block_card, box: [40, 180, 380, 200],
+               label: "FAILURE MODE 1",
+               title: "Architect draws once.\nNobody updates the picture.",
+               body: "The PNG in the wiki was true on the day it was committed. Six months later the system has split, merged, or rerouted, and the picture lies. There is no diff, no review, no test that catches the drift.",
+               params: {accent: accent_warm}}
+            - {type: use, id: v.f2, symbol: block_card, box: [450, 180, 380, 200],
+               label: "FAILURE MODE 2",
+               title: "Diagram tools own the\nsource. Source is binary.",
+               body: "Visio, OmniGraffle, Lucidchart files are opaque. Pull requests cannot review them. The intended semantic structure (a typed graph of components) is lost in pixel positions and bezier handles.",
+               params: {accent: accent_warm}}
+            - {type: use, id: v.f3, symbol: block_card, box: [860, 180, 380, 200],
+               label: "FAILURE MODE 3",
+               title: "Generative tools produce\nplausible-looking outputs.",
+               body: "An LLM-rendered diagram passes the eye test. Whether its semantics agree with the system it claims to depict is unverifiable. Absence of a verification layer is a design defect, not a runtime bug.",
+               params: {accent: accent_warm}}
+        - id: synthesis
+          z: 30
+          objects:
+            - {type: rect, id: v.s, decorative: true, box: [40, 420, 1200, 84], fill: panel, radius: 6}
+            - {type: rect, id: v.sa, decorative: true, box: [40, 420, 4, 84], fill: accent}
+            - {type: text, id: v.st, decorative: true,
+               text: "FrameGraph's response: treat the diagram as code.",
+               box: [60, 432, 1160, 24], style: body_em}
+            - {type: text, id: v.sb, decorative: true,
+               text: "Diagrams are versionable, reviewable, testable, and reproducible. The semantic structure is first-class. The visual surface is rendered from it.",
+               box: [60, 462, 1160, 36], style: body}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 03 — The architectural commitment
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 3
+    id: s3_commitment
+    title: "Diagrams are checkable typed graphs underneath, not just drawings."
+    description: "The single architectural commitment. Bind & decorative explained."
+    notes: |
+      This is the spine of the project. Read the highlighted line slowly.
+      Every visual object either carries a `bind:` to a semantic node/edge,
+      or declares `decorative: true`. There is no third option.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "02 — Architectural commitment",
+               slide_num: "03 / 12",
+               params: {phase_color: accent}}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: v.k, decorative: true, text: "02 · COMMITMENT", box: [40, 70, 1200, 14], style: slide_kicker}
+            - {type: text, id: v.t, decorative: true, text: "Diagrams are checkable typed graphs underneath, not just drawings.", box: [40, 92, 1200, 70], style: slide_title}
+        - id: spine
+          z: 20
+          objects:
+            # The whole-thing-in-one-line
+            - {type: rect, id: v.q, decorative: true, box: [40, 200, 1200, 100], fill: panel_dark, radius: 6}
+            - {type: rect, id: v.qa, decorative: true, box: [40, 200, 4, 100], fill: accent}
+            - {type: text, id: v.qt, decorative: true,
+               text: "Every visual object carries CommonFields — type / id / decorative / bind / box / rotation / ports.",
+               box: [60, 222, 1160, 22], style: {font: primary, size: 14, weight: 700, color: page_bg, align: left, line_height: 18, wrap: true}}
+            - {type: text, id: v.qb, decorative: true,
+               text: "bind: ID references a semantic node or edge. decorative: true opts out of the bind requirement.",
+               box: [60, 250, 1160, 36], style: {font: primary, size: 12, weight: 400, color: chrome_line, align: left, line_height: 16, wrap: true, italic: true}}
+        - id: rules
+          z: 30
+          objects:
+            # Three rules side by side
+            - {type: rect, id: v.r1, decorative: true, box: [40, 340, 386, 240], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+            - {type: text, id: v.r1l, decorative: true, text: "RULE 1", box: [60, 360, 346, 12], style: card_label}
+            - {type: text, id: v.r1t, decorative: true, text: "Every visible object\nbinds OR is decorative.", box: [60, 378, 346, 50], style: card_title}
+            - {type: text, id: v.r1b, decorative: true,
+               text: "No silent unmoored shapes. The validator can answer: which rendered object means which thing in the model? If neither answer fits, the document is malformed.",
+               box: [60, 432, 346, 130], style: card_body}
+
+            - {type: rect, id: v.r2, decorative: true, box: [447, 340, 386, 240], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+            - {type: text, id: v.r2l, decorative: true, text: "RULE 2", box: [467, 360, 346, 12], style: card_label}
+            - {type: text, id: v.r2t, decorative: true, text: "The semantic block\nis primary.", box: [467, 378, 346, 50], style: card_title}
+            - {type: text, id: v.r2b, decorative: true,
+               text: "Nodes and edges are typed. The ontology declares what types exist. The visual is a presentation of this graph — never the source of truth, never the place where structure is defined.",
+               box: [467, 432, 346, 130], style: card_body}
+
+            - {type: rect, id: v.r3, decorative: true, box: [854, 340, 386, 240], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+            - {type: text, id: v.r3l, decorative: true, text: "RULE 3", box: [874, 360, 346, 12], style: card_label}
+            - {type: text, id: v.r3t, decorative: true, text: "Tokens substitute\nuniformly.", box: [874, 378, 346, 50], style: card_title}
+            - {type: text, id: v.r3b, decorative: true,
+               text: "Anywhere a color is accepted, a token id is also accepted. The same rule holds for text styles, stroke styles, fills. Design-system substitution is single-rewrite, not per-shape.",
+               box: [874, 432, 346, 130], style: card_body}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 04 — Document anatomy
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 4
+    id: s4_anatomy
+    title: "A document is three blocks under one envelope."
+    description: "Document anatomy. The three blocks. Two document kinds."
+    notes: |
+      Show the YAML envelope. dsl + version + kind + scene + semantic + visual.
+      The semantic block is where the graph lives. The visual block is the picture.
+      The scene block is the canvas they share.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "03 — Document anatomy",
+               slide_num: "04 / 12",
+               params: {phase_color: accent}}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: v.k, decorative: true, text: "03 · ANATOMY", box: [40, 70, 1200, 14], style: slide_kicker}
+            - {type: text, id: v.t, decorative: true, text: "A document is three blocks under one envelope.", box: [40, 92, 1200, 36], style: slide_title}
+        - id: yaml_pane
+          z: 20
+          objects:
+            # YAML mockup on the left
+            - {type: rect, id: v.y, decorative: true, box: [40, 180, 580, 460], fill: panel_dark, radius: 6}
+            - {type: text, id: v.yl, decorative: true, text: "diagram.yml", box: [60, 196, 540, 14], style: {font: mono, size: 10, weight: 400, color: chrome_line, align: left}}
+            - {type: line, id: v.yr, decorative: true, from: [60, 220], to: [600, 220], stroke: {color: text_muted, width: 0.5}}
+            - {type: text, id: v.y1, decorative: true,
+               text: "dsl: FrameGraph\nversion: 1.5\nkind: hybrid-semantic-visual-diagram\n\nscene:\n  id: my_diagram\n  canvas: {size: [960, 540]}\n  rendering_contract:\n    semantics:\n      decorative_objects_may_omit_bind: true\n\nsemantic:\n  ontology:\n    node_types:\n      Service: {meaning: \"A deployable unit.\"}\n    edge_types:\n      Calls:   {meaning: \"Synchronous RPC.\"}\n  nodes:\n    - {id: api,   type: Service, label: \"API\"}\n    - {id: db,    type: Service, label: \"DB\"}\n  edges:\n    - {id: e1, type: Calls, from: api, to: db}\n\nvisual:\n  tokens:\n    colors: {brand: \"#C99000\"}\n  layers:\n    - id: main\n      objects:\n        - {type: rect, id: api_box, bind: api,\n           box: [40, 200, 200, 80], fill: brand}",
+               box: [60, 232, 540, 392], style: mono_xs_inv}
+
+        - id: legend
+          z: 20
+          objects:
+            # Three blocks explained on the right
+            - {type: text, id: v.lh, decorative: true, text: "THE THREE BLOCKS", box: [660, 196, 580, 12], style: card_label}
+
+            - {type: rect, id: v.b1, decorative: true, box: [660, 220, 580, 130], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 4}
+            - {type: rect, id: v.b1a, decorative: true, box: [660, 220, 4, 130], fill: type_other}
+            - {type: text, id: v.b1l, decorative: true, text: "scene", box: [680, 234, 540, 18], style: {font: mono, size: 13, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.b1b, decorative: true,
+               text: "Canvas + rendering contracts. Declares the surface the picture is drawn on, plus quality-of-rendering policies (min font, debug overlay, line-break preservation, semantics requirements).",
+               box: [680, 256, 540, 80], style: card_body}
+
+            - {type: rect, id: v.b2, decorative: true, box: [660, 364, 580, 130], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 4}
+            - {type: rect, id: v.b2a, decorative: true, box: [660, 364, 4, 130], fill: accent_sage}
+            - {type: text, id: v.b2l, decorative: true, text: "semantic", box: [680, 378, 540, 18], style: {font: mono, size: 13, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.b2b, decorative: true,
+               text: "Typed graph. ontology.{node_types, edge_types} declares what types exist; nodes and edges populate the graph. Property bags on entries are open and renderer-defined.",
+               box: [680, 400, 540, 80], style: card_body}
+
+            - {type: rect, id: v.b3, decorative: true, box: [660, 508, 580, 130], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 4}
+            - {type: rect, id: v.b3a, decorative: true, box: [660, 508, 4, 130], fill: accent}
+            - {type: text, id: v.b3l, decorative: true, text: "visual", box: [680, 522, 540, 18], style: {font: mono, size: 13, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.b3b, decorative: true,
+               text: "Tokens (colors, fonts, styles), symbols (free-form templates), component_defs (typed widgets), and layers — z-ordered stacks of typed objects. This is what becomes SVG.",
+               box: [680, 544, 540, 80], style: card_body}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 05 — Object dispatch (the 16 types)
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 5
+    id: s5_objects
+    title: "Eighteen object types across five families."
+    description: "The discriminated union. Type chips grouped by family."
+    notes: |
+      The visual layer is a discriminated union on `type`. Eighteen kinds across
+      five families. Plug-ins register more via FrameGraphRenderer.register(...).
+      The dispatch is data-driven — adding a type is registering a function.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "04 — Object dispatch",
+               slide_num: "05 / 12",
+               params: {phase_color: accent}}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: v.k, decorative: true, text: "04 · OBJECT TYPES", box: [40, 70, 1200, 14], style: slide_kicker}
+            - {type: text, id: v.t, decorative: true, text: "Eighteen object types across five families.", box: [40, 92, 1200, 36], style: slide_title}
+        - id: families
+          z: 20
+          objects:
+            # Four columns of header + chip-stack — narrower (190px) to fit four families cleanly.
+            # Column anchors: x = 40, 230, 420, 610. Chip width 180. Last column ends at x=790 → leaves 220px for the EXTENSION panel at x=820.
+            - {type: text, id: v.fh1, decorative: true, text: "SHAPES",      box: [40, 168, 200, 14], style: card_label}
+            - {type: text, id: v.fh2, decorative: true, text: "COMPOSITION", box: [230, 168, 200, 14], style: card_label}
+            - {type: text, id: v.fh3, decorative: true, text: "TEXT · MEDIA", box: [420, 168, 200, 14], style: card_label}
+            - {type: text, id: v.fh4, decorative: true, text: "GRAPH · DATA-VIZ", box: [610, 168, 200, 14], style: card_label}
+
+            # COL 1 — SHAPES (5)
+            - {type: use, id: v.t01, symbol: type_chip, box: [40, 188, 180, 56],  type_name: "rect",     family: "rectangle / rounded", params: {dot_color: type_other}}
+            - {type: use, id: v.t02, symbol: type_chip, box: [40, 252, 180, 56],  type_name: "ellipse",  family: "circle / ellipse",    params: {dot_color: type_other}}
+            - {type: use, id: v.t03, symbol: type_chip, box: [40, 316, 180, 56],  type_name: "line",     family: "two-point segment",   params: {dot_color: type_other}}
+            - {type: use, id: v.t04, symbol: type_chip, box: [40, 380, 180, 56],  type_name: "polyline", family: "multi-point",         params: {dot_color: type_other}}
+            - {type: use, id: v.t05, symbol: type_chip, box: [40, 444, 180, 56],  type_name: "path",     family: "raw SVG d",           params: {dot_color: type_other}}
+
+            # COL 2 — COMPOSITION (4)
+            - {type: use, id: v.t06, symbol: type_chip, box: [230, 188, 180, 56], type_name: "use",       family: "symbol stamp",       params: {dot_color: type_use}}
+            - {type: use, id: v.t07, symbol: type_chip, box: [230, 252, 180, 56], type_name: "component", family: "typed widget",       params: {dot_color: type_use}}
+            - {type: use, id: v.t08, symbol: type_chip, box: [230, 316, 180, 56], type_name: "group",     family: "transform wrapper",  params: {dot_color: type_use}}
+            - {type: use, id: v.t09, symbol: type_chip, box: [230, 380, 180, 56], type_name: "container", family: "stack auto-layout",  params: {dot_color: type_container}}
+
+            # COL 3 — TEXT (2) · MEDIA (2) = 4
+            - {type: use, id: v.t10, symbol: type_chip, box: [420, 188, 180, 56], type_name: "text",        family: "single-style block",  params: {dot_color: type_text}}
+            - {type: use, id: v.t11, symbol: type_chip, box: [420, 252, 180, 56], type_name: "bullet_list", family: "marker + items",      params: {dot_color: type_text}}
+            - {type: use, id: v.t12, symbol: type_chip, box: [420, 316, 180, 56], type_name: "image",       family: "raster, base64",      params: {dot_color: type_image}}
+            - {type: use, id: v.t13, symbol: type_chip, box: [420, 380, 180, 56], type_name: "icon",        family: "glyph / unicode",     params: {dot_color: type_image}}
+
+            # COL 4 — GRAPH (2) · DATA-VIZ (3) = 5
+            - {type: use, id: v.t14, symbol: type_chip, box: [610, 188, 180, 56], type_name: "connector",   family: "endpoint-routed",      params: {dot_color: type_other}}
+            - {type: use, id: v.t15, symbol: type_chip, box: [610, 252, 180, 56], type_name: "legend",      family: "swatch + label list",  params: {dot_color: type_other}}
+            - {type: use, id: v.t16, symbol: type_chip, box: [610, 316, 180, 56], type_name: "chip_row",    family: "horizontal pills",     params: {dot_color: type_chart}}
+            - {type: use, id: v.t17, symbol: type_chip, box: [610, 380, 180, 56], type_name: "bar_chart",   family: "single + multi-series", params: {dot_color: type_chart}}
+            - {type: use, id: v.t18, symbol: type_chip, box: [610, 444, 180, 56], type_name: "line_chart",  family: "multi-series + legend", params: {dot_color: type_chart}}
+
+        - id: registration
+          z: 30
+          objects:
+            - {type: rect, id: v.reg, decorative: true, box: [820, 188, 420, 320], fill: panel, radius: 6}
+            - {type: rect, id: v.rega, decorative: true, box: [820, 188, 4, 320], fill: accent}
+            - {type: text, id: v.regl, decorative: true, text: "EXTENSION", box: [840, 204, 380, 12], style: card_label}
+            - {type: text, id: v.regt, decorative: true, text: "register(type_name, fn)", box: [840, 224, 380, 22], style: {font: mono, size: 14, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.regb, decorative: true,
+               text: "Third-party plug-ins add new object types at runtime. The renderer dispatches by `type` against a single dict; built-in types live in framegraph.renderers.* modules and self-register at load time.",
+               box: [840, 256, 380, 100], style: card_body}
+            - {type: rect, id: v.regcbg, decorative: true, box: [840, 364, 380, 130], fill: panel_dark, radius: 4}
+            - {type: text, id: v.regc, decorative: true,
+               text: "from framegraph import FrameGraphRenderer\n\ndef render_callout(r, obj):\n    x, y, w, h = obj['box']\n    return f'<g id=\"{obj[\"id\"]}\">…</g>'\n\nrenderer.register('callout', render_callout)",
+               box: [856, 376, 348, 110], style: {font: mono, size: 9, weight: 400, color: page_bg, align: left, line_height: 13}}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 06 — Token system
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 6
+    id: s6_tokens
+    title: "Tokens substitute uniformly across the document."
+    description: "Token-substitution invariant. The same id resolves anywhere."
+    notes: |
+      This is the most leveraged design move in the codebase. A color token
+      can appear anywhere a hex literal can. The renderer resolves at paint
+      time. Swap the token table, swap the entire palette.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "05 — Token system",
+               slide_num: "06 / 12",
+               params: {phase_color: accent}}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: v.k, decorative: true, text: "05 · TOKENS", box: [40, 70, 1200, 14], style: slide_kicker}
+            - {type: text, id: v.t, decorative: true, text: "Tokens substitute uniformly across the document.", box: [40, 92, 1200, 36], style: slide_title}
+        - id: invariant
+          z: 20
+          objects:
+            - {type: rect, id: v.inv, decorative: true, box: [40, 180, 1200, 110], fill: panel_dark, radius: 6}
+            - {type: rect, id: v.inva, decorative: true, box: [40, 180, 4, 110], fill: accent}
+            - {type: text, id: v.invl, decorative: true, text: "INVARIANT", box: [60, 196, 1160, 12], style: {font: primary, size: 9, weight: 700, color: accent, align: left}}
+            - {type: text, id: v.invt, decorative: true,
+               text: "Anywhere a COLOR is accepted, a token id from visual.tokens.colors is also accepted.",
+               box: [60, 214, 1160, 22], style: {font: primary, size: 16, weight: 700, color: page_bg, align: left, line_height: 22, wrap: true}}
+            - {type: text, id: v.invb, decorative: true,
+               text: "The same rule holds for text styles, stroke styles, and fill styles. The renderer resolves the id through the active token table and falls back to the literal string when no token matches.",
+               box: [60, 244, 1160, 36], style: {font: primary, size: 11, weight: 400, color: chrome_line, align: left, line_height: 16, wrap: true, italic: true}}
+        - id: example
+          z: 30
+          objects:
+            - {type: text, id: v.exh, decorative: true, text: "BEFORE / AFTER — same author intent, two palettes", box: [40, 320, 1200, 14], style: card_label}
+
+            # Source YAML
+            - {type: rect, id: v.s, decorative: true, box: [40, 350, 380, 280], fill: panel_dark, radius: 6}
+            - {type: text, id: v.sl, decorative: true, text: "diagram.yml — author writes tokens", box: [60, 366, 360, 14], style: {font: mono, size: 10, weight: 400, color: chrome_line, align: left}}
+            - {type: line, id: v.sr, decorative: true, from: [60, 388], to: [400, 388], stroke: {color: text_muted, width: 0.5}}
+            - {type: text, id: v.sc, decorative: true,
+               text: "tokens:\n  colors:\n    brand:    \"#C99000\"\n    surface:  \"#F7F4EE\"\n  text_styles:\n    title: {color: brand}\n\nlayers:\n  - id: main\n    objects:\n      - type: rect\n        fill: surface\n      - type: text\n        style: title\n        text: \"Hello.\"",
+               box: [60, 400, 360, 220], style: mono_xs_inv}
+
+            # Render A — original palette
+            - {type: rect, id: v.rA, decorative: true, box: [450, 350, 380, 280], fill: "#F7F4EE", stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.rAh, decorative: true, text: "RENDER A — original tokens", box: [470, 366, 340, 12], style: card_label}
+            - {type: text, id: v.rAt, decorative: true, text: "Hello.", box: [470, 470, 340, 50], style: {font: primary, size: 36, weight: 700, color: "#C99000", align: center}}
+
+            # Render B — swap one token, every reference moves
+            - {type: rect, id: v.rB, decorative: true, box: [860, 350, 380, 280], fill: "#EBF5EF", stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.rBh, decorative: true, text: "RENDER B — brand → \"#009A44\"", box: [880, 366, 340, 12], style: card_label}
+            - {type: text, id: v.rBt, decorative: true, text: "Hello.", box: [880, 470, 340, 50], style: {font: primary, size: 36, weight: 700, color: "#009A44", align: center}}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 07 — Symbols vs Components
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 7
+    id: s7_reuse
+    title: "Two reuse mechanisms. Pick the one that fits."
+    description: "Symbols vs Components — when to use which. Side-by-side."
+    notes: |
+      Symbols are SVG-<use>-style stamps for free-form arrangements with
+      named slots and ports. Components are React-style typed widgets with
+      one geometry, theme variants, and slot-positioned children.
+      Rule of thumb: more than one rect/text pair → Symbol. One styled
+      shape with variants → Component.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "06 — Reuse mechanisms",
+               slide_num: "07 / 12",
+               params: {phase_color: accent}}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: v.k, decorative: true, text: "06 · REUSE", box: [40, 70, 1200, 14], style: slide_kicker}
+            - {type: text, id: v.t, decorative: true, text: "Two reuse mechanisms. Pick the one that fits.", box: [40, 92, 1200, 36], style: slide_title}
+        - id: cols
+          z: 20
+          objects:
+            # SYMBOL column
+            - {type: rect, id: v.lc, decorative: true, box: [40, 180, 596, 460], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+            - {type: rect, id: v.lca, decorative: true, box: [40, 180, 4, 460], fill: type_use}
+            - {type: text, id: v.lh, decorative: true, text: "SYMBOL", box: [60, 200, 556, 14], style: card_label}
+            - {type: text, id: v.lt, decorative: true, text: "Free-form stamp", box: [60, 220, 556, 22], style: {font: primary, size: 16, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.lb, decorative: true,
+               text: "A box plus nested objects, named slots, named ports. Stamped via type: use with per-instance slot values and parameters.",
+               box: [60, 248, 556, 50], style: card_body}
+            - {type: text, id: v.lwh, decorative: true, text: "USE A SYMBOL WHEN", box: [60, 308, 556, 12], style: card_label}
+            - {type: text, id: v.lw, decorative: true,
+               text: "• the unit is a free-form arrangement of FrameGraph objects (rect + text + line + nested use, in any combination)\n\n• per-instance content lives in named text/value slots\n\n• per-instance connection points are exposed as named ports\n\n• styling lives inside the symbol's child objects",
+               box: [60, 326, 556, 200], style: card_body}
+            - {type: text, id: v.lex, decorative: true, text: "Example", box: [60, 540, 556, 12], style: card_label}
+            - {type: text, id: v.lec, decorative: true,
+               text: "symbols:\n  chrome:\n    box: [0,0,1280,720]\n    slots: [section_label, slide_num]\n    objects:\n      - {type: rect, id: bg, ...}\n      - {type: text, text: \"$section_label\"}",
+               box: [60, 558, 556, 80], style: mono_xs}
+
+            # COMPONENT column
+            - {type: rect, id: v.rc, decorative: true, box: [656, 180, 596, 460], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+            - {type: rect, id: v.rca, decorative: true, box: [656, 180, 4, 460], fill: accent_sage}
+            - {type: text, id: v.rh, decorative: true, text: "COMPONENT", box: [676, 200, 556, 14], style: card_label}
+            - {type: text, id: v.rt, decorative: true, text: "Typed widget", box: [676, 220, 556, 22], style: {font: primary, size: 16, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.rb, decorative: true,
+               text: "One declared geometry (fill, stroke, radius, text_style), theme variants, slot-positioned children. Instantiated via type: component with params and variant.",
+               box: [676, 248, 556, 50], style: card_body}
+            - {type: text, id: v.rwh, decorative: true, text: "USE A COMPONENT WHEN", box: [676, 308, 556, 12], style: card_label}
+            - {type: text, id: v.rw, decorative: true,
+               text: "• the unit is a styled product widget (a card, a chip, a labelled box) with one geometry\n\n• its visual identity should swap as a unit via theme variants\n\n• layout of slot content is positional and uniform across the internal_layout map\n\n• styling lives on the component itself",
+               box: [676, 326, 556, 200], style: card_body}
+            - {type: text, id: v.rex, decorative: true, text: "Example", box: [676, 540, 556, 12], style: card_label}
+            - {type: text, id: v.rec, decorative: true,
+               text: "component_defs:\n  info_box:\n    fill: surface\n    radius: 6\n    text_style: caption\n    variants:\n      warning: {fill: accent_warm}\n    internal_layout:\n      title: {box_offset: [12, 12, 100%, 24]}",
+               box: [676, 558, 556, 80], style: mono_xs}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 08 — Renderer pipeline
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 8
+    id: s8_pipeline
+    title: "How a YAML document becomes SVG."
+    description: "Renderer pipeline as a sequence. Five stages, left to right."
+    notes: |
+      Five stages from disk to SVG. Validation is the new first stage —
+      Pydantic gates documents that declare dsl: FrameGraph. Index pass
+      builds the object index for connector resolution. Then per-layer
+      paint, with per-object dispatch. Each stage is testable in isolation.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "07 — Pipeline",
+               slide_num: "08 / 12",
+               params: {phase_color: accent_sage}}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: v.k, decorative: true, text: "07 · PIPELINE", box: [40, 70, 1200, 14], style: slide_kicker}
+            - {type: text, id: v.t, decorative: true, text: "How a YAML document becomes SVG.", box: [40, 92, 1200, 36], style: slide_title}
+        - id: stages
+          z: 20
+          objects:
+            # 5 stage boxes left-to-right
+            - {type: rect, id: v.s1, decorative: true, box: [40, 220, 224, 160], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+            - {type: rect, id: v.s1a, decorative: true, box: [40, 220, 4, 160], fill: type_other}
+            - {type: text, id: v.s1n, decorative: true, text: "1", box: [56, 232, 40, 30], style: {font: primary, size: 28, weight: 700, color: text_muted, align: left}}
+            - {type: text, id: v.s1l, decorative: true, text: "INGEST", box: [100, 240, 150, 12], style: card_label}
+            - {type: text, id: v.s1t, decorative: true, text: "PyYAML safe_load", box: [60, 264, 200, 18], style: {font: mono, size: 12, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.s1b, decorative: true, text: "Disk → mapping. Pure dict; no validation yet.", box: [60, 290, 200, 70], style: card_body}
+
+            - {type: rect, id: v.s2, decorative: true, box: [288, 220, 224, 160], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+            - {type: rect, id: v.s2a, decorative: true, box: [288, 220, 4, 160], fill: accent}
+            - {type: text, id: v.s2n, decorative: true, text: "2", box: [304, 232, 40, 30], style: {font: primary, size: 28, weight: 700, color: accent, align: left}}
+            - {type: text, id: v.s2l, decorative: true, text: "VALIDATE", box: [348, 240, 150, 12], style: card_label}
+            - {type: text, id: v.s2t, decorative: true, text: "Pydantic v2", box: [308, 264, 200, 18], style: {font: mono, size: 12, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.s2b, decorative: true, text: "Schema gate. Fails loudly on malformed input. NEW in v2.0.", box: [308, 290, 200, 70], style: card_body}
+
+            - {type: rect, id: v.s3, decorative: true, box: [536, 220, 224, 160], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+            - {type: rect, id: v.s3a, decorative: true, box: [536, 220, 4, 160], fill: type_other}
+            - {type: text, id: v.s3n, decorative: true, text: "3", box: [552, 232, 40, 30], style: {font: primary, size: 28, weight: 700, color: text_muted, align: left}}
+            - {type: text, id: v.s3l, decorative: true, text: "INDEX", box: [596, 240, 150, 12], style: card_label}
+            - {type: text, id: v.s3t, decorative: true, text: "object_index", box: [556, 264, 200, 18], style: {font: mono, size: 12, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.s3b, decorative: true, text: "Walk every layer; record (box, ports, raw) per id for connector resolution.", box: [556, 290, 200, 70], style: card_body}
+
+            - {type: rect, id: v.s4, decorative: true, box: [784, 220, 224, 160], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+            - {type: rect, id: v.s4a, decorative: true, box: [784, 220, 4, 160], fill: type_other}
+            - {type: text, id: v.s4n, decorative: true, text: "4", box: [800, 232, 40, 30], style: {font: primary, size: 28, weight: 700, color: text_muted, align: left}}
+            - {type: text, id: v.s4l, decorative: true, text: "DISPATCH", box: [844, 240, 150, 12], style: card_label}
+            - {type: text, id: v.s4t, decorative: true, text: "render_object", box: [804, 264, 200, 18], style: {font: mono, size: 12, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.s4b, decorative: true, text: "type → fn lookup. Built-in types + plug-in registrations live in one dict.", box: [804, 290, 200, 70], style: card_body}
+
+            - {type: rect, id: v.s5, decorative: true, box: [1032, 220, 208, 160], fill: slide_bg, stroke: {color: chrome_line, width: 0.75}, radius: 6}
+            - {type: rect, id: v.s5a, decorative: true, box: [1032, 220, 4, 160], fill: type_other}
+            - {type: text, id: v.s5n, decorative: true, text: "5", box: [1048, 232, 40, 30], style: {font: primary, size: 28, weight: 700, color: text_muted, align: left}}
+            - {type: text, id: v.s5l, decorative: true, text: "EMIT", box: [1092, 240, 150, 12], style: card_label}
+            - {type: text, id: v.s5t, decorative: true, text: "<svg>", box: [1052, 264, 200, 18], style: {font: mono, size: 12, weight: 700, color: primary, align: left}}
+            - {type: text, id: v.s5b, decorative: true, text: "Layer-z order, per-layer paint, defs for gradients + arrow markers.", box: [1052, 290, 184, 70], style: card_body}
+
+            # Arrows between stages
+            - {type: line, id: v.a1, decorative: true, from: [264, 300], to: [288, 300], stroke_style: flow}
+            - {type: line, id: v.a2, decorative: true, from: [512, 300], to: [536, 300], stroke_style: flow}
+            - {type: line, id: v.a3, decorative: true, from: [760, 300], to: [784, 300], stroke_style: flow}
+            - {type: line, id: v.a4, decorative: true, from: [1008, 300], to: [1032, 300], stroke_style: flow}
+
+        - id: error_handling
+          z: 30
+          objects:
+            - {type: rect, id: v.err, decorative: true, box: [40, 420, 1200, 220], fill: panel, radius: 6}
+            - {type: text, id: v.errl, decorative: true, text: "PER-OBJECT FAILURE HANDLING", box: [60, 438, 1160, 12], style: card_label}
+            - {type: text, id: v.errt, decorative: true, text: "Stage 4 wraps every render call in try / except.", box: [60, 460, 1160, 22], style: body_em}
+            - {type: text, id: v.errb, decorative: true,
+               text: "An exception inside one renderer demotes that object to an HTML comment in the output and pushes a string onto self.warnings — but the SVG itself is always well-formed. This is a robustness/observability trade-off: the deck still ships when one slide is malformed, but callers MUST inspect renderer.warnings to know whether anything was skipped.\n\nThis pattern is exactly the failure mode CLAUDE.md PALS's LAW warns about. The Pydantic gate at stage 2 closes the most common variant — schema-malformed documents now fail loudly at ingest, not silently at paint.",
+               box: [60, 488, 1160, 140], style: card_body}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 09 — Schema gate
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 9
+    id: s9_schema
+    title: "The schema is executable. Pydantic v2 is the contract."
+    description: "Validation gate detail. The opt-in marker. The discriminated union."
+    notes: |
+      framegraph._schema is the normative artifact. Models are wired at
+      FrameGraphRenderer.__init__ and FrameGraphDeckRenderer.__init__.
+      The gate triggers only when the document declares dsl: FrameGraph,
+      so test/internal partial dicts pass through.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "08 — Schema gate",
+               slide_num: "09 / 12",
+               params: {phase_color: accent_sage}}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: v.k, decorative: true, text: "08 · SCHEMA", box: [40, 70, 1200, 14], style: slide_kicker}
+            - {type: text, id: v.t, decorative: true, text: "The schema is executable. Pydantic v2 is the contract.", box: [40, 92, 1200, 36], style: slide_title}
+        - id: claims
+          z: 20
+          objects:
+            - {type: use, id: v.c1, symbol: block_card, box: [40, 180, 380, 200],
+               label: "NORMATIVE",
+               title: "Pydantic models are\nthe single source of truth.",
+               body: "framegraph/_schema.py supersedes the prior EBNF. Document, DeckDocument, and a discriminated union over the 18 first-class object types live there. SCHEMA.md is the human-readable companion; it documents conventions JSON-Schema export cannot capture.",
+               params: {accent: accent_sage}}
+            - {type: use, id: v.c2, symbol: block_card, box: [450, 180, 380, 200],
+               label: "OPT-IN GATE",
+               title: "Validates only when\ndsl: FrameGraph is set.",
+               body: "Inputs without that marker (empty dicts, partial test docs, deck-composer intermediate state) pass through unvalidated. Real FrameGraph documents always carry the marker; anything else is by definition not a FrameGraph document.",
+               params: {accent: accent_sage}}
+            - {type: use, id: v.c3, symbol: block_card, box: [860, 180, 380, 200],
+               label: "PLUG-IN FALL-THROUGH",
+               title: "Unknown types are\nnot rejected at ingest.",
+               body: "register(type_name, fn) is part of the v2.0 plug-in contract. Validation cannot know what types a downstream consumer has registered, so unknown discriminators fall through to _UnknownObject and validation continues.",
+               params: {accent: accent_sage}}
+
+        - id: numbers
+          z: 30
+          objects:
+            - {type: rect, id: v.n, decorative: true, box: [40, 420, 1200, 220], fill: panel, radius: 6}
+            - {type: text, id: v.nl, decorative: true, text: "WHAT THE MIGRATION COST AND BOUGHT", box: [60, 438, 1160, 12], style: card_label}
+
+            # Cost / bought columns
+            - {type: text, id: v.nch, decorative: true, text: "COST", box: [60, 462, 580, 14], style: {font: primary, size: 11, weight: 700, color: text, align: left}}
+            - {type: text, id: v.ncb, decorative: true,
+               text: "• ~530 lines in framegraph/_schema.py\n• 1 new runtime dependency (pydantic ≥2.7)\n• 12 synthetic test docs updated to be valid",
+               box: [60, 482, 580, 80], style: card_body}
+
+            - {type: text, id: v.nbh, decorative: true, text: "BOUGHT", box: [660, 462, 580, 14], style: {font: primary, size: 11, weight: 700, color: text, align: left}}
+            - {type: text, id: v.nbb, decorative: true,
+               text: "• 59 schema regression tests\n• 46 SVG hashes byte-identical pre/post (proven no-op)\n• 411 / 411 tests pass · 91.39 % coverage\n• Malformed YAML now fails at ingest, not at paint\n• Schema export at zero cost: model_json_schema()",
+               box: [660, 482, 580, 130], style: card_body}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 10 — Deck mode
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 10
+    id: s10_deck
+    title: "Deck mode: cascade tokens, inherit slides, ship presentations."
+    description: "FrameGraphDeckRenderer. Cascade chain. Speaker notes. $extends."
+    notes: |
+      Decks are documents that ship as collections of slides. Token
+      resolution cascades library theme → deck → base slide → this slide.
+      Speaker notes export to notes.md and never reach SVG.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "09 — Deck mode",
+               slide_num: "10 / 12",
+               params: {phase_color: accent_sage}}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: v.k, decorative: true, text: "09 · DECK MODE", box: [40, 70, 1200, 14], style: slide_kicker}
+            - {type: text, id: v.t, decorative: true, text: "Cascade tokens, inherit slides, ship presentations.", box: [40, 92, 1200, 36], style: slide_title}
+        - id: cascade
+          z: 20
+          objects:
+            - {type: text, id: v.csh, decorative: true, text: "TOKEN CASCADE — left layer overridden by each subsequent layer", box: [40, 184, 1200, 14], style: card_label}
+
+            - {type: rect, id: v.cs1, decorative: true, box: [40, 210, 290, 100], fill: slide_bg, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: text, id: v.cs1l, decorative: true, text: "1 · LIBRARY", box: [56, 224, 258, 12], style: card_label}
+            - {type: text, id: v.cs1n, decorative: true, text: "$theme: bcg", box: [56, 244, 258, 18], style: mono_sm}
+            - {type: text, id: v.cs1b, decorative: true, text: "Loaded from framegraph/lib/tokens/<id>.yml. Eight bundled theme packs.", box: [56, 268, 258, 32], style: card_body}
+
+            - {type: rect, id: v.cs2, decorative: true, box: [340, 210, 290, 100], fill: slide_bg, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: text, id: v.cs2l, decorative: true, text: "2 · DECK", box: [356, 224, 258, 12], style: card_label}
+            - {type: text, id: v.cs2n, decorative: true, text: "deck.tokens", box: [356, 244, 258, 18], style: mono_sm}
+            - {type: text, id: v.cs2b, decorative: true, text: "Per-deck overrides on top of the theme. The brand layer.", box: [356, 268, 258, 32], style: card_body}
+
+            - {type: rect, id: v.cs3, decorative: true, box: [640, 210, 290, 100], fill: slide_bg, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: text, id: v.cs3l, decorative: true, text: "3 · BASE SLIDE", box: [656, 224, 258, 12], style: card_label}
+            - {type: text, id: v.cs3n, decorative: true, text: "$extends: <id>", box: [656, 244, 258, 18], style: mono_sm}
+            - {type: text, id: v.cs3b, decorative: true, text: "Inherit a sibling slide. Layer merge is dict-keyed by id.", box: [656, 268, 258, 32], style: card_body}
+
+            - {type: rect, id: v.cs4, decorative: true, box: [940, 210, 300, 100], fill: panel, stroke: {color: accent_sage, width: 1}, radius: 4}
+            - {type: rect, id: v.cs4a, decorative: true, box: [940, 210, 4, 100], fill: accent_sage}
+            - {type: text, id: v.cs4l, decorative: true, text: "4 · THIS SLIDE", box: [960, 224, 268, 12], style: card_label}
+            - {type: text, id: v.cs4n, decorative: true, text: "slide.tokens", box: [960, 244, 268, 18], style: mono_sm}
+            - {type: text, id: v.cs4b, decorative: true, text: "The author's last word. Final overrides for this slide only.", box: [960, 268, 268, 32], style: card_body}
+
+            # Arrows
+            - {type: line, id: v.ca1, decorative: true, from: [330, 260], to: [340, 260], stroke_style: flow}
+            - {type: line, id: v.ca2, decorative: true, from: [630, 260], to: [640, 260], stroke_style: flow}
+            - {type: line, id: v.ca3, decorative: true, from: [930, 260], to: [940, 260], stroke_style: flow}
+
+        - id: features
+          z: 30
+          objects:
+            - {type: rect, id: v.fL, decorative: true, box: [40, 350, 596, 290], fill: slide_bg, stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.fLl, decorative: true, text: "$EXTENDS — SLIDE INHERITANCE", box: [60, 366, 556, 12], style: card_label}
+            - {type: text, id: v.fLt, decorative: true, text: "One level of inheritance. Layer merge by id.", box: [60, 388, 556, 22], style: body_em}
+            - {type: text, id: v.fLb, decorative: true,
+               text: "A child slide names a base via $extends: <id>. Layers in the base are dict-keyed by id; a child layer with the same id REPLACES the base layer; a child layer with a new id APPENDS after.\n\nThis is exactly the seam where most YAML-templated decks accumulate quiet bugs. FrameGraph specifies it instead of leaving it implicit.",
+               box: [60, 416, 556, 200], style: card_body}
+
+            - {type: rect, id: v.fR, decorative: true, box: [656, 350, 584, 290], fill: slide_bg, stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.fRl, decorative: true, text: "SPEAKER NOTES — TEXT-FIRST", box: [676, 366, 544, 12], style: card_label}
+            - {type: text, id: v.fRt, decorative: true, text: "notes: are not rendered. They export.", box: [676, 388, 544, 22], style: body_em}
+            - {type: text, id: v.fRb, decorative: true,
+               text: "Stored under notes: on each slide. Never written to SVG output. Exported to a sibling notes.md by FrameGraphDeckRenderer.render_notes() so the deck and the speaker script stay versioned together.\n\nDecks are source-controllable as a single YAML file. Slide order, slide content, and speaker script all live in the same diff.",
+               box: [676, 416, 544, 200], style: card_body}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 11 — Architecture stack
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 11
+    id: s11_stack
+    title: "The stack — five layers, top-down."
+    description: "Architecture in one picture. Each layer is a directory or file."
+    notes: |
+      Read top to bottom. The author writes YAML. The schema validates.
+      The renderer dispatches. The plug-ins emit SVG. Tests gate everything.
+      This is the whole project in one stack.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "10 — Architecture",
+               slide_num: "11 / 12",
+               params: {phase_color: primary}}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: v.k, decorative: true, text: "10 · STACK", box: [40, 70, 1200, 14], style: slide_kicker}
+            - {type: text, id: v.t, decorative: true, text: "The stack — five layers, top-down.", box: [40, 92, 1200, 36], style: slide_title}
+        - id: stack
+          z: 20
+          objects:
+            # Five layers — coherent slate-to-amber palette, generous spacing.
+            # Layers 1-2 use dark text on light tints; 3-5 use light text on dark tints.
+            # Stride: 90px (72 layer + 18 arrow); start y=170, end y=170+5*72+4*18 = 602.
+            - {type: use, id: v.l1, symbol: stack_layer_lt, box: [260, 170, 760, 72],
+               name: "AUTHOR",
+               role: "writes diagram.yml or deck.yml",
+               params: {layer_fill: stack_1}}
+            - {type: line, id: v.a1, decorative: true, from: [640, 244], to: [640, 258], stroke_style: flow_bold}
+
+            - {type: use, id: v.l2, symbol: stack_layer_lt, box: [260, 260, 760, 72],
+               name: "INGEST + VALIDATE",
+               role: "PyYAML  ·  framegraph._schema (Pydantic v2)",
+               params: {layer_fill: stack_2}}
+            - {type: line, id: v.a2, decorative: true, from: [640, 334], to: [640, 348], stroke_style: flow_bold}
+
+            - {type: use, id: v.l3, symbol: stack_layer_dk, box: [260, 350, 760, 72],
+               name: "RENDERER CORE",
+               role: "indexing  ·  dispatch  ·  layer composition  ·  defs",
+               params: {layer_fill: stack_3}}
+            - {type: line, id: v.a3, decorative: true, from: [640, 424], to: [640, 438], stroke_style: flow_bold}
+
+            - {type: use, id: v.l4, symbol: stack_layer_dk, box: [260, 440, 760, 72],
+               name: "PER-TYPE PLUG-INS",
+               role: "shapes  ·  text  ·  symbols  ·  image  ·  lines  ·  charts  ·  layout",
+               params: {layer_fill: stack_4}}
+            - {type: line, id: v.a4, decorative: true, from: [640, 514], to: [640, 528], stroke_style: flow_bold}
+
+            - {type: use, id: v.l5, symbol: stack_layer_dk, box: [260, 530, 760, 72],
+               name: "SVG OUTPUT",
+               role: "well-formed XML  ·  layer-z ordered  ·  defs-prefixed",
+               params: {layer_fill: stack_5}}
+
+        - id: stats_strip
+          z: 30
+          objects:
+            # Single bottom strip — three short data points at presentation scale.
+            # Replaces the cramped left/right rails the old layout used.
+            - {type: rect, id: v.ss, decorative: true, box: [40, 624, 1200, 56], fill: panel, radius: 6}
+            - {type: rect, id: v.ss_l, decorative: true, box: [40, 624, 4, 56], fill: accent}
+
+            - {type: text, id: v.s1k, decorative: true, text: "TESTS", box: [80, 634, 360, 12], style: card_label}
+            - {type: text, id: v.s1v, decorative: true, text: "411 pass · 91.39% coverage", box: [80, 650, 360, 22], style: {font: primary, size: 14, weight: 700, color: primary, align: left}}
+
+            - {type: line, id: v.sd1, decorative: true, from: [460, 632], to: [460, 672], stroke_style: thin}
+
+            - {type: text, id: v.s2k, decorative: true, text: "REGRESSION", box: [500, 634, 360, 12], style: card_label}
+            - {type: text, id: v.s2v, decorative: true, text: "byte-identical SVG · 22 fixtures + manifesto", box: [500, 650, 360, 22], style: {font: primary, size: 14, weight: 700, color: primary, align: left}}
+
+            - {type: line, id: v.sd2, decorative: true, from: [880, 632], to: [880, 672], stroke_style: thin}
+
+            - {type: text, id: v.s3k, decorative: true, text: "BUNDLED THEMES", box: [920, 634, 320, 12], style: card_label}
+            - {type: text, id: v.s3v, decorative: true, text: "bain · bcg · deloitte · ey · kpmg · mckinsey · pwc", box: [920, 650, 320, 22], style: {font: primary, size: 12, weight: 700, color: primary, align: left}}
+
+  # ─────────────────────────────────────────────────────────────────
+  # SLIDE 12 — Closing
+  # ─────────────────────────────────────────────────────────────────
+  - slide: 12
+    id: s12_close
+    title: ""
+    description: "Closing. The line that defines the project."
+    notes: |
+      Read the line. Stop. Let the silence carry it.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0, 0, 1280, 720],
+               section_label: "Closing",
+               slide_num: "12 / 12",
+               params: {phase_color: primary}}
+        - id: content
+          z: 10
+          objects:
+            - {type: text, id: v.pre, decorative: true,
+               text: "FrameGraph is built on one commitment.",
+               box: [80, 220, 1120, 24], style: {font: primary, size: 14, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: line, id: v.r1, decorative: true, from: [580, 264], to: [700, 264], stroke: {color: accent, width: 2}}
+            - {type: text, id: v.c1, decorative: true,
+               text: "Diagrams are checkable typed graphs",
+               box: [40, 300, 1200, 60], style: close_em}
+            - {type: text, id: v.c2, decorative: true,
+               text: "underneath, not just drawings.",
+               box: [40, 360, 1200, 60], style: close_em_warm}
+            - {type: line, id: v.r2, decorative: true, from: [580, 460], to: [700, 460], stroke: {color: accent, width: 2}}
+            - {type: text, id: v.coda, decorative: true,
+               text: "Pure-Python · YAML-first · v1.x backward-compatible · MIT-licensed.\nValidate at ingest. Render byte-identically. Ship the diff.",
+               box: [80, 480, 1120, 56], style: {font: primary, size: 13, weight: 400, color: text_muted, align: center, line_height: 18, italic: true}}
