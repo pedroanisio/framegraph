@@ -283,6 +283,44 @@ def pts_attr(points: Sequence[Point]) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Marker shape table — UML 2.5 §11 arrowhead variants
+# ---------------------------------------------------------------------------
+#
+# Each entry maps a `kind` name to (svg_path_d, viewbox_metadata). The
+# viewbox tuple is (viewBox_attr, markerWidth, markerHeight, refX, refY).
+# Default `filled_triangle` lives in `defs_svg` directly to preserve
+# v1.x byte-identity; entries here are only emitted when the kind is
+# explicitly registered via `register_marker_kind`.
+#
+# All shapes orient along the marker's x-axis with the tip at refX,
+# matching SVG's `orient="auto-start-reverse"` convention.
+
+_MARKER_SHAPES: dict[str, tuple[str, tuple[str, int, int, int, float]]] = {
+    # Hollow triangle (UML generalization, realization)
+    "hollow_triangle": (
+        "M0,0 L10,5 L0,10 Z",
+        ("0 0 10 10", 10, 10, 10, 5),
+    ),
+    # Hollow diamond (UML aggregation)
+    "hollow_diamond": (
+        "M0,5 L6,0 L12,5 L6,10 Z",
+        ("0 0 12 10", 12, 10, 12, 5),
+    ),
+    # Filled diamond (UML composition)
+    "filled_diamond": (
+        "M0,5 L6,0 L12,5 L6,10 Z",
+        ("0 0 12 10", 12, 10, 12, 5),
+    ),
+    # Open arrow ─ V-shape, no fill (UML association navigability,
+    # dependency). Distinct from filled_triangle which is solid.
+    "open_arrow": (
+        "M0,0 L10,5 L0,10",
+        ("0 0 10 10", 10, 10, 10, 5),
+    ),
+}
+
+
+# ---------------------------------------------------------------------------
 # Renderer
 # ---------------------------------------------------------------------------
 
@@ -382,6 +420,12 @@ class FrameGraphRenderer:
         self.object_index: dict[str, dict[str, Any]] = {}
         self.semantic_ids = self._collect_semantic_ids()
         self.marker_colors: list[str] = []
+        # `marker_kinds` is the (color, kind) set used by `defs_svg` to
+        # emit additional marker shapes (hollow triangle, diamonds, etc.)
+        # beyond the default filled triangle. Populated lazily by
+        # `register_marker_kind`. Empty by default → defs output is
+        # byte-identical with v1.x.
+        self.marker_kinds: set[tuple[str, str]] = set()
         self.warnings: list[str] = []
         # Set externally by callers that load YAML from disk (cli.py, the
         # standalone renderer main, the deck loader). `renderers/image.py`
@@ -959,9 +1003,18 @@ class FrameGraphRenderer:
     # Markers + defs
     # ------------------------------------------------------------------
 
-    def marker_id(self, color: str) -> str:
-        """Return the SVG `<marker>` id used by arrowheads of the given color."""
-        return "ah-" + color.lstrip("#").upper()
+    def marker_id(self, color: str, kind: str = "filled_triangle") -> str:
+        """Return the SVG `<marker>` id used by arrowheads of the given color and kind.
+
+        The `kind` parameter selects the arrowhead shape; default
+        `"filled_triangle"` matches the v1.x arrowhead and keeps
+        existing fixtures byte-identical. UML 2.5 introduces
+        additional shapes for inheritance/realization (hollow
+        triangle), aggregation (hollow diamond), and composition
+        (filled diamond).
+        """
+        suffix = "" if kind == "filled_triangle" else "-" + kind
+        return "ah-" + color.lstrip("#").upper() + suffix
 
     def defs_svg(self) -> str:
         """Emit: optional Tabler Icons @import, gradient defs, per-color arrow markers, effect filters."""
@@ -991,6 +1044,46 @@ class FrameGraphRenderer:
                 f' orient="auto-start-reverse" markerUnits="userSpaceOnUse">'
                 f'<path d="M0,0 L8,2.5 L0,5 Z" fill="{esc(c)}"/></marker>'
             )
+        # Extra marker shapes registered via `register_marker_kind`
+        # (UML inheritance/realization/aggregation/composition arrowheads).
+        # Sorted for deterministic <defs> output across runs.
+        for color, kind in sorted(self.marker_kinds):
+            mid = self.marker_id(color, kind)
+            shape_entry = _MARKER_SHAPES.get(kind)
+            if shape_entry is None:
+                continue
+            shape_path, vbox = shape_entry
+            vb, mw, mh, refx, refy = vbox
+            # Hollow shapes render with white fill + colored stroke
+            # (UML hollow triangle / diamond convention).
+            # Open arrow renders as a stroked V (no fill).
+            # Filled shapes render with the color as fill.
+            if kind in ("hollow_triangle", "hollow_diamond"):
+                fill = "#FFFFFF"
+                extra = f' stroke="{esc(color)}" stroke-width="1"'
+            elif kind == "open_arrow":
+                fill = "none"
+                extra = f' stroke="{esc(color)}" stroke-width="1.5" fill="none"'
+            else:
+                fill = color
+                extra = ""
+            if kind == "open_arrow":
+                # `fill="none"` already in extra; don't duplicate
+                out.append(
+                    f'<marker id="{esc(mid)}" viewBox="{vb}"'
+                    f' markerWidth="{mw}" markerHeight="{mh}"'
+                    f' refX="{refx}" refY="{refy}"'
+                    f' orient="auto-start-reverse" markerUnits="userSpaceOnUse">'
+                    f'<path d="{shape_path}"{extra}/></marker>'
+                )
+            else:
+                out.append(
+                    f'<marker id="{esc(mid)}" viewBox="{vb}"'
+                    f' markerWidth="{mw}" markerHeight="{mh}"'
+                    f' refX="{refx}" refY="{refy}"'
+                    f' orient="auto-start-reverse" markerUnits="userSpaceOnUse">'
+                    f'<path d="{shape_path}" fill="{esc(fill)}"{extra}/></marker>'
+                )
         out.append("</defs>")
         return "\n".join(out)
 
@@ -1041,12 +1134,39 @@ class FrameGraphRenderer:
             else:
                 a["stroke-dasharray"] = dash
         if arrows:
-            mid = "url(#" + self.marker_id(color) + ")"
+            # `arrow_kind` selects the marker shape; defaults to the
+            # filled-triangle shape that v1.x emitted unconditionally.
+            kind_start = str(
+                st.get("arrow_start_kind") or st.get("arrow_kind") or "filled_triangle"
+            )
+            kind_end = str(st.get("arrow_end_kind") or st.get("arrow_kind") or "filled_triangle")
             if st.get("arrow_start"):
-                a["marker-start"] = mid
+                if kind_start != "filled_triangle":
+                    self.register_marker_kind(color, kind_start)
+                a["marker-start"] = "url(#" + self.marker_id(color, kind_start) + ")"
             if st.get("arrow_end"):
-                a["marker-end"] = mid
+                if kind_end != "filled_triangle":
+                    self.register_marker_kind(color, kind_end)
+                a["marker-end"] = "url(#" + self.marker_id(color, kind_end) + ")"
         return a
+
+    def register_marker_kind(self, color: str, kind: str) -> None:
+        """Register an additional arrowhead shape for the given color.
+
+        The default `filled_triangle` is auto-emitted via
+        `marker_colors`; other kinds (per `_MARKER_SHAPES`) must be
+        registered before `defs_svg()` runs. Callers passing
+        `arrow_kind` through `stroke_attrs` register implicitly.
+        """
+        if kind == "filled_triangle":
+            return
+        if kind not in _MARKER_SHAPES:
+            return
+        # Make sure the base color is in marker_colors so defs_svg
+        # treats this color as "used."
+        if color not in self.marker_colors:
+            self.marker_colors.append(color)
+        self.marker_kinds.add((color, kind))
 
     # ------------------------------------------------------------------
     # SVG document  (pass 2)
