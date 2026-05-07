@@ -1063,6 +1063,229 @@ def render_swimlane(r: RendererContext, obj: Mapping[str, Any]) -> str:
     return "\n".join(out)
 
 
+def render_state_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a UML simple/composite state — rounded rectangle.
+
+    Renders a rounded rectangle with the state name in the header,
+    an optional internal-actions compartment listing entry/exit/do
+    when any are supplied, and a body compartment for sub-states
+    (when this is a composite state). The composer fills the body
+    by placing sub-states in their own resolved boxes — the renderer
+    only paints the chrome.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.state_box
+        box:     [x, y, w, h]
+        name:    <state name>
+
+    Optional:
+        entry:   string rendered as `entry / <…>`
+        exit:    string rendered as `exit / <…>`
+        do:      string rendered as `do / <…>`
+        composite: bool — when True, draw a divider between header
+                   and the body so sub-states sit inside a clear band
+        style:
+            fill:           default "#FFFFFF"
+            stroke_color:   default "#1A1A1A"
+            stroke_width:   default 1.0
+            radius:         corner radius (default 14)
+            name_size:      default 13
+            action_size:    default 10
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 180, 70]))
+    name = str(obj.get("name", ""))
+    entry = obj.get("entry")
+    exit_action = obj.get("exit")
+    do = obj.get("do")
+    composite = bool(obj.get("composite", False))
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.0)
+    fill = r.fill_value(style.get("fill", "#FFFFFF"), "#FFFFFF")
+    radius = fnum(style.get("radius"), 14)
+    name_size = fnum(style.get("name_size"), 13)
+    action_size = fnum(style.get("action_size"), 10)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+    # Body
+    out.append(
+        f'<rect x="{fmt(bx)}" y="{fmt(by)}" width="{fmt(bw)}" height="{fmt(bh)}" '
+        f'rx="{fmt(radius)}" ry="{fmt(radius)}" '
+        f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+    )
+
+    # Header / name
+    header_y = by + name_size + 6
+    out.append(
+        f'<text x="{fmt(bx + bw / 2)}" y="{fmt(header_y)}" '
+        f'font-family="{font_family}" font-size="{fmt(name_size)}" '
+        f'font-weight="700" fill="{text_color}" text-anchor="middle">'
+        f"{esc(name)}</text>"
+    )
+
+    # Internal-actions compartment (if any)
+    actions: list[str] = []
+    if entry:
+        actions.append(f"entry / {entry}")
+    if exit_action:
+        actions.append(f"exit / {exit_action}")
+    if do:
+        actions.append(f"do / {do}")
+
+    divider_y = header_y + 6
+    if actions or composite:
+        out.append(
+            f'<line x1="{fmt(bx + 8)}" y1="{fmt(divider_y)}" '
+            f'x2="{fmt(bx + bw - 8)}" y2="{fmt(divider_y)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width * 0.8)}"/>'
+        )
+
+    if actions:
+        text_y = divider_y + action_size + 4
+        for line in actions:
+            out.append(
+                f'<text x="{fmt(bx + 10)}" y="{fmt(text_y)}" '
+                f'font-family="{font_family}" font-size="{fmt(action_size)}" '
+                f'fill="{text_color}">{esc(line)}</text>'
+            )
+            text_y += action_size + 3
+
+    out.append("</g>")
+    return "\n".join(out)
+
+
+def render_pseudostate(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render a UML pseudostate glyph (choice, junction, history, etc.).
+
+    Initial / final / fork / join overlap with activity-node glyphs;
+    those kinds delegate to the activity_node renderer for visual
+    consistency. State-machine-specific glyphs:
+
+    - `choice`: hollow diamond.
+    - `junction`: small filled disc.
+    - `shallow_history`: hollow circle with `H`.
+    - `deep_history`: hollow circle with `H*`.
+    - `entry_point` / `exit_point`: hollow circle (exit_point adds X).
+    - `terminate`: an X glyph.
+
+    YAML surface
+    ------------
+    Required:
+        type:    uml.pseudostate
+        box:     [x, y, w, h]
+        kind:    <one of the listed kinds>
+
+    Optional:
+        name:    label rendered below the glyph
+        style:   stroke_color / stroke_width / label_size / fill
+    """
+    bx, by, bw, bh = box(obj.get("box", [0, 0, 28, 28]))
+    kind = str(obj.get("kind", "junction"))
+    name = obj.get("name")
+    style = obj.get("style") or {}
+
+    stroke_color = r.color(style.get("stroke_color", "#1A1A1A"), "#1A1A1A")
+    stroke_width = fnum(style.get("stroke_width"), 1.5)
+    label_size = fnum(style.get("label_size"), 11)
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+
+    cx = bx + bw / 2
+    cy = by + bh / 2
+    radius = min(bw, bh) / 2
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+
+    # Delegate kinds shared with activity diagrams.
+    if kind in ("initial", "final", "fork", "join"):
+        # Reuse render_activity_node for consistent glyph rendering.
+        delegate = dict(obj)
+        delegate["type"] = "uml.activity_node"
+        return render_activity_node(r, delegate)
+
+    if kind == "choice":
+        fill = r.fill_value(style.get("fill", "#FFFFFF"), "#FFFFFF")
+        pts = (
+            f"{fmt(cx)},{fmt(by)} "
+            f"{fmt(bx + bw)},{fmt(cy)} "
+            f"{fmt(cx)},{fmt(by + bh)} "
+            f"{fmt(bx)},{fmt(cy)}"
+        )
+        out.append(
+            f'<polygon points="{pts}" '
+            f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+    elif kind == "junction":
+        fill = r.fill_value(style.get("fill", "#1A1A1A"), "#1A1A1A")
+        out.append(
+            f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(radius)}" '
+            f'fill="{fill}" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+    elif kind in ("shallow_history", "deep_history"):
+        out.append(
+            f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(radius)}" '
+            f'fill="#FFFFFF" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        glyph = "H" if kind == "shallow_history" else "H*"
+        out.append(
+            f'<text x="{fmt(cx)}" y="{fmt(cy + label_size / 3)}" '
+            f'font-family="{font_family}" font-size="{fmt(label_size)}" '
+            f'font-weight="700" fill="{text_color}" text-anchor="middle">'
+            f"{esc(glyph)}</text>"
+        )
+    elif kind in ("entry_point", "exit_point"):
+        out.append(
+            f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(radius)}" '
+            f'fill="#FFFFFF" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        if kind == "exit_point":
+            offset = radius * 0.55
+            out.append(
+                f'<line x1="{fmt(cx - offset)}" y1="{fmt(cy - offset)}" '
+                f'x2="{fmt(cx + offset)}" y2="{fmt(cy + offset)}" '
+                f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+            )
+            out.append(
+                f'<line x1="{fmt(cx + offset)}" y1="{fmt(cy - offset)}" '
+                f'x2="{fmt(cx - offset)}" y2="{fmt(cy + offset)}" '
+                f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+            )
+    elif kind == "terminate":
+        offset = radius * 0.7
+        out.append(
+            f'<line x1="{fmt(cx - offset)}" y1="{fmt(cy - offset)}" '
+            f'x2="{fmt(cx + offset)}" y2="{fmt(cy + offset)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width * 1.5)}"/>'
+        )
+        out.append(
+            f'<line x1="{fmt(cx + offset)}" y1="{fmt(cy - offset)}" '
+            f'x2="{fmt(cx - offset)}" y2="{fmt(cy + offset)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width * 1.5)}"/>'
+        )
+    else:
+        # Fallback to a small circle for malformed kind values.
+        out.append(
+            f'<circle cx="{fmt(cx)}" cy="{fmt(cy)}" r="{fmt(radius)}" '
+            f'fill="#FFFFFF" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+
+    if name:
+        label_y = by + bh + label_size + 4
+        out.append(
+            f'<text x="{fmt(cx)}" y="{fmt(label_y)}" '
+            f'font-family="{font_family}" font-size="{fmt(label_size)}" '
+            f'fill="{text_color}" text-anchor="middle">{esc(str(name))}</text>'
+        )
+
+    out.append("</g>")
+    return "\n".join(out)
+
+
 RENDERERS = {
     "uml.classifier_box": render_classifier_box,
     "uml.actor": render_actor,
@@ -1074,4 +1297,6 @@ RENDERERS = {
     "uml.activity_node": render_activity_node,
     "uml.action": render_action,
     "uml.swimlane": render_swimlane,
+    "uml.state_box": render_state_box,
+    "uml.pseudostate": render_pseudostate,
 }

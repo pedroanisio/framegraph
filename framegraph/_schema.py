@@ -530,6 +530,47 @@ class UMLSwimlaneObject(_ObjectBase):
     style: dict[str, Any] | None = None
 
 
+class UMLStateBoxObject(_ObjectBase):
+    """UML simple/composite state — rounded rectangle with optional internal-actions compartment.
+
+    Phase C.4 of the UML support architecture. The state-machine
+    composer emits these for `UMLState` semantic elements; authors
+    may instantiate directly.
+    """
+
+    type: Literal["uml.state_box"]
+    name: str
+    entry: str | None = None
+    exit: str | None = None
+    do: str | None = None
+    composite: bool | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLPseudostateObject(_ObjectBase):
+    """UML pseudostate glyph (initial / choice / history / etc.).
+
+    Phase C.4 primitive.
+    """
+
+    type: Literal["uml.pseudostate"]
+    kind: Literal[
+        "initial",
+        "final",
+        "choice",
+        "junction",
+        "fork",
+        "join",
+        "shallow_history",
+        "deep_history",
+        "entry_point",
+        "exit_point",
+        "terminate",
+    ]
+    name: str | None = None
+    style: dict[str, Any] | None = None
+
+
 class _UnknownObject(_ObjectBase):
     """Fall-through for third-party `register(type_name, fn)` types.
 
@@ -570,7 +611,9 @@ KnownObject = Annotated[
     | UMLArtifactBoxObject
     | UMLActivityNodeObject
     | UMLActionObject
-    | UMLSwimlaneObject,
+    | UMLSwimlaneObject
+    | UMLStateBoxObject
+    | UMLPseudostateObject,
     Field(discriminator="type"),
 ]
 

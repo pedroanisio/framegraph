@@ -1891,6 +1891,216 @@ def validate_activity_diagram(data: dict[str, Any]) -> UMLActivityDiagramModel:
     return UMLActivityDiagramModel.model_validate(data)
 
 
+# ─────────────────────────────────────────────────────────────────
+# State machines (Phase C.4)
+# ─────────────────────────────────────────────────────────────────
+
+
+PseudostateKind = Literal[
+    "initial",
+    "final",
+    "choice",
+    "junction",
+    "fork",
+    "join",
+    "shallow_history",
+    "deep_history",
+    "entry_point",
+    "exit_point",
+    "terminate",
+]
+"""Pseudostate kinds per UML 2.5.1 §14.2.3 (PseudostateKind).
+
+Render conventions:
+
+- `initial`: small filled disc.
+- `final`: bullseye (filled disc inside a hollow ring).
+- `choice`: hollow diamond.
+- `junction`: small filled disc.
+- `fork` / `join`: thick bar.
+- `shallow_history`: hollow circle with `H`.
+- `deep_history`: hollow circle with `H*`.
+- `entry_point` / `exit_point`: hollow circle on the boundary of a
+  composite state (`exit_point` adds an X).
+- `terminate`: an X glyph (cross).
+"""
+
+
+class UMLState(BaseModel):
+    """A simple or composite state.
+
+    Renders as a rounded rectangle. When `regions` is non-empty the
+    state is *composite* — it contains nested sub-states organized
+    into one region (separated by horizontal dashed lines when
+    needed).
+
+    Attributes:
+        id: Stable identifier. Required.
+        name: Display name. Required.
+        entry: Optional entry-action label.
+        exit_action: Optional exit-action label (named to avoid
+            shadowing Python builtins; YAML can also use `exit`).
+        do: Optional do-activity label.
+        regions: Optional list of sub-state ids contained in this
+            state.
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
+    entry: str | None = None
+    exit_action: str | None = Field(default=None, alias="exit")
+    do: str | None = None
+    regions: list[str] = Field(default_factory=list)
+    position: Position | None = None
+
+
+class UMLPseudostate(BaseModel):
+    """A pseudostate per UML 2.5.1 §14.2.3.
+
+    Attributes:
+        id: Stable identifier. Required.
+        kind: Which pseudostate notation to render.
+        name: Optional label (typically rendered beside the glyph).
+        position: Optional layout hint.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(..., min_length=1)
+    kind: PseudostateKind
+    name: str | None = None
+    position: Position | None = None
+
+
+class UMLTransition(BaseModel):
+    """A transition between states or pseudostates.
+
+    Attributes:
+        id: Stable identifier. Required.
+        from_id: Source state or pseudostate id.
+        to_id: Target state or pseudostate id.
+        trigger: Optional trigger event name.
+        guard: Optional guard expression.
+        effect: Optional effect-action label.
+        kind: `external` (default) or `internal`.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    id: str = Field(..., min_length=1)
+    from_id: str = Field(..., min_length=1, alias="from")
+    to_id: str = Field(..., min_length=1, alias="to")
+    trigger: str | None = None
+    guard: str | None = None
+    effect: str | None = None
+    kind: Literal["external", "internal"] = "external"
+
+    def label(self) -> str:
+        """Build the canonical UML transition label.
+
+        Returns the conventional `trigger [guard] / effect` form.
+        Empty parts are omitted.
+        """
+        parts: list[str] = []
+        if self.trigger:
+            parts.append(self.trigger)
+        if self.guard:
+            parts.append(f"[{self.guard}]")
+        if self.effect:
+            parts.append(f"/ {self.effect}")
+        return " ".join(parts)
+
+
+class UMLStateMachineModel(BaseModel):
+    """Top-level container for a state-machine diagram's UML model.
+
+    Attributes:
+        states: Simple and composite states. ≥ 1.
+        pseudostates: Initial, final, choice, etc.
+        transitions: Edges between states/pseudostates.
+        notes: Free-text annotations.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    states: list[UMLState] = Field(..., min_length=1)
+    pseudostates: list[UMLPseudostate] = Field(default_factory=list)
+    transitions: list[UMLTransition] = Field(default_factory=list)
+    notes: list[UMLNote] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_unique_ids(self) -> UMLStateMachineModel:
+        seen: dict[str, str] = {}
+        for kind, items in (
+            ("state", self.states),
+            ("pseudostate", self.pseudostates),
+            ("transition", self.transitions),
+            ("note", self.notes),
+        ):
+            for item in items:
+                if item.id in seen:
+                    raise ValueError(
+                        f"duplicate UML element id {item.id!r}: declared as "
+                        f"{seen[item.id]!r} and again as {kind!r}"
+                    )
+                seen[item.id] = kind
+        return self
+
+    @model_validator(mode="after")
+    def _validate_transition_endpoints(self) -> UMLStateMachineModel:
+        valid = {s.id for s in self.states} | {p.id for p in self.pseudostates}
+        for t in self.transitions:
+            if t.from_id not in valid:
+                raise ValueError(f"transition {t.id!r} references unknown source id {t.from_id!r}")
+            if t.to_id not in valid:
+                raise ValueError(f"transition {t.id!r} references unknown target id {t.to_id!r}")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_regions_resolve(self) -> UMLStateMachineModel:
+        state_ids = {s.id for s in self.states}
+        for s in self.states:
+            for child in s.regions:
+                if child == s.id:
+                    raise ValueError(f"state {s.id!r} cannot contain itself in its regions")
+                if child not in state_ids:
+                    raise ValueError(f"state {s.id!r} declares unknown region member id {child!r}")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_no_region_cycle(self) -> UMLStateMachineModel:
+        children = {s.id: list(s.regions) for s in self.states}
+        WHITE, GREY, BLACK = 0, 1, 2
+        color = dict.fromkeys(children, WHITE)
+
+        def visit(nid: str) -> None:
+            color[nid] = GREY
+            for c in children.get(nid, ()):
+                if color.get(c) == GREY:
+                    raise ValueError(f"state region cycle detected at {nid!r} → {c!r}")
+                if color.get(c) == WHITE:
+                    visit(c)
+            color[nid] = BLACK
+
+        for nid in list(children):
+            if color[nid] == WHITE:
+                visit(nid)
+        return self
+
+
+def validate_state_machine(data: dict[str, Any]) -> UMLStateMachineModel:
+    """Validate a parsed mapping as a UML state-machine diagram model.
+
+    Args:
+        data: A dict with `states` (≥ 1), optional `pseudostates`,
+            `transitions`, `notes`.
+
+    Returns:
+        A validated `UMLStateMachineModel`.
+    """
+    return UMLStateMachineModel.model_validate(data)
+
+
 __all__ = [
     "ActivityNodeKind",
     "AssociationKind",
@@ -1900,6 +2110,7 @@ __all__ = [
     "PackageDependencyKind",
     "ParamDirection",
     "Position",
+    "PseudostateKind",
     "UMLActivityDiagramModel",
     "UMLActivityEdge",
     "UMLActivityNode",
@@ -1927,9 +2138,13 @@ __all__ = [
     "UMLPackageDiagramModel",
     "UMLParameter",
     "UMLPort",
+    "UMLPseudostate",
     "UMLRealization",
+    "UMLState",
+    "UMLStateMachineModel",
     "UMLSwimlane",
     "UMLSystemBoundary",
+    "UMLTransition",
     "UMLUseCase",
     "UMLUseCaseDiagramModel",
     "UMLUseCaseRelation",
@@ -1940,5 +2155,6 @@ __all__ = [
     "validate_component_diagram",
     "validate_deployment_diagram",
     "validate_package_diagram",
+    "validate_state_machine",
     "validate_use_case_diagram",
 ]
