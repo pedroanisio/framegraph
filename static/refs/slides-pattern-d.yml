@@ -1,0 +1,1419 @@
+big4_consulting_slide_template_patterns_extension_75:
+  - id: 151
+    name: Transformation North Star
+    consulting_use: "Aligns leadership around the future-state ambition."
+    layout_disposition: "A large aspirational statement supported by strategic pillars and measurable outcomes."
+    zones:
+      - role: north_star_statement
+        position: top_center
+        size: dominant
+      - role: strategic_pillars
+        position: middle_row
+        size: equal_cards
+      - role: measurable_outcomes
+        position: bottom_row
+        size: metric_cards
+      - role: visual_anchor
+        position: background_or_center
+        size: subtle_large
+
+  - id: 152
+    name: Strategic Imperatives
+    consulting_use: "Summarizes the few must-win priorities for the organization."
+    layout_disposition: "Three to six imperative cards arranged horizontally with rationale and implications."
+    zones:
+      - role: imperative_cards
+        position: center_row
+        size: equal_cards
+      - role: rationale
+        position: inside_each_card
+        size: short_text
+      - role: business_implication
+        position: card_footer
+        size: small
+      - role: headline
+        position: top
+        size: large
+
+  - id: 153
+    name: Strategic Pillars
+    consulting_use: "Groups the strategy into stable thematic pillars."
+    layout_disposition: "Vertical or horizontal pillars supporting an overarching ambition."
+    zones:
+      - role: ambition
+        position: top
+        size: wide_band
+      - role: pillars
+        position: center
+        size: equal_columns
+      - role: initiatives
+        position: below_each_pillar
+        size: bullet_lists
+      - role: outcomes
+        position: bottom
+        size: metric_row
+
+  - id: 154
+    name: Strategic Choices Cascade
+    consulting_use: "Frames strategy as linked choices: where to play, how to win, capabilities, systems."
+    layout_disposition: "Stacked cascade from ambition to choices to capabilities and management systems."
+    zones:
+      - role: aspiration
+        position: top
+        size: wide_block
+      - role: where_to_play
+        position: upper_middle
+        size: block
+      - role: how_to_win
+        position: middle
+        size: block
+      - role: required_capabilities
+        position: lower_middle
+        size: block
+      - role: management_systems
+        position: bottom
+        size: block
+
+  - id: 155
+    name: Strategy on a Page
+    consulting_use: "Condenses full strategy into a single executive summary."
+    layout_disposition: "One-page framework with vision, priorities, initiatives, KPIs, and governance."
+    zones:
+      - role: vision
+        position: top
+        size: dominant_band
+      - role: strategic_priorities
+        position: left_column
+        size: cards
+      - role: key_initiatives
+        position: center
+        size: grouped_cards
+      - role: kpis
+        position: right_column
+        size: metric_cards
+      - role: governance
+        position: bottom
+        size: horizontal_band
+
+  - id: 156
+    name: Ambition to Execution Map
+    consulting_use: "Connects high-level ambition to executable initiatives."
+    layout_disposition: "Vertical chain from ambition to outcomes, pillars, initiatives, owners, and metrics."
+    zones:
+      - role: ambition
+        position: top
+        size: large
+      - role: outcomes
+        position: upper_middle
+        size: metric_cards
+      - role: pillars
+        position: middle
+        size: columns
+      - role: initiatives
+        position: lower_middle
+        size: cards
+      - role: owners_metrics
+        position: bottom
+        size: table
+
+  - id: 157
+    name: Strategic Trade-Offs
+    consulting_use: "Makes explicit what the organization will and will not do."
+    layout_disposition: "Two-column or paired-card layout contrasting choices and exclusions."
+    zones:
+      - role: will_do
+        position: left_column
+        size: large_card
+      - role: will_not_do
+        position: right_column
+        size: large_card
+      - role: rationale
+        position: bottom
+        size: explanation_band
+      - role: decision_principle
+        position: top
+        size: headline
+
+  - id: 158
+    name: Where to Play / How to Win
+    consulting_use: "Defines target markets and competitive advantage."
+    layout_disposition: "Two-panel strategy slide with market choices on the left and advantage choices on the right."
+    zones:
+      - role: where_to_play
+        position: left_panel
+        size: half_width
+      - role: how_to_win
+        position: right_panel
+        size: half_width
+      - role: proof_points
+        position: bottom
+        size: small_cards
+      - role: implication
+        position: top_or_bottom_callout
+        size: highlighted
+
+  - id: 159
+    name: Strategic Coherence Check
+    consulting_use: "Tests whether strategy elements reinforce one another."
+    layout_disposition: "Matrix showing alignment between objectives, capabilities, initiatives, and KPIs."
+    zones:
+      - role: strategy_elements
+        position: left_axis
+        size: rows
+      - role: alignment_dimensions
+        position: top_axis
+        size: columns
+      - role: coherence_scores
+        position: matrix_body
+        size: cells
+      - role: misalignment_notes
+        position: right_panel
+        size: callouts
+
+  - id: 160
+    name: Enterprise Value Creation Agenda
+    consulting_use: "Frames value creation across revenue, margin, capital, risk, and organization."
+    layout_disposition: "Multi-column agenda with value pools and linked initiatives."
+    zones:
+      - role: value_creation_themes
+        position: columns
+        size: equal
+      - role: value_pools
+        position: top_of_columns
+        size: metric_cards
+      - role: initiatives
+        position: column_body
+        size: bullet_lists
+      - role: total_value_potential
+        position: bottom
+        size: highlighted_band
+
+  - id: 161
+    name: Value Creation Bridge
+    consulting_use: "Shows movement from current enterprise value to target enterprise value."
+    layout_disposition: "Bridge chart with major value levers and quantified contribution."
+    zones:
+      - role: current_value
+        position: leftmost
+        size: bar
+      - role: value_levers
+        position: middle
+        size: waterfall_steps
+      - role: target_value
+        position: rightmost
+        size: bar
+      - role: assumptions
+        position: bottom
+        size: small_notes
+
+  - id: 162
+    name: Shareholder Value Tree
+    consulting_use: "Connects operational drivers to shareholder value."
+    layout_disposition: "Tree from shareholder value to revenue growth, margin, asset efficiency, and risk."
+    zones:
+      - role: shareholder_value
+        position: left
+        size: large_node
+      - role: financial_drivers
+        position: center
+        size: medium_nodes
+      - role: operational_drivers
+        position: right
+        size: small_nodes
+      - role: kpi_mapping
+        position: bottom
+        size: table
+
+  - id: 163
+    name: Growth Vector Map
+    consulting_use: "Compares organic and inorganic growth pathways."
+    layout_disposition: "Matrix of growth vectors by customer, product, market, channel, and acquisition route."
+    zones:
+      - role: growth_vectors
+        position: center_grid
+        size: cards
+      - role: expected_value
+        position: card_header
+        size: metric
+      - role: complexity
+        position: card_footer
+        size: tag
+      - role: priority_recommendation
+        position: right_panel
+        size: highlighted_list
+
+  - id: 164
+    name: Market Entry Strategy
+    consulting_use: "Evaluates entering a new market or geography."
+    layout_disposition: "Sequential layout covering attractiveness, entry mode, investment, risks, and launch plan."
+    zones:
+      - role: market_attractiveness
+        position: left_column
+        size: card
+      - role: entry_options
+        position: center_left
+        size: cards
+      - role: recommended_entry_mode
+        position: center_right
+        size: highlighted_card
+      - role: launch_steps
+        position: right_column_or_bottom
+        size: timeline
+
+  - id: 165
+    name: International Expansion Screen
+    consulting_use: "Screens countries or regions for expansion."
+    layout_disposition: "Country rows with criteria columns, scores, and recommended shortlist."
+    zones:
+      - role: countries
+        position: left_axis
+        size: rows
+      - role: screening_criteria
+        position: top_axis
+        size: columns
+      - role: scores
+        position: matrix_body
+        size: cells
+      - role: shortlisted_markets
+        position: right_column
+        size: highlighted
+
+  - id: 166
+    name: M&A Target Screening
+    consulting_use: "Screens acquisition targets by strategic fit, financial attractiveness, and feasibility."
+    layout_disposition: "Bubble chart or table comparing potential targets."
+    zones:
+      - role: target_companies
+        position: matrix_or_table_body
+        size: bubbles_or_rows
+      - role: strategic_fit_axis
+        position: vertical_axis
+        size: full_height
+      - role: financial_attractiveness_axis
+        position: horizontal_axis
+        size: full_width
+      - role: deal_feasibility
+        position: bubble_size_or_tag
+        size: contextual
+
+  - id: 167
+    name: M&A Synergy Case
+    consulting_use: "Quantifies revenue, cost, tax, and capital synergies."
+    layout_disposition: "Stacked synergy categories with timing, confidence, and value."
+    zones:
+      - role: synergy_categories
+        position: left_axis
+        size: rows
+      - role: value_estimate
+        position: center_left
+        size: metric_cells
+      - role: timing
+        position: center_right
+        size: timeline_cells
+      - role: confidence
+        position: right_column
+        size: labels
+      - role: total_synergy
+        position: bottom
+        size: highlighted_band
+
+  - id: 168
+    name: Post Merger Integration Roadmap
+    consulting_use: "Plans integration across functions after a transaction."
+    layout_disposition: "Multi-workstream roadmap across Day 1, first 100 days, and steady state."
+    zones:
+      - role: integration_phases
+        position: top_axis
+        size: columns
+      - role: workstreams
+        position: left_axis
+        size: rows
+      - role: integration_activities
+        position: roadmap_body
+        size: bars_or_cards
+      - role: critical_milestones
+        position: timeline_overlay
+        size: markers
+
+  - id: 169
+    name: Day 1 Readiness
+    consulting_use: "Tracks readiness for legal close, launch, or operational transition."
+    layout_disposition: "Checklist dashboard with readiness status by function."
+    zones:
+      - role: readiness_score
+        position: top_left
+        size: metric_card
+      - role: functional_checklist
+        position: center
+        size: table
+      - role: open_issues
+        position: right_panel
+        size: list
+      - role: go_no_go_decision
+        position: bottom
+        size: highlighted_band
+
+  - id: 170
+    name: Carve-Out / Separation Plan
+    consulting_use: "Shows how business units, systems, people, and services will separate."
+    layout_disposition: "Separation workstreams with dependencies, milestones, and transition service agreements."
+    zones:
+      - role: separation_workstreams
+        position: left_axis
+        size: rows
+      - role: key_activities
+        position: timeline_body
+        size: bars
+      - role: tsa_dependencies
+        position: right_panel
+        size: table
+      - role: separation_milestones
+        position: across_timeline
+        size: markers
+
+  - id: 171
+    name: Due Diligence Red Flags
+    consulting_use: "Summarizes critical risks discovered during diligence."
+    layout_disposition: "Risk cards grouped by commercial, financial, operational, legal, and technology dimensions."
+    zones:
+      - role: diligence_dimensions
+        position: columns_or_rows
+        size: grouped_sections
+      - role: red_flags
+        position: inside_sections
+        size: cards
+      - role: severity
+        position: card_corner
+        size: label
+      - role: deal_implication
+        position: bottom
+        size: callout
+
+  - id: 172
+    name: Commercial Due Diligence Summary
+    consulting_use: "Summarizes market, customer, competitor, and growth findings."
+    layout_disposition: "Four-quadrant or four-panel summary with investment thesis implication."
+    zones:
+      - role: market_findings
+        position: top_left
+        size: quadrant
+      - role: customer_findings
+        position: top_right
+        size: quadrant
+      - role: competitor_findings
+        position: bottom_left
+        size: quadrant
+      - role: growth_findings
+        position: bottom_right
+        size: quadrant
+      - role: investment_thesis
+        position: center_or_bottom_band
+        size: highlighted
+
+  - id: 173
+    name: Investment Thesis
+    consulting_use: "States the rationale for an investment or strategic move."
+    layout_disposition: "Thesis statement supported by market, capability, financial, and risk proof points."
+    zones:
+      - role: thesis_statement
+        position: top
+        size: dominant
+      - role: supporting_arguments
+        position: middle_grid
+        size: cards
+      - role: key_risks
+        position: bottom_left
+        size: list
+      - role: upside_case
+        position: bottom_right
+        size: metric_card
+
+  - id: 174
+    name: Deal Value Levers
+    consulting_use: "Identifies levers that create or protect deal value."
+    layout_disposition: "Levers grouped by growth, margin, capital efficiency, and integration."
+    zones:
+      - role: lever_categories
+        position: columns
+        size: equal
+      - role: value_levers
+        position: inside_columns
+        size: cards
+      - role: value_range
+        position: card_footer
+        size: metric
+      - role: execution_complexity
+        position: card_tag
+        size: small
+
+  - id: 175
+    name: Operating Model Layers
+    consulting_use: "Breaks operating model into governance, structure, processes, people, systems, and data."
+    layout_disposition: "Layer cake diagram with cross-cutting enablers."
+    zones:
+      - role: operating_model_layers
+        position: stacked_vertical
+        size: horizontal_bands
+      - role: cross_cutting_enablers
+        position: side_vertical_band
+        size: tall
+      - role: design_questions
+        position: right_panel
+        size: list
+      - role: target_principles
+        position: bottom
+        size: small_cards
+
+  - id: 176
+    name: Process Ownership Model
+    consulting_use: "Clarifies ownership of end-to-end business processes."
+    layout_disposition: "Process rows mapped to process owners, contributors, governance forums, and KPIs."
+    zones:
+      - role: processes
+        position: left_axis
+        size: rows
+      - role: process_owners
+        position: center_left
+        size: cells
+      - role: contributors
+        position: center_right
+        size: cells
+      - role: governance_forum
+        position: right_column
+        size: cells
+      - role: process_kpis
+        position: bottom_or_far_right
+        size: metrics
+
+  - id: 177
+    name: Service Delivery Model
+    consulting_use: "Designs centralized, decentralized, shared-service, or outsourced delivery."
+    layout_disposition: "Service model archetypes with service scope, ownership, and customer interface."
+    zones:
+      - role: service_archetypes
+        position: center_grid
+        size: cards
+      - role: service_scope
+        position: card_body
+        size: list
+      - role: ownership_model
+        position: card_footer
+        size: label
+      - role: recommended_model
+        position: right_panel
+        size: highlighted_card
+
+  - id: 178
+    name: Shared Services Model
+    consulting_use: "Explains what work moves into shared services and how it operates."
+    layout_disposition: "Business units on one side, shared service center in the middle, retained organization on the other."
+    zones:
+      - role: business_units
+        position: left_column
+        size: blocks
+      - role: shared_service_center
+        position: center
+        size: large_block
+      - role: retained_organization
+        position: right_column
+        size: blocks
+      - role: service_catalog
+        position: bottom
+        size: table
+
+  - id: 179
+    name: Center of Excellence Model
+    consulting_use: "Defines expert capability hub and its interaction with business units."
+    layout_disposition: "Central COE node connected to business units, governance, and capability services."
+    zones:
+      - role: center_of_excellence
+        position: center
+        size: large_node
+      - role: business_units
+        position: surrounding_nodes
+        size: blocks
+      - role: services_offered
+        position: bottom
+        size: cards
+      - role: governance_links
+        position: connectors
+        size: labeled_arrows
+
+  - id: 180
+    name: Agile at Scale Model
+    consulting_use: "Shows teams, tribes, squads, chapters, and governance cadence."
+    layout_disposition: "Nested team structure with agile ceremonies and portfolio alignment."
+    zones:
+      - role: squads
+        position: center_grid
+        size: small_cards
+      - role: tribes_or_domains
+        position: grouped_regions
+        size: containers
+      - role: chapters
+        position: side_or_cross_cutting
+        size: vertical_bands
+      - role: portfolio_governance
+        position: top
+        size: horizontal_band
+      - role: cadence
+        position: bottom
+        size: timeline
+
+  - id: 181
+    name: Product Operating Model
+    consulting_use: "Moves organization from project delivery to product-oriented teams."
+    layout_disposition: "Product domains mapped to teams, capabilities, funding, and KPIs."
+    zones:
+      - role: product_domains
+        position: columns
+        size: grouped_sections
+      - role: product_teams
+        position: inside_domains
+        size: cards
+      - role: funding_model
+        position: bottom_left
+        size: card
+      - role: product_kpis
+        position: bottom_right
+        size: metric_cards
+
+  - id: 182
+    name: Platform Operating Model
+    consulting_use: "Defines platform teams, product teams, shared capabilities, and governance."
+    layout_disposition: "Layered platform model with consumers above, platform services in middle, governance below."
+    zones:
+      - role: consuming_teams
+        position: top_layer
+        size: horizontal_band
+      - role: platform_services
+        position: middle_layer
+        size: grouped_blocks
+      - role: enabling_capabilities
+        position: lower_middle
+        size: cards
+      - role: governance_and_standards
+        position: bottom_layer
+        size: horizontal_band
+
+  - id: 183
+    name: Data Operating Model
+    consulting_use: "Defines data ownership, stewardship, governance, architecture, and delivery."
+    layout_disposition: "Data domains mapped to owners, governance forums, platforms, and use cases."
+    zones:
+      - role: data_domains
+        position: left_axis
+        size: rows
+      - role: domain_owners
+        position: center_left
+        size: cells
+      - role: governance_forums
+        position: center
+        size: cells
+      - role: platform_capabilities
+        position: center_right
+        size: cells
+      - role: priority_use_cases
+        position: right_column
+        size: cells
+
+  - id: 184
+    name: Data Governance Framework
+    consulting_use: "Frames policies, ownership, quality, privacy, lineage, and controls."
+    layout_disposition: "Framework wheel or layered model with governance domains around data assets."
+    zones:
+      - role: data_assets
+        position: center
+        size: large_node
+      - role: governance_domains
+        position: surrounding_ring
+        size: segments
+      - role: policies_controls
+        position: bottom
+        size: cards
+      - role: roles_responsibilities
+        position: side_panel
+        size: table
+
+  - id: 185
+    name: Data Quality Dashboard
+    consulting_use: "Summarizes data quality by dimension, domain, and issue severity."
+    layout_disposition: "Metric dashboard with quality scores, issue counts, and remediation status."
+    zones:
+      - role: data_quality_score
+        position: top_left
+        size: metric_card
+      - role: quality_dimensions
+        position: center_grid
+        size: cards_or_heatmap
+      - role: issue_backlog
+        position: right_panel
+        size: table
+      - role: remediation_progress
+        position: bottom
+        size: progress_bar
+
+  - id: 186
+    name: AI Use Case Portfolio
+    consulting_use: "Prioritizes AI or analytics use cases by value, feasibility, and risk."
+    layout_disposition: "2x2 or bubble portfolio with use cases plotted and grouped by domain."
+    zones:
+      - role: business_value_axis
+        position: vertical_axis
+        size: full_height
+      - role: feasibility_axis
+        position: horizontal_axis
+        size: full_width
+      - role: use_cases
+        position: matrix_body
+        size: bubbles
+      - role: risk_indicator
+        position: bubble_color_or_tag
+        size: contextual
+      - role: recommended_wave
+        position: quadrant_or_label
+        size: small
+
+  - id: 187
+    name: AI Value Chain
+    consulting_use: "Explains the end-to-end AI capability chain from data to business outcome."
+    layout_disposition: "Horizontal chain from data sources to models, applications, adoption, and value."
+    zones:
+      - role: data_sources
+        position: left
+        size: block
+      - role: model_layer
+        position: center_left
+        size: block
+      - role: application_layer
+        position: center
+        size: block
+      - role: adoption_layer
+        position: center_right
+        size: block
+      - role: business_value
+        position: right
+        size: highlighted_block
+
+  - id: 188
+    name: GenAI Adoption Roadmap
+    consulting_use: "Plans adoption of generative AI across functions and maturity waves."
+    layout_disposition: "Wave roadmap with pilots, scaled deployments, governance, and capability building."
+    zones:
+      - role: adoption_waves
+        position: horizontal_sequence
+        size: columns
+      - role: genai_use_cases
+        position: inside_waves
+        size: cards
+      - role: governance_milestones
+        position: top_or_bottom_overlay
+        size: markers
+      - role: capability_building
+        position: bottom_band
+        size: horizontal_band
+
+  - id: 189
+    name: Responsible AI Framework
+    consulting_use: "Shows controls for fairness, safety, transparency, privacy, security, and accountability."
+    layout_disposition: "Framework wheel or control stack around AI lifecycle."
+    zones:
+      - role: ai_lifecycle
+        position: center
+        size: large
+      - role: responsible_ai_principles
+        position: surrounding_ring
+        size: segments
+      - role: controls
+        position: bottom
+        size: cards
+      - role: accountability_roles
+        position: right_panel
+        size: table
+
+  - id: 190
+    name: AI Governance Model
+    consulting_use: "Defines AI decision rights, review boards, policies, and operating controls."
+    layout_disposition: "Governance hierarchy with intake, risk classification, review, deployment, and monitoring."
+    zones:
+      - role: governance_bodies
+        position: top_layers
+        size: blocks
+      - role: ai_intake_process
+        position: center_left_to_right
+        size: flow
+      - role: risk_tiers
+        position: side_panel
+        size: stacked_labels
+      - role: monitoring_controls
+        position: bottom
+        size: cards
+
+  - id: 191
+    name: Automation Opportunity Map
+    consulting_use: "Identifies where automation can reduce cost, time, or errors."
+    layout_disposition: "Process steps plotted by automation potential and business impact."
+    zones:
+      - role: process_steps
+        position: matrix_body_or_timeline
+        size: markers_or_blocks
+      - role: automation_potential_axis
+        position: horizontal_axis
+        size: full_width
+      - role: business_impact_axis
+        position: vertical_axis
+        size: full_height
+      - role: automation_candidates
+        position: highlighted_area
+        size: contextual
+
+  - id: 192
+    name: Technology Capability Stack
+    consulting_use: "Explains required technology layers for a target solution."
+    layout_disposition: "Layered stack from user experience to applications, integration, data, infrastructure, and security."
+    zones:
+      - role: experience_layer
+        position: top
+        size: horizontal_band
+      - role: application_layer
+        position: upper_middle
+        size: horizontal_band
+      - role: integration_layer
+        position: middle
+        size: horizontal_band
+      - role: data_layer
+        position: lower_middle
+        size: horizontal_band
+      - role: infrastructure_security
+        position: bottom
+        size: horizontal_band
+
+  - id: 193
+    name: Enterprise Architecture Blueprint
+    consulting_use: "Shows target-state architecture across business, application, data, and technology layers."
+    layout_disposition: "Multi-layer architecture blueprint with domains and integration flows."
+    zones:
+      - role: business_architecture
+        position: top_layer
+        size: horizontal_band
+      - role: application_architecture
+        position: upper_middle_layer
+        size: grouped_blocks
+      - role: data_architecture
+        position: lower_middle_layer
+        size: grouped_blocks
+      - role: technology_architecture
+        position: bottom_layer
+        size: horizontal_band
+      - role: integration_flows
+        position: between_layers
+        size: connectors
+
+  - id: 194
+    name: Platform Modernization Roadmap
+    consulting_use: "Plans modernization of core platforms and applications."
+    layout_disposition: "Timeline with platform components, modernization patterns, risks, and dependencies."
+    zones:
+      - role: platform_components
+        position: left_axis
+        size: rows
+      - role: modernization_timeline
+        position: center
+        size: bars
+      - role: modernization_patterns
+        position: inside_bars_or_tags
+        size: labels
+      - role: risks_dependencies
+        position: right_panel
+        size: table
+
+  - id: 195
+    name: ERP Transformation Plan
+    consulting_use: "Summarizes enterprise resource planning transformation scope and rollout."
+    layout_disposition: "Program roadmap by process area, module, region, and release wave."
+    zones:
+      - role: process_areas
+        position: left_axis
+        size: rows
+      - role: erp_modules
+        position: center
+        size: grouped_blocks
+      - role: rollout_waves
+        position: timeline_overlay
+        size: columns
+      - role: business_readiness
+        position: right_panel
+        size: status_cards
+
+  - id: 196
+    name: Cyber Risk Heatmap
+    consulting_use: "Summarizes cyber risks by likelihood, impact, and control maturity."
+    layout_disposition: "Risk heatmap with control gaps and remediation priorities."
+    zones:
+      - role: likelihood_axis
+        position: horizontal_axis
+        size: full_width
+      - role: impact_axis
+        position: vertical_axis
+        size: full_height
+      - role: cyber_risks
+        position: heatmap_body
+        size: markers
+      - role: control_maturity
+        position: marker_tag_or_side_panel
+        size: contextual
+      - role: remediation_priorities
+        position: bottom
+        size: list
+
+  - id: 197
+    name: Cybersecurity Maturity Model
+    consulting_use: "Assesses security maturity across domains."
+    layout_disposition: "Rows of security domains against maturity levels with target markers."
+    zones:
+      - role: security_domains
+        position: left_axis
+        size: rows
+      - role: maturity_levels
+        position: center
+        size: horizontal_scale
+      - role: current_marker
+        position: on_scale
+        size: marker
+      - role: target_marker
+        position: on_scale
+        size: marker
+      - role: priority_actions
+        position: right_panel
+        size: list
+
+  - id: 198
+    name: Regulatory Compliance Matrix
+    consulting_use: "Maps requirements to controls, owners, evidence, and gaps."
+    layout_disposition: "Dense matrix with compliance obligations and control status."
+    zones:
+      - role: requirements
+        position: left_axis
+        size: rows
+      - role: controls
+        position: center_left
+        size: cells
+      - role: owners
+        position: center_right
+        size: cells
+      - role: evidence_status
+        position: right_column
+        size: status_cells
+      - role: gaps
+        position: far_right
+        size: issue_cells
+
+  - id: 199
+    name: Control Framework
+    consulting_use: "Shows preventive, detective, and corrective controls across a process."
+    layout_disposition: "Process flow with controls attached at relevant points."
+    zones:
+      - role: process_flow
+        position: center_horizontal
+        size: dominant
+      - role: preventive_controls
+        position: above_flow
+        size: cards
+      - role: detective_controls
+        position: on_flow_or_below
+        size: cards
+      - role: corrective_controls
+        position: bottom
+        size: cards
+      - role: control_owner
+        position: card_footer
+        size: small
+
+  - id: 200
+    name: Internal Audit Findings Summary
+    consulting_use: "Summarizes audit findings, severity, root cause, and remediation."
+    layout_disposition: "Table sorted by severity with management action plan."
+    zones:
+      - role: findings
+        position: left_column
+        size: rows
+      - role: severity
+        position: center_left
+        size: labels
+      - role: root_cause
+        position: center
+        size: text_cells
+      - role: remediation_action
+        position: center_right
+        size: text_cells
+      - role: owner_due_date
+        position: right_column
+        size: cells
+
+  - id: 201
+    name: ESG Materiality Matrix
+    consulting_use: "Prioritizes ESG topics by stakeholder importance and business impact."
+    layout_disposition: "2x2 or scatter matrix with ESG topics plotted."
+    zones:
+      - role: stakeholder_importance_axis
+        position: vertical_axis
+        size: full_height
+      - role: business_impact_axis
+        position: horizontal_axis
+        size: full_width
+      - role: esg_topics
+        position: matrix_body
+        size: bubbles
+      - role: priority_topics
+        position: upper_right
+        size: highlighted_area
+
+  - id: 202
+    name: ESG Roadmap
+    consulting_use: "Plans ESG initiatives, disclosures, capabilities, and milestones."
+    layout_disposition: "Multi-workstream roadmap across environmental, social, governance, and reporting tracks."
+    zones:
+      - role: esg_workstreams
+        position: left_axis
+        size: rows
+      - role: timeline
+        position: top_axis
+        size: columns
+      - role: initiatives
+        position: roadmap_body
+        size: bars_or_cards
+      - role: disclosure_milestones
+        position: timeline_overlay
+        size: markers
+
+  - id: 203
+    name: Decarbonization Levers
+    consulting_use: "Shows emissions reduction initiatives and abatement potential."
+    layout_disposition: "Abatement curve or lever portfolio with cost and emissions impact."
+    zones:
+      - role: decarbonization_levers
+        position: center
+        size: bars_or_cards
+      - role: emissions_reduction
+        position: vertical_axis_or_metric
+        size: numeric
+      - role: abatement_cost
+        position: horizontal_axis_or_tag
+        size: numeric
+      - role: implementation_timing
+        position: bottom
+        size: timeline
+
+  - id: 204
+    name: Carbon Baseline
+    consulting_use: "Summarizes emissions baseline by scope, business unit, or source."
+    layout_disposition: "Stacked emissions chart with scope breakdown and data-quality notes."
+    zones:
+      - role: total_emissions
+        position: top_left
+        size: metric_card
+      - role: scope_breakdown
+        position: center
+        size: chart
+      - role: emissions_sources
+        position: right_panel
+        size: ranked_list
+      - role: data_quality_notes
+        position: bottom
+        size: small
+
+  - id: 205
+    name: Sustainability Value Case
+    consulting_use: "Connects sustainability actions to revenue, cost, risk, capital, and brand outcomes."
+    layout_disposition: "Value case framework with sustainability initiatives mapped to financial and nonfinancial benefits."
+    zones:
+      - role: sustainability_initiatives
+        position: left_column
+        size: cards
+      - role: value_drivers
+        position: center
+        size: grouped_cards
+      - role: business_outcomes
+        position: right_column
+        size: metric_cards
+      - role: narrative_takeaway
+        position: bottom
+        size: highlighted_band
+
+  - id: 206
+    name: Supply Chain Network Map
+    consulting_use: "Shows suppliers, plants, warehouses, routes, and customers."
+    layout_disposition: "Network map with nodes, flows, constraints, and risk overlays."
+    zones:
+      - role: supply_nodes
+        position: map_or_canvas
+        size: nodes
+      - role: material_flows
+        position: between_nodes
+        size: arrows
+      - role: risk_overlays
+        position: on_nodes_or_routes
+        size: tags
+      - role: capacity_metrics
+        position: side_panel
+        size: metric_cards
+
+  - id: 207
+    name: Supply Chain Control Tower
+    consulting_use: "Summarizes operational visibility across supply, demand, inventory, and logistics."
+    layout_disposition: "Dashboard layout with alert cards, KPIs, maps, and exception queues."
+    zones:
+      - role: kpi_cards
+        position: top_row
+        size: equal
+      - role: network_view
+        position: center_left
+        size: large
+      - role: exceptions
+        position: center_right
+        size: table
+      - role: action_queue
+        position: bottom
+        size: list
+
+  - id: 208
+    name: Inventory Optimization
+    consulting_use: "Shows inventory levels, service targets, stockouts, and reduction potential."
+    layout_disposition: "Inventory by category with service-level trade-offs and opportunity sizing."
+    zones:
+      - role: inventory_baseline
+        position: left_panel
+        size: chart
+      - role: service_level_curve
+        position: center
+        size: chart
+      - role: optimization_opportunity
+        position: right_panel
+        size: metric_cards
+      - role: recommended_actions
+        position: bottom
+        size: cards
+
+  - id: 209
+    name: Demand Forecast Accuracy
+    consulting_use: "Assesses forecast error and improvement levers."
+    layout_disposition: "Forecast versus actual chart with error decomposition and process recommendations."
+    zones:
+      - role: forecast_actual_chart
+        position: center
+        size: dominant
+      - role: error_metrics
+        position: top_row
+        size: metric_cards
+      - role: error_drivers
+        position: right_panel
+        size: ranked_list
+      - role: improvement_levers
+        position: bottom
+        size: cards
+
+  - id: 210
+    name: S&OP Maturity
+    consulting_use: "Assesses sales and operations planning process maturity."
+    layout_disposition: "Maturity scale across process, data, governance, tools, and behaviors."
+    zones:
+      - role: maturity_dimensions
+        position: left_axis
+        size: rows
+      - role: maturity_levels
+        position: center
+        size: horizontal_scale
+      - role: current_state
+        position: on_scale
+        size: marker
+      - role: target_state
+        position: on_scale
+        size: marker
+      - role: improvement_plan
+        position: right_panel
+        size: list
+
+  - id: 211
+    name: Manufacturing Footprint
+    consulting_use: "Compares plant locations, capacity, cost, and strategic role."
+    layout_disposition: "Map plus plant comparison table or bubble chart."
+    zones:
+      - role: facility_map
+        position: left_or_center
+        size: large
+      - role: plant_metrics
+        position: right_panel
+        size: table
+      - role: capacity_utilization
+        position: bottom
+        size: chart
+      - role: footprint_recommendation
+        position: top_or_bottom_callout
+        size: highlighted
+
+  - id: 212
+    name: Operational Excellence House
+    consulting_use: "Frames operational excellence as a house with foundations, pillars, and roof."
+    layout_disposition: "House diagram with foundation capabilities, operating pillars, and target outcomes."
+    zones:
+      - role: target_outcomes
+        position: roof
+        size: top_band
+      - role: excellence_pillars
+        position: center_columns
+        size: vertical_pillars
+      - role: foundational_enablers
+        position: bottom
+        size: base_band
+      - role: metrics
+        position: side_panel
+        size: small_cards
+
+  - id: 213
+    name: KPI Cockpit
+    consulting_use: "Provides executive view of operational performance."
+    layout_disposition: "Dashboard with status tiles, trend charts, exception indicators, and action list."
+    zones:
+      - role: status_tiles
+        position: top_row
+        size: equal_cards
+      - role: trend_charts
+        position: center_grid
+        size: charts
+      - role: exceptions
+        position: right_panel
+        size: list
+      - role: actions
+        position: bottom
+        size: table
+
+  - id: 214
+    name: Performance Management Cycle
+    consulting_use: "Shows cadence from planning to execution, review, and corrective action."
+    layout_disposition: "Circular or loop diagram with governance checkpoints."
+    zones:
+      - role: cycle_steps
+        position: circular_flow
+        size: equal_segments
+      - role: governance_cadence
+        position: around_cycle_or_bottom
+        size: labels
+      - role: kpi_inputs
+        position: left_panel
+        size: cards
+      - role: corrective_actions
+        position: right_panel
+        size: cards
+
+  - id: 215
+    name: OKR Cascade
+    consulting_use: "Links enterprise objectives to business-unit and team-level key results."
+    layout_disposition: "Cascading hierarchy from enterprise objectives to team OKRs."
+    zones:
+      - role: enterprise_objectives
+        position: top
+        size: wide_cards
+      - role: business_unit_okrs
+        position: middle
+        size: grouped_cards
+      - role: team_okrs
+        position: bottom
+        size: smaller_cards
+      - role: alignment_connectors
+        position: between_levels
+        size: lines
+
+  - id: 216
+    name: Benefits Tracking Dashboard
+    consulting_use: "Tracks realized versus planned benefits across initiatives."
+    layout_disposition: "Dashboard showing benefit plan, actuals, variance, confidence, and owner."
+    zones:
+      - role: planned_benefits
+        position: top_left
+        size: metric_card
+      - role: realized_benefits
+        position: top_center
+        size: metric_card
+      - role: variance
+        position: top_right
+        size: metric_card
+      - role: initiative_tracking_table
+        position: center
+        size: table
+      - role: corrective_actions
+        position: bottom
+        size: list
+
+  - id: 217
+    name: Transformation Health Dashboard
+    consulting_use: "Shows program health across scope, schedule, budget, value, risk, and adoption."
+    layout_disposition: "Executive dashboard with traffic-light status and concise issue commentary."
+    zones:
+      - role: health_dimensions
+        position: top_row_or_left_axis
+        size: status_cards
+      - role: status_summary
+        position: center
+        size: dashboard_grid
+      - role: key_issues
+        position: right_panel
+        size: list
+      - role: leadership_actions
+        position: bottom
+        size: highlighted_band
+
+  - id: 218
+    name: Program Dependency Board
+    consulting_use: "Manages cross-workstream dependencies."
+    layout_disposition: "Table or network board showing dependency owner, receiver, due date, and status."
+    zones:
+      - role: dependency_items
+        position: left_column
+        size: rows
+      - role: providing_workstream
+        position: center_left
+        size: cells
+      - role: receiving_workstream
+        position: center
+        size: cells
+      - role: due_date_status
+        position: center_right
+        size: cells
+      - role: escalation_need
+        position: right_column
+        size: labels
+
+  - id: 219
+    name: Decision Log
+    consulting_use: "Tracks key decisions, owners, dates, and implications."
+    layout_disposition: "Structured decision table with decision status and follow-up actions."
+    zones:
+      - role: decision_items
+        position: left_column
+        size: rows
+      - role: decision_owner
+        position: center_left
+        size: cells
+      - role: decision_date
+        position: center
+        size: cells
+      - role: implications
+        position: center_right
+        size: text_cells
+      - role: follow_up_actions
+        position: right_column
+        size: text_cells
+
+  - id: 220
+    name: Executive Escalation Slide
+    consulting_use: "Escalates unresolved issues requiring senior leadership intervention."
+    layout_disposition: "Issue framing with options, recommendation, impact, and required decision."
+    zones:
+      - role: escalated_issue
+        position: top
+        size: dominant
+      - role: decision_options
+        position: center_left
+        size: cards
+      - role: impact_of_delay
+        position: center_right
+        size: highlighted_card
+      - role: recommendation
+        position: bottom_left
+        size: callout
+      - role: decision_required
+        position: bottom_right
+        size: action_box
+
+  - id: 221
+    name: Meeting Pre-Read
+    consulting_use: "Prepares executives before a decision or steering meeting."
+    layout_disposition: "Compact slide with purpose, context, materials to review, and decisions expected."
+    zones:
+      - role: meeting_purpose
+        position: top
+        size: large
+      - role: context
+        position: left_column
+        size: card
+      - role: pre_read_materials
+        position: center_column
+        size: list
+      - role: decisions_expected
+        position: right_column
+        size: highlighted_list
+      - role: logistics
+        position: bottom
+        size: small
+
+  - id: 222
+    name: Workshop Design
+    consulting_use: "Plans a client workshop agenda, objectives, exercises, and outputs."
+    layout_disposition: "Agenda timeline with objectives, activities, participants, and deliverables."
+    zones:
+      - role: workshop_objectives
+        position: top
+        size: band
+      - role: agenda_blocks
+        position: center_timeline
+        size: sequence_cards
+      - role: participants
+        position: left_or_side_panel
+        size: list
+      - role: expected_outputs
+        position: bottom
+        size: cards
+
+  - id: 223
+    name: Interview Synthesis
+    consulting_use: "Summarizes themes and quotes from stakeholder interviews."
+    layout_disposition: "Theme cards with evidence snippets, frequency, and implications."
+    zones:
+      - role: themes
+        position: center_grid
+        size: cards
+      - role: representative_quotes
+        position: inside_cards
+        size: text_snippets
+      - role: frequency_indicator
+        position: card_header_or_corner
+        size: small
+      - role: implication_summary
+        position: bottom
+        size: highlighted_band
+
+  - id: 224
+    name: Survey Results Summary
+    consulting_use: "Summarizes employee, customer, or stakeholder survey findings."
+    layout_disposition: "Dashboard with response profile, key scores, distribution charts, and insights."
+    zones:
+      - role: response_profile
+        position: top_left
+        size: metric_card
+      - role: key_scores
+        position: top_row
+        size: metric_cards
+      - role: distribution_charts
+        position: center
+        size: charts
+      - role: insight_callouts
+        position: right_panel_or_bottom
+        size: callouts
+
+  - id: 225
+    name: Voice of Customer Synthesis
+    consulting_use: "Turns customer evidence into needs, pain points, and opportunities."
+    layout_disposition: "Customer themes mapped to evidence, business implication, and opportunity areas."
+    zones:
+      - role: customer_themes
+        position: left_column
+        size: cards
+      - role: evidence
+        position: center_left
+        size: quotes_or_metrics
+      - role: business_implications
+        position: center_right
+        size: cards
+      - role: opportunities
+        position: right_column
+        size: highlighted_cards
