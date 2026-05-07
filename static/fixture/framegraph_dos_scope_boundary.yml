@@ -1,0 +1,689 @@
+dsl: FrameGraph
+version: 1.0
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: dos_scope_boundary
+  name: "What the proposal is — and is not"
+  description: "Scope boundary for the DOS 5.2 feasibility assessment: in-scope constrained endpoint roles versus out-of-scope general-purpose work, with the governance preconditions that gate any pilot."
+  source_image:
+    width: 991
+    height: 570
+    coordinate_origin: top-left
+    intended_fidelity: "scope-boundary diagram authored from deck definition slide"
+  canvas:
+    size: [991, 570]
+    units: px
+    background: "#F8FAFD"
+  rendering_contract:
+    coordinate_mode: absolute
+    render_order: layer_order_then_object_order
+    preserve_manual_positions: true
+    preserve_manual_line_breaks: true
+    pixel_tolerance: 2
+    text:
+      default_font: "Arial, Helvetica, sans-serif"
+      wrapping: manual_and_auto
+      overflow: shrink_to_fit
+      min_font_size: 7
+      vertical_alignment: middle
+    connectors:
+      anchor_resolution: explicit_port_then_shape_side
+      clip_to_shape_edge: true
+      route_mode: explicit
+      arrowhead_style: filled_triangle
+    semantics:
+      meaningful_visual_objects_should_bind_to_semantic_ids: true
+      connectors_should_bind_to_semantic_edges: true
+      decorative_objects_may_omit_bind: true
+
+semantic:
+  ontology:
+    node_types:
+      DocumentTitle:
+        meaning: "Primary statement and subtitle of the diagram."
+      GovernancePrecondition:
+        meaning: "Cross-cutting precondition that gates any pilot before scope is decided."
+      ScopeRegion:
+        meaning: "Container grouping a set of endpoint roles that share a scope verdict."
+      InScopeRole:
+        meaning: "Endpoint role evaluated as a candidate for the constrained operating model."
+      OutOfScopeRole:
+        meaning: "Endpoint role explicitly excluded from any constrained-model assessment."
+      DecisionBoundary:
+        meaning: "Visible boundary that separates included from excluded scope."
+      ProposalCallout:
+        meaning: "Restatement that the proposal is bounded assessment, not universal rollback."
+      Legend:
+        meaning: "Explanation of visual encodings."
+    edge_types:
+      PreconditionApplication:
+        meaning: "Precondition applies as a cross-cutting gate above any scope decision."
+        default_visual_style: cross_cutting_control
+      InScopeBinding:
+        meaning: "Solid arrow showing that an in-scope role enters the assessment."
+        default_visual_style: direct_flow
+      ExclusionMarker:
+        meaning: "Dashed arrow showing that an out-of-scope role is explicitly excluded."
+        default_visual_style: exclusion_loop
+      ProposalAnchor:
+        meaning: "Definitional bind tying the proposal callout to the decision boundary. Intentionally not rendered as a visual connector — the callout sits below the boundary as a colocation, and the bind is preserved at the semantic layer only."
+
+  nodes:
+    - id: doc.title
+      type: DocumentTitle
+      label: "What the proposal is — and is not"
+      subtitle: "Bounded feasibility assessment of constrained endpoint roles, not a universal rollback."
+
+    - id: governance.preconditions
+      type: GovernancePrecondition
+      label: "Pilot preconditions"
+      items: [security control envelope, compatibility inventory, TCO model, reversibility plan]
+
+    - id: scope.included
+      type: ScopeRegion
+      label: "In scope"
+      side_label: "INCLUDED ROLES"
+
+    - id: scope.included.fixed_function
+      type: InScopeRole
+      label: "Fixed-function stations"
+      contents: [single workflow, no general browsing, controlled hardware]
+
+    - id: scope.included.terminal
+      type: InScopeRole
+      label: "Terminal-driven workflows"
+      contents: [text UI, line-of-business apps, deterministic input]
+
+    - id: scope.included.controlled_entry
+      type: InScopeRole
+      label: "Controlled data entry"
+      contents: [forms, fixed schemas, audited keystroke paths]
+
+    - id: scope.excluded
+      type: ScopeRegion
+      label: "Out of scope"
+      side_label: "EXCLUDED ROLES"
+
+    - id: scope.excluded.knowledge_work
+      type: OutOfScopeRole
+      label: "Knowledge work"
+      contents: [research, document authoring, multi-app reasoning]
+
+    - id: scope.excluded.collaboration
+      type: OutOfScopeRole
+      label: "Collaboration-heavy work"
+      contents: [calls, shared editing, chat, screen sharing]
+
+    - id: scope.excluded.browser_centric
+      type: OutOfScopeRole
+      label: "Browser-centric work"
+      contents: [SaaS apps, web tools, cloud collaboration]
+
+    - id: boundary.line
+      type: DecisionBoundary
+      label: "Scope boundary"
+
+    - id: callout.proposal
+      type: ProposalCallout
+      label: "Proposal restated"
+      contents:
+        - "Universal rollback is NOT recommended."
+        - "Constrained assessment IS the decision."
+
+    - id: legend.main
+      type: Legend
+      label: "Visual encoding legend"
+
+  edges:
+    - id: edge.preconditions_gate_scope
+      type: PreconditionApplication
+      from: governance.preconditions
+      to: [scope.included, scope.excluded, boundary.line]
+      label: "preconditions gate any scope decision"
+
+    - id: edge.fixed_function_in_scope
+      type: InScopeBinding
+      from: scope.included.fixed_function
+      to: boundary.line
+      direction: forward
+      label: "enters assessment"
+
+    - id: edge.terminal_in_scope
+      type: InScopeBinding
+      from: scope.included.terminal
+      to: boundary.line
+      direction: forward
+      label: "enters assessment"
+
+    - id: edge.controlled_entry_in_scope
+      type: InScopeBinding
+      from: scope.included.controlled_entry
+      to: boundary.line
+      direction: forward
+      label: "enters assessment"
+
+    - id: edge.knowledge_work_excluded
+      type: ExclusionMarker
+      from: scope.excluded.knowledge_work
+      to: boundary.line
+      direction: reverse
+      label: "explicitly excluded"
+
+    - id: edge.collaboration_excluded
+      type: ExclusionMarker
+      from: scope.excluded.collaboration
+      to: boundary.line
+      direction: reverse
+      label: "explicitly excluded"
+
+    - id: edge.browser_centric_excluded
+      type: ExclusionMarker
+      from: scope.excluded.browser_centric
+      to: boundary.line
+      direction: reverse
+      label: "explicitly excluded"
+
+    - id: edge.callout_anchors_boundary
+      type: ProposalAnchor
+      from: callout.proposal
+      to: boundary.line
+      direction: bidirectional
+      label: "the boundary IS the proposal"
+
+visual:
+  tokens:
+    colors:
+      page_bg: "#F8FAFD"
+      slide_bg: "#FFFFFF"
+      slide_border: "#C8C8C8"
+      black: "#000000"
+      white: "#FFFFFF"
+      in_scope_blue: "#153F6B"
+      in_scope_border: "#082E53"
+      pale_blue: "#E8EEF7"
+      governance_blue: "#DFE8F5"
+      governance_border: "#003D76"
+      panel_gray: "#EFEFEF"
+      box_gray: "#F7F7F7"
+      excluded_box: "#FBEFEF"
+      excluded_border: "#9A4040"
+      callout_yellow: "#FFF7D6"
+      callout_border: "#B58A00"
+      boundary_line: "#082E53"
+      legend_gray: "#EFEFEF"
+      chip_border: "#AFC3D9"
+
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+
+    text_styles:
+      title:
+        font: primary
+        size: 29
+        weight: 800
+        color: black
+        align: left
+        line_height: 32
+      subtitle:
+        font: primary
+        size: 18
+        weight: 400
+        color: black
+        align: left
+        line_height: 21
+      heading:
+        font: primary
+        size: 14
+        weight: 700
+        color: black
+        align: center
+        line_height: 16
+      body:
+        font: primary
+        size: 12
+        weight: 400
+        color: black
+        align: center
+        line_height: 13
+      tiny:
+        font: primary
+        size: 10
+        weight: 400
+        color: black
+        align: center
+        line_height: 11
+      tiny_left:
+        font: primary
+        size: 10
+        weight: 400
+        color: black
+        align: left
+        line_height: 11
+      white_heading:
+        font: primary
+        size: 14
+        weight: 700
+        color: white
+        align: center
+        line_height: 16
+      legend:
+        font: primary
+        size: 12
+        weight: 400
+        color: black
+        align: left
+        line_height: 14
+
+    stroke_styles:
+      direct_flow:
+        color: in_scope_border
+        width: 1.5
+        dash: null
+        arrow_start: false
+        arrow_end: true
+      exclusion_loop:
+        color: excluded_border
+        width: 1.3
+        dash: [5, 4]
+        arrow_start: false
+        arrow_end: true
+      cross_cutting_control:
+        color: governance_border
+        width: 1.2
+        dash: null
+      thin_border:
+        color: black
+        width: 1
+        dash: null
+      boundary_line_style:
+        color: boundary_line
+        width: 2.5
+        dash: [10, 4]
+
+  component_defs:
+    role_box:
+      slots: [title, body]
+      geometry:
+        radius: 8
+      variants:
+        in_scope:
+          fill: pale_blue
+          stroke_style: thin_border
+        out_of_scope:
+          fill: excluded_box
+          stroke:
+            color: excluded_border
+            width: 1
+      internal_layout:
+        title:
+          box_offset: [0, 7, 100%, 17]
+          style: heading
+        body:
+          box_offset: [8, 24, calc(100% - 16), calc(100% - 27)]
+          style: body
+    callout_box:
+      slots: [title, body]
+      geometry:
+        radius: 8
+      fill: callout_yellow
+      stroke:
+        color: callout_border
+        width: 1
+      internal_layout:
+        title:
+          box_offset: [0, 7, 100%, 17]
+          style: heading
+        body:
+          box_offset: [8, 26, calc(100% - 16), calc(100% - 30)]
+          style: body
+
+  layers:
+    - id: background
+      z: 0
+      objects:
+        - type: rect
+          id: v.page
+          decorative: true
+          box: [0, 0, 991, 570]
+          fill: page_bg
+        - type: rect
+          id: v.slide
+          decorative: true
+          box: [10, 18, 920, 519]
+          fill: slide_bg
+          stroke:
+            color: slide_border
+            width: 1
+
+    - id: title
+      z: 10
+      objects:
+        - type: text
+          id: v.title
+          bind: doc.title
+          text: "What the proposal is — and is not"
+          box: [58, 55, 740, 35]
+          style: title
+        - type: text
+          id: v.subtitle
+          bind: doc.title
+          text: "Bounded feasibility assessment of constrained endpoint roles, not a universal rollback."
+          box: [58, 88, 830, 24]
+          style: subtitle
+
+    - id: governance
+      z: 20
+      objects:
+        - type: rect
+          id: v.governance.container
+          bind: governance.preconditions
+          box: [52, 121, 853, 39]
+          radius: 5
+          fill: governance_blue
+          stroke:
+            color: governance_border
+            width: 1.2
+          ports:
+            south_left: [240, 160]
+            south_center: [480, 160]
+            south_right: [720, 160]
+        - type: text
+          id: v.governance.title
+          bind: governance.preconditions
+          text: "Pilot preconditions (gate any scope decision)"
+          box: [52, 126, 853, 16]
+          style: heading
+        - type: text
+          id: v.governance.body
+          bind: governance.preconditions
+          text: "security control envelope · compatibility inventory · TCO model · reversibility plan"
+          box: [52, 144, 853, 14]
+          style: tiny
+
+    - id: regions
+      z: 30
+      objects:
+        - type: rect
+          id: v.region.included
+          bind: scope.included
+          box: [42, 182, 405, 280]
+          radius: 9
+          fill: panel_gray
+        - type: text
+          id: v.region.included.heading
+          bind: scope.included
+          text: "In scope"
+          box: [42, 188, 405, 17]
+          style: heading
+        - type: text
+          id: v.region.included.subtitle
+          bind: scope.included
+          text: "INCLUDED ROLES — candidates for constrained operating model"
+          box: [42, 206, 405, 13]
+          style: tiny
+        - type: rect
+          id: v.region.excluded
+          bind: scope.excluded
+          box: [510, 182, 405, 280]
+          radius: 9
+          fill: panel_gray
+        - type: text
+          id: v.region.excluded.heading
+          bind: scope.excluded
+          text: "Out of scope"
+          box: [510, 188, 405, 17]
+          style: heading
+        - type: text
+          id: v.region.excluded.subtitle
+          bind: scope.excluded
+          text: "EXCLUDED ROLES — modern OS endpoint remains required"
+          box: [510, 206, 405, 13]
+          style: tiny
+
+    - id: in_scope_roles
+      z: 40
+      objects:
+        - type: component
+          component: role_box
+          id: v.role.fixed_function
+          bind: scope.included.fixed_function
+          box: [62, 226, 365, 65]
+          variant: in_scope
+          title: "Fixed-function stations"
+          body: "single workflow · no general browsing\ncontrolled hardware"
+          ports:
+            east: [427, 258]
+        - type: component
+          component: role_box
+          id: v.role.terminal
+          bind: scope.included.terminal
+          box: [62, 300, 365, 65]
+          variant: in_scope
+          title: "Terminal-driven workflows"
+          body: "text UI · line-of-business apps\ndeterministic input"
+          ports:
+            east: [427, 332]
+        - type: component
+          component: role_box
+          id: v.role.controlled_entry
+          bind: scope.included.controlled_entry
+          box: [62, 374, 365, 65]
+          variant: in_scope
+          title: "Controlled data entry"
+          body: "forms · fixed schemas\naudited keystroke paths"
+          ports:
+            east: [427, 406]
+
+    - id: out_of_scope_roles
+      z: 50
+      objects:
+        - type: component
+          component: role_box
+          id: v.role.knowledge_work
+          bind: scope.excluded.knowledge_work
+          box: [530, 226, 365, 65]
+          variant: out_of_scope
+          title: "Knowledge work"
+          body: "research · document authoring\nmulti-app reasoning"
+          ports:
+            west: [530, 258]
+        - type: component
+          component: role_box
+          id: v.role.collaboration
+          bind: scope.excluded.collaboration
+          box: [530, 300, 365, 65]
+          variant: out_of_scope
+          title: "Collaboration-heavy work"
+          body: "calls · shared editing · chat\nscreen sharing"
+          ports:
+            west: [530, 332]
+        - type: component
+          component: role_box
+          id: v.role.browser_centric
+          bind: scope.excluded.browser_centric
+          box: [530, 374, 365, 65]
+          variant: out_of_scope
+          title: "Browser-centric work"
+          body: "SaaS apps · web tools\ncloud collaboration"
+          ports:
+            west: [530, 406]
+
+    - id: boundary
+      z: 60
+      objects:
+        # The dashed line is the partition itself. No arrowheads, no
+        # text annotation on the line — the legend names it ("scope
+        # boundary"). Connectors that terminate in the gutter on either
+        # side of this line carry all the directional meaning; the line
+        # only marks where the partition is.
+        - type: line
+          id: v.boundary.line
+          bind: boundary.line
+          from: [478, 182]
+          to: [478, 462]
+          stroke_style: boundary_line_style
+
+    - id: callout
+      z: 70
+      objects:
+        - type: component
+          component: callout_box
+          id: v.callout.proposal
+          bind: callout.proposal
+          box: [220, 478, 540, 30]
+          title: "Universal rollback is NOT recommended.  Constrained assessment IS the decision."
+          body: ""
+          ports:
+            north: [490, 478]
+
+    - id: connectors
+      z: 80
+      objects:
+        # In-scope arrows terminate at x=470 — 8 px before the dashed
+        # boundary at x=478. Exclusion arrows terminate at x=486 — 8 px
+        # past the boundary on the other side. The gutter (x=470..486)
+        # is the visual "crossing zone": arrows arrive at the boundary
+        # rather than landing on it. The boundary itself stays a clean
+        # static partition.
+        - type: connector
+          id: v.conn.fixed_function_to_boundary
+          bind: edge.fixed_function_in_scope
+          from: {object: v.role.fixed_function, port: east}
+          to: {point: [470, 258]}
+          route: {type: orthogonal, points: [[427, 258], [470, 258]]}
+          stroke_style: direct_flow
+        - type: connector
+          id: v.conn.terminal_to_boundary
+          bind: edge.terminal_in_scope
+          from: {object: v.role.terminal, port: east}
+          to: {point: [470, 332]}
+          route: {type: orthogonal, points: [[427, 332], [470, 332]]}
+          stroke_style: direct_flow
+        - type: connector
+          id: v.conn.controlled_entry_to_boundary
+          bind: edge.controlled_entry_in_scope
+          from: {object: v.role.controlled_entry, port: east}
+          to: {point: [470, 406]}
+          route: {type: orthogonal, points: [[427, 406], [470, 406]]}
+          stroke_style: direct_flow
+        - type: connector
+          id: v.conn.knowledge_work_excluded
+          bind: edge.knowledge_work_excluded
+          from: {object: v.role.knowledge_work, port: west}
+          to: {point: [486, 258]}
+          route: {type: orthogonal, points: [[530, 258], [486, 258]]}
+          stroke_style: exclusion_loop
+        - type: connector
+          id: v.conn.collaboration_excluded
+          bind: edge.collaboration_excluded
+          from: {object: v.role.collaboration, port: west}
+          to: {point: [486, 332]}
+          route: {type: orthogonal, points: [[530, 332], [486, 332]]}
+          stroke_style: exclusion_loop
+        - type: connector
+          id: v.conn.browser_centric_excluded
+          bind: edge.browser_centric_excluded
+          from: {object: v.role.browser_centric, port: west}
+          to: {point: [486, 406]}
+          route: {type: orthogonal, points: [[530, 406], [486, 406]]}
+          stroke_style: exclusion_loop
+        # Precondition arrow: terminates at y=178 — just above the
+        # boundary line's start at y=182 — so the arrowhead-less
+        # cross-cutting style sits in the dead band between the
+        # governance bar (y=121..160) and the regions panel top
+        # (y=182), without touching or implying direction on the
+        # boundary line itself.
+        - type: connector
+          id: v.conn.preconditions_to_boundary
+          bind: edge.preconditions_gate_scope
+          from: {object: v.governance.container, port: south_center}
+          to: {point: [480, 178]}
+          route: {type: straight}
+          stroke_style: cross_cutting_control
+          label:
+            text: "preconditions gate any scope decision"
+            box: [216, 164, 260, 14]
+            style: tiny_left
+            placement: above
+        # NOTE: edge.callout_anchors_boundary is intentionally not
+        # rendered as a visual connector. It is a definitional bind
+        # ("the boundary IS the proposal") rather than a flow, and a
+        # connector here added visual noise that read as direction on
+        # what is supposed to be a static partition. The semantic edge
+        # is preserved for graph correctness; the visual anchor is
+        # carried by the callout sitting directly under the diagram.
+
+    - id: legend
+      z: 90
+      objects:
+        - type: rect
+          id: v.legend.background
+          bind: legend.main
+          box: [21, 522, 913, 25]
+          fill: legend_gray
+        - type: legend
+          id: v.legend.main
+          bind: legend.main
+          box: [55, 528, 870, 16]
+          item_gap: 30
+          items:
+            - id: legend.direct_flow
+              bind: InScopeBinding
+              sample:
+                type: line
+                from: [57, 537]
+                to: [99, 537]
+                stroke_style: direct_flow
+              label:
+                text: "in-scope binding"
+                box: [104, 530, 140, 16]
+                style: legend
+            - id: legend.exclusion_loop
+              bind: ExclusionMarker
+              sample:
+                type: line
+                from: [245, 537]
+                to: [283, 537]
+                stroke_style: exclusion_loop
+              label:
+                text: "explicit exclusion"
+                box: [289, 530, 160, 16]
+                style: legend
+            - id: legend.boundary_line
+              bind: DecisionBoundary
+              sample:
+                type: line
+                from: [460, 530]
+                to: [460, 544]
+                stroke_style: boundary_line_style
+              label:
+                text: "scope boundary"
+                box: [468, 530, 140, 16]
+                style: legend
+            - id: legend.preconditions
+              bind: PreconditionApplication
+              sample:
+                type: rounded_rect
+                box: [625, 532, 34, 13]
+                radius: 3
+                fill: governance_blue
+                stroke:
+                  color: governance_border
+                  width: 1
+              label:
+                text: "pilot preconditions"
+                box: [665, 530, 180, 16]
+                style: legend
+
+validation:
+  required:
+    - "semantic.nodes[*].id"
+    - "semantic.edges[*].id"
+    - "visual.layers[*].objects[*].id"
+  rules:
+    - "All non-decorative visual objects should have bind."
+    - "All connectors should bind to a semantic edge."
+    - "All connector endpoints should resolve to a declared port or point."
+    - "Layer z values determine paint order; higher z paints on top."
+    - "Manual text newlines are significant and should be preserved."
