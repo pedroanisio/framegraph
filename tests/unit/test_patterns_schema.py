@@ -150,6 +150,87 @@ class TestPatternZone:
         )
         assert z.shape == "card"
 
+    def test_zone_with_optional_content_type(self) -> None:
+        """`content_type` is the typed-form contract — what a zone holds."""
+        z = PatternZone.model_validate(
+            {
+                "role": "headline",
+                "size": "large",
+                "placement": {"anchor": {"h": "center", "v": "top"}},
+                "content_type": "title_body",
+            }
+        )
+        assert z.content_type == "title_body"
+
+    def test_content_type_omitted_is_none(self) -> None:
+        """`content_type` is optional — un-curated zones are valid."""
+        z = PatternZone.model_validate(
+            {
+                "role": "x",
+                "size": "medium",
+                "placement": {"anchor": {"h": "center", "v": "middle"}},
+            }
+        )
+        assert z.content_type is None
+
+    @pytest.mark.parametrize(
+        "ct",
+        [
+            "title_body", "metric", "list_items", "key_value", "comparison",
+            "chart_data", "table_data", "image", "axis_label", "decorative",
+        ],
+    )
+    def test_all_content_type_values_accepted(self, ct: str) -> None:
+        PatternZone.model_validate(
+            {
+                "role": "x",
+                "size": "medium",
+                "placement": {"anchor": {"h": "center", "v": "middle"}},
+                "content_type": ct,
+            }
+        )
+
+    def test_invalid_content_type_rejected(self) -> None:
+        with pytest.raises(ValidationError):
+            PatternZone.model_validate(
+                {
+                    "role": "x",
+                    "size": "medium",
+                    "placement": {"anchor": {"h": "center", "v": "middle"}},
+                    "content_type": "freeform_essay",
+                }
+            )
+
+    def test_content_type_does_not_affect_structural_identity(self) -> None:
+        """content_type is documentation, not structural identity."""
+        # Two patterns with the same shape+placement but different
+        # content_types should still collide as structural duplicates.
+        zones_a = [
+            {
+                "role": "title",
+                "size": "large",
+                "placement": {"anchor": {"h": "center", "v": "top"}},
+                "content_type": "title_body",
+            }
+        ]
+        zones_b = [
+            {
+                "role": "title",
+                "size": "large",
+                "placement": {"anchor": {"h": "center", "v": "top"}},
+                "content_type": "metric",
+            }
+        ]
+        with pytest.raises(ValidationError, match="structurally identical"):
+            PatternCatalog.model_validate(
+                {
+                    "slide_template_patterns": [
+                        {"id": 1, "name": "A", "layout_disposition": "x", "zones": zones_a},
+                        {"id": 2, "name": "B", "layout_disposition": "x", "zones": zones_b},
+                    ]
+                }
+            )
+
     @pytest.mark.parametrize(
         "size",
         ["xs", "small", "medium", "large", "xl", "full", "equal", "variable", "contextual"],
@@ -428,6 +509,79 @@ class TestPatternCatalog:
 # ─────────────────────────────────────────────────────────────────
 
 
+class TestPatternMetadataFields:
+    """Patterns carry optional `use_case` and `category` fields.
+
+    Multi-source merging needs ``category`` to track origin without
+    losing it during normalization. ``use_case`` carries a one-line
+    semantic description sourced from per-catalog metadata fields
+    (``consulting_use``, ``expert_use``) and unified by the merger.
+    """
+
+    def _patt(self, **overrides: object) -> dict[str, object]:
+        base: dict[str, object] = {
+            "id": 1,
+            "name": "X",
+            "layout_disposition": "x",
+            "zones": [_zone()],
+        }
+        base.update(overrides)
+        return base
+
+    def test_use_case_optional(self) -> None:
+        p = SlidePattern.model_validate(self._patt())
+        assert p.use_case is None
+
+    def test_use_case_accepted(self) -> None:
+        p = SlidePattern.model_validate(
+            self._patt(use_case="Classic executive storyline structure.")
+        )
+        assert p.use_case is not None
+        assert p.use_case.startswith("Classic")
+
+    def test_category_defaults_to_generic(self) -> None:
+        p = SlidePattern.model_validate(self._patt())
+        assert p.category == "generic"
+
+    @pytest.mark.parametrize("category", ["generic", "consulting", "expert"])
+    def test_category_accepts_known_values(self, category: str) -> None:
+        p = SlidePattern.model_validate(self._patt(category=category))
+        assert p.category == category
+
+    def test_category_rejects_unknown(self) -> None:
+        with pytest.raises(ValidationError):
+            SlidePattern.model_validate(self._patt(category="random"))
+
+    def test_use_case_does_not_affect_structural_identity(self) -> None:
+        """Two patterns with same zones but different `use_case` are still duplicates.
+
+        Pattern identity is the zone set; metadata fields are
+        documentation, not identity.
+        """
+        zones = [_zone()]
+        with pytest.raises(ValidationError, match="structurally identical"):
+            PatternCatalog.model_validate(
+                {
+                    "slide_template_patterns": [
+                        {
+                            "id": 1,
+                            "name": "A",
+                            "layout_disposition": "x",
+                            "zones": zones,
+                            "use_case": "use-a",
+                        },
+                        {
+                            "id": 2,
+                            "name": "B",
+                            "layout_disposition": "x",
+                            "zones": zones,
+                            "use_case": "use-b",
+                        },
+                    ]
+                }
+            )
+
+
 class TestBundledCatalog:
     def test_canonical_path_exists(self) -> None:
         assert PATTERN_CATALOG_PATH.exists()
@@ -435,12 +589,30 @@ class TestBundledCatalog:
     def test_load_returns_validated_catalog(self) -> None:
         c = load_pattern_catalog()
         assert isinstance(c, PatternCatalog)
-        assert len(c.slide_template_patterns) == 50
+        # Bundled catalog spans A (generic, ids 1–50) + B
+        # (consulting, ids 51–100) + C (consulting, ids 101–150) +
+        # D (consulting, ids 151–225) + E (consulting, ids 226–275)
+        # + F (consulting, ids 276–325) + G (expert, ids 326–375).
+        # Each future source extends the range.
+        assert len(c.slide_template_patterns) == 375
 
-    def test_canonical_ids_contiguous_1_through_50(self) -> None:
+    def test_canonical_ids_contiguous_1_through_375(self) -> None:
         c = load_pattern_catalog()
         ids = sorted(p.id for p in c.slide_template_patterns)
-        assert ids == list(range(1, 51))
+        assert ids == list(range(1, 376))
+
+    def test_categories_present(self) -> None:
+        """Bundled catalog has generic, consulting, and expert categories."""
+        c = load_pattern_catalog()
+        cats = {p.category for p in c.slide_template_patterns}
+        assert cats == {"generic", "consulting", "expert"}
+
+    def test_non_generic_patterns_carry_use_case(self) -> None:
+        """Every consulting/expert pattern carries a populated `use_case`."""
+        c = load_pattern_catalog()
+        for p in c.slide_template_patterns:
+            if p.category != "generic":
+                assert p.use_case, p.name
 
     def test_every_pattern_has_at_least_one_zone(self) -> None:
         c = load_pattern_catalog()

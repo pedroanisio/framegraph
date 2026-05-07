@@ -43,7 +43,9 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 __all__ = [
     "PATTERN_CATALOG_PATH",
     "Anchor",
+    "ContentType",
     "PatternCatalog",
+    "PatternCategory",
     "PatternZone",
     "Placement",
     "RegionPlacement",
@@ -213,7 +215,35 @@ _Shape = Literal[
     "card", "list", "text", "metric", "icon", "connector",
     "bar", "axis", "node", "marker", "container",
     "sequence", "button",
+    # Catalog B additions
+    "cell", "block", "chart", "table", "timeline",
+    # Catalog C additions
+    "box", "band",
+    # Catalog D additions
+    "progress",
 ]
+
+
+ContentType = Literal[
+    "title_body",     # heading + paragraph text
+    "metric",         # large number + label + optional trend/delta
+    "list_items",     # bullet/numbered list of strings or short objects
+    "key_value",      # name:value pairs — legends, tags, status indicators
+    "comparison",     # paired before/after, pros/cons text
+    "chart_data",     # series data — chart subtype implied by shape
+    "table_data",     # 2D rows×cols of values — for table/matrix bodies
+    "image",          # raster/vector asset reference
+    "axis_label",     # axis title + range/units (label only, no series)
+    "decorative",     # background, divider, ornamental — no content
+]
+"""Typed-form contract for a zone's fillable content.
+
+Distinct from ``shape`` (visual form). Two zones can share the same
+shape (e.g. ``card``) but carry different content types (a card with
+``title_body`` is filled differently than a card with ``metric``).
+Used downstream by fill-and-render pipelines to know what payload
+shape an agent must supply for each slot.
+"""
 
 
 class PatternZone(BaseModel):
@@ -231,6 +261,12 @@ class PatternZone(BaseModel):
         shape: Optional shape vocabulary — ``card``, ``bar``,
             ``node``, ``connector``, etc. — when the zone's *type*
             isn't already implied by its ``role``.
+        content_type: Optional typed-form contract — what payload
+            shape an agent supplies to fill this zone. One of the
+            ten `ContentType` literals. Identity-neutral (does not
+            participate in structural fingerprinting). When unset,
+            the zone is un-curated and downstream fill schemas
+            cannot derive a contract for it automatically.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -238,6 +274,7 @@ class PatternZone(BaseModel):
     size: Size
     placement: Annotated[Placement, Field(union_mode="left_to_right")]
     shape: _Shape | None = None
+    content_type: ContentType | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -271,6 +308,19 @@ def _zone_fingerprint(z: PatternZone) -> tuple[Any, ...]:
     return (z.role, z.size, place_key, z.shape or "")
 
 
+PatternCategory = Literal["generic", "consulting", "expert"]
+"""Origin tag for a pattern in a merged multi-source catalog.
+
+- ``generic`` — generic slide-template patterns (catalog A).
+- ``consulting`` — big-4 consulting patterns (catalogs B–F).
+- ``expert`` — expert/methodological reasoning patterns (catalog G+):
+  decision-traceability, epistemic-status, causal-identification,
+  resilience, and other analyst/auditor-oriented templates.
+
+Future source files extend this literal as new categories arrive.
+"""
+
+
 class SlidePattern(BaseModel):
     """One slide-template pattern in the catalog.
 
@@ -281,6 +331,17 @@ class SlidePattern(BaseModel):
             disposition. Authoring guidance for humans.
         zones: Ordered list of named regions. At least one zone
             required; role names are unique within the pattern.
+        use_case: Optional one-line use case (e.g.
+            ``"Classic executive storyline structure."``). Sourced
+            from per-catalog metadata fields — ``consulting_use``
+            on consulting catalogs, ``expert_use`` on expert
+            catalogs — and unified into a single field by the
+            merger. Documentation only — does not participate in
+            structural identity.
+        category: Origin tag for the pattern in a merged catalog.
+            Defaults to ``"generic"``; set to ``"consulting"`` for
+            big-4 patterns and ``"expert"`` for methodological /
+            reasoning patterns. Identity-neutral.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -288,6 +349,8 @@ class SlidePattern(BaseModel):
     name: str = Field(..., min_length=1)
     layout_disposition: str = Field(..., min_length=1)
     zones: list[PatternZone] = Field(..., min_length=1)
+    use_case: str | None = None
+    category: PatternCategory = "generic"
 
     @model_validator(mode="after")
     def _validate_zone_roles_unique(self) -> SlidePattern:

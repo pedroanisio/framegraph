@@ -6,6 +6,12 @@ in `scripts/_pattern_normalization.py`, and writes the result back
 in place. After this script runs, the YAML must validate against
 `framegraph._patterns.PatternCatalog`.
 
+Idempotent: re-running on an already-normalized YAML is a no-op
+because the source values pass through `SIZE_NORMALIZATION` and
+`POSITION_NORMALIZATION` unchanged when they're already in the
+target shape — but in practice this script is only used once per
+catalog source, before merging.
+
 Run from the repo root:
 
     python3 scripts/normalize_patterns.py
