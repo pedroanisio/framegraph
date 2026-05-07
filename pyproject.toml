@@ -155,16 +155,17 @@ convention = "google"
 "tests/**" = ["D"]
 
 # ── Mypy ──────────────────────────────────────────────────────────────────────
-# Strict mode is intentionally NOT enabled yet. The renderer codebase
-# contains a known v2.0 modular-split regression where `r.text_svg`,
-# `r.render_rect`, and `r.eval_length` are called by plug-ins but not
-# implemented on `FrameGraphRenderer` (documented in `_types.py`).
-# Switching to strict mode now would block CI on a backlog item, not
-# on type drift in new code. Strictness should be turned on as part of
-# the "v2.0 regression repair" follow-up.
+# Strict mode is enabled. The v2.0 modular-split regression that previously
+# blocked it was repaired in commit 1bc5547; the four Protocol delegates
+# (`text_svg`, `render_rect`, `eval_length`, `effect_filter_attrs`) are now
+# implemented on `FrameGraphRenderer`, the duplicate composer-CLI
+# redefinitions in `library.py` carry explicit `# type: ignore[no-redef]`
+# annotations, and per-attribute types in `framegraph._types.RendererContext`
+# match the concrete renderer's mutable `dict` shapes. Loosening this back
+# to non-strict requires explaining what regressed.
 [tool.mypy]
 python_version         = "3.10"
-strict                 = false
+strict                 = true
 ignore_missing_imports = true
 warn_unused_ignores    = true
 

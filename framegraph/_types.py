@@ -31,11 +31,17 @@ class RendererContext(Protocol):
     """
 
     # ── Document state ────────────────────────────────────────────────
-    scene: Mapping[str, Any]
-    object_index: Mapping[str, Mapping[str, Any]]
-    symbols: Mapping[str, Any]
-    component_defs: Mapping[str, Mapping[str, Any]]
-    glyph_map: Mapping[str, str]
+    # Note: `object_index` and `glyph_map` are typed as concrete dicts so
+    # plug-ins can mutate them (e.g. layout.py registers resolved child
+    # boxes by id). The other three are read-only views over document
+    # state — but we still type them as dict for variance compatibility
+    # with the concrete `FrameGraphRenderer` which constructs them as
+    # dicts.
+    scene: dict[str, Any]
+    object_index: dict[str, dict[str, Any]]
+    symbols: dict[str, Any]
+    component_defs: dict[str, dict[str, Any]]
+    glyph_map: dict[str, str]
 
     # `_uses_icon_font` is mutated by plug-ins that emit icon-font glyphs;
     # `defs_svg()` reads it to decide whether to inject the Tabler webfont.
@@ -82,24 +88,15 @@ class RendererContext(Protocol):
     def render_object(self, obj: Mapping[str, Any]) -> str: ...
     def register(self, type_name: str, fn: RenderFn) -> None: ...
 
-    # ── Plug-in helpers expected but currently MISSING from
-    #    FrameGraphRenderer (v2.0 modular-split regression).
-    #    They are declared here so mypy flags the gap; runtime calls
-    #    raise AttributeError, which is silently caught by render_svg's
-    #    per-object try/except and recorded in `self.warnings`.
+    # ── Plug-in helpers ────────────────────────────────────────────────
+    # `text_svg`, `render_rect`, `eval_length` are the "modular-split"
+    # delegates: they live as free functions in framegraph.renderers.*
+    # and are wired onto FrameGraphRenderer as thin methods (see
+    # commit 1bc5547). Plug-ins call them as r.text_svg(...) etc.
     #
-    #    Tracking: `text_svg` and `render_rect` are needed by the
-    #    `connector` and `legend` paths in renderers/lines.py; in
-    #    renderer.py the duplicate in-class `render_connector` /
-    #    `render_legend` (lines ~1032+) is unreachable dead code from
-    #    the pre-modular era.
-    #    `eval_length` is needed by container offset resolution in
-    #    renderers/layout.py.
-    #
-    #    These three should be implemented on FrameGraphRenderer (or
-    #    moved to free helpers and the call sites updated) in a follow-
-    #    up step. They are intentionally listed in the Protocol so that
-    #    the contract is honest about what plug-ins assume.
+    # `effect_filter_attrs` is the v3.0 HD-effects Protocol member:
+    # shape renderers call it to receive the SVG `filter="url(#…)"`
+    # attribute (or `{}`) for the requested effect chain.
     # ──────────────────────────────────────────────────────────────────
     def text_svg(
         self,
@@ -112,3 +109,4 @@ class RendererContext(Protocol):
     ) -> str: ...
     def render_rect(self, obj: Mapping[str, Any]) -> str: ...
     def eval_length(self, value: Any, total: float) -> float: ...
+    def effect_filter_attrs(self, obj: Mapping[str, Any]) -> dict[str, Any]: ...

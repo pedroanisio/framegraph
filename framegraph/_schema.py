@@ -45,7 +45,7 @@ Point = Annotated[list[float], Field(min_length=2, max_length=2)]
 Color = str
 
 # Stroke spec: either a single COLOR string or a full StrokeInline mapping.
-StrokeInlineLike = str | dict
+StrokeInlineLike = str | dict[str, Any]
 
 
 # ─────────────────────────────────────────────────────────────────

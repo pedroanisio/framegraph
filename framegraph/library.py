@@ -28,7 +28,7 @@ import copy
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 try:
     import yaml
@@ -53,21 +53,22 @@ def deep_merge(base: Any, override: Any) -> Any:
     return result
 
 
-def strip_meta(d: dict) -> dict:
+def strip_meta(d: dict[str, Any]) -> dict[str, Any]:
     """Remove _meta keys — they are library metadata, not FrameGraph fields."""
     return {k: v for k, v in d.items() if not k.startswith("_")}
 
 
-def load_yaml(path: Path) -> dict:
+def load_yaml(path: Path) -> dict[str, Any]:
     with open(path, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+        loaded = yaml.safe_load(f)
+        return cast(dict[str, Any], loaded or {})
 
 
-def dump_yaml(data: dict, path: Path | None = None) -> str:
+def dump_yaml(data: dict[str, Any], path: Path | None = None) -> str:
     text = yaml.dump(data, allow_unicode=True, sort_keys=False, default_flow_style=False)
     if path:
         path.write_text(text, encoding="utf-8")
-    return text
+    return cast(str, text)
 
 
 # ---------------------------------------------------------------------------
@@ -123,7 +124,7 @@ class FrameGraphLibrary:
         """Return the sorted ids of every discovered symbol pack."""
         return sorted(self._symbol_packs)
 
-    def load_tokens(self, theme_id: str) -> dict:
+    def load_tokens(self, theme_id: str) -> dict[str, Any]:
         """Return the tokens section of a token pack (stripped of _meta)."""
         path = self._token_packs.get(theme_id)
         if not path:
@@ -133,7 +134,7 @@ class FrameGraphLibrary:
         raw = load_yaml(path)
         return strip_meta(raw)  # {colors, fonts, text_styles, stroke_styles, …}
 
-    def load_symbols(self, sym_ref: str) -> dict:
+    def load_symbols(self, sym_ref: str) -> dict[str, Any]:
         """Return the symbols dict from a symbol pack."""
         path = self._symbol_packs.get(sym_ref)
         if not path:
@@ -146,7 +147,7 @@ class FrameGraphLibrary:
                     f"unknown symbol pack '{sym_ref}'.  Available: {', '.join(self.symbol_ids())}"
                 )
         raw = load_yaml(path)
-        return raw.get("symbols", {})
+        return cast(dict[str, Any], raw.get("symbols", {}))
 
     def show_theme(self, theme_id: str) -> None:
         """Pretty-print a token pack's metadata and color table to stdout.
@@ -190,10 +191,10 @@ class FrameGraphComposer:
 
     def compose(
         self,
-        diagram: dict,
+        diagram: dict[str, Any],
         theme_override: str | None = None,
         extra_symbols: list[str] | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         doc = copy.deepcopy(diagram)
 
         # ── Extract directives ────────────────────────────────────────
@@ -213,7 +214,7 @@ class FrameGraphComposer:
 
         # ── 2. Merge symbol packs ─────────────────────────────────────
         if sym_refs:
-            lib_symbols: dict = {}
+            lib_symbols: dict[str, Any] = {}
             for ref in sym_refs:
                 lib_symbols.update(self.library.load_symbols(ref))
             diag_symbols = visual.get("symbols") or {}
@@ -322,7 +323,7 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     lib = FrameGraphLibrary(args.lib_path)
@@ -375,7 +376,7 @@ class FrameGraphDeckRenderer:
 
     def __init__(
         self,
-        deck_yaml: dict,
+        deck_yaml: dict[str, Any],
         library: FrameGraphLibrary | None = None,
     ) -> None:
         """Build a deck renderer from a parsed deck YAML and an optional library.
@@ -407,11 +408,15 @@ class FrameGraphDeckRenderer:
         self.slides_raw = deck_yaml.get("slides", []) or []
         self.global_tokens, self.global_symbols, self.global_cdefs = self._build_globals()
         # Index slides by id for $extends resolution
-        self._slide_index: dict = {str(s["id"]): s for s in self.slides_raw if s.get("id")}
+        self._slide_index: dict[str, Any] = {
+            str(s["id"]): s for s in self.slides_raw if s.get("id")
+        }
 
-    def _build_globals(self):
+    def _build_globals(
+        self,
+    ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         theme_id = self.raw.get("$theme")
-        base_tokens: dict = {}
+        base_tokens: dict[str, Any] = {}
         if theme_id and self.library:
             base_tokens = self.library.load_tokens(theme_id)
         deck_tokens = deep_merge(base_tokens, self.deck_config.get("tokens") or {})
@@ -419,7 +424,7 @@ class FrameGraphDeckRenderer:
         deck_cdefs = {**(self.deck_config.get("component_defs") or {})}
         return deck_tokens, deck_symbols, deck_cdefs
 
-    def build_slide_doc(self, slide: dict) -> dict:
+    def build_slide_doc(self, slide: dict[str, Any]) -> dict[str, Any]:
         """Assemble a complete FrameGraph document for a single slide.
 
         Merge order (each layer wins over the one above):
@@ -434,7 +439,7 @@ class FrameGraphDeckRenderer:
 
         # ── SP-5a: $extends — inherit from a named base slide ────────────
         extends_id = slide.get("$extends")
-        base_slide: dict = {}
+        base_slide: dict[str, Any] = {}
         if extends_id:
             base_slide = self._slide_index.get(str(extends_id), {})
             if not base_slide:
@@ -512,11 +517,11 @@ class FrameGraphDeckRenderer:
             "visual": slide_visual,
         }
 
-    def collect_notes(self) -> dict:
+    def collect_notes(self) -> dict[str, str]:
         """Return a dict mapping slide_id → notes string for all slides with notes.
         Notes are stripped from SVG output but available here for export.
         """
-        result = {}
+        result: dict[str, str] = {}
         for slide in self.slides_raw:
             notes = slide.get("notes")
             if notes:
@@ -571,6 +576,8 @@ class FrameGraphDeckRenderer:
         # Locate the v3 renderer relative to this file
         renderer_path = Path(__file__).parent / "renderer.py"
         spec = importlib.util.spec_from_file_location("fg_renderer", renderer_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"could not load renderer at {renderer_path}")
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         FGR = mod.FrameGraphRenderer
@@ -595,7 +602,7 @@ class FrameGraphDeckRenderer:
         return out_paths
 
 
-def cmd_render_deck(args, lib):
+def cmd_render_deck(args: argparse.Namespace, lib: FrameGraphLibrary) -> int:
     deck_data = load_yaml(args.input)
     renderer = FrameGraphDeckRenderer(deck_data, library=lib)
     out_dir = args.output or args.input.parent / "output"
@@ -605,13 +612,22 @@ def cmd_render_deck(args, lib):
     return 0
 
 
-# Patch build_parser to add render-deck subcommand
+# Patch build_parser to add render-deck subcommand. The two redefinitions
+# below are a deliberate monkey-patch over the earlier `build_parser`/`main`:
+# we keep a reference to the original (`_orig_build_parser`) and extend it
+# with the `render-deck` subcommand. mypy correctly flags the `no-redef`;
+# `# type: ignore[no-redef]` documents the intentional override.
 _orig_build_parser = build_parser
 
 
-def build_parser():
+def build_parser() -> argparse.ArgumentParser:  # type: ignore[no-redef]
     p = _orig_build_parser()
-    sub = p._subparsers._group_actions[0]
+    if p._subparsers is None:
+        return p
+    sub = cast(
+        "argparse._SubParsersAction[argparse.ArgumentParser]",
+        p._subparsers._group_actions[0],
+    )
     rp = sub.add_parser("render-deck", help="Render a multi-page deck YAML into per-slide SVGs")
     rp.add_argument("input", type=Path, help="Deck YAML (.deck.yml)")
     rp.add_argument("-o", "--output", type=Path, help="Output directory (default: ./output)")
@@ -621,7 +637,7 @@ def build_parser():
 build_parser_original = build_parser  # keep reference
 
 
-def main(argv=None):
+def main(argv: list[str] | None = None) -> int:  # type: ignore[no-redef]
     parser = build_parser()
     args = parser.parse_args(argv)
     lib = FrameGraphLibrary(args.lib_path)

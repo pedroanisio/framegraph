@@ -22,10 +22,12 @@ import re
 import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
+
+from framegraph._types import RenderFn
 
 try:
-    import yaml  # type: ignore
+    import yaml
 except ImportError as exc:
     raise SystemExit("PyYAML is required: python -m pip install pyyaml") from exc
 
@@ -351,10 +353,10 @@ class FrameGraphRenderer:
             validate_document(dict(doc))
 
         self.doc = doc
-        self.scene = doc.get("scene", {}) or {}
-        self.semantic = doc.get("semantic", {}) or {}
-        self.visual = doc.get("visual", {}) or {}
-        self.tokens = self.visual.get("tokens", {}) or {}
+        self.scene: dict[str, Any] = dict(doc.get("scene", {}) or {})
+        self.semantic: dict[str, Any] = dict(doc.get("semantic", {}) or {})
+        self.visual: dict[str, Any] = dict(doc.get("visual", {}) or {})
+        self.tokens: dict[str, Any] = dict(self.visual.get("tokens", {}) or {})
 
         self.colors: Mapping[str, Any] = self.tokens.get("colors", {}) or {}
         self.fonts: Mapping[str, Any] = self.tokens.get("fonts", {}) or {}
@@ -362,7 +364,7 @@ class FrameGraphRenderer:
         self.stroke_styles: Mapping[str, Mapping[str, Any]] = (
             self.tokens.get("stroke_styles", {}) or {}
         )
-        self.component_defs: Mapping[str, Mapping[str, Any]] = (
+        self.component_defs: dict[str, dict[str, Any]] = dict(
             self.visual.get("component_defs", {}) or {}
         )
         self.layers: list[Mapping[str, Any]] = [
@@ -381,6 +383,10 @@ class FrameGraphRenderer:
         self.semantic_ids = self._collect_semantic_ids()
         self.marker_colors: list[str] = []
         self.warnings: list[str] = []
+        # Set externally by callers that load YAML from disk (cli.py, the
+        # standalone renderer main, the deck loader). `renderers/image.py`
+        # reads it via getattr to resolve relative href paths.
+        self.yaml_source_dir: str | None = None
 
         # ── HD effect filter registry (lazy) ──────────────────────────
         # Keyed by deterministic SVG id; value is the resolved <filter>
@@ -1210,7 +1216,7 @@ class FrameGraphRenderer:
             for type_name, fn in mod.RENDERERS.items():
                 self._dispatch[type_name] = fn
 
-    def register(self, type_name: str, fn) -> None:
+    def register(self, type_name: str, fn: RenderFn) -> None:
         """Register a custom object-type renderer.
 
         fn signature: fn(renderer: FrameGraphRenderer, obj: Mapping) -> str
@@ -1237,9 +1243,9 @@ class FrameGraphRenderer:
 
         """
         t = obj.get("type")
-        fn = self._dispatch.get(t)
+        fn = self._dispatch.get(str(t)) if t is not None else None
         if fn:
-            return fn(self, obj)
+            return cast(str, fn(self, obj))
         return f"<!-- unsupported object type {esc(t)} -->"
 
     # ------------------------------------------------------------------
@@ -1387,7 +1393,7 @@ class FrameGraphRenderer:
     # the correct absolute coordinates.
     # ------------------------------------------------------------------
 
-    def endpoint(self, ep):
+    def endpoint(self, ep: Any) -> Point:
         """Resolve a connector endpoint to a canvas-space (x, y) point.
 
         Accepted forms:
@@ -1416,24 +1422,25 @@ class FrameGraphRenderer:
                         f"object {oid!r} has no port {port!r} "
                         f"(available: {list(rec['ports'].keys())})"
                     )
-                return rec["ports"][port]
-            return rec["ports"].get("center", (0.0, 0.0))
+                return cast(Point, rec["ports"][port])
+            return cast(Point, rec["ports"].get("center", (0.0, 0.0)))
         # ── map form ──────────────────────────────────────────────────────
         if isinstance(ep, Mapping):
             if "point" in ep:
                 return pt(ep["point"])
-            oid = ep.get("object")
-            if oid is None or str(oid) not in self.object_index:
-                raise ValueError(f"unknown endpoint object {oid!r}")
-            rec = self.object_index[str(oid)]
+            oid_raw: Any = ep.get("object")
+            if oid_raw is None or str(oid_raw) not in self.object_index:
+                raise ValueError(f"unknown endpoint object {oid_raw!r}")
+            oid = str(oid_raw)
+            rec = self.object_index[oid]
             if ep.get("port") is not None:
                 port = str(ep["port"])
                 if port not in rec["ports"]:
                     raise ValueError(f"object {oid!r} has no port {port!r}")
-                return rec["ports"][port]
+                return cast(Point, rec["ports"][port])
             if ep.get("side") is not None:
                 return self.side_anchor(rec, str(ep["side"]), fnum(ep.get("offset"), 0))
-            return rec["ports"].get("center", (0.0, 0.0))
+            return cast(Point, rec["ports"].get("center", (0.0, 0.0)))
         # ── coordinate pair ───────────────────────────────────────────────
         return pt(ep)
 
@@ -1525,7 +1532,7 @@ class FrameGraphRenderer:
             svg = f"<polyline {attrs(geom)}/>"
         return f"<g {attrs(self.group_attrs(obj))}>{svg}</g>"
 
-    def render_connector(self, obj):
+    def render_connector(self, obj: Mapping[str, Any]) -> str:
         start = self.endpoint(obj.get("from"))
         end = self.endpoint(obj.get("to"))
         route = obj.get("route", {}) or {"type": "straight"}
@@ -1570,7 +1577,7 @@ class FrameGraphRenderer:
         out.append("</g>")
         return "\n".join(out)
 
-    def render_legend(self, obj):
+    def render_legend(self, obj: Mapping[str, Any]) -> str:
         out = [f"<g {attrs(self.group_attrs(obj))}>"]
         for item in obj.get("items", []) or []:
             if not isinstance(item, Mapping):
@@ -1620,7 +1627,7 @@ class FrameGraphRenderer:
 # ---------------------------------------------------------------------------
 
 
-def parse_args(argv=None):
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="FrameGraph YAML → SVG renderer v3")
     p.add_argument("input", type=Path)
     p.add_argument("output_positional", type=Path, nargs="?")
@@ -1631,7 +1638,7 @@ def parse_args(argv=None):
     return p.parse_args(argv)
 
 
-def main(argv=None):
+def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     output = args.output or args.output_positional
     try:

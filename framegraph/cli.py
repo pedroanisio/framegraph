@@ -38,6 +38,20 @@ def cmd_render(args: argparse.Namespace) -> int:
     except Exception as e:
         print(f"ERROR loading {args.input}: {e}", file=sys.stderr)
         return 1
+
+    # Friendly hint: detect a deck file pointed at the wrong subcommand.
+    # Decks have `slides:` (a list) and no top-level `scene:`; standalone
+    # documents have `scene:` and no `slides:`. Catching this here gives a
+    # clearer error than the schema layer's "scene field required".
+    if isinstance(doc, dict) and isinstance(doc.get("slides"), list) and "scene" not in doc:
+        print(
+            f"ERROR: {args.input} looks like a deck (has top-level 'slides:'), "
+            f"not a single diagram document.\n"
+            f"       Use:  framegraph deck {args.input} -o <output_dir>",
+            file=sys.stderr,
+        )
+        return 1
+
     try:
         renderer = FrameGraphRenderer(doc)
         renderer.yaml_source_dir = str(Path(args.input).parent.resolve())
@@ -72,7 +86,7 @@ def _write_png_4k(svg: str, out: Path) -> None:
             clear actionable message rather than a stack trace.
     """
     try:
-        import cairosvg  # type: ignore
+        import cairosvg
     except ImportError as exc:
         raise ImportError(
             "cairosvg is required for --4k PNG output. Install with: pip install cairosvg"

@@ -114,7 +114,11 @@ def render_use(r: RendererContext, obj: Mapping[str, Any]) -> str:
 
 
 def _resolve_symbol_slots(
-    r: RendererContext, obj: Any, slots: dict, params: dict, prefix: str
+    r: RendererContext,
+    obj: Any,
+    slots: dict[str, Any],
+    params: dict[str, Any],
+    prefix: str,
 ) -> dict[str, Any]:
     """Deep-copy an object dict, replacing `$key` placeholders.
 
@@ -139,7 +143,7 @@ def _resolve_symbol_slots(
             return [walk(resolve(item)) for item in node]
         return resolve(node)
 
-    result = walk(copy.deepcopy(dict(obj)))
+    result: dict[str, Any] = walk(copy.deepcopy(dict(obj)))
     if "id" in result:
         result["id"] = f"{prefix}__{result['id']}"
     return result

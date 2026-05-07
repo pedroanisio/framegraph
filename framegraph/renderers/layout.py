@@ -52,7 +52,7 @@ def render_group(r: RendererContext, obj: Mapping[str, Any]) -> str:
 
 
 def _layout_stack(
-    r,
+    r: RendererContext,
     container_box: Box,
     children_raw: list[Mapping[str, Any]],
     layout: Mapping[str, Any],
@@ -163,7 +163,7 @@ def _layout_stack(
 
         child_copy = dict(child)
         child_copy["box"] = abs_box
-        # Register resolved box in object_index for connector targeting
+        # Register resolved box in object_index for connector targeting.
         if child_copy.get("id"):
             cid = str(child_copy["id"])
             cb = r.object_box(child_copy)

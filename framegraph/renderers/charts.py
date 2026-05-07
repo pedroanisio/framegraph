@@ -118,8 +118,8 @@ def render_bar_chart(r: RendererContext, obj: Mapping[str, Any]) -> str:
         vmax = vmin + 1
     vrange = vmax - vmin
 
-    def vy(val):
-        return py + ph - (fnum(val) - vmin) / vrange * ph
+    def vy(val: Any) -> float:
+        return float(py + ph - (fnum(val) - vmin) / vrange * ph)
 
     baseline_y = vy(baseline)
     slot_w = pw / n_bars
@@ -237,11 +237,11 @@ def render_line_chart(r: RendererContext, obj: Mapping[str, Any]) -> str:
         vmax = vmin + 1
     vrange = vmax - vmin
 
-    def vx(i):
-        return px + i * pw / (n_pts - 1)
+    def vx(i: float) -> float:
+        return float(px + i * pw / (n_pts - 1))
 
-    def vy(v):
-        return py + ph - (v - vmin) / vrange * ph
+    def vy(v: float) -> float:
+        return float(py + ph - (v - vmin) / vrange * ph)
 
     out = [f"<g {attrs(r.group_attrs(obj))}>"]
 

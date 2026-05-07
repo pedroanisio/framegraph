@@ -114,9 +114,9 @@ def text_svg(
     ew = h if rotation is not None and 80 <= abs(fnum(rotation)) % 180 <= 100 else w
 
     # ── word-wrap ────────────────────────────────────────────────────
-    def wrap_text(text: str, font_size: float) -> list:
+    def wrap_text(text: str, font_size: float) -> list[str]:
         """Break text into lines that fit within ew pixels."""
-        result = []
+        result: list[str] = []
         for para in text.split("\n"):
             words = para.split()
             if not words:
@@ -193,9 +193,9 @@ def text_svg(
 
 def spans_svg(
     r: RendererContext,
-    spans_raw: list,
+    spans_raw: list[Mapping[str, Any]],
     b: Box,
-    base_style: dict,
+    base_style: Mapping[str, Any],
     *,
     rotation: Any = None,
 ) -> str:
@@ -219,7 +219,7 @@ def spans_svg(
     ew = w
 
     # Resolve each span into (text, resolved_attrs_dict, estimated_char_width_fn)
-    resolved: list[dict] = []
+    resolved: list[dict[str, Any]] = []
     for sp in spans_raw or []:
         sp_weight = str(sp.get("weight", base_style.get("weight", 400)))
         sp_bold = sp_weight in ("700", "bold", "bolder")
@@ -237,12 +237,12 @@ def spans_svg(
             }
         )
 
-    def span_width(sp_dict: dict, text: str) -> float:
+    def span_width(sp_dict: dict[str, Any], text: str) -> float:
         return r._str_width(text, sp_dict["size"], sp_dict["bold"])
 
     # Flatten to words with span index for re-assembly
     # Each word: (word_text, span_idx, is_last_in_span, trailing_space)
-    flat_words: list[tuple] = []
+    flat_words: list[tuple[str, int, bool]] = []
     for si, sp in enumerate(resolved):
         words = sp["text"].split(" ")
         for wi, word in enumerate(words):
@@ -252,8 +252,8 @@ def spans_svg(
 
     # Word-wrap: accumulate words measuring their width per-span
     if do_wrap and flat_words:
-        lines: list[list[tuple]] = []  # list of list of (word, span_idx)
-        cur_line: list[tuple] = []
+        lines: list[list[tuple[str, int]]] = []  # list of list of (word, span_idx)
+        cur_line: list[tuple[str, int]] = []
         cur_w = 0.0
         for word, si, _ in flat_words:
             sp = resolved[si]
@@ -308,7 +308,7 @@ def spans_svg(
     svg_lines = []
     for li, line_words in enumerate(lines):
         # Group consecutive words of same span
-        groups: list[tuple] = []  # (span_idx, [words])
+        groups: list[tuple[int, list[str]]] = []  # (span_idx, [words])
         for word, si in line_words:
             if groups and groups[-1][0] == si:
                 groups[-1][1].append(word)
