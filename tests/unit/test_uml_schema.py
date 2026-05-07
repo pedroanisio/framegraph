@@ -588,3 +588,400 @@ class TestRealisticModel:
         assert animal.stereotype == "abstract"
         assert animal.attributes[1].multiplicity == "0..1"
         assert m.associations[0].kind == "aggregation"
+
+
+# ─────────────────────────────────────────────────────────────────
+# UML 2.5.1 normative-constraint coverage — gaps G1..G5
+#
+# Sourced from the OMG normative metamodel
+# (`static/specs/ptc-18-01-01.xmi`). One regression test per
+# constraint, with both the violating case and a control case that
+# must still validate.
+# ─────────────────────────────────────────────────────────────────
+
+
+class TestSpecConstraintG1TransitiveGeneralizationCycle:
+    """Classifier::no_cycles_in_generalization — `not allParents()->includes(self)`.
+
+    The 1-step (self) check is already enforced on `UMLGeneralization`.
+    This covers the multi-hop case the metamodel forbids.
+    """
+
+    def test_two_hop_cycle_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="generalization cycle"):
+            validate_class_diagram(
+                {
+                    "classes": [
+                        {"id": "A", "name": "A"},
+                        {"id": "B", "name": "B"},
+                    ],
+                    "generalizations": [
+                        {"id": "g1", "from": "A", "to": "B"},
+                        {"id": "g2", "from": "B", "to": "A"},
+                    ],
+                }
+            )
+
+    def test_three_hop_cycle_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="generalization cycle"):
+            validate_class_diagram(
+                {
+                    "classes": [
+                        {"id": "A", "name": "A"},
+                        {"id": "B", "name": "B"},
+                        {"id": "C", "name": "C"},
+                    ],
+                    "generalizations": [
+                        {"id": "g1", "from": "A", "to": "B"},
+                        {"id": "g2", "from": "B", "to": "C"},
+                        {"id": "g3", "from": "C", "to": "A"},
+                    ],
+                }
+            )
+
+    def test_diamond_inheritance_allowed(self) -> None:
+        """A diamond (A→B, A→C, B→D, C→D) is acyclic and legal."""
+        m = validate_class_diagram(
+            {
+                "classes": [
+                    {"id": "A", "name": "A"},
+                    {"id": "B", "name": "B"},
+                    {"id": "C", "name": "C"},
+                    {"id": "D", "name": "D"},
+                ],
+                "generalizations": [
+                    {"id": "g1", "from": "A", "to": "B"},
+                    {"id": "g2", "from": "A", "to": "C"},
+                    {"id": "g3", "from": "B", "to": "D"},
+                    {"id": "g4", "from": "C", "to": "D"},
+                ],
+            }
+        )
+        assert len(m.generalizations) == 4
+
+
+class TestSpecConstraintG2NonFinalParents:
+    """Classifier::non_final_parents — a final classifier cannot be a parent.
+
+    The OCL `parents()->forAll(not isFinalSpecialization)` means: if
+    `to_id` resolves to a class with `final=True`, the generalization
+    is invalid.
+    """
+
+    def test_generalization_to_final_class_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="final"):
+            validate_class_diagram(
+                {
+                    "classes": [
+                        {"id": "Sub", "name": "Sub"},
+                        {"id": "Sealed", "name": "Sealed", "final": True},
+                    ],
+                    "generalizations": [
+                        {"id": "g", "from": "Sub", "to": "Sealed"},
+                    ],
+                }
+            )
+
+    def test_generalization_to_non_final_class_allowed(self) -> None:
+        m = validate_class_diagram(
+            {
+                "classes": [
+                    {"id": "Sub", "name": "Sub"},
+                    {"id": "Base", "name": "Base"},
+                ],
+                "generalizations": [
+                    {"id": "g", "from": "Sub", "to": "Base"},
+                ],
+            }
+        )
+        assert m.generalizations[0].to_id == "Base"
+
+
+class TestSpecConstraintG3MultiplicityUpperGeLower:
+    """MultiplicityElement::upper_ge_lower — `upperBound() >= lowerBound()`."""
+
+    @pytest.mark.parametrize("value", ["5..3", "10..1", "2..0"])
+    def test_inverted_range_rejected(self, value: str) -> None:
+        with pytest.raises(ValidationError, match="upper.*lower|lower.*upper"):
+            UMLAttribute(name="a", multiplicity=value)
+
+    @pytest.mark.parametrize("value", ["0..0", "1..1", "0..*", "5..*", "1..3"])
+    def test_valid_range_accepted(self, value: str) -> None:
+        UMLAttribute(name="a", multiplicity=value)
+
+
+class TestSpecConstraintG4InterfaceFeaturesPublic:
+    """Interface::visibility — `feature->forAll(visibility = public)`.
+
+    UML 2.5.1 §10.4: an Interface's operations and constants must
+    all be public. Non-public visibility on an interface feature is a
+    metamodel violation.
+    """
+
+    def test_private_operation_on_interface_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="public"):
+            UMLInterface(
+                id="I",
+                name="I",
+                operations=[{"name": "op", "visibility": "private"}],
+            )
+
+    def test_protected_operation_on_interface_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="public"):
+            UMLInterface(
+                id="I",
+                name="I",
+                operations=[{"name": "op", "visibility": "protected"}],
+            )
+
+    def test_private_constant_on_interface_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="public"):
+            UMLInterface(
+                id="I",
+                name="I",
+                constants=[
+                    {
+                        "name": "K",
+                        "visibility": "private",
+                        "static": True,
+                        "readonly": True,
+                    }
+                ],
+            )
+
+    def test_public_features_on_interface_allowed(self) -> None:
+        iface = UMLInterface(
+            id="I",
+            name="I",
+            operations=[{"name": "op", "visibility": "public"}],
+            constants=[
+                {
+                    "name": "K",
+                    "visibility": "public",
+                    "static": True,
+                    "readonly": True,
+                }
+            ],
+        )
+        assert iface.operations[0].visibility == "public"
+
+
+class TestSpecConstraintG5CompositionWholeUpperBound:
+    """Property::multiplicity_of_composite — composite end opposite multiplicity ≤ 1.
+
+    The OCL `isComposite and association <> null implies opposite.upperBound() <= 1`
+    means: a part can belong to at most one whole. In `_uml.py`, the
+    composite end is `end1` when `kind == "composition"`; the
+    *opposite* end (`end2`) carries the multiplicity that must be
+    bounded by 1.
+    """
+
+    @pytest.mark.parametrize("bad", ["2", "0..*", "1..*", "0..2", "*"])
+    def test_composition_part_with_unbounded_upper_rejected(self, bad: str) -> None:
+        with pytest.raises(ValidationError, match="composit"):
+            UMLAssociation(
+                id="a",
+                end1={"id_ref": "Whole"},
+                end2={"id_ref": "Part", "multiplicity": bad},
+                kind="composition",
+            )
+
+    @pytest.mark.parametrize("good", ["0..1", "1", "1..1", "0..0"])
+    def test_composition_part_with_bounded_upper_accepted(self, good: str) -> None:
+        a = UMLAssociation(
+            id="a",
+            end1={"id_ref": "Whole"},
+            end2={"id_ref": "Part", "multiplicity": good},
+            kind="composition",
+        )
+        assert a.kind == "composition"
+
+    def test_composition_with_no_multiplicity_accepted(self) -> None:
+        """Omitted multiplicity is the UML default `1` — bounded by 1, OK."""
+        a = UMLAssociation(
+            id="a",
+            end1={"id_ref": "Whole"},
+            end2={"id_ref": "Part"},
+            kind="composition",
+        )
+        assert a.end2.multiplicity is None
+
+    def test_aggregation_unbounded_part_allowed(self) -> None:
+        """Aggregation is *not* composite; `multiplicity_of_composite` does not apply."""
+        a = UMLAssociation(
+            id="a",
+            end1={"id_ref": "Whole"},
+            end2={"id_ref": "Part", "multiplicity": "0..*"},
+            kind="aggregation",
+        )
+        assert a.end2.multiplicity == "0..*"
+
+
+class TestSpecConstraintC19SpecializeType:
+    """Classifier::specialize_type — `parents()->forAll(c | self.maySpecializeType(c))`.
+
+    Per UML 2.5.1 §9.2.4.6: a Classifier may specialize another only
+    if their kinds are compatible. In the Phase-A class-diagram MVP:
+
+    - Class generalizes Class
+    - Interface generalizes Interface
+    - Enumeration generalizes Enumeration
+
+    Cross-kind generalization is invalid. The Class→Interface
+    relation is `realization`, not `generalization`.
+    """
+
+    def test_class_generalizing_interface_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="specialize_type|incompatible"):
+            validate_class_diagram(
+                {
+                    "classes": [{"id": "C", "name": "C"}],
+                    "interfaces": [{"id": "I", "name": "I"}],
+                    "generalizations": [{"id": "g", "from": "C", "to": "I"}],
+                }
+            )
+
+    def test_class_generalizing_enumeration_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="specialize_type|incompatible"):
+            validate_class_diagram(
+                {
+                    "classes": [{"id": "C", "name": "C"}],
+                    "enumerations": [{"id": "E", "name": "E", "literals": ["A"]}],
+                    "generalizations": [{"id": "g", "from": "C", "to": "E"}],
+                }
+            )
+
+    def test_interface_generalizing_class_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="specialize_type|incompatible"):
+            validate_class_diagram(
+                {
+                    "classes": [{"id": "C", "name": "C"}],
+                    "interfaces": [{"id": "I", "name": "I"}],
+                    "generalizations": [{"id": "g", "from": "I", "to": "C"}],
+                }
+            )
+
+    def test_interface_generalizing_interface_allowed(self) -> None:
+        """Interface-to-interface generalization is the canonical pattern."""
+        m = validate_class_diagram(
+            {
+                "interfaces": [
+                    {"id": "I1", "name": "I1"},
+                    {"id": "I2", "name": "I2"},
+                ],
+                "generalizations": [{"id": "g", "from": "I2", "to": "I1"}],
+            }
+        )
+        assert m.generalizations[0].from_id == "I2"
+
+    def test_enumeration_generalizing_enumeration_allowed(self) -> None:
+        m = validate_class_diagram(
+            {
+                "enumerations": [
+                    {"id": "E1", "name": "E1", "literals": ["A"]},
+                    {"id": "E2", "name": "E2", "literals": ["A"]},
+                ],
+                "generalizations": [{"id": "g", "from": "E2", "to": "E1"}],
+            }
+        )
+        assert m.generalizations[0].from_id == "E2"
+
+    def test_class_realizing_interface_still_allowed(self) -> None:
+        """Realization is the *correct* relation for Class→Interface."""
+        m = validate_class_diagram(
+            {
+                "classes": [{"id": "C", "name": "C"}],
+                "interfaces": [{"id": "I", "name": "I"}],
+                "realizations": [{"id": "r", "from": "C", "to": "I"}],
+            }
+        )
+        assert m.realizations[0].to_id == "I"
+
+
+class TestSpecConstraintC15MembersDistinguishable:
+    """Namespace::members_distinguishable — feature names unique within a classifier.
+
+    UML 2.5.1 §7.4.4: a Namespace's members must be distinguishable.
+    For class-diagram features, the practical rule is:
+
+    - Attributes within a class must have unique names.
+    - Operations within a class must have distinguishable signatures
+      (same name allowed only when parameter type tuples differ —
+      i.e. overloads). For the MVP we apply name-uniqueness; overloads
+      are permitted when parameter type sequences differ.
+    - The same rules apply to Interface operations and constants.
+    """
+
+    def test_duplicate_attribute_names_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="distinguishable|duplicate"):
+            UMLClass(
+                id="C",
+                name="C",
+                attributes=[
+                    {"name": "x", "type": "int"},
+                    {"name": "x", "type": "str"},
+                ],
+            )
+
+    def test_duplicate_operation_signatures_rejected(self) -> None:
+        """Two operations with the same name and same parameter types collide."""
+        with pytest.raises(ValidationError, match="distinguishable|duplicate"):
+            UMLClass(
+                id="C",
+                name="C",
+                operations=[
+                    {
+                        "name": "f",
+                        "parameters": [{"name": "a", "type": "int"}],
+                    },
+                    {
+                        "name": "f",
+                        "parameters": [{"name": "b", "type": "int"}],
+                    },
+                ],
+            )
+
+    def test_overloaded_operations_allowed(self) -> None:
+        """Same name, different parameter type tuple is a legal overload."""
+        c = UMLClass(
+            id="C",
+            name="C",
+            operations=[
+                {"name": "f", "parameters": [{"name": "a", "type": "int"}]},
+                {"name": "f", "parameters": [{"name": "a", "type": "str"}]},
+            ],
+        )
+        assert len(c.operations) == 2
+
+    def test_distinct_attribute_names_allowed(self) -> None:
+        c = UMLClass(
+            id="C",
+            name="C",
+            attributes=[
+                {"name": "x", "type": "int"},
+                {"name": "y", "type": "int"},
+            ],
+        )
+        assert {a.name for a in c.attributes} == {"x", "y"}
+
+    def test_interface_duplicate_operation_signatures_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="distinguishable|duplicate"):
+            UMLInterface(
+                id="I",
+                name="I",
+                operations=[
+                    {"name": "f", "parameters": [{"name": "a", "type": "int"}]},
+                    {"name": "f", "parameters": [{"name": "b", "type": "int"}]},
+                ],
+            )
+
+    def test_interface_duplicate_constant_names_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="distinguishable|duplicate"):
+            UMLInterface(
+                id="I",
+                name="I",
+                constants=[
+                    {"name": "K", "static": True, "readonly": True},
+                    {"name": "K", "static": True, "readonly": True},
+                ],
+            )

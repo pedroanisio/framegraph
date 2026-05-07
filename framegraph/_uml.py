@@ -42,7 +42,7 @@ from __future__ import annotations
 import re
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 
 # ─────────────────────────────────────────────────────────────────
 # Common type aliases
@@ -60,7 +60,16 @@ _MULTIPLICITY_RE = re.compile(r"^(\d+(\.\.(\d+|\*))?|\*)$")
 
 
 def _validate_multiplicity(value: str) -> str:
-    """Validate a multiplicity string against the UML 2.5 grammar.
+    """Validate a multiplicity string against the UML 2.5.1 grammar.
+
+    Enforces the `MultiplicityElement` constraints from the OMG
+    metamodel (`static/specs/ptc-18-01-01.xmi`):
+
+    - `lower_is_integer`: lower bound is a non-negative integer
+    - `upper_is_unlimitedNatural`: upper bound is a non-negative
+      integer or `*` (UnlimitedNatural infinity)
+    - `lower_ge_0`: lower bound ≥ 0 (enforced by the `\\d+` regex)
+    - `upper_ge_lower`: upper bound ≥ lower bound
 
     Args:
         value: The multiplicity literal (e.g. `"1"`, `"0..1"`, `"1..*"`,
@@ -71,18 +80,34 @@ def _validate_multiplicity(value: str) -> str:
 
     Raises:
         ValueError: If the value does not match the
-            `lower(..upper)?` pattern with `*` allowed for upper or
-            as a shorthand for `0..*`.
+            `lower(..upper)?` pattern, or if the upper bound is a
+            finite integer strictly less than the lower bound.
     """
-    if not _MULTIPLICITY_RE.match(value):
+    if not isinstance(value, str) or not _MULTIPLICITY_RE.match(value):
         raise ValueError(
             f"invalid UML multiplicity {value!r}; expected forms like '1', '0..1', '1..*', or '*'"
         )
+    # Enforce upper_ge_lower per UML 2.5.1 MultiplicityElement constraints.
+    if ".." in value:
+        lo_s, up_s = value.split("..", 1)
+        lo = int(lo_s)
+        if up_s != "*":
+            up = int(up_s)
+            if up < lo:
+                raise ValueError(
+                    f"invalid UML multiplicity {value!r}: upper bound {up} "
+                    f"is less than lower bound {lo} (UML 2.5.1 "
+                    f"MultiplicityElement::upper_ge_lower)"
+                )
     return value
 
 
-Multiplicity = Annotated[str, Field(pattern=_MULTIPLICITY_RE.pattern)]
-"""A UML multiplicity literal, validated at parse time."""
+Multiplicity = Annotated[str, BeforeValidator(_validate_multiplicity)]
+"""A UML 2.5.1 multiplicity literal, validated at parse time.
+
+Enforces grammar (`lower(..upper)?` with `*` for unbounded) plus the
+`MultiplicityElement::upper_ge_lower` constraint from the metamodel.
+"""
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -101,6 +126,70 @@ class Position(BaseModel):
     model_config = ConfigDict(extra="forbid")
     x: float
     y: float
+
+
+# ─────────────────────────────────────────────────────────────────
+# Distinguishability helper (UML 2.5.1 Namespace::members_distinguishable)
+# ─────────────────────────────────────────────────────────────────
+
+
+def _operation_signature(op: Any) -> tuple[str, tuple[str | None, ...]]:
+    """Compute a UML operation signature for distinguishability.
+
+    The signature is `(name, tuple of parameter types in declared
+    order)`. Two operations collide iff their signatures are equal.
+    Same-name-different-types is a legal overload.
+
+    Notes:
+        Parameters with `direction='return'` are excluded — UML 2.5.1
+        signature equivalence is over input parameters only (the
+        return value does not participate in dispatch).
+    """
+    types = tuple(p.type for p in op.parameters if p.direction != "return")
+    return (op.name, types)
+
+
+def _check_members_distinguishable(
+    owner_id: str,
+    owner_kind: str,
+    attributes: list[Any],
+    operations: list[Any],
+) -> None:
+    """Enforce `Namespace::members_distinguishable` on a classifier.
+
+    Args:
+        owner_id: The classifier's id (used in error messages).
+        owner_kind: Human label, e.g. ``"class"`` or ``"interface"``.
+        attributes: List of `UMLAttribute` (Class) or constants
+            (Interface). Names must be unique.
+        operations: List of `UMLOperation`. Signatures (name + input
+            parameter types) must be unique.
+
+    Raises:
+        ValueError: When two attributes share a name or two
+            operations share a signature.
+    """
+    seen_attr: set[str] = set()
+    for a in attributes:
+        if a.name in seen_attr:
+            raise ValueError(
+                f"{owner_kind} {owner_id!r}: duplicate attribute name {a.name!r}; "
+                f"UML 2.5.1 Namespace::members_distinguishable requires "
+                f"feature names to be distinguishable within a classifier"
+            )
+        seen_attr.add(a.name)
+
+    seen_sig: set[tuple[str, tuple[str | None, ...]]] = set()
+    for op in operations:
+        sig = _operation_signature(op)
+        if sig in seen_sig:
+            raise ValueError(
+                f"{owner_kind} {owner_id!r}: duplicate operation signature "
+                f"{sig[0]!r}({', '.join(t or '?' for t in sig[1])}); UML "
+                f"2.5.1 Namespace::members_distinguishable requires "
+                f"operations to differ in name or in parameter type tuple"
+            )
+        seen_sig.add(sig)
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -250,6 +339,18 @@ class UMLClass(BaseModel):
             )
         return self
 
+    @model_validator(mode="after")
+    def _validate_members_distinguishable(self) -> UMLClass:
+        """Features must be distinguishable per UML 2.5.1 Namespace::members_distinguishable.
+
+        - Attributes: unique by name within the class.
+        - Operations: unique by `(name, parameter type tuple)`. Same
+          name with different parameter type sequences is a legal
+          overload; identical signatures collide.
+        """
+        _check_members_distinguishable(self.id, "class", self.attributes, self.operations)
+        return self
+
 
 class UMLInterface(BaseModel):
     """A UML Interface — like a Class but with no instance attributes.
@@ -288,6 +389,40 @@ class UMLInterface(BaseModel):
                     f"interface attribute {c.name!r} must declare both "
                     f"static=True and readonly=True; instance state belongs "
                     f"on implementing classes per UML 2.5 §10.4.1"
+                )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_members_distinguishable(self) -> UMLInterface:
+        """Features must be distinguishable per UML 2.5.1 Namespace::members_distinguishable.
+
+        Same rules as `UMLClass`: constants unique by name; operations
+        unique by `(name, parameter type tuple)` to permit overloads.
+        """
+        _check_members_distinguishable(self.id, "interface", self.constants, self.operations)
+        return self
+
+    @model_validator(mode="after")
+    def _validate_features_are_public(self) -> UMLInterface:
+        """Interface features must all be public (UML 2.5.1 Interface::visibility).
+
+        OCL: `feature->forAll(visibility = VisibilityKind::public)`.
+        Per the OMG normative metamodel, every operation and constant
+        on an Interface is part of the public contract.
+        """
+        for op in self.operations:
+            if op.visibility != "public":
+                raise ValueError(
+                    f"interface operation {op.name!r} has visibility "
+                    f"{op.visibility!r}; UML 2.5.1 Interface::visibility "
+                    f"requires all features to be public"
+                )
+        for c in self.constants:
+            if c.visibility != "public":
+                raise ValueError(
+                    f"interface constant {c.name!r} has visibility "
+                    f"{c.visibility!r}; UML 2.5.1 Interface::visibility "
+                    f"requires all features to be public"
                 )
         return self
 
@@ -410,6 +545,27 @@ class UMLAssociationEnd(BaseModel):
     navigable: bool | None = None
 
 
+def _multiplicity_upper_bound(value: str | None) -> int | None:
+    """Return the upper bound of a multiplicity string, or `None` for unbounded.
+
+    UML 2.5.1 `MultiplicityElement::upperBound()`. Returns:
+
+    - `None` if the multiplicity is `*` or `lower..*` (unbounded
+      `UnlimitedNatural` infinity).
+    - The integer upper bound otherwise. For a bare integer `n`,
+      upper == lower == `n`.
+    - `1` if `value` is `None` (UML default multiplicity).
+    """
+    if value is None:
+        return 1
+    if value == "*":
+        return None
+    if ".." in value:
+        _, up = value.split("..", 1)
+        return None if up == "*" else int(up)
+    return int(value)
+
+
 class UMLAssociation(BaseModel):
     """A relationship between two classifiers.
 
@@ -435,6 +591,29 @@ class UMLAssociation(BaseModel):
     end2: UMLAssociationEnd
     kind: AssociationKind = "association"
     name: str | None = None
+
+    @model_validator(mode="after")
+    def _validate_composition_part_upper_bound(self) -> UMLAssociation:
+        """Composition: the part-end upper bound must be ≤ 1.
+
+        UML 2.5.1 Property::multiplicity_of_composite —
+        `isComposite and association <> null implies opposite.upperBound() <= 1`.
+        Composition implies lifecycle ownership: a part can belong to
+        at most one whole at a time. The composite (whole) end is
+        `end1`; the *opposite* end (`end2`) carries the multiplicity
+        bounded by 1.
+        """
+        if self.kind != "composition":
+            return self
+        upper = _multiplicity_upper_bound(self.end2.multiplicity)
+        if upper is None or upper > 1:
+            raise ValueError(
+                f"composition {self.id!r}: part-end multiplicity "
+                f"{self.end2.multiplicity!r} exceeds 1; UML 2.5.1 "
+                f"Property::multiplicity_of_composite requires the "
+                f"opposite end of a composite to have upperBound() <= 1"
+            )
+        return self
 
 
 class UMLDependency(BaseModel):
@@ -609,6 +788,92 @@ class UMLClassDiagramModel(BaseModel):
         for d in self.dependencies:
             _check(d.id, "from", d.from_id)
             _check(d.id, "to", d.to_id)
+        return self
+
+    @model_validator(mode="after")
+    def _validate_generalization_kind_compatible(self) -> UMLClassDiagramModel:
+        """Generalization endpoints must be the same classifier kind.
+
+        UML 2.5.1 Classifier::specialize_type —
+        `parents()->forAll(c | self.maySpecializeType(c))`. For the
+        Phase-A class-diagram MVP, `maySpecializeType` reduces to
+        same-kind: Class generalizes Class, Interface generalizes
+        Interface, Enumeration generalizes Enumeration. Class →
+        Interface is `realization`, not generalization.
+        """
+        kind_of: dict[str, str] = {}
+        for c in self.classes:
+            kind_of[c.id] = "class"
+        for i in self.interfaces:
+            kind_of[i.id] = "interface"
+        for e in self.enumerations:
+            kind_of[e.id] = "enumeration"
+
+        for g in self.generalizations:
+            kf = kind_of.get(g.from_id)
+            kt = kind_of.get(g.to_id)
+            # Endpoint resolution is checked by another validator;
+            # only enforce kind compatibility when both resolve to
+            # classifiers (packages aren't classifiers).
+            if kf is None or kt is None:
+                continue
+            if kf != kt:
+                raise ValueError(
+                    f"generalization {g.id!r}: incompatible classifier kinds "
+                    f"({kf!r} → {kt!r}); UML 2.5.1 Classifier::specialize_type "
+                    f"requires the specific and general classifiers to be the "
+                    f"same kind. For class-implements-interface, use "
+                    f"`realizations` instead."
+                )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_non_final_parents(self) -> UMLClassDiagramModel:
+        """A generalization's parent (`to`) must not be a final classifier.
+
+        UML 2.5.1 Classifier::non_final_parents —
+        `parents()->forAll(not isFinalSpecialization)`. A class
+        marked `final=True` is sealed and cannot be specialized.
+        """
+        finals = {c.id for c in self.classes if c.final}
+        for g in self.generalizations:
+            if g.to_id in finals:
+                raise ValueError(
+                    f"generalization {g.id!r}: parent {g.to_id!r} is a "
+                    f"final class; UML 2.5.1 Classifier::non_final_parents "
+                    f"forbids specializing a final classifier"
+                )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_no_generalization_cycles(self) -> UMLClassDiagramModel:
+        """No classifier may transitively generalize itself.
+
+        UML 2.5.1 Classifier::no_cycles_in_generalization —
+        `not allParents()->includes(self)`. Walks the parent graph
+        from each classifier; a cycle is reported with the offending
+        node so authors can locate it.
+        """
+        parents: dict[str, list[str]] = {}
+        for g in self.generalizations:
+            parents.setdefault(g.from_id, []).append(g.to_id)
+
+        for start in parents:
+            stack = list(parents.get(start, []))
+            seen: set[str] = set()
+            while stack:
+                node = stack.pop()
+                if node == start:
+                    raise ValueError(
+                        f"generalization cycle detected: classifier {start!r} "
+                        f"transitively generalizes itself; UML 2.5.1 "
+                        f"Classifier::no_cycles_in_generalization forbids "
+                        f"`allParents()->includes(self)`"
+                    )
+                if node in seen:
+                    continue
+                seen.add(node)
+                stack.extend(parents.get(node, []))
         return self
 
     @model_validator(mode="after")
