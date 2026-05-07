@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "release/**"]
+    tags:     ["v*"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group:  ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ── Regression: golden-snapshot suite ──────────────────────────────────────
+  golden-snapshots:
+    name: Golden snapshots (Py ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install system deps (cairo)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libcairo2-dev libpango1.0-dev libglib2.0-dev pkg-config
+
+      - name: Install framegraph + test extras
+        run: pip install -e ".[test]"
+
+      - name: Run golden-snapshot regression suite
+        run: python tests/run_tests.py --verbose
+
+      - name: Upload diff artefacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-diffs-py${{ matrix.python-version }}
+          path: tests/goldens/
+          retention-days: 7
+
+  # ── Lint ───────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint (ruff + mypy)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dev extras
+        run: pip install -e ".[dev]"
+
+      # Ruff is enforcing. The configured ruleset (see pyproject.toml)
+      # is curated — the codebase is clean under it as of Step 5 of the
+      # python-code-style enhancement.
+      - name: ruff check
+        run: ruff check framegraph/
+
+      - name: ruff format --check
+        run: ruff format --check framegraph/
+
+      # Mypy is advisory until the v2.0 modular-split regression is
+      # repaired (text_svg / render_rect / eval_length are declared in
+      # the RendererContext Protocol but missing from FrameGraphRenderer).
+      # Once strict typing is wired up — see the proposal in
+      # docs/proposal-python-code-style.md — flip this job to enforcing
+      # by removing continue-on-error.
+      - name: mypy (advisory)
+        run: mypy framegraph/
+        continue-on-error: true
+
+  # ── Build + publish (tag-triggered) ────────────────────────────────────────
+  publish:
+    name: Publish to PyPI
+    needs: [golden-snapshots, lint]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: pypi
+      url:  https://pypi.org/p/framegraph
+    permissions:
+      id-token: write   # required for trusted publishing (OIDC)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Build sdist + wheel
+        run: python -m build
+
+      - name: Publish to PyPI (trusted publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1

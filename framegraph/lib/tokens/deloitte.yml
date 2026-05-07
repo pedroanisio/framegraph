@@ -1,0 +1,33 @@
+_meta: {type: token_pack, id: deloitte, version: 1.0, name: "Deloitte"}
+colors:
+  primary:        "#86BC25"   # Deloitte lime green
+  primary_dark:   "#5C8018"
+  secondary:      "#0076A8"   # Deloitte blue
+  surface:        "#F5F5F3"
+  surface_tinted: "#EDF4D9"
+  panel:          "#D8EDB5"
+  text:           "#1A1A1A"
+  text_muted:     "#53565A"
+  border:         "#C2D99A"
+  border_strong:  "#86BC25"
+  white:          "#FFFFFF"
+  data_1: "#86BC25"
+  data_2: "#0076A8"
+  data_3: "#C2D99A"
+  data_4: "#B3D0E6"
+  data_5: "#F2A735"
+fonts:
+  primary: "Arial, Helvetica, sans-serif"
+  heading: "Arial, Helvetica, sans-serif"
+glyph_map: {}
+text_styles:
+  node_label:   {font: primary, size: 13, weight: 700, color: text,       align: center}
+  node_desc:    {font: primary, size: 9,  weight: 400, color: text_muted, align: center, italic: true}
+  center_label: {font: primary, size: 13, weight: 700, color: primary_dark, align: center, line_height: 16}
+  icon_label:   {font: primary, size: 22, weight: 400, color: white,       align: center}
+  title:        {font: primary, size: 20, weight: 700, color: primary_dark, align: left}
+stroke_styles:
+  web:            {color: border,        width: 0.8}
+  circle_outline: {color: primary_dark,  width: 1.5}
+  center_outline: {color: secondary,     width: 1.5}
+  accent_rule:    {color: primary,       width: 3.0}

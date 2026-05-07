@@ -1,0 +1,35 @@
+# Pre-commit hook configuration for framegraph.
+#
+# Install once per clone:
+#   pip install pre-commit && pre-commit install
+#
+# Run manually across all files:
+#   pre-commit run --all-files
+#
+# These hooks mirror the lint job in `.github/workflows/ci.yml`. CI is
+# the source of truth — pre-commit just gives you the same gate locally
+# before pushing.
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.10
+    hooks:
+      # Lint with auto-fix on the configured ruleset (see pyproject.toml).
+      - id: ruff
+        args: [--fix]
+      # Enforce the formatter — no diffs allowed at commit time.
+      - id: ruff-format
+
+  # Mypy stays advisory for now (matches the CI lint job's
+  # continue-on-error setting). When the v2.0 modular-split regression
+  # is repaired and `framegraph/renderer.py` no longer mis-tokenises
+  # under mypy 2.0, flip both this hook and the CI job to enforcing.
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        files: ^framegraph/
+        # Match pyproject.toml's exclude — see the comment there for why
+        # renderer.py is currently skipped.
+        exclude: ^framegraph/renderer\.py$
+        additional_dependencies: [types-PyYAML]

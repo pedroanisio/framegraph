@@ -1,0 +1,105 @@
+dsl: FrameGraph
+version: 1.4
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: sp2_spans_fixture
+  canvas: {size: [640, 400]}
+  rendering_contract:
+    coordinate_mode: absolute
+    text: {min_font_size: 7}
+    semantics: {decorative_objects_may_omit_bind: true}
+
+semantic:
+  ontology: {node_types: {}, edge_types: {}}
+  nodes: []
+  edges: []
+
+visual:
+  tokens:
+    colors:
+      bg:      "#FFFFFF"
+      ink:     "#1A1A2E"
+      primary: "#002060"
+      accent:  "#E35205"
+      muted:   "#6B6B6B"
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+    text_styles:
+      body:
+        font: primary
+        size: 14
+        weight: 400
+        color: ink
+        align: left
+        v_align: top
+        line_height: 20
+
+  layers:
+    - id: bg
+      z: 0
+      objects:
+        - {type: rect, id: bg, decorative: true, box: [0,0,640,400], fill: bg}
+
+    - id: span_tests
+      z: 10
+      objects:
+        # Test 1: mixed weight inline spans
+        - type: text
+          id: t1
+          decorative: true
+          box: [32, 32, 576, 30]
+          spans:
+            - {text: "Domain depth", weight: 700, color: primary}
+            - {text: " is not substitutable — it cannot be assembled per engagement.", weight: 400, color: muted}
+          style: {font: primary, size: 14, align: left, v_align: middle}
+
+        # Test 2: mixed color spans, center aligned
+        - type: text
+          id: t2
+          decorative: true
+          box: [32, 80, 576, 30]
+          spans:
+            - {text: "Your backlog is a ", weight: 400, color: muted}
+            - {text: "specialization problem", weight: 700, color: accent}
+            - {text: " — not a technology one.", weight: 400, color: muted}
+          style: {font: primary, size: 14, align: center, v_align: middle}
+
+        # Test 3: spans with wrap: true across a narrow box
+        - type: text
+          id: t3
+          decorative: true
+          box: [32, 128, 576, 80]
+          spans:
+            - {text: "Embedded, not outsourced.", weight: 700, color: primary}
+            - {text: " Your roadmap, your ceremonies, your Jira. Mobile outcomes stay with you, not with the vendor.", weight: 400, color: ink}
+          style: {font: primary, size: 13, align: left, v_align: top, wrap: true, line_height: 20}
+
+        # Test 4: italic span within normal text
+        - type: text
+          id: t4
+          decorative: true
+          box: [32, 232, 576, 30]
+          spans:
+            - {text: "Source: ABComm 2024 — ", weight: 400, color: muted}
+            - {text: "indices are illustrative and directional only", italic: true, weight: 400, color: muted}
+            - {text: ".", weight: 400, color: muted}
+          style: {font: primary, size: 11, align: left, v_align: middle}
+
+        # Test 5: fallback plain text still works (regression)
+        - type: text
+          id: t5
+          decorative: true
+          box: [32, 280, 576, 30]
+          text: "Plain text still renders correctly — no spans key."
+          style: {font: primary, size: 13, weight: 400, color: ink, align: left, v_align: middle}
+
+        # Test 6: spans with size override per-span
+        - type: text
+          id: t6
+          decorative: true
+          box: [32, 328, 576, 50]
+          spans:
+            - {text: "13", weight: 700, color: primary, size: 32}
+            - {text: "  years of mobile-only delivery in São Paulo", weight: 400, color: muted, size: 13}
+          style: {font: primary, size: 13, align: left, v_align: middle}

@@ -1,0 +1,140 @@
+# FrameGraph Token Pack — McKinsey & Company
+# Deep blue authority, warm off-white surfaces, mixed serif/sans
+_meta:
+  type: token_pack
+  id: mckinsey
+  version: 1.0
+  name: "McKinsey & Company"
+  brand_notes: >
+    Deep navy is the primary brand driver. Warm off-white (#F5F3EF) for
+    slide backgrounds. Body copy uses Arial; exhibit titles and slide
+    headings optionally use Georgia. Strong horizontal rule accents.
+
+colors:
+  primary:        "#002060"   # McKinsey deep blue
+  secondary:      "#00A0DC"   # bright teal-blue accent
+  accent_warm:    "#E35205"   # amber-orange (charts, callouts)
+  surface:        "#F5F3EF"   # warm off-white slide bg
+  surface_dark:   "#2C2826"   # dark surface / govenance bars
+  panel:          "#E8E4DC"   # secondary panel fill
+  text:           "#1A1A1A"
+  text_muted:     "#6B6B6B"
+  border:         "#D0CEC8"
+  border_strong:  "#002060"
+  white:          "#FFFFFF"
+  # chart data palette
+  data_1:         "#002060"
+  data_2:         "#1A6FA8"
+  data_3:         "#6AAFE6"
+  data_4:         "#C8E0F4"
+  data_5:         "#E35205"
+  data_6:         "#5B9E4D"
+  data_highlight: "#E8633C"
+
+fonts:
+  primary:  "Arial, Helvetica, sans-serif"
+  heading:  "Georgia, 'Times New Roman', serif"
+
+glyph_map: {}
+
+text_styles:
+  slide_title:
+    font:   heading
+    size:   24
+    weight: 700
+    color:  primary
+    align:  left
+    line_height: 28
+  slide_subtitle:
+    font:   primary
+    size:   13
+    weight: 400
+    color:  text_muted
+    align:  left
+    line_height: 17
+  exhibit_header:
+    font:   primary
+    size:   11
+    weight: 700
+    color:  primary
+    align:  left
+  exhibit_sub:
+    font:   primary
+    size:   9
+    weight: 400
+    color:  text_muted
+    align:  left
+    italic: true
+  source_note:
+    font:   primary
+    size:   8
+    weight: 400
+    color:  text_muted
+    align:  left
+    italic: true
+  body:
+    font:   primary
+    size:   11
+    weight: 400
+    color:  text
+    align:  left
+    line_height: 15
+  callout:
+    font:   primary
+    size:   13
+    weight: 700
+    color:  primary
+    align:  left
+  node_label:
+    font:   primary
+    size:   13
+    weight: 700
+    color:  text
+    align:  center
+  node_desc:
+    font:   primary
+    size:   9
+    weight: 400
+    color:  text_muted
+    align:  center
+    italic: true
+  center_label:
+    font:   heading
+    size:   13
+    weight: 700
+    color:  primary
+    align:  center
+    line_height: 16
+  icon_label:
+    font:   primary
+    size:   22
+    weight: 400
+    color:  white
+    align:  center
+  title:
+    font:   heading
+    size:   20
+    weight: 700
+    color:  primary
+    align:  left
+
+stroke_styles:
+  web:
+    color: border
+    width: 0.8
+  circle_outline:
+    color: primary
+    width: 1.5
+  center_outline:
+    color: border_strong
+    width: 1.0
+  divider:
+    color: border
+    width: 0.5
+  accent_rule:
+    color: primary
+    width: 3.0
+  data_connector:
+    color: text_muted
+    width: 1.0
+    dash: [4, 3]

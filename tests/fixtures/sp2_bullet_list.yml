@@ -1,0 +1,89 @@
+dsl: FrameGraph
+version: 1.4
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: sp2_bullet_list_fixture
+  canvas: {size: [640, 500]}
+  rendering_contract:
+    coordinate_mode: absolute
+    text: {min_font_size: 7}
+    semantics: {decorative_objects_may_omit_bind: true}
+
+semantic:
+  ontology: {node_types: {}, edge_types: {}}
+  nodes: []
+  edges: []
+
+visual:
+  tokens:
+    colors:
+      bg:      "#FFFFFF"
+      ink:     "#1A1A2E"
+      primary: "#002060"
+      muted:   "#6B6B6B"
+      surface: "#F7F5F0"
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+    text_styles:
+      body:
+        font: primary
+        size: 12
+        weight: 400
+        color: ink
+        line_height: 18
+      small:
+        font: primary
+        size: 10
+        weight: 400
+        color: muted
+        line_height: 15
+
+  layers:
+    - id: bg
+      z: 0
+      objects:
+        - {type: rect, id: bg, decorative: true, box: [0,0,640,500], fill: bg}
+
+    - id: lists
+      z: 10
+      objects:
+        # Test 1: standard bullet list
+        - type: bullet_list
+          id: b1
+          decorative: true
+          box: [32, 24, 280, 200]
+          marker: "•"
+          style: body
+          items:
+            - "Domain depth built over 13 years"
+            - "Embedded delivery — no ramp-up cost"
+            - "Mobile-native engineers only"
+            - "30-day exit, no penalties"
+            - "IP always yours, no carve-outs"
+
+        # Test 2: ordered list
+        - type: bullet_list
+          id: b2
+          decorative: true
+          box: [344, 24, 264, 200]
+          marker: "1."
+          style: body
+          items:
+            - "Authorize 60-min scoping call"
+            - "Technical findings delivered in 4 weeks"
+            - "Embedded team begins sprint 1"
+
+        # Test 3: em-dash marker, wrap on long items
+        - type: bullet_list
+          id: b3
+          decorative: true
+          box: [32, 248, 576, 220]
+          marker: "–"
+          gap: 8
+          style: body
+          items:
+            - "Mobile engineering teams report shipping velocity 30–50% below plan on average."
+            - "Each quarter without a specialised team raises the recovery cost by a compounding factor."
+            - {text: "Indented sub-point: framework migrations absorb 40–60% of budget.", indent: 1}
+            - "No action is not a neutral choice — it is the most expensive one."

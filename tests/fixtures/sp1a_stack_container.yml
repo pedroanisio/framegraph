@@ -1,0 +1,178 @@
+dsl: FrameGraph
+version: 1.4
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: sp1a_stack_container_fixture
+  canvas: {size: [640, 580]}
+  rendering_contract:
+    coordinate_mode: absolute
+    text: {min_font_size: 7}
+    semantics: {decorative_objects_may_omit_bind: true}
+
+semantic:
+  ontology: {node_types: {}, edge_types: {}}
+  nodes: []
+  edges: []
+
+visual:
+  tokens:
+    colors:
+      bg:      "#FFFFFF"
+      ink:     "#1A1A2E"
+      primary: "#002060"
+      accent:  "#E35205"
+      green:   "#009A44"
+      surface: "#F7F5F0"
+      border:  "#E0DDD8"
+      muted:   "#6B6B6B"
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+    text_styles:
+      card_title:
+        font: primary
+        size: 11
+        weight: 700
+        color: primary
+        align: center
+        v_align: middle
+      label:
+        font: primary
+        size: 9
+        weight: 400
+        color: muted
+        align: left
+      body:
+        font: primary
+        size: 11
+        weight: 400
+        color: ink
+        align: left
+        v_align: top
+        line_height: 17
+    stroke_styles:
+      thin:
+        color: border
+        width: 0.5
+
+  layers:
+    - id: bg_layer
+      z: 0
+      objects:
+        - {type: rect, id: bg, decorative: true, box: [0,0,640,580], fill: bg}
+
+    # ── Test 1: horizontal stack, 3 equal cards ─────────────────────────
+    - id: test1
+      z: 10
+      objects:
+        - {type: text, id: t1_lbl, decorative: true,
+           box: [24, 16, 592, 14], text: "Test 1  ·  horizontal stack, 3 equal cards, gap:16, padding:[16,12], align:stretch",
+           style: label}
+        - type: container
+          id: card_row_1
+          decorative: true
+          box: [24, 36, 592, 100]
+          layout:
+            kind:      stack
+            direction: horizontal
+            gap:       16
+            align:     stretch
+            padding:   [0, 0]
+          children:
+            - type: rect
+              id: c1_bg
+              fill: surface
+              stroke_style: thin
+              radius: 4
+            - type: rect
+              id: c2_bg
+              fill: surface
+              stroke_style: thin
+              radius: 4
+            - type: rect
+              id: c3_bg
+              fill: surface
+              stroke_style: thin
+              radius: 4
+
+    # ── Test 2: horizontal stack, explicit widths + flex remainder ────────
+    - id: test2
+      z: 20
+      objects:
+        - {type: text, id: t2_lbl, decorative: true,
+           box: [24, 152, 592, 14], text: "Test 2  ·  horizontal stack with explicit widths — first 120px, last 80px, middle flex fills remainder",
+           style: label}
+        - type: container
+          id: card_row_2
+          decorative: true
+          box: [24, 172, 592, 64]
+          layout:
+            kind:      stack
+            direction: horizontal
+            gap:       8
+            align:     stretch
+          children:
+            - {type: rect, id: r2_a, box: [0,0,120,0], fill: primary, radius: 4}
+            - {type: rect, id: r2_b, flex: 1,          fill: surface, stroke_style: thin, radius: 4}
+            - {type: rect, id: r2_c, box: [0,0,80,0],  fill: accent,  radius: 4}
+
+    # ── Test 3: vertical stack with text children ─────────────────────────
+    - id: test3
+      z: 30
+      objects:
+        - {type: text, id: t3_lbl, decorative: true,
+           box: [24, 252, 592, 14], text: "Test 3  ·  vertical stack, fixed row heights, text children, padding:[16,12]",
+           style: label}
+        - type: container
+          id: fact_list
+          decorative: true
+          box: [24, 272, 592, 192]
+          layout:
+            kind:      stack
+            direction: vertical
+            gap:       0
+            align:     stretch
+            padding:   [0, 0]
+          children:
+            - type: rect
+              id: fact_bg_1
+              box: [0,0,0,48]
+              fill: surface
+              stroke: {color: border, width: 0.5}
+            - type: rect
+              id: fact_bg_2
+              box: [0,0,0,48]
+              fill: "#FAFAF8"
+              stroke: {color: border, width: 0.5}
+            - type: rect
+              id: fact_bg_3
+              box: [0,0,0,48]
+              fill: surface
+              stroke: {color: border, width: 0.5}
+            - type: rect
+              id: fact_bg_4
+              box: [0,0,0,48]
+              fill: "#FAFAF8"
+              stroke: {color: border, width: 0.5}
+
+    # ── Test 4: justify:space_between ─────────────────────────────────────
+    - id: test4
+      z: 40
+      objects:
+        - {type: text, id: t4_lbl, decorative: true,
+           box: [24, 480, 592, 14], text: "Test 4  ·  horizontal stack, justify:space_between, fixed widths 120px each",
+           style: label}
+        - type: container
+          id: spaced_row
+          decorative: true
+          box: [24, 500, 592, 64]
+          layout:
+            kind:      stack
+            direction: horizontal
+            justify:   space_between
+            align:     stretch
+          children:
+            - {type: rect, id: sb_a, box: [0,0,120,0], fill: primary,   radius: 4}
+            - {type: rect, id: sb_b, box: [0,0,120,0], fill: surface,   stroke_style: thin, radius: 4}
+            - {type: rect, id: sb_c, box: [0,0,120,0], fill: green,     radius: 4}
+            - {type: rect, id: sb_d, box: [0,0,120,0], fill: accent,    radius: 4}

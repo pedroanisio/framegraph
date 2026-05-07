@@ -1,0 +1,714 @@
+dsl: FrameGraph
+version: 1.1
+kind: hybrid-semantic-visual-diagram
+$theme: mckinsey
+scene:
+  id: mckinsey_7s
+  name: McKinsey 7S — Bain style
+  description: Seven interdependent factors — rendered in consulting firm style.
+  canvas:
+    size:
+    - 960
+    - 560
+    units: px
+  rendering_contract:
+    coordinate_mode: absolute
+    semantics:
+      decorative_objects_may_omit_bind: true
+semantic:
+  ontology:
+    node_types:
+      SevenS:
+        meaning: One of the seven S elements.
+    edge_types:
+      Interdependency:
+        meaning: Bidirectional interdependency.
+        directionality: bidirectional
+  nodes:
+  - id: node.shared_values
+    type: SevenS
+    label: Shared Values
+  - id: node.structure
+    type: SevenS
+    label: Structure
+  - id: node.systems
+    type: SevenS
+    label: Systems
+  - id: node.strategy
+    type: SevenS
+    label: Strategy
+  - id: node.style
+    type: SevenS
+    label: Style
+  - id: node.staff
+    type: SevenS
+    label: Staff
+  - id: node.skills
+    type: SevenS
+    label: Skills
+  edges:
+  - id: e.sv_str
+    type: Interdependency
+    from: node.shared_values
+    to: node.structure
+  - id: e.sv_sy
+    type: Interdependency
+    from: node.shared_values
+    to: node.systems
+  - id: e.sv_stg
+    type: Interdependency
+    from: node.shared_values
+    to: node.strategy
+  - id: e.sv_sty
+    type: Interdependency
+    from: node.shared_values
+    to: node.style
+  - id: e.sv_sta
+    type: Interdependency
+    from: node.shared_values
+    to: node.staff
+  - id: e.sv_sk
+    type: Interdependency
+    from: node.shared_values
+    to: node.skills
+  - id: e.str_sy
+    type: Interdependency
+    from: node.structure
+    to: node.systems
+  - id: e.sy_sty
+    type: Interdependency
+    from: node.systems
+    to: node.style
+  - id: e.sty_sta
+    type: Interdependency
+    from: node.style
+    to: node.staff
+  - id: e.sta_sk
+    type: Interdependency
+    from: node.staff
+    to: node.skills
+  - id: e.sk_stg
+    type: Interdependency
+    from: node.skills
+    to: node.strategy
+  - id: e.stg_str
+    type: Interdependency
+    from: node.strategy
+    to: node.structure
+visual:
+  tokens:
+    colors:
+      primary: '#CC0000'
+      primary_light: '#FF4444'
+      secondary: '#003366'
+      accent: '#FF6600'
+      surface: '#FFFFFF'
+      surface_tinted: '#FFF5F5'
+      panel: '#F5E6E6'
+      text: '#1A1A1A'
+      text_muted: '#666666'
+      border: '#E0CCCC'
+      border_strong: '#CC0000'
+      white: '#FFFFFF'
+      data_1: '#CC0000'
+      data_2: '#003366'
+      data_3: '#FF6600'
+      data_4: '#F5C6C6'
+      data_5: '#5B9E4D'
+      data_6: '#6AAFE6'
+    fonts:
+      primary: Arial, Helvetica, sans-serif
+      heading: Arial, Helvetica, sans-serif
+    glyph_map:
+      structure: ≡
+      systems: ⚙
+      strategy: ♟
+      staff: ⊕
+      skills: ★
+      style: ◆
+    text_styles:
+      slide_title:
+        font: heading
+        size: 22
+        weight: 700
+        color: primary
+        align: left
+        line_height: 26
+      node_label:
+        font: primary
+        size: 13
+        weight: 700
+        color: text
+        align: center
+      node_desc:
+        font: primary
+        size: 9
+        weight: 400
+        color: text_muted
+        align: center
+        italic: true
+      center_label:
+        font: primary
+        size: 13
+        weight: 700
+        color: secondary
+        align: center
+        line_height: 16
+      icon_label:
+        font: primary
+        size: 22
+        weight: 700
+        color: white
+        align: center
+      title:
+        font: heading
+        size: 20
+        weight: 700
+        color: primary
+        align: left
+    stroke_styles:
+      web:
+        color: border
+        width: 0.8
+      circle_outline:
+        color: primary
+        width: 2.0
+      center_outline:
+        color: secondary
+        width: 1.5
+      accent_rule:
+        color: primary
+        width: 4.0
+  layers:
+  - id: background
+    z: 0
+    objects:
+    - type: rect
+      id: v.bg
+      decorative: true
+      box:
+      - 0
+      - 0
+      - 960
+      - 560
+      fill: surface
+    - type: rect
+      id: v.slide
+      decorative: true
+      box:
+      - 10
+      - 15
+      - 940
+      - 534
+      fill: white
+      stroke:
+        color: border
+        width: 1
+  - id: title_layer
+    z: 10
+    objects:
+    - type: text
+      id: v.title
+      decorative: true
+      text: McKinsey 7S Framework  ·  Bain style
+      box:
+      - 40
+      - 24
+      - 700
+      - 26
+      style: title
+  - id: web_lines
+    z: 20
+    opacity: 0.35
+    objects:
+    - type: line
+      id: vl.sv_str
+      bind: e.sv_str
+      from:
+      - 480
+      - 295
+      to:
+      - 480
+      - 120
+      stroke_style: web
+    - type: line
+      id: vl.sv_sy
+      bind: e.sv_sy
+      from:
+      - 480
+      - 295
+      to:
+      - 632
+      - 208
+      stroke_style: web
+    - type: line
+      id: vl.sv_sty
+      bind: e.sv_sty
+      from:
+      - 480
+      - 295
+      to:
+      - 632
+      - 382
+      stroke_style: web
+    - type: line
+      id: vl.sv_sta
+      bind: e.sv_sta
+      from:
+      - 480
+      - 295
+      to:
+      - 480
+      - 470
+      stroke_style: web
+    - type: line
+      id: vl.sv_sk
+      bind: e.sv_sk
+      from:
+      - 480
+      - 295
+      to:
+      - 328
+      - 382
+      stroke_style: web
+    - type: line
+      id: vl.sv_stg
+      bind: e.sv_stg
+      from:
+      - 480
+      - 295
+      to:
+      - 328
+      - 208
+      stroke_style: web
+    - type: line
+      id: vl.str_sy
+      bind: e.str_sy
+      from:
+      - 480
+      - 120
+      to:
+      - 632
+      - 208
+      stroke_style: web
+    - type: line
+      id: vl.sy_sty
+      bind: e.sy_sty
+      from:
+      - 632
+      - 208
+      to:
+      - 632
+      - 382
+      stroke_style: web
+    - type: line
+      id: vl.sty_sta
+      bind: e.sty_sta
+      from:
+      - 632
+      - 382
+      to:
+      - 480
+      - 470
+      stroke_style: web
+    - type: line
+      id: vl.sta_sk
+      bind: e.sta_sk
+      from:
+      - 480
+      - 470
+      to:
+      - 328
+      - 382
+      stroke_style: web
+    - type: line
+      id: vl.sk_stg
+      bind: e.sk_stg
+      from:
+      - 328
+      - 382
+      to:
+      - 328
+      - 208
+      stroke_style: web
+    - type: line
+      id: vl.stg_str
+      bind: e.stg_str
+      from:
+      - 328
+      - 208
+      to:
+      - 480
+      - 120
+      stroke_style: web
+    - type: line
+      id: vl.x1
+      decorative: true
+      from:
+      - 480
+      - 120
+      to:
+      - 632
+      - 382
+      stroke_style: web
+    - type: line
+      id: vl.x2
+      decorative: true
+      from:
+      - 480
+      - 120
+      to:
+      - 480
+      - 470
+      stroke_style: web
+    - type: line
+      id: vl.x3
+      decorative: true
+      from:
+      - 480
+      - 120
+      to:
+      - 328
+      - 382
+      stroke_style: web
+    - type: line
+      id: vl.x4
+      decorative: true
+      from:
+      - 632
+      - 208
+      to:
+      - 480
+      - 470
+      stroke_style: web
+    - type: line
+      id: vl.x5
+      decorative: true
+      from:
+      - 632
+      - 208
+      to:
+      - 328
+      - 382
+      stroke_style: web
+    - type: line
+      id: vl.x6
+      decorative: true
+      from:
+      - 632
+      - 208
+      to:
+      - 328
+      - 208
+      stroke_style: web
+    - type: line
+      id: vl.x7
+      decorative: true
+      from:
+      - 632
+      - 382
+      to:
+      - 328
+      - 382
+      stroke_style: web
+    - type: line
+      id: vl.x8
+      decorative: true
+      from:
+      - 632
+      - 382
+      to:
+      - 328
+      - 208
+      stroke_style: web
+    - type: line
+      id: vl.x9
+      decorative: true
+      from:
+      - 480
+      - 470
+      to:
+      - 328
+      - 208
+      stroke_style: web
+  - id: center_circle
+    z: 28
+    objects:
+    - type: ellipse
+      id: v.circle.sv
+      bind: node.shared_values
+      box:
+      - 420
+      - 245
+      - 120
+      - 100
+      fill: panel
+      stroke_style: center_outline
+      outer_ring:
+        color: border_strong
+        width: 2
+        offset: 5
+  - id: node_circles
+    z: 30
+    objects:
+    - type: use
+      id: v.node.str
+      bind: node.structure
+      symbol: s_node
+      box:
+      - 440
+      - 80
+      - 80
+      - 80
+      icon_glyph: structure
+      params:
+        fill: primary
+    - type: use
+      id: v.node.sy
+      bind: node.systems
+      symbol: s_node
+      box:
+      - 592
+      - 168
+      - 80
+      - 80
+      icon_glyph: systems
+      params:
+        fill: primary
+    - type: use
+      id: v.node.sty
+      bind: node.style
+      symbol: s_node
+      box:
+      - 592
+      - 342
+      - 80
+      - 80
+      icon_glyph: style
+      params:
+        fill: secondary
+    - type: use
+      id: v.node.sta
+      bind: node.staff
+      symbol: s_node
+      box:
+      - 440
+      - 430
+      - 80
+      - 80
+      icon_glyph: staff
+      params:
+        fill: primary
+    - type: use
+      id: v.node.sk
+      bind: node.skills
+      symbol: s_node
+      box:
+      - 288
+      - 342
+      - 80
+      - 80
+      icon_glyph: skills
+      params:
+        fill: secondary
+    - type: use
+      id: v.node.stg
+      bind: node.strategy
+      symbol: s_node
+      box:
+      - 288
+      - 168
+      - 80
+      - 80
+      icon_glyph: strategy
+      params:
+        fill: primary
+  - id: labels
+    z: 40
+    objects:
+    - type: text
+      id: v.lbl.sv
+      bind: node.shared_values
+      text: 'Shared
+
+        Values'
+      box:
+      - 420
+      - 258
+      - 120
+      - 74
+      style: center_label
+    - type: text
+      id: v.lbl.str
+      bind: node.structure
+      text: Structure
+      box:
+      - 390
+      - 46
+      - 180
+      - 18
+      style: node_label
+    - type: text
+      id: v.lbl.sy
+      bind: node.systems
+      text: Systems
+      box:
+      - 722
+      - 196
+      - 155
+      - 18
+      style: node_label
+    - type: text
+      id: v.lbl.sty
+      bind: node.style
+      text: Style
+      box:
+      - 722
+      - 370
+      - 155
+      - 18
+      style: node_label
+    - type: text
+      id: v.lbl.sta
+      bind: node.staff
+      text: Staff
+      box:
+      - 390
+      - 518
+      - 180
+      - 18
+      style: node_label
+    - type: text
+      id: v.lbl.sk
+      bind: node.skills
+      text: Skills
+      box:
+      - 83
+      - 370
+      - 155
+      - 18
+      style: node_label
+    - type: text
+      id: v.lbl.stg
+      bind: node.strategy
+      text: Strategy
+      box:
+      - 83
+      - 196
+      - 155
+      - 18
+      style: node_label
+    - type: text
+      id: v.desc.str
+      bind: node.structure
+      style: node_desc
+      box:
+      - 360
+      - 66
+      - 260
+      - 22
+      text: Org hierarchy and reporting lines.
+    - type: text
+      id: v.desc.sy
+      bind: node.systems
+      style: node_desc
+      box:
+      - 722
+      - 218
+      - 155
+      - 22
+      text: 'Processes governing
+
+        how work gets done.'
+    - type: text
+      id: v.desc.sty
+      bind: node.style
+      style: node_desc
+      box:
+      - 722
+      - 392
+      - 155
+      - 22
+      text: 'Leadership approach
+
+        and culture.'
+    - type: text
+      id: v.desc.sta
+      bind: node.staff
+      style: node_desc
+      box:
+      - 360
+      - 540
+      - 260
+      - 20
+      text: People and capabilities.
+    - type: text
+      id: v.desc.sk
+      bind: node.skills
+      style: node_desc
+      box:
+      - 83
+      - 394
+      - 155
+      - 22
+      text: 'Core competencies
+
+        of the organization.'
+    - type: text
+      id: v.desc.stg
+      bind: node.strategy
+      style: node_desc
+      box:
+      - 83
+      - 218
+      - 155
+      - 22
+      text: 'Plan for achieving
+
+        competitive advantage.'
+  symbols:
+    s_node:
+      box:
+      - 0
+      - 0
+      - 80
+      - 80
+      slots:
+      - icon_glyph
+      objects:
+      - type: ellipse
+        id: bg
+        box:
+        - 0
+        - 0
+        - 80
+        - 80
+        fill: $fill
+        stroke_style: circle_outline
+      - type: icon
+        id: glyph
+        box:
+        - 0
+        - 0
+        - 80
+        - 80
+        font: primary
+        glyph: $icon_glyph
+        color: white
+        size: 28
+      ports:
+        center:
+        - 40
+        - 40
+        north:
+        - 40
+        - 0
+        south:
+        - 40
+        - 80
+        east:
+        - 80
+        - 40
+        west:
+        - 0
+        - 40

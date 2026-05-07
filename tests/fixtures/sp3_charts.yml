@@ -1,0 +1,133 @@
+dsl: FrameGraph
+version: 1.5
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: sp3_charts_fixture
+  canvas: {size: [960, 540]}
+  rendering_contract:
+    coordinate_mode: absolute
+    text: {min_font_size: 7}
+    semantics: {decorative_objects_may_omit_bind: true}
+
+semantic:
+  ontology: {node_types: {}, edge_types: {}}
+  nodes: []
+  edges: []
+
+visual:
+  tokens:
+    colors:
+      bg:      "#FFFFFF"
+      primary: "#002060"
+      accent:  "#E35205"
+      green:   "#009A44"
+      amber:   "#BA7517"
+      red:     "#CC0000"
+      muted:   "#6B6B6B"
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+    text_styles:
+      label:
+        font: primary
+        size: 9
+        weight: 700
+        color: muted
+        align: left
+
+  layers:
+    - id: bg
+      z: 0
+      objects:
+        - {type: rect, id: bg, decorative: true, box: [0,0,960,540], fill: bg}
+
+    # ── Bar chart: single series ────────────────────────────────────
+    - id: charts
+      z: 10
+      objects:
+        - {type: text, id: lbl1, decorative: true,
+           box: [24, 12, 430, 14],
+           text: "bar_chart  ·  single series  ·  value_labels: true",
+           style: label}
+
+        - type: bar_chart
+          id: chart_single
+          decorative: true
+          box: [24, 30, 430, 230]
+          data:
+            labels: ["2020","2021","2022","2023","2024"]
+            values: [100, 127, 158, 196, 242]
+            note: "Source: ABComm / Ebit 2024 — indices illustrative, directional only."
+          style:
+            bar_fill:    primary
+            bar_width:   0.72
+            value_labels: true
+            grid_lines:  true
+            padding: [40, 16, 16, 28]
+
+        # ── Bar chart: multi-series ────────────────────────────────
+        - {type: text, id: lbl2, decorative: true,
+           box: [500, 12, 436, 14],
+           text: "bar_chart  ·  multi-series",
+           style: label}
+
+        - type: bar_chart
+          id: chart_multi
+          decorative: true
+          box: [500, 30, 436, 230]
+          data:
+            series:
+              - {label: "Mobile",  values: [100,127,158,196,242], color: primary}
+              - {label: "Desktop", values: [140,130,118,105,92],  color: accent}
+            labels: ["2020","2021","2022","2023","2024"]
+            note: "Illustrative — directional only."
+          style:
+            value_labels: false
+            grid_lines:   true
+            padding: [40, 16, 16, 28]
+
+        # ── Line chart: single series ──────────────────────────────
+        - {type: text, id: lbl3, decorative: true,
+           box: [24, 278, 430, 14],
+           text: "line_chart  ·  3-series with dashed line",
+           style: label}
+
+        - type: line_chart
+          id: chart_lines
+          decorative: true
+          box: [24, 296, 430, 228]
+          data:
+            series:
+              - {label: "No action",         values: [100,134,180,242,324], color: "#CC0000"}
+              - {label: "Late intervention",  values: [100,134,148,175,200], color: "#BA7517", dash: true}
+              - {label: "Engage now",         values: [100,108,116,125,135], color: "#009A44"}
+            x_labels: ["Q1","Q2","Q3","Q4","Q5"]
+            note: "Illustrative — exact figures quantified during Discovery Pilot."
+          style:
+            stroke_width: 2.0
+            show_legend:  true
+            point_radius: 3
+            grid_lines:   true
+            padding: [40, 16, 16, 28]
+
+        # ── Line chart: simple 2-series ────────────────────────────
+        - {type: text, id: lbl4, decorative: true,
+           box: [500, 278, 436, 14],
+           text: "line_chart  ·  2-series, no points",
+           style: label}
+
+        - type: line_chart
+          id: chart_simple
+          decorative: true
+          box: [500, 296, 436, 228]
+          data:
+            series:
+              - {label: "Revenue",  values: [82,91,103,118,134,152], color: primary}
+              - {label: "Baseline", values: [82,82,82,82,82,82],     color: "#DDDDDD", dash: true}
+            x_labels: ["Jan","Feb","Mar","Apr","May","Jun"]
+          style:
+            stroke_width: 2.0
+            show_legend:  true
+            point_radius: 0
+            grid_lines:   true
+            padding: [40, 16, 16, 28]

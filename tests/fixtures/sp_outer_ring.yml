@@ -1,0 +1,160 @@
+dsl: FrameGraph
+version: 1.5
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: sp_outer_ring_fixture
+  canvas: {size: [640, 500]}
+  rendering_contract:
+    coordinate_mode: absolute
+    text: {min_font_size: 7}
+    semantics: {decorative_objects_may_omit_bind: true}
+
+semantic:
+  ontology: {node_types: {}, edge_types: {}}
+  nodes: []
+  edges: []
+
+visual:
+  tokens:
+    colors:
+      bg:      "#FFFFFF"
+      primary: "#002060"
+      accent:  "#E35205"
+      green:   "#009A44"
+      gold:    "#C99000"
+      surface: "#F7F5F0"
+      border:  "#E0DDD8"
+      muted:   "#6B6B6B"
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+    text_styles:
+      label:
+        font: primary
+        size: 8
+        weight: 700
+        color: muted
+        align: left
+      caption:
+        font: primary
+        size: 9
+        weight: 400
+        color: muted
+        align: center
+        v_align: middle
+
+  layers:
+    - id: bg
+      z: 0
+      objects:
+        - {type: rect, id: bg, decorative: true, box: [0,0,640,500], fill: bg}
+
+    - id: rect_rings
+      z: 10
+      objects:
+        - {type: text, id: lbl1, decorative: true,
+           box: [24, 16, 592, 12], text: "outer_ring on RECT — now matches ellipse", style: label}
+
+        # Basic ring
+        - {type: rect, id: r1, decorative: true, box: [40, 36, 120, 80], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4,
+           outer_ring: {color: primary, width: 1.5, gap: 4}}
+        - {type: text, id: c1, decorative: true, box: [40, 126, 120, 16],
+           text: "gap:4  w:1.5", style: caption}
+
+        # Gold ring (star moment card)
+        - {type: rect, id: r2, decorative: true, box: [188, 36, 120, 80], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 6,
+           outer_ring: {color: gold, width: 2, gap: 3}}
+        - {type: text, id: c2, decorative: true, box: [188, 126, 120, 16],
+           text: "gold  gap:3  w:2", style: caption}
+
+        # Dashed ring
+        - {type: rect, id: r3, decorative: true, box: [336, 36, 120, 80], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4,
+           outer_ring: {color: accent, width: 1.5, gap: 6, dash: [4, 3]}}
+        - {type: text, id: c3, decorative: true, box: [336, 126, 120, 16],
+           text: "dashed  gap:6", style: caption}
+
+        # No radius — sharp corners, ring follows
+        - {type: rect, id: r4, decorative: true, box: [484, 36, 120, 80], fill: surface,
+           stroke: {color: border, width: 0.5},
+           outer_ring: {color: green, width: 2, gap: 5}}
+        - {type: text, id: c4, decorative: true, box: [484, 126, 120, 16],
+           text: "no radius  gap:5", style: caption}
+
+    - id: ellipse_rings
+      z: 20
+      objects:
+        - {type: text, id: lbl2, decorative: true,
+           box: [24, 160, 592, 12], text: "outer_ring on ELLIPSE — existing feature, visual parity check", style: label}
+
+        - {type: ellipse, id: e1, decorative: true, box: [40, 180, 120, 80], fill: surface,
+           stroke: {color: border, width: 0.5},
+           outer_ring: {color: primary, width: 1.5, offset: 4}}
+        - {type: text, id: ec1, decorative: true, box: [40, 270, 120, 16],
+           text: "offset:4  w:1.5", style: caption}
+
+        - {type: ellipse, id: e2, decorative: true, box: [188, 180, 120, 80], fill: surface,
+           stroke: {color: border, width: 0.5},
+           outer_ring: {color: gold, width: 2, offset: 3}}
+        - {type: text, id: ec2, decorative: true, box: [188, 270, 120, 16],
+           text: "gold  offset:3", style: caption}
+
+        - {type: ellipse, id: e3, decorative: true, box: [336, 180, 120, 80], fill: surface,
+           stroke: {color: border, width: 0.5},
+           outer_ring: {color: accent, width: 1.5, offset: 6}}
+        - {type: text, id: ec3, decorative: true, box: [336, 270, 120, 16],
+           text: "accent  offset:6", style: caption}
+
+        # Circle with ring — the avatar pattern
+        - {type: ellipse, id: e4, decorative: true, box: [484, 180, 80, 80], fill: surface,
+           stroke: {color: border, width: 0.5},
+           outer_ring: {color: gold, width: 2.5, offset: 4}}
+        - {type: text, id: ec4, decorative: true, box: [476, 270, 96, 16],
+           text: "circle + gold ring", style: caption}
+
+    - id: real_world
+      z: 30
+      objects:
+        - {type: text, id: lbl3, decorative: true,
+           box: [24, 306, 592, 12], text: "real-world usage — star-moment client cards with gold ring", style: label}
+
+        # Three client cards with gold outer_ring (from slide 07 pattern)
+        - {type: rect, id: card1, decorative: true, box: [24, 324, 184, 148],
+           fill: "#FAFAF8", stroke: {color: border, width: 0.5}, radius: 6,
+           outer_ring: {color: gold, width: 2, gap: 2}}
+        - {type: rect, id: c1bar, decorative: true, box: [24, 324, 184, 4], fill: green}
+        - {type: text, id: c1t, decorative: true, text: "Walmart Brasil",
+           box: [36, 340, 160, 20],
+           style: {font: primary, size: 12, weight: 700, color: primary, align: left}}
+        - {type: text, id: c1s, decorative: true, text: "Retail · NDA",
+           box: [36, 362, 160, 14],
+           style: {font: primary, size: 9, weight: 700, color: green, align: left}}
+
+        - {type: rect, id: card2, decorative: true, box: [228, 324, 184, 148],
+           fill: "#FAFAF8", stroke: {color: border, width: 0.5}, radius: 6,
+           outer_ring: {color: gold, width: 2, gap: 2}}
+        - {type: rect, id: c2bar, decorative: true, box: [228, 324, 184, 4], fill: green}
+        - {type: text, id: c2t, decorative: true, text: "Grupo Pão de Açúcar",
+           box: [240, 340, 160, 20],
+           style: {font: primary, size: 12, weight: 700, color: primary, align: left}}
+        - {type: text, id: c2s, decorative: true, text: "Retail · NDA",
+           box: [240, 362, 160, 14],
+           style: {font: primary, size: 9, weight: 700, color: green, align: left}}
+
+        - {type: rect, id: card3, decorative: true, box: [432, 324, 184, 148],
+           fill: "#FAFAF8", stroke: {color: border, width: 0.5}, radius: 6,
+           outer_ring: {color: gold, width: 2, gap: 2}}
+        - {type: rect, id: c3bar, decorative: true, box: [432, 324, 184, 4], fill: green}
+        - {type: text, id: c3t, decorative: true, text: "Yamaha Brasil",
+           box: [444, 340, 160, 20],
+           style: {font: primary, size: 12, weight: 700, color: primary, align: left}}
+        - {type: text, id: c3s, decorative: true, text: "Industrial · NDA",
+           box: [444, 362, 160, 14],
+           style: {font: primary, size: 9, weight: 700, color: green, align: left}}
+
+        - {type: text, id: nda, decorative: true,
+           text: "outer_ring: {color: gold, width: 2, gap: 2, radius: inherits + gap}",
+           box: [24, 480, 592, 14],
+           style: {font: primary, size: 9, weight: 400, color: muted, align: center, italic: true}}

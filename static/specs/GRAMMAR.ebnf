@@ -1,0 +1,789 @@
+(*
+  FrameGraph DSL — Formal Grammar (EBNF)
+  Version:  2.0.0-dev
+  Updated:  2026-05-07
+
+  Notation
+  --------
+  A = B           definition
+  A | B           alternation
+  [ A ]           optional (zero or one)
+  { A }           repetition (zero or more)
+  ( A )           grouping
+  "..."           literal string
+  (* ... *)       comment
+  UPPER_CASE      terminal (primitive / regex described in prose)
+
+  Primitives (defined in prose, not recursed further)
+  ---------------------------------------------------
+  STRING          YAML double- or single-quoted string, or bare scalar
+  NUMBER          YAML integer or float
+  BOOL            true | false
+  COLOR           "#RRGGBB" | "#RGB" | token-name-string
+  PERCENT         NUMBER "%" — used in calc() expressions
+  ID              STRING — unique identifier within document
+  TYPE_NAME       STRING — object type discriminator
+  PATH            STRING — file-system path or URL
+*)
+
+(* ─────────────────────────────────────────────────────────────
+   Top-level document
+   ───────────────────────────────────────────────────────────── *)
+
+Document =
+    "dsl"      ":" "FrameGraph"
+    "version"  ":" NUMBER
+    "kind"     ":" DocumentKind
+    Scene
+    Semantic
+    Visual
+    ;
+
+DocumentKind =
+    "hybrid-semantic-visual-diagram"
+  | "presentation-deck"             (* deck.yml — handled by FrameGraphDeckRenderer *)
+  ;
+
+
+(* ─────────────────────────────────────────────────────────────
+   Scene block
+   ───────────────────────────────────────────────────────────── *)
+
+Scene =
+    "scene" ":"
+        "id"          ":" ID
+      [ "name"        ":" STRING ]
+      [ "description" ":" STRING ]
+        Canvas
+        RenderingContract
+    ;
+
+Canvas =
+    "canvas" ":"
+        "size" ":" "[" NUMBER "," NUMBER "]"   (* [width, height] in px *)
+      [ "units" ":" ( "px" | "pt" ) ]
+    ;
+
+RenderingContract =
+    "rendering_contract" ":"
+      [ "coordinate_mode"              ":" "absolute" ]
+      [ "text"                         ":" TextContract ]
+      [ "semantics"                    ":" SemanticsContract ]
+      [ "debug_boxes"                  ":" BOOL ]   (* v1.4 authoring aid *)
+      [ "preserve_manual_line_breaks"  ":" BOOL ]
+    ;
+
+TextContract =
+    "min_font_size" ":" NUMBER
+    ;
+
+SemanticsContract =
+    "decorative_objects_may_omit_bind" ":" BOOL
+    ;
+
+
+(* ─────────────────────────────────────────────────────────────
+   Semantic block
+   ───────────────────────────────────────────────────────────── *)
+
+Semantic =
+    "semantic" ":"
+        Ontology
+        NodeList
+        EdgeList
+    ;
+
+Ontology =
+    "ontology" ":"
+        "node_types" ":" { NodeTypeDef }
+        "edge_types" ":" { EdgeTypeDef }
+    ;
+
+NodeTypeDef =
+    ID ":" "{"
+      [ "inherits"    ":" ID ]
+      [ "description" ":" STRING ]
+    "}"
+    ;
+
+EdgeTypeDef =
+    ID ":" "{"
+      [ "directionality" ":" ( "directed" | "undirected" | "bidirectional" ) ]
+      [ "description"    ":" STRING ]
+    "}"
+    ;
+
+NodeList =
+    "nodes" ":" { NodeEntry }
+    ;
+
+NodeEntry =
+    "id"    ":" ID
+    "type"  ":" ID
+  [ "label" ":" STRING ]
+  { STRING ":" YAML_VALUE }  (* arbitrary semantic properties *)
+    ;
+
+EdgeList =
+    "edges" ":" { EdgeEntry }
+    ;
+
+EdgeEntry =
+    "id"    ":" ID
+    "type"  ":" ID
+    "from"  ":" ID
+    "to"    ":" ID
+  [ "label" ":" STRING ]
+  { STRING ":" YAML_VALUE }
+    ;
+
+
+(* ─────────────────────────────────────────────────────────────
+   Visual block — tokens, symbols, layers
+   ───────────────────────────────────────────────────────────── *)
+
+Visual =
+    "visual" ":"
+      [ Tokens ]
+      [ Symbols ]
+      [ ComponentDefs ]
+        Layers
+    ;
+
+(* ── Tokens ──────────────────────────────────────────────────── *)
+
+Tokens =
+    "tokens" ":"
+      [ "colors"       ":" { ColorToken } ]
+      [ "fonts"        ":" { FontToken  } ]
+      [ "text_styles"  ":" { TextStyle  } ]
+      [ "stroke_styles"":" { StrokeStyle} ]
+      [ "fill_styles"  ":" { FillStyle  } ]
+      [ "glyph_map"    ":" { GlyphEntry } ]
+    ;
+
+ColorToken  = ID ":" ( COLOR | HexColor )  ;
+FontToken   = ID ":" STRING                ;  (* font-family string *)
+GlyphEntry  = ID ":" STRING                ;  (* maps alias → Unicode char / codepoint *)
+
+TextStyle =
+    ID ":" "{"
+      [ "font"        ":" ID ]        (* resolves through fonts token *)
+      [ "size"        ":" NUMBER ]    (* px *)
+      [ "weight"      ":" ( 400 | 700 | "bold" | "normal" ) ]
+      [ "color"       ":" COLOR ]
+      [ "align"       ":" Alignment ]
+      [ "v_align"     ":" VAlignment ]
+      [ "line_height" ":" NUMBER ]    (* px *)
+      [ "italic"      ":" BOOL ]
+      [ "wrap"        ":" BOOL ]      (* word-wrap to box width *)
+      [ "overflow"    ":" ( "visible" | "clip" ) ]  (* v1.4 *)
+    "}"
+    ;
+
+Alignment  = "left" | "center" | "right"          ;
+VAlignment = "top"  | "middle" | "bottom"          ;
+
+StrokeStyle =
+    ID ":" "{"
+      [ "color"       ":" COLOR   ]
+      [ "width"       ":" NUMBER  ]
+      [ "dash"        ":" ( NUMBER | DashArray ) ]
+      [ "arrow_start" ":" BOOL    ]
+      [ "arrow_end"   ":" BOOL    ]
+    "}"
+    ;
+
+DashArray = "[" NUMBER { "," NUMBER } "]" ;
+
+FillStyle =
+    ID ":" ( LinearGradient | RadialGradient )
+    ;
+
+LinearGradient =
+    "type"      ":" "LinearGradient"
+    "angle"     ":" NUMBER          (* degrees *)
+    "stops"     ":" { GradientStop }
+    ;
+
+RadialGradient =
+    "type"      ":" "RadialGradient"
+  [ "cx"        ":" NUMBER ]        (* centre x, 0–1 *)
+  [ "cy"        ":" NUMBER ]        (* centre y, 0–1 *)
+    "stops"     ":" { GradientStop }
+    ;
+
+GradientStop =
+    "offset" ":" NUMBER             (* 0.0–1.0 *)
+    "color"  ":" COLOR
+    ;
+
+
+(* ── Symbols ─────────────────────────────────────────────────── *)
+
+Symbols =
+    "symbols" ":"
+        { ID ":" SymbolDef }
+    ;
+
+SymbolDef =
+    "box"    ":" Box
+  [ "slots"  ":" "[" { STRING } "]" ]  (* named slot identifiers *)
+  [ "ports"  ":" { ID ":" PointLiteral } ]
+    "objects" ":" ObjectList
+    ;
+
+
+(* ── Component definitions ───────────────────────────────────── *)
+
+ComponentDefs =
+    "component_defs" ":"
+        { ID ":" ComponentDef }
+    ;
+
+ComponentDef =
+    "fill"             ":" COLOR
+  [ "stroke"           ":" StrokeInline ]
+  [ "stroke_style"     ":" ID ]
+  [ "radius"           ":" NUMBER ]
+  [ "text_style"       ":" ID ]
+  [ "geometry"         ":" "{"  "radius" ":" NUMBER  "}" ]
+  [ "variants"         ":" { ID ":" ComponentVariant } ]
+  [ "internal_layout"  ":" { ID ":" SlotLayout } ]
+  [ "slots"            ":" "[" { STRING } "]" ]
+    ;
+
+ComponentVariant =
+    [ "fill"         ":" COLOR ]
+    [ "stroke_style" ":" ID ]
+    ;
+
+SlotLayout =
+    "box_offset" ":" "[" NUMBER "," NUMBER "," NUMBER "," NUMBER "]"
+  [ "style"      ":" ( ID | TextStyleInline ) ]
+    ;
+
+
+(* ── Layers ──────────────────────────────────────────────────── *)
+
+Layers =
+    "layers" ":" { Layer }
+    ;
+
+Layer =
+    "id"       ":" ID
+  [ "z"        ":" NUMBER ]          (* z-order; higher = front *)
+  [ "opacity"  ":" NUMBER ]          (* 0.0–1.0 *)
+    "objects"  ":" ObjectList
+    ;
+
+ObjectList = { Object } ;
+
+
+(* ─────────────────────────────────────────────────────────────
+   Objects — common fields + type-specific fields
+   ───────────────────────────────────────────────────────────── *)
+
+Object =
+    CommonFields
+    ( RectObject
+    | EllipseObject
+    | TextObject
+    | BulletListObject   (* v1.4 *)
+    | LineObject
+    | PolylineObject
+    | PathObject
+    | ImageObject
+    | IconObject
+    | UseObject
+    | ConnectorObject
+    | LegendObject
+    | GroupObject
+    | ContainerObject    (* v1.4 *)
+    | ComponentObject
+    | ChipRowObject
+    | BarChartObject     (* v1.5 *)
+    | LineChartObject    (* v1.5 *)
+    )
+    ;
+
+CommonFields =
+    "type"        ":" TYPE_NAME
+    "id"          ":" ID
+  [ "decorative"  ":" BOOL ]         (* omit semantic bind check when true *)
+  [ "bind"        ":" ID ]           (* semantic node/edge id *)
+  [ "box"         ":" Box ]
+  [ "rotation"    ":" NUMBER ]       (* degrees, around box centre *)
+  [ "ports"       ":" { ID ":" PointLiteral } ]   (* explicit port overrides *)
+    ;
+
+Box = "[" NUMBER "," NUMBER "," NUMBER "," NUMBER "]" ;  (* [x, y, w, h] *)
+PointLiteral = "[" NUMBER "," NUMBER "]" ;
+
+
+(* ── Shape objects ───────────────────────────────────────────── *)
+
+RectObject =
+    "type" ":" "rect"
+    "box"  ":" Box
+  [ "fill"       ":" FillValue ]
+  [ "stroke"     ":" StrokeInline ]
+  [ "stroke_style" ":" ID ]
+  [ "radius"     ":" NUMBER ]        (* corner radius px *)
+  [ "outer_ring" ":" OuterRingRect ] (* v1.5 — was ellipse-only before *)
+    ;
+
+OuterRingRect =
+    "color"   ":" COLOR
+  [ "width"   ":" NUMBER ]           (* stroke width, default 2 *)
+  [ "gap"     ":" NUMBER ]           (* px between shape edge and ring inner edge, default 4 *)
+  [ "dash"    ":" ( NUMBER | DashArray ) ]
+  [ "opacity" ":" NUMBER ]
+    ;
+
+EllipseObject =
+    "type"   ":" "ellipse"
+  ( "box" ":" Box
+  | ( "center" ":" PointLiteral
+      "rx" ":" NUMBER
+    [ "ry" ":" NUMBER ] )
+  )
+  [ "fill"       ":" FillValue ]
+  [ "stroke"     ":" StrokeInline ]
+  [ "stroke_style" ":" ID ]
+  [ "outer_ring" ":" OuterRingEllipse ]
+    ;
+
+OuterRingEllipse =
+    "color"    ":" COLOR
+  [ "width"    ":" NUMBER ]
+  [ "offset"   ":" NUMBER ]          (* px between shape edge and ring, default 4 *)
+  [ "dash"     ":" ( NUMBER | DashArray ) ]
+    ;
+
+FillValue = COLOR | ID              ;  (* color literal or fill_style token name *)
+StrokeInline =
+    "color" ":" COLOR
+  [ "width" ":" NUMBER ]
+  [ "dash"  ":" ( NUMBER | DashArray ) ]
+    ;
+
+
+(* ── Text object ─────────────────────────────────────────────── *)
+
+TextObject =
+    "type"  ":" "text"
+    "box"   ":" Box
+  ( "text"  ":" ( STRING | LoremPlaceholder )   (* plain text or lorem ipsum *)
+  | "spans" ":" { SpanEntry }                   (* v1.4 inline spans *)
+  )
+  [ "style" ":" ( ID | TextStyleInline ) ]
+    ;
+
+LoremPlaceholder =
+    "lorem"               (* expands to 30 words *)
+  | "lorem" ":" NUMBER    (* expands to N words  *)
+    ;
+
+SpanEntry =
+    "text"    ":" STRING
+  [ "weight"  ":" ( 400 | 700 | "bold" | "normal" ) ]
+  [ "color"   ":" COLOR ]
+  [ "italic"  ":" BOOL  ]
+  [ "size"    ":" NUMBER ]    (* per-span font-size override, px *)
+    ;
+
+TextStyleInline =   (* anonymous inline style — same fields as TextStyle value *)
+    "{"
+      [ "font"        ":" ID ]
+      [ "size"        ":" NUMBER ]
+      [ "weight"      ":" ( 400 | 700 | "bold" ) ]
+      [ "color"       ":" COLOR ]
+      [ "align"       ":" Alignment ]
+      [ "v_align"     ":" VAlignment ]
+      [ "line_height" ":" NUMBER ]
+      [ "italic"      ":" BOOL ]
+      [ "wrap"        ":" BOOL ]
+      [ "overflow"    ":" ( "visible" | "clip" ) ]
+    "}"
+    ;
+
+
+(* ── bullet_list object (v1.4) ───────────────────────────────── *)
+
+BulletListObject =
+    "type"   ":" "bullet_list"
+    "box"    ":" Box
+    "items"  ":" { BulletItem }
+  [ "marker" ":" STRING ]       (* default "•"; "1." for ordered; "–" etc. *)
+  [ "gap"    ":" NUMBER ]       (* extra px between items, default 0.3×lh *)
+  [ "indent" ":" NUMBER ]       (* px per indent level, default 12 *)
+  [ "style"  ":" ( ID | TextStyleInline ) ]
+    ;
+
+BulletItem =
+    STRING                       (* simple text item *)
+  | "{"
+      "text"   ":" STRING
+    [ "indent" ":" NUMBER ]      (* per-item indent level, default 0 *)
+    "}"
+    ;
+
+
+(* ── Line objects ────────────────────────────────────────────── *)
+
+LineObject =
+    "type"   ":" "line"
+    "from"   ":" Endpoint
+    "to"     ":" Endpoint
+  [ "stroke" ":" StrokeInline ]
+  [ "stroke_style" ":" ID ]
+    ;
+
+PolylineObject =
+    "type"   ":" "polyline"
+    "points" ":" { PointLiteral }
+  [ "stroke" ":" StrokeInline ]
+  [ "stroke_style" ":" ID ]
+    ;
+
+PathObject =
+    "type"   ":" "path"
+    "d"      ":" STRING          (* SVG path data string *)
+  [ "fill"   ":" FillValue ]
+  [ "stroke" ":" StrokeInline ]
+    ;
+
+
+(* ── Image object ────────────────────────────────────────────── *)
+
+ImageObject =
+    "type"   ":" "image"
+    "box"    ":" Box
+  [ "href"   ":" ( PATH | "placeholder" ) ]  (* v1.4: local path → base64; omit or "placeholder" for placeholder box *)
+  [ "src"    ":" PATH ]                       (* alias for href *)
+  [ "placeholder" ":" BOOL ]                 (* v1.4: explicit placeholder flag *)
+  [ "label"       ":" STRING ]               (* caption shown on placeholder *)
+  [ "fill"        ":" COLOR ]                (* placeholder background color *)
+  [ "radius"      ":" NUMBER ]               (* placeholder corner radius *)
+  [ "preserve_aspect_ratio" ":" STRING ]     (* SVG preserveAspectRatio value *)
+    ;
+
+
+(* ── Icon object ─────────────────────────────────────────────── *)
+
+IconObject =
+    "type"  ":" "icon"
+    "box"   ":" Box
+    "glyph" ":" ( STRING | GlyphCodepoint )  (* glyph_map key or raw Unicode *)
+  [ "font"  ":" ID ]
+  [ "size"  ":" NUMBER ]
+  [ "color" ":" COLOR ]
+    ;
+
+GlyphCodepoint = "U+" HEX_DIGITS ;
+
+
+(* ── Use object (symbol stamp) ───────────────────────────────── *)
+
+UseObject =
+    "type"   ":" "use"
+    "box"    ":" Box
+    "symbol" ":" ID
+  [ "params" ":" { ID ":" YAML_VALUE } ]      (* $paramname substitution *)
+  { SlotName ":" YAML_VALUE }                  (* $slotname substitution — inline keys *)
+    ;
+
+SlotName = STRING ;   (* must match a name in the symbol's slots: list *)
+
+
+(* ── Connector object ────────────────────────────────────────── *)
+
+ConnectorObject =
+    "type"  ":" "connector"
+    "from"  ":" Endpoint
+    "to"    ":" Endpoint
+  [ "stroke" ":" StrokeInline ]
+  [ "stroke_style" ":" ID ]
+  [ "waypoints" ":" { PointLiteral } ]
+    ;
+
+Endpoint =
+    PointLiteral                                 (* literal [x, y] *)
+  | DotNotationEndpoint                          (* v1.4: "object_id.port_name" *)
+  | "{"
+      "object" ":" ID
+    [ "port"   ":" ID ]
+    [ "side"   ":" ( "north" | "south" | "east" | "west"
+                   | "top"   | "bottom"| "left" | "right" | "center" ) ]
+    [ "offset" ":" NUMBER ]
+    "}"
+    ;
+
+DotNotationEndpoint =
+    ID "." ID           (* object_id.port_name *)
+  | ID                  (* object_id (resolves to center port) *)
+    ;
+
+
+(* ── Legend object ───────────────────────────────────────────── *)
+
+LegendObject =
+    "type"     ":" "legend"
+    "box"      ":" Box
+    "entries"  ":" { LegendEntry }
+  [ "orientation" ":" ( "vertical" | "horizontal" ) ]
+  [ "style"    ":" ( ID | TextStyleInline ) ]
+    ;
+
+LegendEntry =
+    "label" ":" STRING
+    "color" ":" COLOR
+    ;
+
+
+(* ── Group object ────────────────────────────────────────────── *)
+
+GroupObject =
+    "type"    ":" "group"
+    "objects" ":" ObjectList
+  [ "transform" ":" STRING ]    (* SVG transform attribute *)
+    ;
+
+
+(* ── Container object (v1.4) ─────────────────────────────────── *)
+
+ContainerObject =
+    "type"     ":" "container"
+    "box"      ":" Box
+    "layout"   ":" ContainerLayout
+    "children" ":" ObjectList
+    ;
+
+ContainerLayout =
+    "kind"      ":" ContainerKind
+  [ "direction" ":" ( "vertical" | "horizontal" ) ]
+  [ "gap"       ":" NUMBER ]
+  [ "align"     ":" ( "stretch" | "start" | "center" | "end" ) ]
+  [ "justify"   ":" ( "start" | "center" | "end" | "space_between" ) ]
+  [ "padding"   ":" ( NUMBER | "[" NUMBER "," NUMBER "]" ) ]  (* scalar or [h, v] *)
+    ;
+
+ContainerKind =
+    "stack"     (* v1.4 — implemented *)
+  | "grid"      (* v2.0 — schema reserved, not yet implemented *)
+  | "row"       (* v2.0 — schema reserved, not yet implemented *)
+    ;
+
+(* Container children may additionally declare: *)
+(*   flex: NUMBER   — proportional share of remaining main-axis space *)
+
+
+(* ── Component object ────────────────────────────────────────── *)
+
+ComponentObject =
+    "type"           ":" "component"
+    "box"            ":" Box
+    "component_def"  ":" ID
+  [ "variant"        ":" ID ]
+  [ "fill"           ":" FillValue ]
+  [ "stroke"         ":" StrokeInline ]
+  [ "stroke_style"   ":" ID ]
+  [ "radius"         ":" NUMBER ]
+  { SlotName ":" YAML_VALUE }    (* values for declared slots *)
+    ;
+
+
+(* ── chip_row object ─────────────────────────────────────────── *)
+
+ChipRowObject =
+    "type"   ":" "chip_row"
+    "origin" ":" PointLiteral
+    "items"  ":" { ChipItem }
+  [ "gap"    ":" NUMBER ]
+  [ "height" ":" NUMBER ]
+  [ "style"  ":" ( ID | TextStyleInline ) ]
+    ;
+
+ChipItem =
+    STRING                            (* text-only chip *)
+  | "{"
+      "text"   ":" STRING
+    [ "width"  ":" NUMBER ]
+    [ "fill"   ":" COLOR ]
+    [ "color"  ":" COLOR ]
+    "}"
+    ;
+
+
+(* ── bar_chart object (v1.5) ─────────────────────────────────── *)
+
+BarChartObject =
+    "type" ":" "bar_chart"
+    "box"  ":" Box
+    "data" ":" BarChartData
+  [ "style" ":" BarChartStyle ]
+    ;
+
+BarChartData =
+    ( "values" ":" "[" { NUMBER } "]"
+      "labels" ":" "[" { STRING } "]" )      (* single series *)
+  | ( "series" ":" { ChartSeries } )         (* multi series *)
+  [ "labels"  ":" "[" { STRING } "]" ]
+  [ "x_labels"":" "[" { STRING } "]" ]       (* alias for labels *)
+  [ "note"    ":" STRING ]                   (* caption below chart *)
+    ;
+
+ChartSeries =
+    "label"  ":" STRING
+    "values" ":" "[" { NUMBER } "]"
+  [ "color"  ":" COLOR ]
+  [ "dash"   ":" BOOL ]                      (* line_chart only *)
+    ;
+
+BarChartStyle =
+    [ "bar_fill"      ":" COLOR ]
+    [ "bar_width"     ":" NUMBER ]            (* 0.1–0.95, fraction of slot *)
+    [ "value_labels"  ":" BOOL ]
+    [ "grid_lines"    ":" BOOL ]
+    [ "grid_color"    ":" COLOR ]
+    [ "axis_color"    ":" COLOR ]
+    [ "baseline"      ":" NUMBER ]
+    [ "padding"       ":" PaddingValue ]
+    ;
+
+PaddingValue =
+    "[" NUMBER "," NUMBER "," NUMBER "," NUMBER "]"  (* [left, top, right, bottom] *)
+  | NUMBER
+    ;
+
+
+(* ── line_chart object (v1.5) ────────────────────────────────── *)
+
+LineChartObject =
+    "type" ":" "line_chart"
+    "box"  ":" Box
+    "data" ":" LineChartData
+  [ "style" ":" LineChartStyle ]
+    ;
+
+LineChartData =
+    "series"   ":" { ChartSeries }
+  [ "x_labels" ":" "[" { STRING } "]" ]
+  [ "labels"   ":" "[" { STRING } "]" ]    (* alias for x_labels *)
+  [ "note"     ":" STRING ]
+    ;
+
+LineChartStyle =
+    [ "stroke_width"  ":" NUMBER ]
+    [ "show_legend"   ":" BOOL ]
+    [ "point_radius"  ":" NUMBER ]
+    [ "grid_lines"    ":" BOOL ]
+    [ "grid_color"    ":" COLOR ]
+    [ "axis_color"    ":" COLOR ]
+    [ "padding"       ":" PaddingValue ]
+    ;
+
+
+(* ─────────────────────────────────────────────────────────────
+   Deck format (kind: presentation-deck)
+   Handled by FrameGraphDeckRenderer, not FrameGraphRenderer.
+   ───────────────────────────────────────────────────────────── *)
+
+DeckDocument =
+    "dsl"     ":" "FrameGraph"
+    "version" ":" NUMBER
+    "kind"    ":" "presentation-deck"
+  [ "$theme"  ":" ID ]               (* library token pack name *)
+    DeckConfig
+    { SlideEntry }
+    ;
+
+DeckConfig =
+    "deck" ":"
+        Canvas
+      [ Tokens ]
+      [ Symbols ]
+      [ ComponentDefs ]
+    ;
+
+SlideEntry =
+    "slide"       ":" NUMBER
+    "id"          ":" ID
+  [ "$extends"    ":" ID ]           (* v1.5: inherit from named slide *)
+  [ "title"       ":" STRING ]
+  [ "description" ":" STRING ]
+  [ "notes"       ":" STRING ]       (* v1.5: speaker notes — excluded from SVG *)
+  [ Tokens ]
+  [ Symbols ]
+  [ ComponentDefs ]
+  [ Visual ]
+    ;
+
+(*
+  $extends merge chain (v1.5):
+    library $theme tokens
+      → deck.tokens
+        → base slide tokens  ($extends target)
+          → this slide tokens
+
+  Layer merge: base layers dict-keyed by id.
+  Child layer with same id replaces base layer.
+  Child layer with new id appends after base layers.
+
+  Speaker notes:
+  - Stored under notes: key on each slide.
+  - Never written to SVG output.
+  - Exported to notes.md by FrameGraphDeckRenderer.render_notes().
+*)
+
+
+(* ─────────────────────────────────────────────────────────────
+   Authoring utilities (v1.4+)
+   ───────────────────────────────────────────────────────────── *)
+
+(*
+  Lorem ipsum expansion (v1.4)
+  ----------------------------
+  Any text: field accepts:
+    "lorem"      — expands to 30 words of lorem ipsum (deterministic)
+    "lorem:N"    — expands to N words
+
+  Image placeholder (v1.4)
+  ------------------------
+  type: image with any of:
+    placeholder: true
+    href: "placeholder"
+    (href absent or empty)
+  → renders a grey box with diagonal X lines + dimension label.
+
+  overflow: clip (v1.4)
+  ----------------------
+  On any text style:
+    overflow: clip
+  → wraps the text element in an SVG <clipPath> that enforces the
+    declared box as a hard boundary. Default: "visible".
+
+  debug_boxes (v1.4)
+  -------------------
+  In rendering_contract:
+    debug_boxes: true
+  → adds a <g id="_debug_boxes"> overlay showing dashed outlines
+    of every object's declared box. Color-coded by type:
+      orange  = text, bullet_list
+      green   = image
+      navy    = container
+      purple  = use
+      grey    = all others
+*)
+
+
+(* ─────────────────────────────────────────────────────────────
+   YAML value placeholder (not recursed)
+   ───────────────────────────────────────────────────────────── *)
+
+YAML_VALUE =
+    STRING | NUMBER | BOOL | PointLiteral | Box | DashArray
+  | "[" { YAML_VALUE } "]"
+  | "{" { STRING ":" YAML_VALUE } "}"
+    ;

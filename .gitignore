@@ -1,0 +1,22 @@
+# Python build / install artifacts
+*.pyc
+__pycache__/
+*.egg-info/
+.coverage
+.coverage.*
+.hypothesis/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Local virtual env
+.venv/
+
+# Editor / agent-local state
+.claude/
+
+# Build outputs (rendered SVGs from running the CLI)
+output/
+
+# Agent-skill metadata (not part of project source)
+.repo/

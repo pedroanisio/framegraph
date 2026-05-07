@@ -1,0 +1,108 @@
+# Insight / callout box — consulting "so what" highlight
+_meta:
+  type: symbol_pack
+  id: shared.insight_box
+  version: 1.0
+
+symbols:
+  insight_box:
+    box: [0, 0, 240, 56]
+    slots: [headline, detail]
+    objects:
+      - type: rect
+        id: bg
+        box: [0, 0, 240, 56]
+        fill: "$fill"
+        radius: 3
+        stroke_style: accent_rule
+      - type: rect
+        id: accent_bar
+        box: [0, 0, 4, 56]
+        fill: "$bar_color"
+        radius: 0
+      - type: text
+        id: headline_text
+        box: [12, 4, 224, 22]
+        text: "$headline"
+        style: callout
+      - type: text
+        id: detail_text
+        box: [12, 28, 224, 24]
+        text: "$detail"
+        style: body
+
+  kpi_card:
+    box: [0, 0, 120, 80]
+    slots: [value, label, trend]
+    objects:
+      - type: rect
+        id: bg
+        box: [0, 0, 120, 80]
+        fill: "$fill"
+        radius: 4
+        stroke_style: divider
+      - type: text
+        id: value_text
+        box: [0, 8, 120, 36]
+        text: "$value"
+        style: slide_title
+      - type: text
+        id: label_text
+        box: [8, 48, 104, 18]
+        text: "$label"
+        style: exhibit_header
+      - type: text
+        id: trend_text
+        box: [8, 62, 104, 14]
+        text: "$trend"
+        style: exhibit_sub
+
+  two_by_two:
+    box: [0, 0, 300, 300]
+    slots: [q1, q2, q3, q4, x_label, y_label]
+    objects:
+      - type: rect
+        id: bg
+        box: [0, 0, 300, 300]
+        fill: "$fill"
+        stroke_style: divider
+      - type: rect
+        id: q1_box
+        box: [152, 2, 146, 146]
+        fill: "$fill"
+        stroke_style: divider
+      - type: rect
+        id: q2_box
+        box: [2, 2, 146, 146]
+        fill: "$panel"
+        stroke_style: divider
+      - type: rect
+        id: q3_box
+        box: [2, 152, 146, 146]
+        fill: "$fill"
+        stroke_style: divider
+      - type: rect
+        id: q4_box
+        box: [152, 152, 146, 146]
+        fill: "$panel"
+        stroke_style: divider
+      - type: text
+        id: q1_text
+        box: [152, 2, 146, 146]
+        text: "$q1"
+        style: exhibit_header
+      - type: text
+        id: q2_text
+        box: [2, 2, 146, 146]
+        text: "$q2"
+        style: exhibit_header
+      - type: text
+        id: q3_text
+        box: [2, 152, 146, 146]
+        text: "$q3"
+        style: exhibit_header
+      - type: text
+        id: q4_text
+        box: [152, 152, 146, 146]
+        text: "$q4"
+        style: exhibit_header

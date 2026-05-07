@@ -1,0 +1,224 @@
+dsl: FrameGraph
+version: 1.5
+kind: presentation-deck
+
+$theme: mckinsey
+
+deck:
+  canvas: {size: [960, 540]}
+  tokens:
+    colors:
+      chrome_line:  "#E0DDD8"
+      slide_bg:     "#FFFFFF"
+      phase1:       "#E35205"
+      phase2:       "#009A44"
+      phase3:       "#D04A02"
+    text_styles:
+      slide_title_small:
+        font: primary
+        size: 11
+        weight: 700
+        color: primary
+        align: left
+      chrome_brand:
+        font: primary
+        size: 9
+        weight: 700
+        color: primary
+        align: left
+      chrome_num:
+        font: primary
+        size: 9
+        weight: 400
+        color: text_muted
+        align: right
+      body:
+        font: primary
+        size: 13
+        weight: 400
+        color: text_muted
+        align: center
+        v_align: middle
+        wrap: true
+        line_height: 20
+
+  symbols:
+    chrome:
+      box: [0, 0, 960, 540]
+      slots: [slide_title, slide_num]
+      objects:
+        - {type: rect, id: bg,        box: [0,0,960,540], fill: slide_bg}
+        - {type: rect, id: top_rule,  box: [0,0,960,4],   fill: "$phase_color"}
+        - {type: text, id: title_text,box: [40,14,880,30], text: "$slide_title", style: slide_title_small}
+        - {type: line, id: title_rule,from: [40,52],  to: [920,52],  stroke: {color: chrome_line, width: 0.5}}
+        - {type: line, id: foot_rule, from: [40,516], to: [920,516], stroke: {color: chrome_line, width: 0.5}}
+        - {type: text, id: brand,     box: [40,520,120,16], text: "Ginga One", style: chrome_brand}
+        - {type: text, id: num,       box: [890,520,30,16], text: "$slide_num", style: chrome_num}
+
+slides:
+
+  # ── Base template slide ────────────────────────────────────────────────────
+  # This slide provides the chrome + a placeholder content area.
+  # Child slides inherit this and override just their content layer.
+  - slide: 0
+    id: base_slide
+    title: "[Base — not rendered directly]"
+    tokens:
+      text_styles:
+        headline:
+          font: primary
+          size: 28
+          weight: 700
+          color: primary
+          align: center
+          v_align: middle
+          line_height: 36
+        sub:
+          font: primary
+          size: 13
+          weight: 400
+          color: text_muted
+          align: center
+          v_align: middle
+          wrap: true
+          line_height: 20
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome,
+               box: [0,0,960,540], slide_title: "Base", slide_num: "00",
+               params: {phase_color: "#E35205"}}
+        - id: content
+          z: 10
+          objects:
+            - {type: image, id: content_placeholder, decorative: true,
+               box: [80, 72, 800, 400], placeholder: true, label: "content area"}
+
+  # ── Slide 1: $extends base_slide, overrides chrome + content ──────────────
+  - slide: 1
+    id: s1_opening
+    $extends: base_slide
+    title: "Your Mobile Backlog Is Not a Technology Problem"
+    description: "Opening provocation — Phase 1."
+    notes: |
+      Deliver the opening line without preamble. Stand still.
+      Do not advance for two full seconds after saying it.
+
+      Key: the tension comes from the pause, not the words.
+      If the room laughs or shifts, lean in — not away.
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome,
+               box: [0,0,960,540],
+               slide_title: "Your Mobile Backlog Is Not a Technology Problem",
+               slide_num: "01", params: {phase_color: "#E35205"}}
+        - id: content
+          z: 10
+          objects:
+            - {type: text, id: v.h, decorative: true,
+               text: "Your mobile backlog is not a technology problem.",
+               box: [80, 148, 800, 52], style: headline}
+            - {type: text, id: v.r, decorative: true,
+               text: "It's a specialization problem.",
+               box: [80, 216, 800, 52],
+               style: {font: primary, size: 28, weight: 700, color: accent_warm, align: center}}
+            - {type: line, id: v.rule, decorative: true,
+               from: [320,284], to: [640,284], stroke: {color: "#D0CEC8", width: 1}}
+            - {type: text, id: v.sub, decorative: true,
+               text: "lorem:20",
+               box: [180,300,600,68], style: sub}
+
+  # ── Slide 2: $extends base_slide, different phase colour ──────────────────
+  - slide: 2
+    id: s2_claim
+    $extends: base_slide
+    title: "Ginga One — SP's Longest-Running Mobile Boutique"
+    description: "Claim slide — Phase 2 green."
+    notes: |
+      Transition phrase: "So what do we propose?"
+      Then silence. Let them read the stat cards.
+
+      If they ask about the "0 generalist hires" stat — that is the answer.
+      Do not defend it. Let it stand.
+    tokens:
+      text_styles:
+        stat_num:
+          font: primary
+          size: 36
+          weight: 700
+          color: primary
+          align: center
+        stat_lbl:
+          font: primary
+          size: 10
+          weight: 400
+          color: text_muted
+          align: center
+          line_height: 14
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome,
+               box: [0,0,960,540],
+               slide_title: "Ginga One — SP's Longest-Running Mobile Boutique",
+               slide_num: "02", params: {phase_color: "#009A44"}}
+        - id: content
+          z: 10
+          objects:
+            - {type: text, id: v.h, decorative: true,
+               text: "We do one thing. Mobile. For SP enterprises.",
+               box: [120,72,720,50], style: {font: primary, size: 22, weight: 700, color: primary, align: center}}
+            - {type: line, id: v.rule, decorative: true,
+               from: [320,134], to: [640,134], stroke: {color: "#E0DDD8", width: 0.5}}
+            - {type: rect, id: s1bg, decorative: true, box: [80,154,240,180], fill: surface, stroke: {color: "#E0DDD8", width: 0.5}, radius: 6}
+            - {type: text, id: s1n, decorative: true, text: "13",  box: [80,180,240,60], style: stat_num}
+            - {type: text, id: s1l, decorative: true, text: "years mobile-only\ndelivery in SP", box: [80,248,240,56], style: stat_lbl}
+            - {type: rect, id: s2bg, decorative: true, box: [360,154,240,180], fill: surface, stroke: {color: "#E0DDD8", width: 0.5}, radius: 6}
+            - {type: text, id: s2n, decorative: true, text: "40+", box: [360,180,240,60], style: stat_num}
+            - {type: text, id: s2l, decorative: true, text: "enterprise mobile\nproducts shipped", box: [360,248,240,56], style: stat_lbl}
+            - {type: rect, id: s3bg, decorative: true, box: [640,154,240,180], fill: surface, stroke: {color: "#E0DDD8", width: 0.5}, radius: 6}
+            - {type: text, id: s3n, decorative: true, text: "0",   box: [640,180,240,60], style: stat_num}
+            - {type: text, id: s3l, decorative: true, text: "generalist hires —\neveryone mobile-native", box: [640,248,240,56], style: stat_lbl}
+
+  # ── Slide 3: $extends base_slide, inherits base tokens ────────────────────
+  - slide: 3
+    id: s3_ask
+    $extends: base_slide
+    title: "What We Are Asking You to Authorize Today"
+    description: "Single ask. Phase 3."
+    notes: |
+      This is the only ask. Do not mention pricing.
+      Do not offer an alternative if they hesitate —
+      wait for them to speak first.
+
+      Exit line: "The worst outcome of the call is 60 minutes."
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome,
+               box: [0,0,960,540],
+               slide_title: "What We Are Asking You to Authorize Today",
+               slide_num: "03", params: {phase_color: "#D04A02"}}
+        - id: content
+          z: 10
+          objects:
+            - {type: rect, id: v.ask, decorative: true, box: [120,90,720,210], fill: "#EEF3FB", stroke: {color: primary, width: 1.5}, radius: 8}
+            - {type: rect, id: v.top, decorative: true, box: [120,90,720,5], fill: primary}
+            - {type: text, id: v.h, decorative: true,
+               text: "Authorize a 60-minute technical scoping call.",
+               box: [140,116,680,48], style: {font: primary, size: 26, weight: 700, color: primary, align: center}}
+            - {type: text, id: v.s, decorative: true,
+               text: "No contract. No budget commitment. No RFP.",
+               box: [140,178,680,36], style: {font: primary, size: 13, weight: 400, color: text_muted, align: center}}
+            - {type: text, id: v.note, decorative: true,
+               text: "If the scoping call does not produce a Discovery Pilot proposal you want to accept, the engagement ends.",
+               box: [180,470,600,34], style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}

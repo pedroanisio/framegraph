@@ -1,0 +1,507 @@
+dsl: FrameGraph
+version: 1.2
+kind: presentation-deck
+
+$theme: mckinsey
+
+# ── Deck-level shared design system ──────────────────────────────────────
+deck:
+  canvas:
+    size: [960, 540]
+    units: px
+
+  # Token overrides on top of the mckinsey theme
+  tokens:
+    colors:
+      # Phase accent colours
+      phase1: "#E35205"     # The Problem
+      phase2: "#009A44"     # The Answer
+      phase3: "#002060"     # The Close
+      # Slide chrome
+      chrome_line: "#E0DDD8"
+      chrome_text: "#8C8A86"
+      slide_bg:    "#FFFFFF"
+      # Matrix cell fills
+      cell_win:    "#EAF6EE"   # Ginga One wins
+      cell_win_bdr: "#5B9E4D"
+      cell_mid:    "#F5F3EF"   # neutral
+      cell_loss:   "#FEF6EC"   # competitor wins
+      cell_loss_bdr: "#BA7517"
+      cell_risk:   "#FEF0EF"   # negative/risk
+      cell_risk_bdr: "#CC0000"
+      cell_hdr:    "#EEF3FB"   # column header highlight (Ginga)
+      # Star gold
+      star_gold:   "#C99000"
+
+  # Deck-level symbols — available on every slide
+  symbols:
+    # Master slide chrome: white bg, top rule, title area, footer
+    # Use with: type:use, symbol:chrome, box:[0,0,960,540]
+    #           slide_title: "...", slide_num: "01", phase_color: phase1
+    chrome:
+      box: [0, 0, 960, 540]
+      slots: [slide_title, slide_num]
+      objects:
+        - type: rect
+          id: bg
+          box: [0, 0, 960, 540]
+          fill: slide_bg
+        - type: rect
+          id: top_rule
+          box: [0, 0, 960, 4]
+          fill: "$phase_color"
+        - type: text
+          id: title_text
+          box: [40, 14, 880, 30]
+          text: "$slide_title"
+          style: slide_title_small
+        - type: line
+          id: title_rule
+          from: [40, 52]
+          to: [920, 52]
+          stroke: {color: chrome_line, width: 0.5}
+        - type: line
+          id: footer_rule
+          from: [40, 516]
+          to: [920, 516]
+          stroke: {color: chrome_line, width: 0.5}
+        - type: text
+          id: brand
+          box: [40, 520, 120, 16]
+          text: "Ginga One"
+          style: chrome_brand
+        - type: text
+          id: num
+          box: [890, 520, 30, 16]
+          text: "$slide_num"
+          style: chrome_num
+
+  # Extra text styles (on top of mckinsey theme which already defines node_label, etc.)
+  # These go into the merged tokens for every slide
+  # (declared under deck.tokens.text_styles to merge correctly)
+
+# ── Slides ────────────────────────────────────────────────────────────────
+slides:
+
+  # ── Slide 01 — Opening Provocation ──────────────────────────────────────
+  - slide: 1
+    id: s1_opening
+    title: "SP Enterprises Are Investing in Mobile and Not Getting Mobile Outcomes"
+    description: "Opening provocation. Low density, high impact. Two chunks."
+
+    tokens:
+      text_styles:
+        provocation_setup:
+          font:   primary
+          size:   36
+          weight: 700
+          color:  primary
+          align:  center
+          line_height: 44
+        provocation_reveal:
+          font:   primary
+          size:   36
+          weight: 700
+          color:  accent_warm
+          align:  center
+          line_height: 44
+        stakes_para:
+          font:   primary
+          size:   13
+          weight: 400
+          color:  text_muted
+          align:  center
+          line_height: 20
+        slide_title_small:
+          font:   primary
+          size:   11
+          weight: 700
+          color:  primary
+          align:  left
+        chrome_brand:
+          font:   primary
+          size:   9
+          weight: 700
+          color:  primary
+          align:  left
+        chrome_num:
+          font:   primary
+          size:   9
+          weight: 400
+          color:  text_muted
+          align:  right
+
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - type: use
+              id: v.chrome
+              decorative: true
+              symbol: chrome
+              box: [0, 0, 960, 540]
+              slide_title: "SP Enterprises Are Investing in Mobile and Not Getting Mobile Outcomes"
+              slide_num: "01"
+              params: {phase_color: "#E35205"}
+
+        - id: content
+          z: 10
+          objects:
+            # Setup line
+            - type: text
+              id: v.setup
+              decorative: true
+              text: "Your mobile backlog is not a technology problem."
+              box: [80, 158, 800, 52]
+              style: provocation_setup
+
+            # Reveal line (teal/warm accent)
+            - type: text
+              id: v.reveal
+              decorative: true
+              text: "It's a specialization problem."
+              box: [80, 224, 800, 52]
+              style: provocation_reveal
+
+            # Thin divider between headline and stakes
+            - type: line
+              id: v.content_rule
+              decorative: true
+              from: [320, 292]
+              to: [640, 292]
+              stroke: {color: "#D0CEC8", width: 1}
+
+            # Stakes paragraph
+            - type: text
+              id: v.stakes
+              decorative: true
+              text: "SP enterprise mobile investment is growing 20–30% YoY.\nDelivery quality and velocity are not keeping pace.\nThis deck names why — and proposes a specific solution."
+              box: [180, 308, 600, 68]
+              style: stakes_para
+
+  # ── Slide 09 — Comparison Matrix ────────────────────────────────────────
+  - slide: 9
+    id: s9_matrix
+    title: "Ginga One vs. Large SI vs. Internal Build"
+    description: "5x3 honest comparison matrix. Tradeoff slide."
+
+    tokens:
+      text_styles:
+        slide_title_small:
+          font:   primary
+          size:   11
+          weight: 700
+          color:  primary
+          align:  left
+        chrome_brand:
+          font:   primary
+          size:   9
+          weight: 700
+          color:  primary
+          align:  left
+        chrome_num:
+          font:   primary
+          size:   9
+          weight: 400
+          color:  text_muted
+          align:  right
+        matrix_col_hdr:
+          font:   primary
+          size:   11
+          weight: 700
+          color:  primary
+          align:  center
+          line_height: 14
+        matrix_row_hdr:
+          font:   primary
+          size:   10
+          weight: 700
+          color:  text
+          align:  left
+          line_height: 13
+        cell_win_text:
+          font:   primary
+          size:   10
+          weight: 700
+          color:  "#3B6D11"
+          align:  center
+          line_height: 13
+        cell_mid_text:
+          font:   primary
+          size:   10
+          weight: 400
+          color:  text_muted
+          align:  center
+          line_height: 13
+        cell_loss_text:
+          font:   primary
+          size:   10
+          weight: 400
+          color:  "#854F0B"
+          align:  center
+          line_height: 13
+        cell_risk_text:
+          font:   primary
+          size:   10
+          weight: 400
+          color:  "#CC0000"
+          align:  center
+          line_height: 13
+        honesty_note:
+          font:   primary
+          size:   9
+          weight: 400
+          color:  text_muted
+          align:  center
+          line_height: 13
+          italic: true
+
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - type: use
+              id: v.chrome
+              decorative: true
+              symbol: chrome
+              box: [0, 0, 960, 540]
+              slide_title: "Ginga One vs. Large SI vs. Internal Build"
+              slide_num: "09"
+              params: {phase_color: "#002060"}
+
+        # Matrix background
+        - id: matrix_bg
+          z: 5
+          objects:
+            # Ginga One column tint (column 2: x=264 to x=484)
+            - {type: rect, id: v.ginga_col_bg, decorative: true, box: [264,64,220,352], fill: cell_hdr}
+
+        # Column headers row (y=64, h=36)
+        - id: col_headers
+          z: 10
+          objects:
+            - {type: rect, id: v.hdr_r,  decorative: true, box: [40,64,222,36],   fill: "#F0EDE8", stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.hdr_g,  decorative: true, box: [264,64,220,36],  fill: primary,   stroke: {color: primary,     width: 0.5}}
+            - {type: rect, id: v.hdr_si, decorative: true, box: [486,64,220,36],  fill: "#F0EDE8", stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.hdr_ib, decorative: true, box: [708,64,220,36],  fill: "#F0EDE8", stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.hdr_t_g,  decorative: true, text: "Ginga One",         box: [264,64,220,36], style: {font: primary, size: 11, weight: 700, color: white,   align: center, line_height: 14}}
+            - {type: text, id: v.hdr_t_si, decorative: true, text: "Large SI",           box: [486,64,220,36], style: {font: primary, size: 11, weight: 400, color: text_muted, align: center, line_height: 14}}
+            - {type: text, id: v.hdr_t_ib, decorative: true, text: "Internal Build",     box: [708,64,220,36], style: {font: primary, size: 11, weight: 400, color: text_muted, align: center, line_height: 14}}
+
+        # Matrix rows (5 rows × 64px each, starting y=100)
+        - id: matrix_rows
+          z: 15
+          objects:
+            # Row 1 — Time to first production  y=100
+            - {type: rect, id: v.r1_lbl,  decorative: true, box: [40,100,222,64],  fill: surface, stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r1_g,    decorative: true, box: [264,100,220,64], fill: cell_win, stroke: {color: cell_win_bdr, width: 0.5}}
+            - {type: rect, id: v.r1_si,   decorative: true, box: [486,100,220,64], fill: cell_loss, stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r1_ib,   decorative: true, box: [708,100,220,64], fill: cell_risk, stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.r1_lbl_t, decorative: true, text: "Time to first\nproduction release", box: [48,100,206,64], style: matrix_row_hdr}
+            - {type: text, id: v.r1_g_t,   decorative: true, text: "2–4 weeks\n(first sprint)", box: [264,100,220,64], style: cell_win_text}
+            - {type: text, id: v.r1_si_t,  decorative: true, text: "6–12 weeks\nramp-up first", box: [486,100,220,64], style: cell_loss_text}
+            - {type: text, id: v.r1_ib_t,  decorative: true, text: "12–18 months\nto first team", box: [708,100,220,64], style: cell_risk_text}
+            # Row 2 — Domain ramp-up cost  y=164
+            - {type: rect, id: v.r2_lbl,  decorative: true, box: [40,164,222,64],  fill: surface, stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r2_g,    decorative: true, box: [264,164,220,64], fill: cell_win,  stroke: {color: cell_win_bdr, width: 0.5}}
+            - {type: rect, id: v.r2_si,   decorative: true, box: [486,164,220,64], fill: cell_loss, stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r2_ib,   decorative: true, box: [708,164,220,64], fill: cell_loss, stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.r2_lbl_t, decorative: true, text: "Domain ramp-up\ncost", box: [48,164,206,64], style: matrix_row_hdr}
+            - {type: text, id: v.r2_g_t,   decorative: true, text: "ZERO\n(retail-native)", box: [264,164,220,64], style: cell_win_text}
+            - {type: text, id: v.r2_si_t,  decorative: true, text: "HIGH\n(assembles per-client)", box: [486,164,220,64], style: cell_loss_text}
+            - {type: text, id: v.r2_ib_t,  decorative: true, text: "HIGH\n(starts from zero)", box: [708,164,220,64], style: cell_loss_text}
+            # Row 3 — Mobile delivery quality  y=228
+            - {type: rect, id: v.r3_lbl,  decorative: true, box: [40,228,222,64],  fill: surface, stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r3_g,    decorative: true, box: [264,228,220,64], fill: cell_win,  stroke: {color: cell_win_bdr, width: 0.5}}
+            - {type: rect, id: v.r3_si,   decorative: true, box: [486,228,220,64], fill: cell_mid,  stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r3_ib,   decorative: true, box: [708,228,220,64], fill: cell_mid,  stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.r3_lbl_t, decorative: true, text: "Mobile-specific\ndelivery quality", box: [48,228,206,64], style: matrix_row_hdr}
+            - {type: text, id: v.r3_g_t,   decorative: true, text: "HIGH\n(mobile-only focus)", box: [264,228,220,64], style: cell_win_text}
+            - {type: text, id: v.r3_si_t,  decorative: true, text: "MEDIUM\n(mobile sub-practice)", box: [486,228,220,64], style: cell_mid_text}
+            - {type: text, id: v.r3_ib_t,  decorative: true, text: "VARIABLE\n(depends on hires)", box: [708,228,220,64], style: cell_mid_text}
+            # Row 4 — Governance  y=292  (SI wins — honesty row)
+            - {type: rect, id: v.r4_lbl,  decorative: true, box: [40,292,222,64],  fill: surface, stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r4_g,    decorative: true, box: [264,292,220,64], fill: cell_mid,  stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r4_si,   decorative: true, box: [486,292,220,64], fill: cell_win,  stroke: {color: cell_win_bdr, width: 0.5}}
+            - {type: rect, id: v.r4_ib,   decorative: true, box: [708,292,220,64], fill: cell_mid,  stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.r4_lbl_t, decorative: true, text: "Governance and\ninstitutional accountability", box: [48,292,206,64], style: matrix_row_hdr}
+            - {type: text, id: v.r4_g_t,   decorative: true, text: "MEDIUM\n(boutique-scale)", box: [264,292,220,64], style: cell_mid_text}
+            - {type: text, id: v.r4_si_t,  decorative: true, text: "HIGH ←\n(SI genuine advantage)", box: [486,292,220,64], style: cell_win_text}
+            - {type: text, id: v.r4_ib_t,  decorative: true, text: "HIGH\n(full internal control)", box: [708,292,220,64], style: cell_mid_text}
+            # Row 5 — Total cost  y=356
+            - {type: rect, id: v.r5_lbl,  decorative: true, box: [40,356,222,64],  fill: surface, stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r5_g,    decorative: true, box: [264,356,220,64], fill: cell_win,  stroke: {color: cell_win_bdr, width: 0.5}}
+            - {type: rect, id: v.r5_si,   decorative: true, box: [486,356,220,64], fill: cell_risk, stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r5_ib,   decorative: true, box: [708,356,220,64], fill: cell_loss, stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.r5_lbl_t, decorative: true, text: "Est. total cost\n6-month engagement", box: [48,356,206,64], style: matrix_row_hdr}
+            - {type: text, id: v.r5_g_t,   decorative: true, text: "LOWER\n(directional; see proposal)", box: [264,356,220,64], style: cell_win_text}
+            - {type: text, id: v.r5_si_t,  decorative: true, text: "2–3× HIGHER\n(SP Tier-1 rates)", box: [486,356,220,64], style: cell_risk_text}
+            - {type: text, id: v.r5_ib_t,  decorative: true, text: "HIGHEST\n(12-18 mo build cost)", box: [708,356,220,64], style: cell_loss_text}
+
+        # Honesty callout
+        - id: callout
+          z: 20
+          objects:
+            - type: rect
+              id: v.callout_bg
+              decorative: true
+              box: [40, 428, 888, 78]
+              fill: "#F8F6F0"
+              stroke: {color: chrome_line, width: 0.5}
+              radius: 3
+            - type: rect
+              id: v.callout_bar
+              decorative: true
+              box: [40, 428, 4, 78]
+              fill: accent_warm
+            - type: text
+              id: v.callout_text
+              decorative: true
+              text: "We have left governance and institutional accountability as the large SI's genuine advantage in this matrix.\nPretending otherwise would be dishonest and would not serve your procurement team."
+              box: [54, 428, 866, 78]
+              style: honesty_note
+
+  # ── Slide 14 — The Ask ──────────────────────────────────────────────────
+  - slide: 14
+    id: s14_decision
+    title: "What We Are Asking You to Authorize Today"
+    description: "Single ask slide. Maximum clarity, minimal density."
+
+    tokens:
+      text_styles:
+        slide_title_small:
+          font:   primary
+          size:   11
+          weight: 700
+          color:  primary
+          align:  left
+        chrome_brand:
+          font:   primary
+          size:   9
+          weight: 700
+          color:  primary
+          align:  left
+        chrome_num:
+          font:   primary
+          size:   9
+          weight: 400
+          color:  text_muted
+          align:  right
+        ask_headline:
+          font:   primary
+          size:   28
+          weight: 700
+          color:  primary
+          align:  center
+          line_height: 36
+        ask_sub:
+          font:   primary
+          size:   14
+          weight: 400
+          color:  text_muted
+          align:  center
+          line_height: 22
+        no_commitment:
+          font:   primary
+          size:   11
+          weight: 400
+          color:  text_muted
+          align:  center
+          italic: true
+        next_step_label:
+          font:   primary
+          size:   10
+          weight: 700
+          color:  white
+          align:  center
+        next_step_txt:
+          font:   primary
+          size:   10
+          weight: 400
+          color:  white
+          align:  center
+          line_height: 14
+
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - type: use
+              id: v.chrome
+              decorative: true
+              symbol: chrome
+              box: [0, 0, 960, 540]
+              slide_title: "What We Are Asking You to Authorize Today"
+              slide_num: "14"
+              params: {phase_color: "#D04A02"}
+
+        - id: content
+          z: 10
+          objects:
+            # Central ask box
+            - type: rect
+              id: v.ask_box
+              decorative: true
+              box: [120, 100, 720, 200]
+              fill: "#EEF3FB"
+              stroke: {color: primary, width: 1.5}
+              radius: 8
+
+            - type: rect
+              id: v.ask_top_bar
+              decorative: true
+              box: [120, 100, 720, 5]
+              fill: primary
+              radius: 0
+
+            - type: text
+              id: v.ask_headline
+              decorative: true
+              text: "Authorize a 60-minute technical scoping call."
+              box: [140, 120, 680, 50]
+              style: ask_headline
+
+            - type: text
+              id: v.ask_sub
+              decorative: true
+              text: "No contract. No budget commitment. No RFP.\nOne meeting between our lead mobile engineer and your CTO."
+              box: [140, 188, 680, 52]
+              style: ask_sub
+
+            # Three outcomes box below
+            - type: rect
+              id: v.outcomes_bg
+              decorative: true
+              box: [120, 322, 720, 136]
+              fill: "#F5F3EF"
+              stroke: {color: chrome_line, width: 0.5}
+              radius: 6
+
+            # Three outcome columns
+            - {type: rect, id: v.oc1_bg, decorative: true, box: [132, 334, 218, 112], fill: primary, radius: 4}
+            - {type: rect, id: v.oc2_bg, decorative: true, box: [370, 334, 218, 112], fill: primary, radius: 4}
+            - {type: rect, id: v.oc3_bg, decorative: true, box: [608, 334, 218, 112], fill: primary, radius: 4}
+
+            - {type: text, id: v.oc1_lbl, decorative: true, text: "DAY 0", box: [132, 338, 218, 14], style: next_step_label}
+            - {type: text, id: v.oc1_txt, decorative: true, text: "You authorize the\nscoping call today", box: [132, 356, 218, 72], style: next_step_txt}
+
+            - {type: text, id: v.oc2_lbl, decorative: true, text: "DAY 10", box: [370, 338, 218, 14], style: next_step_label}
+            - {type: text, id: v.oc2_txt, decorative: true, text: "60-min technical\nscoping call held", box: [370, 356, 218, 72], style: next_step_txt}
+
+            - {type: text, id: v.oc3_lbl, decorative: true, text: "DAY 15", box: [608, 338, 218, 14], style: next_step_label}
+            - {type: text, id: v.oc3_txt, decorative: true, text: "Discovery Pilot\nproposal delivered", box: [608, 356, 218, 72], style: next_step_txt}
+
+            # Connectors between outcome boxes
+            - {type: line, id: v.arr1, decorative: true, from: [351,390], to: [369,390], stroke: {color: primary, width: 1.5, arrow_end: true}}
+            - {type: line, id: v.arr2, decorative: true, from: [589,390], to: [607,390], stroke: {color: primary, width: 1.5, arrow_end: true}}
+
+            # No commitment note
+            - type: text
+              id: v.no_commit
+              decorative: true
+              text: "If the scoping call does not produce a Discovery Pilot proposal you want to accept, the engagement ends with no further obligation."
+              box: [180, 470, 600, 36]
+              style: no_commitment

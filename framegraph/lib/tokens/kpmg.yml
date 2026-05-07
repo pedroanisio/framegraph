@@ -1,0 +1,35 @@
+_meta: {type: token_pack, id: kpmg, version: 1.0, name: "KPMG"}
+colors:
+  primary:        "#0091DA"   # KPMG bright blue
+  primary_dark:   "#00338D"   # KPMG navy
+  secondary:      "#472C84"   # KPMG purple
+  accent:         "#00B8F1"
+  surface:        "#F5F8FB"
+  surface_tinted: "#E5F4FB"
+  panel:          "#C5E4F5"
+  text:           "#1A1A1A"
+  text_muted:     "#6D6D6D"
+  border:         "#9DD0ED"
+  border_strong:  "#0091DA"
+  white:          "#FFFFFF"
+  data_1: "#0091DA"
+  data_2: "#00338D"
+  data_3: "#472C84"
+  data_4: "#9DD0ED"
+  data_5: "#F5A623"
+  data_6: "#5B9E4D"
+fonts:
+  primary: "Arial, Helvetica, sans-serif"
+  heading: "Arial, Helvetica, sans-serif"
+glyph_map: {}
+text_styles:
+  node_label:   {font: primary, size: 13, weight: 700, color: text,          align: center}
+  node_desc:    {font: primary, size: 9,  weight: 400, color: text_muted,    align: center, italic: true}
+  center_label: {font: primary, size: 13, weight: 700, color: primary_dark,  align: center, line_height: 16}
+  icon_label:   {font: primary, size: 22, weight: 400, color: white,         align: center}
+  title:        {font: primary, size: 20, weight: 700, color: primary_dark,  align: left}
+stroke_styles:
+  web:            {color: border,        width: 0.8}
+  circle_outline: {color: primary_dark,  width: 1.5}
+  center_outline: {color: secondary,     width: 1.5}
+  accent_rule:    {color: primary,       width: 3.0}

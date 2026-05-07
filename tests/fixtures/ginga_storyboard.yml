@@ -1,0 +1,480 @@
+dsl: FrameGraph
+version: 1.1
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: ginga_one_storyboard_v1
+  name: "Ginga One — Enterprise Pitch Storyboard"
+  description: "15-slide narrative map. CTO/CDO audience, 35 min, SP retail/logistics/industrial. Ask: 60-min scoping call."
+  canvas:
+    size: [960, 660]
+    units: px
+  rendering_contract:
+    coordinate_mode: absolute
+    preserve_manual_line_breaks: true
+    text: {min_font_size: 7, overflow: shrink_to_fit}
+    semantics: {decorative_objects_may_omit_bind: true}
+
+semantic:
+  ontology:
+    node_types:
+      Slide: {meaning: "A slide in the Ginga One enterprise pitch deck."}
+    edge_types:
+      FlowsTo: {meaning: "Narrative sequence.", directionality: directed}
+  nodes:
+    - {id: sl.01, type: Slide, label: "Opening provocation"}
+    - {id: sl.02, type: Slide, label: "Market context"}
+    - {id: sl.03, type: Slide, label: "Failure patterns"}
+    - {id: sl.04, type: Slide, label: "Compounding debt"}
+    - {id: sl.05, type: Slide, label: "Claim — who is Ginga One"}
+    - {id: sl.06, type: Slide, label: "13-year track record"}
+    - {id: sl.07, type: Slide, label: "Reference clients — star moment"}
+    - {id: sl.08, type: Slide, label: "Engagement model"}
+    - {id: sl.09, type: Slide, label: "Comparison matrix"}
+    - {id: sl.10, type: Slide, label: "Objections answered"}
+    - {id: sl.11, type: Slide, label: "Risk disclosure"}
+    - {id: sl.12, type: Slide, label: "Recommendation"}
+    - {id: sl.13, type: Slide, label: "Commercial options"}
+    - {id: sl.14, type: Slide, label: "The ask"}
+    - {id: sl.15, type: Slide, label: "30-day close"}
+  edges:
+    - {id: e.01_02, type: FlowsTo, from: sl.01, to: sl.02}
+    - {id: e.02_03, type: FlowsTo, from: sl.02, to: sl.03}
+    - {id: e.03_04, type: FlowsTo, from: sl.03, to: sl.04}
+    - {id: e.04_05, type: FlowsTo, from: sl.04, to: sl.05}
+    - {id: e.05_06, type: FlowsTo, from: sl.05, to: sl.06}
+    - {id: e.06_07, type: FlowsTo, from: sl.06, to: sl.07}
+    - {id: e.07_08, type: FlowsTo, from: sl.07, to: sl.08}
+    - {id: e.08_09, type: FlowsTo, from: sl.08, to: sl.09}
+    - {id: e.09_10, type: FlowsTo, from: sl.09, to: sl.10}
+    - {id: e.10_11, type: FlowsTo, from: sl.10, to: sl.11}
+    - {id: e.11_12, type: FlowsTo, from: sl.11, to: sl.12}
+    - {id: e.12_13, type: FlowsTo, from: sl.12, to: sl.13}
+    - {id: e.13_14, type: FlowsTo, from: sl.13, to: sl.14}
+    - {id: e.14_15, type: FlowsTo, from: sl.14, to: sl.15}
+
+visual:
+  tokens:
+    colors:
+      phase1_bg:   "#FEF6EC"
+      phase2_bg:   "#EFF7F1"
+      phase3_bg:   "#EEF2FB"
+      page_bg:     "#F4F2EE"
+      header_bg:   "#1A1A1A"
+      footer_bg:   "#2C2C2A"
+      white:       "#FFFFFF"
+      text:        "#1A1A1A"
+      text_muted:  "#888780"
+      card_bdr:    "#D0CEC8"
+      divider:     "#D0CEC8"
+      ph1_text:    "#854F0B"
+      ph2_text:    "#27500A"
+      ph3_text:    "#0C447C"
+      arr:         "#B4B2A9"
+      star_gold:   "#C99000"
+      star_fill:   "#FFF8DC"
+
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+
+    text_styles:
+      hdr_title:
+        font: primary
+        size: 13
+        weight: 700
+        color: white
+        align: left
+        line_height: 16
+      hdr_sub:
+        font: primary
+        size: 9
+        weight: 400
+        color: "#888780"
+        align: right
+        line_height: 12
+      ph_label:
+        font: primary
+        size: 8
+        weight: 700
+        color: ph1_text
+        align: left
+      ph_label_2:
+        font: primary
+        size: 8
+        weight: 700
+        color: ph2_text
+        align: left
+      ph_label_3:
+        font: primary
+        size: 8
+        weight: 700
+        color: ph3_text
+        align: left
+      ph_meta:
+        font: primary
+        size: 8
+        weight: 400
+        color: text_muted
+        align: right
+        italic: true
+      card_num:
+        font: primary
+        size: 10
+        weight: 700
+        color: text_muted
+        align: left
+      card_layout:
+        font: primary
+        size: 8
+        weight: 400
+        color: text_muted
+        align: right
+      card_title:
+        font: primary
+        size: 10
+        weight: 700
+        color: text
+        align: left
+        line_height: 13
+      card_role:
+        font: primary
+        size: 8
+        weight: 400
+        color: text_muted
+        align: left
+      footer_txt:
+        font: primary
+        size: 8
+        weight: 400
+        color: "#888780"
+        align: left
+      footer_right:
+        font: primary
+        size: 8
+        weight: 400
+        color: "#888780"
+        align: right
+      star_badge:
+        font: primary
+        size: 8
+        weight: 700
+        color: star_gold
+        align: center
+
+    stroke_styles:
+      flow:
+        color: arr
+        width: 1.0
+        arrow_end: true
+      card_border:
+        color: card_bdr
+        width: 0.5
+      divider_line:
+        color: divider
+        width: 0.5
+
+  symbols:
+    s_card:
+      box: [0, 0, 170, 142]
+      slots: [num, short_title, role_text, layout_icon]
+      objects:
+        - type: rect
+          id: bg
+          box: [0, 0, 170, 142]
+          fill: white
+          stroke: {color: "#D0CEC8", width: 0.5}
+        - type: rect
+          id: accent
+          box: [0, 0, 4, 142]
+          fill: "$accent"
+        - type: text
+          id: num_lbl
+          box: [8, 5, 26, 12]
+          text: "$num"
+          style: card_num
+        - type: text
+          id: layout_lbl
+          box: [90, 5, 76, 11]
+          text: "$layout_icon"
+          style: card_layout
+        - type: text
+          id: title_lbl
+          box: [8, 20, 156, 92]
+          text: "$short_title"
+          style: card_title
+        - type: text
+          id: role_lbl
+          box: [8, 124, 156, 13]
+          text: "$role_text"
+          style: card_role
+      ports:
+        center: [85, 71]
+        east:   [170, 71]
+        west:   [0, 71]
+        north:  [85, 0]
+        south:  [85, 142]
+
+  layers:
+
+    # ── Background ──────────────────────────────────────────────────────
+    - id: bg_layer
+      z: 0
+      objects:
+        - {type: rect, id: v.bg,    decorative: true, box: [0,0,960,660], fill: page_bg}
+
+    # ── Header ──────────────────────────────────────────────────────────
+    - id: header
+      z: 5
+      objects:
+        - {type: rect,  id: v.hdr_bg,  decorative: true, box: [0,0,960,44], fill: header_bg}
+        - {type: text,  id: v.hdr_t,   decorative: true, text: "Ginga One  ·  Enterprise Pitch Storyboard", box: [14,0,640,44], style: hdr_title}
+        - {type: text,  id: v.hdr_sub, decorative: true, text: "15 slides  ·  35 min  ·  CTO / CDO / Procurement  ·  SP retail, logistics, industrial", box: [340,0,606,44], style: hdr_sub}
+
+    # ── Phase bands ──────────────────────────────────────────────────────
+    - id: phases
+      z: 10
+      objects:
+        - {type: rect, id: v.ph1, decorative: true, box: [0,44,960,196], fill: phase1_bg}
+        - {type: rect, id: v.ph2, decorative: true, box: [0,244,960,196], fill: phase2_bg}
+        - {type: rect, id: v.ph3, decorative: true, box: [0,444,960,196], fill: phase3_bg}
+        # Phase divider lines
+        - {type: line, id: v.div12, decorative: true, from: [0,241], to: [960,241], stroke_style: divider_line}
+        - {type: line, id: v.div23, decorative: true, from: [0,441], to: [960,441], stroke_style: divider_line}
+
+    # ── Phase labels ─────────────────────────────────────────────────────
+    - id: phase_labels
+      z: 15
+      objects:
+        - {type: text, id: v.ph1_lbl, decorative: true, text: "PHASE 1  ·  THE PROBLEM", box: [14,47,300,13], style: ph_label}
+        - {type: text, id: v.ph1_meta, decorative: true, text: "~8 min  ·  establish urgency before introducing the solution", box: [500,47,446,13], style: ph_meta}
+        - {type: text, id: v.ph2_lbl, decorative: true, text: "PHASE 2  ·  THE ANSWER", box: [14,247,300,13], style: ph_label_2}
+        - {type: text, id: v.ph2_meta, decorative: true, text: "~12 min  ·  build trust, show the model, make the honest comparison", box: [430,247,516,13], style: ph_meta}
+        - {type: text, id: v.ph3_lbl, decorative: true, text: "PHASE 3  ·  THE CLOSE", box: [14,447,300,13], style: ph_label_3}
+        - {type: text, id: v.ph3_meta, decorative: true, text: "~5 min + Q&A  ·  resolve risk, synthesize, and land the single ask", box: [440,447,506,13], style: ph_meta}
+
+    # ── Flow arrows (within each row) ────────────────────────────────────
+    # Row mid-y: row_y + 71  →  row1=66+71=137, row2=264+71=335, row3=462+71=533
+    - id: arrows
+      z: 20
+      objects:
+        # Row 1  (y=137)
+        - {type: line, id: v.a.r1_1, decorative: true, from: [186,137], to: [206,137], stroke_style: flow}
+        - {type: line, id: v.a.r1_2, decorative: true, from: [378,137], to: [398,137], stroke_style: flow}
+        - {type: line, id: v.a.r1_3, decorative: true, from: [570,137], to: [590,137], stroke_style: flow}
+        - {type: line, id: v.a.r1_4, decorative: true, from: [762,137], to: [782,137], stroke_style: flow}
+        # Row 2  (y=335)
+        - {type: line, id: v.a.r2_1, decorative: true, from: [186,335], to: [206,335], stroke_style: flow}
+        - {type: line, id: v.a.r2_2, decorative: true, from: [378,335], to: [398,335], stroke_style: flow}
+        - {type: line, id: v.a.r2_3, decorative: true, from: [570,335], to: [590,335], stroke_style: flow}
+        - {type: line, id: v.a.r2_4, decorative: true, from: [762,335], to: [782,335], stroke_style: flow}
+        # Row 3  (y=533)
+        - {type: line, id: v.a.r3_1, decorative: true, from: [186,533], to: [206,533], stroke_style: flow}
+        - {type: line, id: v.a.r3_2, decorative: true, from: [378,533], to: [398,533], stroke_style: flow}
+        - {type: line, id: v.a.r3_3, decorative: true, from: [570,533], to: [590,533], stroke_style: flow}
+        - {type: line, id: v.a.r3_4, decorative: true, from: [762,533], to: [782,533], stroke_style: flow}
+
+    # ── Slide cards ──────────────────────────────────────────────────────
+    # Card layout: 170×142 px  |  x positions: 15, 207, 399, 591, 783
+    # Row 1 y=66   Row 2 y=264   Row 3 y=462
+    - id: cards
+      z: 30
+      objects:
+        # ── ROW 1: PHASE 1 — The Problem ─────────────────────────────
+        - type: use
+          id: v.card.01
+          bind: sl.01
+          symbol: s_card
+          box: [15, 66, 170, 142]
+          num: "01"
+          short_title: "Your backlog\nis a specialization\nproblem"
+          role_text: "OPEN  ·  provocation"
+          layout_icon: "[HEADLINE]"
+          params: {accent: "#E35205"}
+
+        - type: use
+          id: v.card.02
+          bind: sl.02
+          symbol: s_card
+          box: [207, 66, 170, 142]
+          num: "02"
+          short_title: "SP mobile grows\n20–30% YoY;\ndelivery lags"
+          role_text: "CONTEXT  ·  stakes"
+          layout_icon: "[CHART]"
+          params: {accent: "#BA7517"}
+
+        - type: use
+          id: v.card.03
+          bind: sl.03
+          symbol: s_card
+          box: [399, 66, 170, 142]
+          num: "03"
+          short_title: "4 failure patterns,\none root cause:\nno domain depth"
+          role_text: "PROBLEM  ·  diagnosis"
+          layout_icon: "[DIAGRAM]"
+          params: {accent: "#CC0000"}
+
+        - type: use
+          id: v.card.04
+          bind: sl.04
+          symbol: s_card
+          box: [591, 66, 170, 142]
+          num: "04"
+          short_title: "Mobile debt\ncompounds 30–50%\nper quarter"
+          role_text: "TENSION  ·  urgency"
+          layout_icon: "[CHART]"
+          params: {accent: "#CC0000"}
+
+        - type: use
+          id: v.card.05
+          bind: sl.05
+          symbol: s_card
+          box: [783, 66, 170, 142]
+          num: "05"
+          short_title: "Ginga One:\nSP's longest-running\nmobile boutique"
+          role_text: "CLAIM  ·  introduce"
+          layout_icon: "[CARD]"
+          params: {accent: "#009A44"}
+
+        # ── ROW 2: PHASE 2 — The Answer ──────────────────────────────
+        - type: use
+          id: v.card.06
+          bind: sl.06
+          symbol: s_card
+          box: [15, 264, 170, 142]
+          num: "06"
+          short_title: "2012 → 2025:\ntwo cycles,\none pivot"
+          role_text: "EVIDENCE  ·  longevity"
+          layout_icon: "[TIMELINE]"
+          params: {accent: "#009A44"}
+
+        - type: use
+          id: v.card.07
+          bind: sl.07
+          symbol: s_card
+          box: [207, 264, 170, 142]
+          num: "07"
+          short_title: "Walmart Brasil\nGPA · Yamaha:\nyour peers trusted us"
+          role_text: "EVIDENCE  ·  star moment"
+          layout_icon: "[CARDS]"
+          params: {accent: "#009A44"}
+
+        - type: use
+          id: v.card.08
+          bind: sl.08
+          symbol: s_card
+          box: [399, 264, 170, 142]
+          num: "08"
+          short_title: "Embedded, not\noutsourced — your\nroadmap, our team"
+          role_text: "MODEL  ·  engagement"
+          layout_icon: "[FLOW]"
+          params: {accent: "#002060"}
+
+        - type: use
+          id: v.card.09
+          bind: sl.09
+          symbol: s_card
+          box: [591, 264, 170, 142]
+          num: "09"
+          short_title: "5-dim honest\nmatrix: Ginga\nvs SI vs Build"
+          role_text: "TRADEOFF  ·  matrix"
+          layout_icon: "[MATRIX]"
+          params: {accent: "#1A6FA8"}
+
+        - type: use
+          id: v.card.10
+          bind: sl.10
+          symbol: s_card
+          box: [783, 264, 170, 142]
+          num: "10"
+          short_title: "3 objections\nanswered in\nwriting"
+          role_text: "OBJECTION  ·  pre-empt"
+          layout_icon: "[STACK]"
+          params: {accent: "#888780"}
+
+        # ── ROW 3: PHASE 3 — The Close ───────────────────────────────
+        - type: use
+          id: v.card.11
+          bind: sl.11
+          symbol: s_card
+          box: [15, 462, 170, 142]
+          num: "11"
+          short_title: "3 real risks,\ndisclosed first\nwith mitigations"
+          role_text: "RISK  ·  disclosure"
+          layout_icon: "[TABLE]"
+          params: {accent: "#888780"}
+
+        - type: use
+          id: v.card.12
+          bind: sl.12
+          symbol: s_card
+          box: [207, 462, 170, 142]
+          num: "12"
+          short_title: "Domain depth\n+ delivery model\n+ commercial fit"
+          role_text: "RECOMMEND  ·  synthesis"
+          layout_icon: "[3-COL]"
+          params: {accent: "#26A69A"}
+
+        - type: use
+          id: v.card.13
+          bind: sl.13
+          symbol: s_card
+          box: [399, 462, 170, 142]
+          num: "13"
+          short_title: "Discovery Pilot\n→ Embedded\n→ Hybrid"
+          role_text: "OPTIONS  ·  commercial"
+          layout_icon: "[CARDS]"
+          params: {accent: "#472C84"}
+
+        - type: use
+          id: v.card.14
+          bind: sl.14
+          symbol: s_card
+          box: [591, 462, 170, 142]
+          num: "14"
+          short_title: "One ask: authorize\n60-min scoping\ncall — no contract"
+          role_text: "DECISION  ·  single ask"
+          layout_icon: "[SINGLE]"
+          params: {accent: "#D04A02"}
+
+        - type: use
+          id: v.card.15
+          bind: sl.15
+          symbol: s_card
+          box: [783, 462, 170, 142]
+          num: "15"
+          short_title: "30-day timeline\n+ callback to\nopening slide"
+          role_text: "CLOSE  ·  next steps"
+          layout_icon: "[TIMELINE]"
+          params: {accent: "#E35205"}
+
+    # ── Star moment highlight + annotation ───────────────────────────────
+    # Card 07 at (207, 264) — gold ring + badge
+    - id: star_layer
+      z: 35
+      objects:
+        - type: rect
+          id: v.star_ring
+          decorative: true
+          box: [205, 262, 174, 146]
+          fill: none
+          stroke:
+            color: "#C99000"
+            width: 2.5
+        - type: text
+          id: v.star_badge
+          decorative: true
+          text: "★  STAR MOMENT"
+          box: [207, 249, 170, 12]
+          style: star_badge
+
+    # ── Footer ───────────────────────────────────────────────────────────
+    - id: footer
+      z: 40
+      objects:
+        - {type: rect,  id: v.ftr_bg, decorative: true, box: [0,640,960,20], fill: footer_bg}
+        - {type: text,  id: v.ftr_l,  decorative: true,
+           text: "Presenter: Fabio Costa, Managing Partner  ·  CNPJ 15.628.865/0001-74",
+           box: [14,640,460,20], style: footer_txt}
+        - {type: text,  id: v.ftr_r,  decorative: true,
+           text: "Ask: authorize a 60-min technical scoping call → 4-week Discovery Pilot",
+           box: [460,640,486,20], style: footer_right}

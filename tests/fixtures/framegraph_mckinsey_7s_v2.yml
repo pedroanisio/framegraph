@@ -1,0 +1,325 @@
+dsl: FrameGraph
+version: 1.1
+kind: hybrid-semantic-visual-diagram
+
+# ---------------------------------------------------------------------------
+# Scene
+# ---------------------------------------------------------------------------
+scene:
+  id: mckinsey_7s_v2
+  name: "McKinsey 7S Framework"
+  description: "Seven interdependent factors that determine organizational effectiveness."
+  canvas:
+    size: [960, 560]
+    units: px
+    background: "#F8FAFD"
+  rendering_contract:
+    coordinate_mode: absolute
+    render_order: layer_order_then_object_order
+    preserve_manual_positions: true
+    preserve_manual_line_breaks: true
+    text:
+      min_font_size: 7
+      overflow: shrink_to_fit
+    semantics:
+      meaningful_visual_objects_should_bind_to_semantic_ids: false
+      decorative_objects_may_omit_bind: true
+
+# ---------------------------------------------------------------------------
+# Semantic
+# ---------------------------------------------------------------------------
+semantic:
+  ontology:
+    node_types:
+      SevenSHard:
+        meaning: "Hard S element (Strategy, Structure, Systems)."
+      SevenSSoft:
+        meaning: "Soft S element (Style, Staff, Skills)."
+      SharedValues:
+        meaning: "Central element aligning all other S elements."
+    edge_types:
+      Interdependency:
+        meaning: "Bidirectional interdependency between any two 7S elements."
+        directionality: bidirectional
+
+  nodes:
+    - {id: node.shared_values, type: SharedValues,  label: "Shared Values"}
+    - {id: node.structure,     type: SevenSHard,    label: "Structure"}
+    - {id: node.systems,       type: SevenSHard,    label: "Systems"}
+    - {id: node.strategy,      type: SevenSHard,    label: "Strategy"}
+    - {id: node.style,         type: SevenSSoft,    label: "Style"}
+    - {id: node.staff,         type: SevenSSoft,    label: "Staff"}
+    - {id: node.skills,        type: SevenSSoft,    label: "Skills"}
+
+  edges:
+    - {id: edge.sv_structure,       type: Interdependency, from: node.shared_values, to: node.structure}
+    - {id: edge.sv_systems,         type: Interdependency, from: node.shared_values, to: node.systems}
+    - {id: edge.sv_strategy,        type: Interdependency, from: node.shared_values, to: node.strategy}
+    - {id: edge.sv_style,           type: Interdependency, from: node.shared_values, to: node.style}
+    - {id: edge.sv_staff,           type: Interdependency, from: node.shared_values, to: node.staff}
+    - {id: edge.sv_skills,          type: Interdependency, from: node.shared_values, to: node.skills}
+    - {id: edge.structure_systems,  type: Interdependency, from: node.structure,     to: node.systems}
+    - {id: edge.systems_style,      type: Interdependency, from: node.systems,       to: node.style}
+    - {id: edge.style_staff,        type: Interdependency, from: node.style,         to: node.staff}
+    - {id: edge.staff_skills,       type: Interdependency, from: node.staff,         to: node.skills}
+    - {id: edge.skills_strategy,    type: Interdependency, from: node.skills,        to: node.strategy}
+    - {id: edge.strategy_structure, type: Interdependency, from: node.strategy,      to: node.structure}
+
+# ---------------------------------------------------------------------------
+# Visual
+# ---------------------------------------------------------------------------
+visual:
+
+  # ── TOKENS ─────────────────────────────────────────────────────────────
+  tokens:
+    colors:
+      teal:          "#26A69A"
+      teal_dark:     "#00897B"
+      teal_ring:     "#80CBC4"
+      center_fill:   "#EEEEEE"
+      center_border: "#AAAAAA"
+      center_ring:   "#26A69A"
+      web_line:      "#BBBBBB"
+      white:         "#FFFFFF"
+      label_dark:    "#1A1A1A"
+      desc_gray:     "#757575"
+      page_bg:       "#F8FAFD"
+      slide_bg:      "#FFFFFF"
+      slide_border:  "#C8C8C8"
+
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+      # tabler font declared here so icon objects can reference it by token name
+      tabler:  "tabler-icons"
+
+    # ── NEW: glyph aliases (glyph_map) ──────────────────────────────────
+    # Unicode symbols that render in standard system fonts.
+    # In production, swap font to "tabler" and set these to Tabler codepoints.
+    glyph_map:
+      structure: "≡"    # three horizontal lines  → hierarchy / org chart
+      systems:   "⚙"    # gear                   → processes / systems
+      strategy:  "♟"    # chess pawn              → strategic planning
+      staff:     "⊕"    # circled plus            → people / onboarding
+      skills:    "★"    # filled star             → excellence / competence
+      style:     "◆"    # filled diamond          → polish / culture
+
+    # ── NEW: fill_styles with gradients ─────────────────────────────────
+    fill_styles:
+      teal_radial:
+        type: radial_gradient
+        center: [0.38, 0.32]
+        radius: 0.72
+        stops:
+          - {offset: 0,   color: "#4DB6AC"}   # light centre
+          - {offset: 0.6, color: "#26A69A"}   # mid teal
+          - {offset: 1,   color: "#00796B"}   # deep edge
+
+    text_styles:
+      title:
+        size: 20
+        weight: 700
+        color: label_dark
+        align: left
+        line_height: 24
+      node_label:
+        size: 13
+        weight: 700
+        color: label_dark
+        align: center
+        line_height: 16
+      node_desc:
+        size: 9
+        weight: 400
+        color: desc_gray
+        align: center
+        line_height: 11
+        italic: true
+      center_label:
+        size: 14
+        weight: 700
+        color: label_dark
+        align: center
+        line_height: 18
+
+    stroke_styles:
+      web:
+        color: web_line
+        width: 1.0
+      circle_outline:
+        color: teal_dark
+        width: 1.5
+      center_outline:
+        color: center_border
+        width: 1.5
+
+  # ── NEW: SYMBOLS ────────────────────────────────────────────────────────
+  # s_node defines the teal circle + icon template in a local 80×80 space.
+  # Six `type: use` objects below stamp it once per S element — no repetition.
+  symbols:
+    s_node:
+      box: [0, 0, 80, 80]
+      slots: [icon_glyph]        # "$icon_glyph" resolved at each use site
+      objects:
+        - type: ellipse
+          id: bg
+          box: [0, 0, 80, 80]
+          fill: "$fill"          # color param — defaults to teal_radial via each use
+          stroke_style: circle_outline
+        - type: icon
+          id: glyph
+          box: [0, 0, 80, 80]
+          font: primary          # switch to "tabler" + Tabler codepoints for full icons
+          glyph: "$icon_glyph"   # resolved via glyph_map
+          color: white
+          size: 30
+      ports:
+        center: [40, 40]
+        north:  [40,  0]
+        south:  [40, 80]
+        east:   [80, 40]
+        west:   [ 0, 40]
+
+  # ── LAYERS ──────────────────────────────────────────────────────────────
+  layers:
+
+    - id: background
+      z: 0
+      objects:
+        - {type: rect, id: v.page,  decorative: true, box: [0,0,960,560], fill: page_bg}
+        - {type: rect, id: v.slide, decorative: true, box: [10,15,940,534], fill: slide_bg,
+           stroke: {color: slide_border, width: 1}}
+
+    - id: title_layer
+      z: 10
+      objects:
+        - type: text
+          id: v.title
+          decorative: true
+          text: "McKinsey 7S Framework"
+          box: [40, 24, 700, 26]
+          style: title
+
+    # ── NEW: layer-level opacity on web lines ────────────────────────────
+    # opacity: 0.38 fades the entire web without touching each object
+    - id: web_lines
+      z: 20
+      opacity: 0.38
+      objects:
+        # spokes (semantic)
+        - {type: line, id: v.web.sv_str,  bind: edge.sv_structure,      from: [480,295], to: [480,120], stroke_style: web}
+        - {type: line, id: v.web.sv_sy,   bind: edge.sv_systems,        from: [480,295], to: [632,208], stroke_style: web}
+        - {type: line, id: v.web.sv_st,   bind: edge.sv_style,          from: [480,295], to: [632,382], stroke_style: web}
+        - {type: line, id: v.web.sv_sta,  bind: edge.sv_staff,          from: [480,295], to: [480,470], stroke_style: web}
+        - {type: line, id: v.web.sv_sk,   bind: edge.sv_skills,         from: [480,295], to: [328,382], stroke_style: web}
+        - {type: line, id: v.web.sv_stg,  bind: edge.sv_strategy,       from: [480,295], to: [328,208], stroke_style: web}
+        # outer ring (semantic)
+        - {type: line, id: v.web.str_sy,  bind: edge.structure_systems, from: [480,120], to: [632,208], stroke_style: web}
+        - {type: line, id: v.web.sy_st,   bind: edge.systems_style,     from: [632,208], to: [632,382], stroke_style: web}
+        - {type: line, id: v.web.st_sta,  bind: edge.style_staff,       from: [632,382], to: [480,470], stroke_style: web}
+        - {type: line, id: v.web.sta_sk,  bind: edge.staff_skills,      from: [480,470], to: [328,382], stroke_style: web}
+        - {type: line, id: v.web.sk_stg,  bind: edge.skills_strategy,   from: [328,382], to: [328,208], stroke_style: web}
+        - {type: line, id: v.web.stg_str, bind: edge.strategy_structure, from: [328,208], to: [480,120], stroke_style: web}
+        # inner star cross-connections (decorative)
+        - {type: line, id: v.web.x1,  decorative: true, from: [480,120], to: [632,382], stroke_style: web}
+        - {type: line, id: v.web.x2,  decorative: true, from: [480,120], to: [480,470], stroke_style: web}
+        - {type: line, id: v.web.x3,  decorative: true, from: [480,120], to: [328,382], stroke_style: web}
+        - {type: line, id: v.web.x4,  decorative: true, from: [632,208], to: [480,470], stroke_style: web}
+        - {type: line, id: v.web.x5,  decorative: true, from: [632,208], to: [328,382], stroke_style: web}
+        - {type: line, id: v.web.x6,  decorative: true, from: [632,208], to: [328,208], stroke_style: web}
+        - {type: line, id: v.web.x7,  decorative: true, from: [632,382], to: [328,382], stroke_style: web}
+        - {type: line, id: v.web.x8,  decorative: true, from: [632,382], to: [328,208], stroke_style: web}
+        - {type: line, id: v.web.x9,  decorative: true, from: [480,470], to: [328,208], stroke_style: web}
+
+    - id: center_circle
+      z: 28
+      objects:
+        # ── NEW: outer_ring gives the "Shared Values" circle a teal halo ─
+        - type: ellipse
+          id: v.circle.shared_values
+          bind: node.shared_values
+          box: [420, 245, 120, 100]
+          fill: center_fill
+          stroke_style: center_outline
+          outer_ring:
+            color: center_ring
+            width: 3
+            offset: 6
+
+    - id: node_circles
+      z: 30
+      objects:
+        # ── NEW: type: use  — symbol s_node stamped 6×, no shape repetition ──
+        - type: use
+          id: v.node.structure
+          bind: node.structure
+          symbol: s_node
+          box: [440, 80, 80, 80]
+          icon_glyph: structure
+          params: {fill: teal_radial}
+
+        - type: use
+          id: v.node.systems
+          bind: node.systems
+          symbol: s_node
+          box: [592, 168, 80, 80]
+          icon_glyph: systems
+          params: {fill: teal_radial}
+
+        - type: use
+          id: v.node.style
+          bind: node.style
+          symbol: s_node
+          box: [592, 342, 80, 80]
+          icon_glyph: style
+          params: {fill: teal_radial}
+
+        - type: use
+          id: v.node.staff
+          bind: node.staff
+          symbol: s_node
+          box: [440, 430, 80, 80]
+          icon_glyph: staff
+          params: {fill: teal_radial}
+
+        - type: use
+          id: v.node.skills
+          bind: node.skills
+          symbol: s_node
+          box: [288, 342, 80, 80]
+          icon_glyph: skills
+          params: {fill: teal_radial}
+
+        - type: use
+          id: v.node.strategy
+          bind: node.strategy
+          symbol: s_node
+          box: [288, 168, 80, 80]
+          icon_glyph: strategy
+          params: {fill: teal_radial}
+
+    - id: labels
+      z: 40
+      objects:
+        # Center label
+        - type: text
+          id: v.label.shared_values
+          bind: node.shared_values
+          text: "Shared\nValues"
+          box: [420, 258, 120, 74]
+          style: center_label
+
+        # Node labels
+        - {type: text, id: v.label.structure, bind: node.structure, text: "Structure", box: [390, 46, 180, 18], style: node_label}
+        - {type: text, id: v.label.systems,   bind: node.systems,   text: "Systems",   box: [722, 196, 155, 18], style: node_label}
+        - {type: text, id: v.label.style,     bind: node.style,     text: "Style",     box: [722, 370, 155, 18], style: node_label}
+        - {type: text, id: v.label.staff,     bind: node.staff,     text: "Staff",     box: [390, 518, 180, 18], style: node_label}
+        - {type: text, id: v.label.skills,    bind: node.skills,    text: "Skills",    box: [83,  370, 155, 18], style: node_label}
+        - {type: text, id: v.label.strategy,  bind: node.strategy,  text: "Strategy",  box: [83,  196, 155, 18], style: node_label}
+
+        # Description texts
+        - {type: text, id: v.desc.structure, bind: node.structure, style: node_desc, box: [350, 66, 260, 24], text: "Organizational hierarchy\nand reporting lines."}
+        - {type: text, id: v.desc.systems,   bind: node.systems,   style: node_desc, box: [722, 218, 155, 34], text: "Processes and procedures\ngoverning how work gets done."}
+        - {type: text, id: v.desc.style,     bind: node.style,     style: node_desc, box: [722, 392, 155, 24], text: "Leadership approach\nand organizational culture."}
+        - {type: text, id: v.desc.staff,     bind: node.staff,     style: node_desc, box: [350, 540, 260, 22], text: "People and their capabilities."}
+        - {type: text, id: v.desc.skills,    bind: node.skills,    style: node_desc, box: [83,  392, 155, 24], text: "Core competencies\nof the organization."}
+        - {type: text, id: v.desc.strategy,  bind: node.strategy,  style: node_desc, box: [83,  218, 155, 24], text: "Plan for achieving\ncompetitive advantage."}

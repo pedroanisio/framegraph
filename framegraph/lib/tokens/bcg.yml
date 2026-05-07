@@ -1,0 +1,124 @@
+# FrameGraph Token Pack — Boston Consulting Group
+# BCG green brand, clean sans-serif, data-forward
+_meta:
+  type: token_pack
+  id: bcg
+  version: 1.0
+  name: "Boston Consulting Group"
+  brand_notes: >
+    BCG green (#009A44) is the primary brand color. Dark forest green
+    for text on light surfaces. Clean geometric sans-serif.
+    "Sustainable" palette with greens and blues.
+
+colors:
+  primary:        "#009A44"   # BCG green
+  primary_dark:   "#006B2E"   # deep BCG forest green
+  secondary:      "#0071BC"   # BCG blue
+  accent:         "#7EC8A0"   # light mint
+  surface:        "#F7F7F5"   # near-white
+  surface_tinted: "#EBF5EF"   # green-tinted surface
+  panel:          "#D6EDDE"   # light green panel
+  text:           "#1C1C1A"
+  text_muted:     "#5A5A56"
+  border:         "#B8D9C4"
+  border_strong:  "#009A44"
+  white:          "#FFFFFF"
+  data_1:         "#009A44"
+  data_2:         "#0071BC"
+  data_3:         "#7EC8A0"
+  data_4:         "#C5E0CF"
+  data_5:         "#F5A623"
+  data_6:         "#CC3300"
+  data_highlight: "#FFB800"
+
+fonts:
+  primary: "Arial, Helvetica, sans-serif"
+  heading: "Arial, Helvetica, sans-serif"
+
+glyph_map: {}
+
+text_styles:
+  slide_title:
+    font:   heading
+    size:   22
+    weight: 700
+    color:  primary_dark
+    align:  left
+    line_height: 26
+  slide_subtitle:
+    font:   primary
+    size:   12
+    weight: 400
+    color:  text_muted
+    align:  left
+  exhibit_header:
+    font:   primary
+    size:   11
+    weight: 700
+    color:  primary_dark
+    align:  left
+  body:
+    font:   primary
+    size:   11
+    weight: 400
+    color:  text
+    align:  left
+    line_height: 15
+  callout:
+    font:   primary
+    size:   14
+    weight: 700
+    color:  primary
+    align:  left
+  node_label:
+    font:   primary
+    size:   13
+    weight: 700
+    color:  text
+    align:  center
+  node_desc:
+    font:   primary
+    size:   9
+    weight: 400
+    color:  text_muted
+    align:  center
+    italic: true
+  center_label:
+    font:   primary
+    size:   13
+    weight: 700
+    color:  primary_dark
+    align:  center
+    line_height: 16
+  icon_label:
+    font:   primary
+    size:   22
+    weight: 400
+    color:  white
+    align:  center
+  title:
+    font:   heading
+    size:   20
+    weight: 700
+    color:  primary_dark
+    align:  left
+
+stroke_styles:
+  web:
+    color: border
+    width: 0.8
+  circle_outline:
+    color: primary_dark
+    width: 1.5
+  center_outline:
+    color: primary
+    width: 1.5
+  divider:
+    color: border
+    width: 0.5
+  accent_rule:
+    color: primary
+    width: 3.0
+  data_connector:
+    color: text_muted
+    width: 1.0

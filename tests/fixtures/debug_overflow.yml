@@ -1,0 +1,164 @@
+dsl: FrameGraph
+version: 1.4
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: debug_overflow_fixture
+  canvas: {size: [640, 420]}
+  rendering_contract:
+    coordinate_mode: absolute
+    text: {min_font_size: 7}
+    semantics: {decorative_objects_may_omit_bind: true}
+    debug_boxes: true          # ← draws dashed outlines on every object's box
+
+visual:
+  tokens:
+    colors:
+      bg:      "#FFFFFF"
+      ink:     "#1A1A2E"
+      primary: "#002060"
+      surface: "#F7F5F0"
+      border:  "#E0DDD8"
+      muted:   "#6B6B6B"
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+    text_styles:
+      body:
+        font: primary
+        size: 12
+        weight: 400
+        color: ink
+        align: left
+        v_align: top
+        wrap: true
+        line_height: 18
+      body_clipped:
+        font: primary
+        size: 12
+        weight: 400
+        color: ink
+        align: left
+        v_align: top
+        wrap: true
+        line_height: 18
+        overflow: clip           # ← hard clip to box boundary
+      label:
+        font: primary
+        size: 8
+        weight: 700
+        color: muted
+        align: left
+  semantic:
+    ontology: {node_types: {}, edge_types: {}}
+    nodes: []
+    edges: []
+  layers:
+    - id: bg
+      z: 0
+      objects:
+        - {type: rect, id: bg, decorative: true, box: [0,0,640,420], fill: bg}
+
+    - id: col_labels
+      z: 5
+      objects:
+        - {type: text, id: lbl_a, decorative: true,
+           box: [24, 16, 280, 12],
+           text: "overflow: visible  (default — text may escape box)",
+           style: label}
+        - {type: text, id: lbl_b, decorative: true,
+           box: [336, 16, 280, 12],
+           text: "overflow: clip  (hard boundary — text clipped to box)",
+           style: label}
+
+    # ── Column A: overflow visible ─────────────────────────────────
+    - id: col_a
+      z: 10
+      objects:
+        # Short text — fits fine
+        - {type: rect, id: a1_bg, decorative: true,
+           box: [24, 36, 280, 56], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: text, id: a1_txt, decorative: true,
+           box: [32, 40, 264, 48],
+           text: "lorem:8",
+           style: body}
+
+        # Long text — overflows (visible)
+        - {type: rect, id: a2_bg, decorative: true,
+           box: [24, 108, 280, 56], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: text, id: a2_txt, decorative: true,
+           box: [32, 112, 264, 48],
+           text: "lorem:30",
+           style: body}
+
+        # lorem:60 stress — significant overflow
+        - {type: rect, id: a3_bg, decorative: true,
+           box: [24, 180, 280, 56], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: text, id: a3_txt, decorative: true,
+           box: [32, 184, 264, 48],
+           text: "lorem:60",
+           style: body}
+
+    # ── Column B: overflow clip ────────────────────────────────────
+    - id: col_b
+      z: 20
+      objects:
+        - {type: rect, id: b1_bg, decorative: true,
+           box: [336, 36, 280, 56], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: text, id: b1_txt, decorative: true,
+           box: [344, 40, 264, 48],
+           text: "lorem:8",
+           style: body_clipped}
+
+        - {type: rect, id: b2_bg, decorative: true,
+           box: [336, 108, 280, 56], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: text, id: b2_txt, decorative: true,
+           box: [344, 112, 264, 48],
+           text: "lorem:30",
+           style: body_clipped}
+
+        - {type: rect, id: b3_bg, decorative: true,
+           box: [336, 180, 280, 56], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: text, id: b3_txt, decorative: true,
+           box: [344, 184, 264, 48],
+           text: "lorem:60",
+           style: body_clipped}
+
+    # ── Debug boxes legend ─────────────────────────────────────────
+    - id: legend
+      z: 30
+      objects:
+        - {type: rect, id: leg_bg, decorative: true,
+           box: [24, 256, 592, 148], fill: "#FAFAF8",
+           stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: text, id: leg_title, decorative: true,
+           box: [36, 268, 300, 14],
+           text: "DEBUG BOXES LEGEND  (debug_boxes: true)",
+           style: label}
+
+        # Swatches
+        - {type: rect, id: sw_text,  decorative: true, box: [36,  290, 16, 10], fill: "#E35205", radius: 1}
+        - {type: text, id: sw_tl,    decorative: true, box: [60,  286, 560, 16],
+           text: "orange — text, bullet_list  (declared box; orange = where you said text lives)",
+           style: {font: primary, size: 10, weight: 400, color: ink, align: left, v_align: middle}}
+        - {type: rect, id: sw_img,   decorative: true, box: [36,  312, 16, 10], fill: "#009A44", radius: 1}
+        - {type: text, id: sw_il,    decorative: true, box: [60,  308, 560, 16],
+           text: "green — image  (useful to see whether a placeholder fills its slot)",
+           style: {font: primary, size: 10, weight: 400, color: ink, align: left, v_align: middle}}
+        - {type: rect, id: sw_cont,  decorative: true, box: [36,  334, 16, 10], fill: "#002060", radius: 1}
+        - {type: text, id: sw_cl,    decorative: true, box: [60,  330, 560, 16],
+           text: "navy — container  (the auto-layout box boundary)",
+           style: {font: primary, size: 10, weight: 400, color: ink, align: left, v_align: middle}}
+        - {type: rect, id: sw_use,   decorative: true, box: [36,  356, 16, 10], fill: "#8B00FF", radius: 1}
+        - {type: text, id: sw_ul,    decorative: true, box: [60,  352, 560, 16],
+           text: "purple — use instance  (symbol stamp boundary, with port dots)",
+           style: {font: primary, size: 10, weight: 400, color: ink, align: left, v_align: middle}}
+        - {type: rect, id: sw_other, decorative: true, box: [36,  378, 16, 10], fill: "#B4B2A9", radius: 1}
+        - {type: text, id: sw_ol,    decorative: true, box: [60,  374, 560, 16],
+           text: "grey — rect, ellipse, line, connector, and all other object types",
+           style: {font: primary, size: 10, weight: 400, color: ink, align: left, v_align: middle}}

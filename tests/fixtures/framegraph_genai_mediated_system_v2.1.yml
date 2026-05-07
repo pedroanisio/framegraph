@@ -1,0 +1,935 @@
+dsl: FrameGraph
+version: 1.1
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: genai_mediated_intelligence_system
+  name: "GenAI as a mediated intelligence system"
+  description: "Actors, orchestration, model substrate, feedback loops, and governance."
+  canvas:
+    size: [991, 600]          # v1.1: +30px height for breathing room
+    units: px
+    background: "#F8FAFD"
+  rendering_contract:
+    coordinate_mode: absolute
+    render_order: layer_order_then_object_order
+    preserve_manual_positions: true
+    preserve_manual_line_breaks: true
+    pixel_tolerance: 2
+    text:
+      default_font: "Arial, Helvetica, sans-serif"
+      wrapping: manual_and_auto
+      overflow: shrink_to_fit
+      min_font_size: 7
+      vertical_alignment: middle
+    connectors:
+      anchor_resolution: explicit_port_then_shape_side
+      clip_to_shape_edge: true
+      route_mode: explicit
+      arrowhead_style: filled_triangle
+    semantics:
+      meaningful_visual_objects_should_bind_to_semantic_ids: true
+      connectors_should_bind_to_semantic_edges: true
+      decorative_objects_may_omit_bind: true
+
+# ---------------------------------------------------------------------------
+# Semantic layer (unchanged from v1.0)
+# ---------------------------------------------------------------------------
+semantic:
+  ontology:
+    node_types:
+      DocumentTitle:
+        meaning: "Primary statement and subtitle of the diagram."
+      GovernanceLayer:
+        meaning: "Cross-cutting governance, safety, and accountability controls."
+      ActorGroup:
+        meaning: "Container grouping actors and input sources."
+      Actor:
+        meaning: "Initiating source that provides input, intent, data, or synthetic input."
+      Mediator:
+        meaning: "Orchestration layer mediating actors, tools, memory, policy, and models."
+      OrchestrationSubLayer:
+        meaning: "Functional subcomponent inside the orchestration layer."
+      ModalitySet:
+        meaning: "Supported mediated modalities and action types."
+      OutcomeGroup:
+        meaning: "Container grouping outputs and effects."
+      Outcome:
+        meaning: "Effect or output produced by the mediated system."
+      ModelSubstrate:
+        meaning: "Underlying model and knowledge infrastructure."
+      ModelSubstrateLayer:
+        meaning: "Specific substrate layer: foundation, adaptation, or training source."
+      FeedbackLoop:
+        meaning: "Recursive GenAI-to-GenAI or synthetic-data feedback loop."
+      Legend:
+        meaning: "Explanation of visual encodings."
+    edge_types:
+      ControlApplication:
+        meaning: "Governance applies across the system as a cross-cutting control layer."
+        default_visual_style: cross_cutting_control
+      DirectMediationFlow:
+        meaning: "Solid arrow showing direct mediated flow between actors, orchestration, and outcomes."
+        default_visual_style: direct_flow
+      RecursiveGenAIFlow:
+        meaning: "Dashed arrow showing GenAI-to-GenAI recursive loop or feedback flow."
+        default_visual_style: genai_loop
+      GroundingDependency:
+        meaning: "Bidirectional dependency or runtime grounding relationship."
+        default_visual_style: dependency
+      TrainingInfluence:
+        meaning: "Pre-training or post-training influence from knowledge sources to model behavior."
+        default_visual_style: influence
+
+  nodes:
+    - id: doc.title
+      type: DocumentTitle
+      label: "GenAI as a mediated intelligence system"
+      subtitle: "Actors, orchestration, model substrate, feedback loops, and governance"
+
+    - id: governance.control_layer
+      type: GovernanceLayer
+      label: "Governance, safety & accountability"
+      items: [policy, evaluation, alignment, audit, observability, privacy, red-teaming, human oversight]
+
+    - id: actors.group
+      type: ActorGroup
+      label: "Actors"
+      side_label: "ACTORS / INPUT SOURCES"
+
+    - id: actors.humans
+      type: Actor
+      label: "Humans"
+      contents: [intent, prompts, judgment, feedback]
+
+    - id: actors.systems
+      type: Actor
+      label: "Systems"
+      contents: [events, data, APIs, workflows]
+
+    - id: actors.genai_systems
+      type: Actor
+      label: "GenAI Systems"
+      contents: [agents, model chains, synthetic inputs]
+      recursive: true
+
+    - id: orchestration.agent_layer
+      type: Mediator
+      label: "Orchestration / Agent Layer"
+      group_heading: "Orchestration Layer"
+      description: "where actors, tools, memory, policy, and models are mediated"
+
+    - id: orchestration.interaction_context
+      type: OrchestrationSubLayer
+      label: "Interaction & Context"
+      contents: [session state, instructions, memory, retrieval context]
+
+    - id: orchestration.reasoning_planning
+      type: OrchestrationSubLayer
+      label: "Reasoning & Planning"
+      contents: [task decomposition, routing, tool choice, response strategy]
+
+    - id: orchestration.execution_interfaces
+      type: OrchestrationSubLayer
+      label: "Execution Interfaces"
+      contents: [tools, APIs, code execution, services, actions]
+
+    - id: orchestration.modalities
+      type: ModalitySet
+      label: "Mediated modalities"
+      contents: [text, image, audio, video, code, structured data, actions]
+
+    - id: outcomes.group
+      type: OutcomeGroup
+      label: "Outcomes"
+      side_label: "OUTCOMES / EFFECTS"
+
+    - id: outcomes.human_facing_outputs
+      type: Outcome
+      label: "Human-facing outputs"
+      contents: [answers, explanations, recommendations]
+
+    - id: outcomes.system_facing_actions
+      type: Outcome
+      label: "System-facing actions"
+      contents: [API calls, workflow updates, transactions]
+
+    - id: outcomes.genai_facing_outputs
+      type: Outcome
+      label: "GenAI-facing outputs"
+      contents: [downstream agents, chain model calls, synthetic data]
+      recursive: true
+
+    - id: substrate.group
+      type: ModelSubstrate
+      label: "MODEL & KNOWLEDGE SUBSTRATE"
+
+    - id: substrate.foundation_model
+      type: ModelSubstrateLayer
+      label: "Foundation Model"
+      contents: [pre-trained multimodal reasoning substrate]
+
+    - id: substrate.adaptation_grounding
+      type: ModelSubstrateLayer
+      label: "Adaptation & Grounding Layer"
+      contents: [system prompts, fine-tuning, embeddings, RAG, memory, guardrails]
+
+    - id: substrate.training_sources
+      type: ModelSubstrateLayer
+      label: "Training & Knowledge Sources"
+      contents: [web, code, books, dialogue, enterprise data, synthetic data]
+
+    - id: feedback.genai_loop
+      type: FeedbackLoop
+      label: "GenAI feedback loop"
+      contents: [multi-agent systems, chained models, self-generated context, synthetic-data feedback]
+
+    - id: legend.main
+      type: Legend
+      label: "Visual encoding legend"
+
+  edges:
+    - id: edge.governance_applies
+      type: ControlApplication
+      from: governance.control_layer
+      to: [actors.group, orchestration.agent_layer, outcomes.group, substrate.group, feedback.genai_loop]
+      label: "cross-cutting control layer"
+
+    - id: edge.humans_to_orchestration
+      type: DirectMediationFlow
+      from: actors.humans
+      to: orchestration.agent_layer
+      label: "direct mediation flow"
+
+    - id: edge.systems_to_orchestration
+      type: DirectMediationFlow
+      from: actors.systems
+      to: orchestration.agent_layer
+      label: "direct mediation flow"
+
+    - id: edge.orchestration_to_human_outputs
+      type: DirectMediationFlow
+      from: orchestration.agent_layer
+      to: outcomes.human_facing_outputs
+      label: "direct mediation flow"
+
+    - id: edge.orchestration_to_system_actions
+      type: DirectMediationFlow
+      from: orchestration.agent_layer
+      to: outcomes.system_facing_actions
+      label: "direct mediation flow"
+
+    - id: edge.genai_systems_to_orchestration
+      type: RecursiveGenAIFlow
+      from: actors.genai_systems
+      to: orchestration.agent_layer
+      label: "GenAI-to-GenAI recursive loop"
+
+    - id: edge.orchestration_to_genai_outputs
+      type: RecursiveGenAIFlow
+      from: orchestration.agent_layer
+      to: outcomes.genai_facing_outputs
+      label: "GenAI-to-GenAI recursive loop"
+
+    - id: edge.genai_outputs_to_feedback
+      type: RecursiveGenAIFlow
+      from: outcomes.genai_facing_outputs
+      to: feedback.genai_loop
+      label: "GenAI feedback loop"
+
+    - id: edge.orchestration_to_foundation_model
+      type: GroundingDependency
+      from: orchestration.agent_layer
+      to: substrate.foundation_model
+      direction: bidirectional
+      label: "runtime grounding"
+
+    - id: edge.training_sources_to_model
+      type: TrainingInfluence
+      from: substrate.training_sources
+      to: substrate.foundation_model
+      label: "pre-training / post-training influence"
+
+# ---------------------------------------------------------------------------
+# Visual layer  (v1.1 changes annotated)
+# ---------------------------------------------------------------------------
+visual:
+  tokens:
+    colors:
+      page_bg: "#F8FAFD"
+      slide_bg: "#FFFFFF"
+      slide_border: "#C8C8C8"
+      black: "#000000"
+      white: "#FFFFFF"
+      orchestration_blue: "#153F6B"
+      orchestration_border: "#082E53"
+      pale_blue: "#E8EEF7"
+      governance_blue: "#DFE8F5"
+      governance_border: "#003D76"
+      panel_gray: "#EFEFEF"
+      box_gray: "#F7F7F7"
+      recursive_box: "#F4F8FC"
+      legend_gray: "#EFEFEF"
+      dashed_blue: "#1D4F7A"
+      chip_border: "#AFC3D9"
+      feedback_fill: "#EEF4FB"    # v1.1: tinted bg for the feedback loop box
+
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+
+    text_styles:
+      title:
+        font: primary
+        size: 29
+        weight: 800
+        color: black
+        align: left
+        line_height: 32
+      subtitle:
+        font: primary
+        size: 18
+        weight: 400
+        color: black
+        align: left
+        line_height: 21
+      heading:
+        font: primary
+        size: 14
+        weight: 700
+        color: black
+        align: center
+        line_height: 16
+      body:
+        font: primary
+        size: 12
+        weight: 400
+        color: black
+        align: center
+        line_height: 13
+      tiny:
+        font: primary
+        size: 10
+        weight: 400
+        color: black
+        align: center
+        line_height: 11
+      tiny_left:
+        font: primary
+        size: 10
+        weight: 400
+        color: black
+        align: left
+        line_height: 11
+      white_heading:
+        font: primary
+        size: 14
+        weight: 700
+        color: white
+        align: center
+        line_height: 16
+      white_italic:
+        font: primary
+        size: 12
+        weight: 400
+        italic: true
+        color: white
+        align: center
+        line_height: 13
+      white_tiny:                   # v1.1: for labels inside dark containers
+        font: primary
+        size: 10
+        weight: 400
+        color: white
+        align: left
+        line_height: 11
+      legend:
+        font: primary
+        size: 12
+        weight: 400
+        color: black
+        align: left
+        line_height: 14
+
+    stroke_styles:
+      direct_flow:
+        color: black
+        width: 1.5
+        dash: null
+        arrow_start: false
+        arrow_end: true
+      genai_loop:
+        color: dashed_blue
+        width: 1.2
+        dash: [4, 4]
+        arrow_start: false
+        arrow_end: true
+      dependency:
+        color: black
+        width: 1.3
+        dash: null
+        arrow_start: true
+        arrow_end: true
+      influence:
+        color: black
+        width: 1.2
+        dash: null
+        arrow_start: false
+        arrow_end: true
+      thin_border:
+        color: black
+        width: 1
+        dash: null
+      dashed_border:
+        color: dashed_blue
+        width: 1
+        dash: [4, 4]
+      cross_cutting_control:
+        color: governance_border
+        width: 1.2
+        dash: null
+
+  component_defs:
+    info_box:
+      slots: [title, body]
+      geometry:
+        radius: 8
+      variants:
+        normal:
+          fill: box_gray
+          stroke_style: thin_border
+        recursive:
+          fill: recursive_box
+          stroke_style: dashed_border
+      internal_layout:
+        title:
+          box_offset: [0, 7, 100%, 17]
+          style: heading
+        body:
+          box_offset: [8, 24, calc(100% - 16), calc(100% - 27)]
+          style: body
+    orchestration_inner_box:
+      slots: [title, body]
+      geometry:
+        radius: 4
+      fill: pale_blue
+      internal_layout:
+        title:
+          box_offset: [0, 4, 100%, 15]
+          style: heading
+        body:
+          box_offset: [4, 20, calc(100% - 8), 13]
+          style: tiny
+    substrate_layer:
+      slots: [title, body]
+      geometry:
+        radius: 5
+      fill: box_gray
+      stroke_style: thin_border
+      internal_layout:
+        title:
+          box_offset: [0, 5, 100%, 15]
+          style: heading
+        body:
+          box_offset: [0, 22, 100%, 13]
+          style: tiny
+    chip:
+      slots: [text]
+      geometry:
+        radius: 3
+      fill: pale_blue
+      stroke:
+        color: chip_border
+        width: 1
+      text_style: tiny
+
+  layers:
+
+    # ------------------------------------------------------------------
+    - id: background
+      z: 0
+      objects:
+        - type: rect
+          id: v.page
+          decorative: true
+          box: [0, 0, 991, 600]         # v1.1: taller page
+          fill: page_bg
+        - type: rect
+          id: v.slide
+          decorative: true
+          box: [10, 18, 920, 549]       # v1.1: taller slide
+          fill: slide_bg
+          stroke:
+            color: slide_border
+            width: 1
+
+    # ------------------------------------------------------------------
+    - id: title
+      z: 10
+      objects:
+        - type: text
+          id: v.title
+          bind: doc.title
+          text: "GenAI as a mediated intelligence system"
+          box: [58, 55, 740, 35]
+          style: title
+        - type: text
+          id: v.subtitle
+          bind: doc.title
+          text: "Actors, orchestration, model substrate, feedback loops, and governance"
+          box: [58, 88, 830, 24]
+          style: subtitle
+
+    # ------------------------------------------------------------------
+    - id: governance
+      z: 20
+      objects:
+        - type: rect
+          id: v.governance.container
+          bind: governance.control_layer
+          box: [52, 111, 853, 39]
+          radius: 5
+          fill: governance_blue
+          stroke:
+            color: governance_border
+            width: 1.2
+        - type: text
+          id: v.governance.title
+          bind: governance.control_layer
+          text: "Governance, safety & accountability"
+          box: [52, 116, 853, 16]
+          style: heading
+        - type: text
+          id: v.governance.body
+          bind: governance.control_layer
+          text: "policy · evaluation · alignment · audit · observability · privacy · red-teaming · human oversight"
+          box: [52, 134, 853, 14]
+          style: tiny
+
+    # ------------------------------------------------------------------
+    - id: actors
+      z: 30
+      objects:
+        - type: rect
+          id: v.actors.panel
+          bind: actors.group
+          box: [52, 172, 197, 198]
+          radius: 9
+          fill: panel_gray
+        - type: text
+          id: v.actors.heading
+          bind: actors.group
+          text: "Actors"
+          box: [52, 156, 197, 17]
+          style: heading
+        - type: text
+          id: v.actors.vertical_label
+          bind: actors.group
+          text: "ACTORS / INPUT SOURCES"
+          box: [55, 197, 18, 135]
+          rotation: -90
+          rotation_origin: center
+          style: heading
+        - type: component
+          component: info_box
+          id: v.actors.humans
+          bind: actors.humans
+          box: [77, 183, 164, 55]
+          variant: normal
+          title: "Humans"
+          body: "intent · prompts ·\njudgment · feedback"
+          ports:
+            east: [241, 211]
+            west: [77, 211]
+        - type: component
+          component: info_box
+          id: v.actors.systems
+          bind: actors.systems
+          box: [77, 246, 164, 55]
+          variant: normal
+          title: "Systems"
+          body: "events · data · APIs\nworkflows"
+          ports:
+            east: [241, 274]
+            west: [77, 274]
+        - type: component
+          component: info_box
+          id: v.actors.genai_systems
+          bind: actors.genai_systems
+          box: [77, 309, 164, 55]
+          variant: recursive
+          title: "GenAI Systems"
+          body: "agents · model chains\nsynthetic inputs"
+          ports:
+            east: [241, 337]
+            west: [77, 337]
+
+    # ------------------------------------------------------------------
+    - id: orchestration
+      z: 40
+      objects:
+        - type: text
+          id: v.orchestration.heading
+          bind: orchestration.agent_layer
+          text: "Orchestration Layer"
+          box: [280, 156, 400, 17]
+          style: heading
+        - type: rect
+          id: v.orchestration.container
+          bind: orchestration.agent_layer
+          box: [280, 173, 400, 187]
+          radius: 19
+          fill: orchestration_blue
+          stroke:
+            color: orchestration_border
+            width: 1
+          ports:
+            west_humans:  [280, 211]
+            west_systems: [280, 274]
+            west_genai:   [280, 337]
+            east_human_outputs:  [680, 211]
+            east_system_actions: [680, 274]
+            east_genai_outputs:  [680, 337]
+            bottom_dependency:   [515, 360]
+        - type: text
+          id: v.orchestration.title
+          bind: orchestration.agent_layer
+          text: "Orchestration / Agent Layer"
+          box: [280, 178, 400, 17]
+          style: white_heading
+        - type: text
+          id: v.orchestration.subtitle
+          bind: orchestration.agent_layer
+          text: "where actors, tools, memory, policy, and models are mediated"
+          box: [280, 196, 400, 15]
+          style: white_italic
+        - type: component
+          component: orchestration_inner_box
+          id: v.orchestration.interaction_context
+          bind: orchestration.interaction_context
+          box: [292, 214, 376, 36]
+          title: "Interaction & Context"
+          body: "session state · instructions · memory · retrieval context"
+        - type: component
+          component: orchestration_inner_box
+          id: v.orchestration.reasoning_planning
+          bind: orchestration.reasoning_planning
+          box: [292, 254, 376, 36]
+          title: "Reasoning & Planning"
+          body: "task decomposition · routing · tool choice · response strategy"
+        - type: component
+          component: orchestration_inner_box
+          id: v.orchestration.execution_interfaces
+          bind: orchestration.execution_interfaces
+          box: [292, 295, 376, 36]
+          title: "Execution Interfaces"
+          body: "tools · APIs · code execution · services · actions"
+        - type: text                           # v1.1: label above chip row
+          id: v.orchestration.modalities_label
+          bind: orchestration.modalities
+          text: "mediated modalities"
+          box: [308, 328, 200, 11]
+          style: white_tiny
+        - type: chip_row
+          id: v.orchestration.modalities
+          bind: orchestration.modalities
+          origin: [308, 341]                  # v1.1: shifted 2px down to make room for label
+          gap: 5
+          height: 16
+          items:
+            - {text: "text",            width: 31}
+            - {text: "image",           width: 39}
+            - {text: "audio",           width: 39}
+            - {text: "video",           width: 39}
+            - {text: "code",            width: 34}
+            - {text: "structured data", width: 91}
+            - {text: "actions",         width: 51}
+
+    # ------------------------------------------------------------------
+    - id: outcomes
+      z: 50
+      objects:
+        - type: rect
+          id: v.outcomes.panel
+          bind: outcomes.group
+          box: [713, 172, 200, 198]
+          radius: 9
+          fill: panel_gray
+        - type: text
+          id: v.outcomes.heading
+          bind: outcomes.group
+          text: "Outcomes"
+          box: [713, 156, 200, 17]
+          style: heading
+        - type: text
+          id: v.outcomes.vertical_label
+          bind: outcomes.group
+          text: "OUTCOMES / EFFECTS"
+          box: [890, 220, 18, 115]
+          rotation: 90
+          rotation_origin: center
+          style: heading
+        - type: component
+          component: info_box
+          id: v.outcomes.human_facing_outputs
+          bind: outcomes.human_facing_outputs
+          box: [718, 183, 171, 55]
+          variant: normal
+          title: "Human-facing outputs"
+          body: "answers · explanations\nrecommendations"
+          ports:
+            west: [718, 211]
+            east: [889, 211]
+        - type: component
+          component: info_box
+          id: v.outcomes.system_facing_actions
+          bind: outcomes.system_facing_actions
+          box: [718, 246, 171, 55]
+          variant: normal
+          title: "System-facing actions"
+          body: "API calls · workflow\nupdates · transactions"
+          ports:
+            west: [718, 274]
+            east: [889, 274]
+        - type: component
+          component: info_box
+          id: v.outcomes.genai_facing_outputs
+          bind: outcomes.genai_facing_outputs
+          box: [718, 309, 171, 55]
+          variant: recursive
+          title: "GenAI-facing outputs"
+          body: "downstream agents · chain\nmodel calls · synthetic data"
+          ports:
+            west: [718, 337]
+            east: [889, 337]
+            south: [804, 364]
+
+    # ------------------------------------------------------------------
+    - id: model_substrate
+      z: 60
+      objects:
+        - type: rect
+          id: v.substrate.panel
+          bind: substrate.group
+          box: [171, 392, 511, 148]     # v1.1: moved down 10px, height +20px
+          radius: 7
+          fill: panel_gray
+        - type: text                     # v1.1: section heading above panel (matches Actors/Outcomes pattern)
+          id: v.substrate.section_heading
+          bind: substrate.group
+          text: "Model & knowledge substrate"
+          box: [281, 375, 399, 17]
+          style: heading
+        - type: component
+          component: substrate_layer
+          id: v.substrate.foundation_model
+          bind: substrate.foundation_model
+          box: [181, 402, 499, 40]      # v1.2: side label removed; rows now span full panel width
+          title: "Foundation Model"
+          body: "pre-trained multimodal reasoning substrate"
+          ports:
+            north: [515, 402]           # kept at x=515 so runtime-grounding connector stays vertical
+            east:  [680, 422]
+            south: [515, 442]
+        - type: component
+          component: substrate_layer
+          id: v.substrate.adaptation_grounding
+          bind: substrate.adaptation_grounding
+          box: [181, 448, 499, 40]
+          title: "Adaptation & Grounding Layer"
+          body: "system prompts · fine-tuning · embeddings · RAG · memory · guardrails"
+          ports:
+            north: [515, 448]
+            south: [515, 488]
+        - type: component
+          component: substrate_layer
+          id: v.substrate.training_sources
+          bind: substrate.training_sources
+          box: [181, 494, 499, 40]
+          title: "Training & Knowledge Sources"
+          body: "web · code · books · dialogue · enterprise data · synthetic data"
+          ports:
+            north: [515, 494]
+            east:  [680, 514]
+
+    # ------------------------------------------------------------------
+    - id: feedback_annotation
+      z: 70
+      objects:
+        - type: rect                     # v1.1: feedback loop now has a bounding box
+          id: v.feedback.container
+          bind: feedback.genai_loop
+          box: [735, 378, 190, 120]
+          radius: 6
+          fill: feedback_fill
+          stroke:
+            color: dashed_blue
+            width: 1
+        - type: text
+          id: v.feedback.title
+          bind: feedback.genai_loop
+          text: "GenAI feedback loop"
+          box: [735, 383, 190, 17]
+          style: heading
+        - type: text
+          id: v.feedback.body
+          bind: feedback.genai_loop
+          text: "multi-agent systems · chained models\nself-generated context\nsynthetic-data feedback"
+          box: [735, 402, 190, 42]
+          style: tiny
+        - type: text                     # v1.1: repositioned to avoid overlap with feedback box
+          id: v.training_influence.label
+          bind: edge.training_sources_to_model
+          text: "pre-training /\npost-training\ninfluence"
+          box: [700, 456, 76, 52]
+          style: body
+
+    # ------------------------------------------------------------------
+    - id: connectors
+      z: 80
+      objects:
+        - type: connector
+          id: v.conn.humans_to_orchestration
+          bind: edge.humans_to_orchestration
+          from: {object: v.actors.humans, port: east}
+          to:   {object: v.orchestration.container, port: west_humans}
+          route: {type: straight}
+          stroke_style: direct_flow
+        - type: connector
+          id: v.conn.systems_to_orchestration
+          bind: edge.systems_to_orchestration
+          from: {object: v.actors.systems, port: east}
+          to:   {object: v.orchestration.container, port: west_systems}
+          route: {type: straight}
+          stroke_style: direct_flow
+        - type: connector
+          id: v.conn.orchestration_to_human_outputs
+          bind: edge.orchestration_to_human_outputs
+          from: {object: v.orchestration.container, port: east_human_outputs}
+          to:   {object: v.outcomes.human_facing_outputs, port: west}
+          route: {type: straight}
+          stroke_style: direct_flow
+        - type: connector
+          id: v.conn.orchestration_to_system_actions
+          bind: edge.orchestration_to_system_actions
+          from: {object: v.orchestration.container, port: east_system_actions}
+          to:   {object: v.outcomes.system_facing_actions, port: west}
+          route: {type: straight}
+          stroke_style: direct_flow
+        - type: connector
+          id: v.conn.genai_systems_to_orchestration
+          bind: edge.genai_systems_to_orchestration
+          from: {object: v.actors.genai_systems, port: east}
+          to:   {object: v.orchestration.container, port: west_genai}
+          route: {type: straight}
+          stroke_style: genai_loop
+        - type: connector
+          id: v.conn.orchestration_to_genai_outputs
+          bind: edge.orchestration_to_genai_outputs
+          from: {object: v.orchestration.container, port: east_genai_outputs}
+          to:   {object: v.outcomes.genai_facing_outputs, port: west}
+          route: {type: straight}
+          stroke_style: genai_loop
+        - type: connector                # v1.1: endpoint updated to reach feedback container
+          id: v.conn.genai_outputs_to_feedback
+          bind: edge.genai_outputs_to_feedback
+          from: {object: v.outcomes.genai_facing_outputs, port: south}
+          to:   {point: [737, 390]}
+          route:
+            type: orthogonal
+            points: [[804, 364], [804, 390], [737, 390]]
+          stroke_style: genai_loop
+        - type: connector               # v1.1: endpoint updated for new substrate positions
+          id: v.conn.runtime_grounding
+          bind: edge.orchestration_to_foundation_model
+          from: {object: v.orchestration.container, port: bottom_dependency}
+          to:   {object: v.substrate.foundation_model, port: north}
+          route: {type: straight}
+          stroke_style: dependency
+          label:
+            text: "runtime grounding"
+            box: [526, 363, 110, 16]
+            style: tiny_left
+        - type: connector               # v1.1: route updated for new substrate row positions
+          id: v.conn.training_influence
+          bind: edge.training_sources_to_model
+          from: {object: v.substrate.training_sources, port: east}
+          to:   {object: v.substrate.foundation_model, port: east}
+          route:
+            type: orthogonal
+            points: [[680, 514], [698, 514], [698, 422], [680, 422]]
+          stroke_style: influence
+
+    # ------------------------------------------------------------------
+    - id: legend
+      z: 90
+      objects:
+        - type: rect
+          id: v.legend.background
+          bind: legend.main
+          box: [21, 557, 913, 29]       # v1.1: moved down with taller canvas
+          fill: legend_gray
+        - type: legend
+          id: v.legend.main
+          bind: legend.main
+          box: [55, 563, 870, 18]
+          item_gap: 30
+          items:
+            - id: legend.direct_flow
+              bind: DirectMediationFlow
+              sample:
+                type: line
+                from: [57, 572]
+                to:   [99, 572]
+                stroke_style: direct_flow
+              label:
+                text: "direct mediation flow"
+                box: [104, 565, 140, 16]
+                style: legend
+            - id: legend.genai_loop
+              bind: RecursiveGenAIFlow
+              sample:
+                type: line
+                from: [245, 572]
+                to:   [283, 572]
+                stroke_style: genai_loop
+              label:
+                text: "GenAI-to-GenAI recursive loop"
+                box: [289, 565, 205, 16]
+                style: legend
+            - id: legend.dependency
+              bind: GroundingDependency
+              sample:
+                type: line
+                from: [485, 562]
+                to:   [485, 582]
+                stroke_style: dependency
+              label:
+                text: "dependency / grounding relationship"
+                box: [493, 565, 235, 16]
+                style: legend
+            - id: legend.cross_cutting_control
+              bind: ControlApplication
+              sample:
+                type: rounded_rect
+                box:  [716, 566, 34, 13]
+                radius: 3
+                fill: governance_blue
+                stroke:
+                  color: governance_border
+                  width: 1
+              label:
+                text: "cross-cutting control layer"
+                box: [756, 565, 190, 16]
+                style: legend
+
+validation:
+  required:
+    - "semantic.nodes[*].id"
+    - "semantic.edges[*].id"
+    - "visual.layers[*].objects[*].id"
+  rules:
+    - "All non-decorative visual objects should have bind."
+    - "All connectors should bind to a semantic edge."
+    - "All connector endpoints should resolve to a declared port or point."
+    - "Layer z values determine paint order; higher z paints on top."
+    - "Manual text newlines are significant and should be preserved."

@@ -1,0 +1,589 @@
+dsl: FrameGraph
+version: 1.0
+kind: hybrid-semantic-visual-diagram
+
+# ---------------------------------------------------------------------------
+# Scene
+# ---------------------------------------------------------------------------
+scene:
+  id: mckinsey_7s
+  name: "McKinsey 7S Framework"
+  description: "Seven interdependent factors — Strategy, Structure, Systems, Shared Values, Style, Staff, and Skills — that determine organizational effectiveness."
+  canvas:
+    size: [960, 560]
+    units: px
+    background: "#F8FAFD"
+  rendering_contract:
+    coordinate_mode: absolute
+    render_order: layer_order_then_object_order
+    preserve_manual_positions: true
+    preserve_manual_line_breaks: true
+    text:
+      default_font: "Arial, Helvetica, sans-serif"
+      overflow: shrink_to_fit
+      min_font_size: 7
+    semantics:
+      meaningful_visual_objects_should_bind_to_semantic_ids: false
+      connectors_should_bind_to_semantic_edges: false
+      decorative_objects_may_omit_bind: true
+
+# ---------------------------------------------------------------------------
+# Semantic layer
+# ---------------------------------------------------------------------------
+semantic:
+  ontology:
+    node_types:
+      SevenSHard:
+        meaning: "One of the three 'hard S' elements — Strategy, Structure, Systems."
+      SevenSSoft:
+        meaning: "One of the four 'soft S' elements — Style, Staff, Skills, Shared Values."
+      SharedValues:
+        meaning: "The central element connecting and aligning all six outer S elements."
+    edge_types:
+      Interdependency:
+        meaning: "Any change in one element affects all others."
+        directionality: bidirectional
+
+  nodes:
+    - id: node.shared_values
+      type: SharedValues
+      label: "Shared Values"
+      description: "Core beliefs and attitudes binding the organization."
+
+    - id: node.structure
+      type: SevenSHard
+      label: "Structure"
+      description: "Organizational hierarchy and reporting relationships."
+
+    - id: node.systems
+      type: SevenSHard
+      label: "Systems"
+      description: "Processes and procedures governing how work gets done."
+
+    - id: node.strategy
+      type: SevenSHard
+      label: "Strategy"
+      description: "Plan for achieving competitive advantage."
+
+    - id: node.style
+      type: SevenSSoft
+      label: "Style"
+      description: "Leadership approach and organizational culture."
+
+    - id: node.staff
+      type: SevenSSoft
+      label: "Staff"
+      description: "People and their capabilities."
+
+    - id: node.skills
+      type: SevenSSoft
+      label: "Skills"
+      description: "Core competencies of the organization."
+
+  edges:
+    # Spokes: shared values ↔ each outer node
+    - id: edge.sv_structure
+      type: Interdependency
+      from: node.shared_values
+      to: node.structure
+    - id: edge.sv_systems
+      type: Interdependency
+      from: node.shared_values
+      to: node.systems
+    - id: edge.sv_strategy
+      type: Interdependency
+      from: node.shared_values
+      to: node.strategy
+    - id: edge.sv_style
+      type: Interdependency
+      from: node.shared_values
+      to: node.style
+    - id: edge.sv_staff
+      type: Interdependency
+      from: node.shared_values
+      to: node.staff
+    - id: edge.sv_skills
+      type: Interdependency
+      from: node.shared_values
+      to: node.skills
+    # Outer ring
+    - id: edge.structure_systems
+      type: Interdependency
+      from: node.structure
+      to: node.systems
+    - id: edge.systems_style
+      type: Interdependency
+      from: node.systems
+      to: node.style
+    - id: edge.style_staff
+      type: Interdependency
+      from: node.style
+      to: node.staff
+    - id: edge.staff_skills
+      type: Interdependency
+      from: node.staff
+      to: node.skills
+    - id: edge.skills_strategy
+      type: Interdependency
+      from: node.skills
+      to: node.strategy
+    - id: edge.strategy_structure
+      type: Interdependency
+      from: node.strategy
+      to: node.structure
+
+# ---------------------------------------------------------------------------
+# Visual layer
+# ---------------------------------------------------------------------------
+visual:
+  tokens:
+    colors:
+      teal:         "#26A69A"
+      teal_dark:    "#00897B"
+      center_fill:  "#E8E8E8"
+      center_border: "#AAAAAA"
+      web_line:     "#C0C0C0"
+      white:        "#FFFFFF"
+      label_dark:   "#1A1A1A"
+      desc_gray:    "#6B6B6B"
+      page_bg:      "#F8FAFD"
+      slide_bg:     "#FFFFFF"
+      slide_border: "#C8C8C8"
+
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+
+    text_styles:
+      title:
+        font: primary
+        size: 20
+        weight: 700
+        color: label_dark
+        align: left
+        line_height: 24
+      node_label:
+        font: primary
+        size: 13
+        weight: 700
+        color: label_dark
+        align: center
+        line_height: 16
+      node_desc:
+        font: primary
+        size: 9
+        weight: 400
+        color: desc_gray
+        align: center
+        line_height: 11
+        italic: true
+      center_label:
+        font: primary
+        size: 14
+        weight: 700
+        color: label_dark
+        align: center
+        line_height: 18
+      icon_label:
+        font: primary
+        size: 11
+        weight: 700
+        color: white
+        align: center
+        line_height: 13
+
+    stroke_styles:
+      web:
+        color: web_line
+        width: 1.0
+      circle_outline:
+        color: teal_dark
+        width: 1.5
+      center_outline:
+        color: center_border
+        width: 1.5
+
+  layers:
+
+    # ------------------------------------------------------------------
+    - id: background
+      z: 0
+      objects:
+        - type: rect
+          id: v.page
+          decorative: true
+          box: [0, 0, 960, 560]
+          fill: page_bg
+        - type: rect
+          id: v.slide
+          decorative: true
+          box: [10, 15, 940, 534]
+          fill: slide_bg
+          stroke:
+            color: slide_border
+            width: 1
+
+    # ------------------------------------------------------------------
+    - id: title_layer
+      z: 10
+      objects:
+        - type: text
+          id: v.title
+          decorative: true
+          text: "McKinsey 7S Framework"
+          box: [40, 24, 700, 26]
+          style: title
+
+    # ------------------------------------------------------------------
+    # Web lines — drawn at the lowest z so circles render on top
+    # Node centres (used as line endpoints):
+    #   Shared Values:  (480, 295)
+    #   Structure:      (480, 120)   top
+    #   Systems:        (632, 208)   top-right
+    #   Style:          (632, 382)   bottom-right
+    #   Staff:          (480, 470)   bottom
+    #   Skills:         (328, 382)   bottom-left
+    #   Strategy:       (328, 208)   top-left
+    # ------------------------------------------------------------------
+    - id: web_lines
+      z: 20
+      objects:
+        # Six spokes: Shared Values to each outer node
+        - type: line
+          id: v.web.sv_structure
+          bind: edge.sv_structure
+          from: [480, 295]
+          to:   [480, 120]
+          stroke_style: web
+        - type: line
+          id: v.web.sv_systems
+          bind: edge.sv_systems
+          from: [480, 295]
+          to:   [632, 208]
+          stroke_style: web
+        - type: line
+          id: v.web.sv_style
+          bind: edge.sv_style
+          from: [480, 295]
+          to:   [632, 382]
+          stroke_style: web
+        - type: line
+          id: v.web.sv_staff
+          bind: edge.sv_staff
+          from: [480, 295]
+          to:   [480, 470]
+          stroke_style: web
+        - type: line
+          id: v.web.sv_skills
+          bind: edge.sv_skills
+          from: [480, 295]
+          to:   [328, 382]
+          stroke_style: web
+        - type: line
+          id: v.web.sv_strategy
+          bind: edge.sv_strategy
+          from: [480, 295]
+          to:   [328, 208]
+          stroke_style: web
+
+        # Outer ring (adjacent pairs)
+        - type: line
+          id: v.web.structure_systems
+          bind: edge.structure_systems
+          from: [480, 120]
+          to:   [632, 208]
+          stroke_style: web
+        - type: line
+          id: v.web.systems_style
+          bind: edge.systems_style
+          from: [632, 208]
+          to:   [632, 382]
+          stroke_style: web
+        - type: line
+          id: v.web.style_staff
+          bind: edge.style_staff
+          from: [632, 382]
+          to:   [480, 470]
+          stroke_style: web
+        - type: line
+          id: v.web.staff_skills
+          bind: edge.staff_skills
+          from: [480, 470]
+          to:   [328, 382]
+          stroke_style: web
+        - type: line
+          id: v.web.skills_strategy
+          bind: edge.skills_strategy
+          from: [328, 382]
+          to:   [328, 208]
+          stroke_style: web
+        - type: line
+          id: v.web.strategy_structure
+          bind: edge.strategy_structure
+          from: [328, 208]
+          to:   [480, 120]
+          stroke_style: web
+
+        # Inner star: skip-one cross-connections (decorative — visual only)
+        - type: line
+          id: v.web.x_str_st
+          decorative: true
+          from: [480, 120]
+          to:   [632, 382]
+          stroke_style: web
+        - type: line
+          id: v.web.x_str_sta
+          decorative: true
+          from: [480, 120]
+          to:   [480, 470]
+          stroke_style: web
+        - type: line
+          id: v.web.x_str_sk
+          decorative: true
+          from: [480, 120]
+          to:   [328, 382]
+          stroke_style: web
+        - type: line
+          id: v.web.x_sy_sta
+          decorative: true
+          from: [632, 208]
+          to:   [480, 470]
+          stroke_style: web
+        - type: line
+          id: v.web.x_sy_sk
+          decorative: true
+          from: [632, 208]
+          to:   [328, 382]
+          stroke_style: web
+        - type: line
+          id: v.web.x_sy_strat
+          decorative: true
+          from: [632, 208]
+          to:   [328, 208]
+          stroke_style: web
+        - type: line
+          id: v.web.x_st_sk
+          decorative: true
+          from: [632, 382]
+          to:   [328, 382]
+          stroke_style: web
+        - type: line
+          id: v.web.x_st_strat
+          decorative: true
+          from: [632, 382]
+          to:   [328, 208]
+          stroke_style: web
+        - type: line
+          id: v.web.x_sta_strat
+          decorative: true
+          from: [480, 470]
+          to:   [328, 208]
+          stroke_style: web
+
+    # ------------------------------------------------------------------
+    # Circles — z=30 so they paint over the web lines
+    # ------------------------------------------------------------------
+    - id: circles
+      z: 30
+      objects:
+        # Central "Shared Values" circle (gray, slightly elliptical)
+        - type: ellipse
+          id: v.circle.shared_values
+          bind: node.shared_values
+          box: [420, 245, 120, 100]
+          fill: center_fill
+          stroke_style: center_outline
+
+        # Six outer teal circles  (diameter 80 px, placed on regular hexagon R=175)
+        - type: ellipse
+          id: v.circle.structure
+          bind: node.structure
+          box: [440, 80, 80, 80]
+          fill: teal
+          stroke_style: circle_outline
+
+        - type: ellipse
+          id: v.circle.systems
+          bind: node.systems
+          box: [592, 168, 80, 80]
+          fill: teal
+          stroke_style: circle_outline
+
+        - type: ellipse
+          id: v.circle.style
+          bind: node.style
+          box: [592, 342, 80, 80]
+          fill: teal
+          stroke_style: circle_outline
+
+        - type: ellipse
+          id: v.circle.staff
+          bind: node.staff
+          box: [440, 430, 80, 80]
+          fill: teal
+          stroke_style: circle_outline
+
+        - type: ellipse
+          id: v.circle.skills
+          bind: node.skills
+          box: [288, 342, 80, 80]
+          fill: teal
+          stroke_style: circle_outline
+
+        - type: ellipse
+          id: v.circle.strategy
+          bind: node.strategy
+          box: [288, 168, 80, 80]
+          fill: teal
+          stroke_style: circle_outline
+
+    # ------------------------------------------------------------------
+    # Icon text inside outer circles
+    # NOTE: In a production diagram these would be ImageObject (src: icon.svg)
+    # or PathObject (commands: [...]) per the EBNF grammar. Using text
+    # abbreviations here as portable stand-ins.
+    # ------------------------------------------------------------------
+    - id: icon_layer
+      z: 35
+      objects:
+        - type: text
+          id: v.icon.structure
+          decorative: true
+          text: "STR"
+          box: [440, 80, 80, 80]
+          style: icon_label
+        - type: text
+          id: v.icon.systems
+          decorative: true
+          text: "SYS"
+          box: [592, 168, 80, 80]
+          style: icon_label
+        - type: text
+          id: v.icon.style
+          decorative: true
+          text: "STY"
+          box: [592, 342, 80, 80]
+          style: icon_label
+        - type: text
+          id: v.icon.staff
+          decorative: true
+          text: "STA"
+          box: [440, 430, 80, 80]
+          style: icon_label
+        - type: text
+          id: v.icon.skills
+          decorative: true
+          text: "SKL"
+          box: [288, 342, 80, 80]
+          style: icon_label
+        - type: text
+          id: v.icon.strategy
+          decorative: true
+          text: "STG"
+          box: [288, 168, 80, 80]
+          style: icon_label
+
+    # ------------------------------------------------------------------
+    # Labels and descriptions — highest z
+    # ------------------------------------------------------------------
+    - id: labels
+      z: 40
+      objects:
+        # Center label (inside gray ellipse)
+        - type: text
+          id: v.label.shared_values
+          bind: node.shared_values
+          text: "Shared\nValues"
+          box: [420, 258, 120, 74]
+          style: center_label
+
+        # Outer bold labels (positioned outside each circle)
+        - type: text
+          id: v.label.structure
+          bind: node.structure
+          text: "Structure"
+          box: [390, 46, 180, 18]
+          style: node_label
+
+        - type: text
+          id: v.label.systems
+          bind: node.systems
+          text: "Systems"
+          box: [722, 196, 155, 18]
+          style: node_label
+
+        - type: text
+          id: v.label.style
+          bind: node.style
+          text: "Style"
+          box: [722, 370, 155, 18]
+          style: node_label
+
+        - type: text
+          id: v.label.staff
+          bind: node.staff
+          text: "Staff"
+          box: [390, 518, 180, 18]
+          style: node_label
+
+        - type: text
+          id: v.label.skills
+          bind: node.skills
+          text: "Skills"
+          box: [83, 370, 155, 18]
+          style: node_label
+
+        - type: text
+          id: v.label.strategy
+          bind: node.strategy
+          text: "Strategy"
+          box: [83, 196, 155, 18]
+          style: node_label
+
+        # Description texts (italic, below each label)
+        - type: text
+          id: v.desc.structure
+          bind: node.structure
+          text: "Organizational hierarchy\nand reporting lines."
+          box: [350, 66, 260, 26]
+          style: node_desc
+
+        - type: text
+          id: v.desc.systems
+          bind: node.systems
+          text: "Processes and procedures\ngoverning how work\ngets done."
+          box: [722, 218, 155, 38]
+          style: node_desc
+
+        - type: text
+          id: v.desc.style
+          bind: node.style
+          text: "Leadership approach\nand organizational culture."
+          box: [722, 392, 155, 26]
+          style: node_desc
+
+        - type: text
+          id: v.desc.staff
+          bind: node.staff
+          text: "People and their\ncapabilities."
+          box: [350, 540, 260, 24]
+          style: node_desc
+
+        - type: text
+          id: v.desc.skills
+          bind: node.skills
+          text: "Core competencies\nof the organization."
+          box: [83, 392, 155, 26]
+          style: node_desc
+
+        - type: text
+          id: v.desc.strategy
+          bind: node.strategy
+          text: "Plan for achieving\ncompetitive advantage."
+          box: [83, 218, 155, 26]
+          style: node_desc
+
+validation:
+  rules:
+    - "All non-decorative visual objects should have bind."
+    - "All semantic edge ids must be unique."
+    - "Layer z values determine paint order."

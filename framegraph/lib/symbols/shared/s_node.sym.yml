@@ -1,0 +1,32 @@
+# Shared symbol: circular framework node (ellipse + icon)
+# Used by: 7S, BCG matrix nodes, any radial-layout framework diagram
+_meta:
+  type: symbol_pack
+  id: shared.s_node
+  version: 1.0
+  slots: [icon_glyph]
+  params: [fill, fill_2, icon_size]
+
+symbols:
+  s_node:
+    box: [0, 0, 80, 80]
+    slots: [icon_glyph]
+    objects:
+      - type: ellipse
+        id: bg
+        box: [0, 0, 80, 80]
+        fill: "$fill"
+        stroke_style: circle_outline
+      - type: icon
+        id: glyph
+        box: [0, 0, 80, 80]
+        font: primary
+        glyph: "$icon_glyph"
+        color: white
+        size: 28
+    ports:
+      center: [40, 40]
+      north:  [40,  0]
+      south:  [40, 80]
+      east:   [80, 40]
+      west:   [ 0, 40]

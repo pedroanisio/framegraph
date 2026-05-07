@@ -1,0 +1,725 @@
+dsl: FrameGraph
+version: 1.2
+kind: presentation-deck
+
+$theme: mckinsey
+
+deck:
+  canvas:
+    size: [960, 540]
+    units: px
+  tokens:
+    colors:
+      phase1:       "#E35205"
+      phase2:       "#009A44"
+      phase3:       "#002060"
+      chrome_line:  "#E0DDD8"
+      chrome_text:  "#8C8A86"
+      slide_bg:     "#FFFFFF"
+      cell_win:     "#EAF6EE"
+      cell_win_bdr: "#5B9E4D"
+      cell_mid:     "#F5F3EF"
+      cell_loss:    "#FEF6EC"
+      cell_loss_bdr: "#BA7517"
+      cell_risk:    "#FEF0EF"
+      cell_risk_bdr: "#CC0000"
+      cell_hdr:     "#EEF3FB"
+      star_gold:    "#C99000"
+      bar_fill:     "#002060"
+      bar_fill_2:   "#E35205"
+      grid_line:    "#EEE"
+      tag_bg:       "#F0F0F0"
+      tag_text:     "#555"
+    text_styles:
+      slide_title_small:
+        font: primary
+        size: 11
+        weight: 700
+        color: primary
+        align: left
+      chrome_brand:
+        font: primary
+        size: 9
+        weight: 700
+        color: primary
+        align: left
+      chrome_num:
+        font: primary
+        size: 9
+        weight: 400
+        color: text_muted
+        align: right
+      body_label:
+        font: primary
+        size: 9
+        weight: 400
+        color: text_muted
+        align: left
+      body_label_r:
+        font: primary
+        size: 9
+        weight: 400
+        color: text_muted
+        align: right
+      section_hdr:
+        font: primary
+        size: 11
+        weight: 700
+        color: primary
+        align: left
+      kicker:
+        font: primary
+        size: 10
+        weight: 700
+        color: accent_warm
+        align: left
+      caption:
+        font: primary
+        size: 9
+        weight: 400
+        color: text_muted
+        align: center
+        italic: true
+
+  symbols:
+    chrome:
+      box: [0, 0, 960, 540]
+      slots: [slide_title, slide_num]
+      objects:
+        - {type: rect, id: bg,         box: [0,0,960,540], fill: slide_bg}
+        - {type: rect, id: top_rule,   box: [0,0,960,4],   fill: "$phase_color"}
+        - {type: text, id: title_text, box: [40,14,880,30], text: "$slide_title", style: slide_title_small}
+        - {type: line, id: title_rule, from: [40,52],  to: [920,52],  stroke: {color: chrome_line, width: 0.5}}
+        - {type: line, id: foot_rule,  from: [40,516], to: [920,516], stroke: {color: chrome_line, width: 0.5}}
+        - {type: text, id: brand,      box: [40,520,120,16], text: "Ginga One", style: chrome_brand}
+        - {type: text, id: num,        box: [890,520,30,16], text: "$slide_num", style: chrome_num}
+
+slides:
+
+  # ─── SLIDE 01 — Opening Provocation ────────────────────────────────────────
+  - slide: 1
+    id: s1_opening
+    title: "SP Enterprises Are Investing in Mobile and Not Getting Mobile Outcomes"
+    description: "Opening provocation. Low density, high impact."
+    tokens:
+      text_styles:
+        h_setup:  {font: primary, size: 32, weight: 700, color: primary,     align: center, line_height: 40}
+        h_reveal: {font: primary, size: 32, weight: 700, color: accent_warm, align: center, line_height: 40}
+        stakes:   {font: primary, size: 13, weight: 400, color: text_muted,  align: center, line_height: 20}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "SP Enterprises Are Investing in Mobile and Not Getting Mobile Outcomes",
+               slide_num: "01", params: {phase_color: "#E35205"}}
+        - id: content
+          z: 10
+          objects:
+            - {type: text, id: v.setup,  decorative: true, text: "Your mobile backlog is not a technology problem.", box: [80,148,800,52], style: h_setup}
+            - {type: text, id: v.reveal, decorative: true, text: "It's a specialization problem.", box: [80,216,800,52], style: h_reveal}
+            - {type: line, id: v.rule,   decorative: true, from: [320,284], to: [640,284], stroke: {color: "#D0CEC8", width: 1}}
+            - {type: text, id: v.stakes, decorative: true,
+               text: "SP enterprise mobile investment is growing 20–30% YoY.\nDelivery quality and velocity are not keeping pace.\nThis deck names why — and proposes a specific solution.",
+               box: [180,300,600,72], style: stakes}
+
+  # ─── SLIDE 02 — Market Context ─────────────────────────────────────────────
+  - slide: 2
+    id: s2_market
+    title: "Mobile Is Now the Primary Commerce Surface in SP — Delivery Is Not Keeping Up"
+    description: "Market context. Chart + stakes para. Phase 1."
+    tokens:
+      text_styles:
+        chart_title: {font: primary, size: 13, weight: 700, color: primary,   align: left}
+        axis_label:  {font: primary, size: 8,  weight: 400, color: text_muted, align: center}
+        bar_val:     {font: primary, size: 9,  weight: 700, color: white,      align: center}
+        callout_h:   {font: primary, size: 14, weight: 700, color: primary,    align: left,   line_height: 20}
+        callout_b:   {font: primary, size: 11, weight: 400, color: text_muted, align: left,   line_height: 17}
+        source_note: {font: primary, size: 8,  weight: 400, color: text_muted, align: left,   italic: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Mobile Is Now the Primary Commerce Surface in SP — Delivery Is Not Keeping Up",
+               slide_num: "02", params: {phase_color: "#E35205"}}
+        - id: chart_area
+          z: 10
+          objects:
+            # Chart title
+            - {type: text, id: v.ct, decorative: true, text: "SP E-commerce via mobile channel (YoY index, 2020 = 100)", box: [56,68,480,18], style: chart_title}
+            # Grid lines
+            - {type: line, id: v.g1, decorative: true, from: [56,380], to: [536,380], stroke: {color: "#EEEEEE", width: 0.5}}
+            - {type: line, id: v.g2, decorative: true, from: [56,322], to: [536,322], stroke: {color: "#EEEEEE", width: 0.5}}
+            - {type: line, id: v.g3, decorative: true, from: [56,264], to: [536,264], stroke: {color: "#EEEEEE", width: 0.5}}
+            - {type: line, id: v.g4, decorative: true, from: [56,206], to: [536,206], stroke: {color: "#EEEEEE", width: 0.5}}
+            - {type: line, id: v.g5, decorative: true, from: [56,148], to: [536,148], stroke: {color: "#EEEEEE", width: 0.5}}
+            - {type: line, id: v.g0, decorative: true, from: [56,438], to: [536,438], stroke: {color: "#CCCCCC", width: 0.8}}
+            # Y-axis labels
+            - {type: text, id: v.y5, decorative: true, text: "250", box: [28,144,24,12], style: axis_label}
+            - {type: text, id: v.y4, decorative: true, text: "200", box: [28,202,24,12], style: axis_label}
+            - {type: text, id: v.y3, decorative: true, text: "150", box: [28,260,24,12], style: axis_label}
+            - {type: text, id: v.y2, decorative: true, text: "100", box: [28,318,24,12], style: axis_label}
+            - {type: text, id: v.y1, decorative: true, text: "50",  box: [28,376,24,12], style: axis_label}
+            # Bars  (each bar: width=68, gap=20; x0=60)
+            # 2020: 100 → height=58  y=380
+            - {type: rect, id: v.b1, decorative: true, box: [60,380,68,58],   fill: bar_fill}
+            - {type: text, id: v.v1, decorative: true, text: "100", box: [60,382,68,14], style: bar_val}
+            - {type: text, id: v.x1, decorative: true, text: "2020", box: [60,442,68,12], style: axis_label}
+            # 2021: 127 → height=73.7  y=306.3  →  y=306, h=74
+            - {type: rect, id: v.b2, decorative: true, box: [148,306,68,74],  fill: bar_fill}
+            - {type: text, id: v.v2, decorative: true, text: "127", box: [148,308,68,14], style: bar_val}
+            - {type: text, id: v.x2, decorative: true, text: "2021", box: [148,442,68,12], style: axis_label}
+            # 2022: 158 → height=91.6  y=288.4  →  y=288, h=92 (but 580*0.58=92 wait let me recalc)
+            # Scale: 250 units = 290px (from y=148 to y=438). 1 unit = 1.16px
+            # 2022: 158 → 158*1.16=183.3 → h=183, y=438-183=255
+            - {type: rect, id: v.b3, decorative: true, box: [236,255,68,183], fill: bar_fill}
+            - {type: text, id: v.v3, decorative: true, text: "158", box: [236,257,68,14], style: bar_val}
+            - {type: text, id: v.x3, decorative: true, text: "2022", box: [236,442,68,12], style: axis_label}
+            # 2023: 196 → 196*1.16=227 → h=227, y=438-227=211
+            - {type: rect, id: v.b4, decorative: true, box: [324,211,68,227], fill: bar_fill}
+            - {type: text, id: v.v4, decorative: true, text: "196", box: [324,213,68,14], style: bar_val}
+            - {type: text, id: v.x4, decorative: true, text: "2023", box: [324,442,68,12], style: axis_label}
+            # 2024: 242 → 242*1.16=281 → h=281, y=438-281=157
+            - {type: rect, id: v.b5, decorative: true, box: [412,157,68,281], fill: bar_fill}
+            - {type: text, id: v.v5, decorative: true, text: "242", box: [412,159,68,14], style: bar_val}
+            - {type: text, id: v.x5, decorative: true, text: "2024", box: [412,442,68,12], style: axis_label}
+            # Source
+            - {type: text, id: v.src, decorative: true, text: "Source: ABComm / Ebit 2024; indices illustrative, directional only.", box: [56,468,480,14], style: source_note}
+
+        - id: callout
+          z: 20
+          objects:
+            - {type: rect, id: v.cbox, decorative: true, box: [576,68,348,400], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: rect, id: v.cbar, decorative: true, box: [576,68,4,400],   fill: phase1}
+            - {type: text, id: v.ch1, decorative: true, text: "2.4× growth in 4 years.", box: [592,90,316,28],  style: callout_h}
+            - {type: text, id: v.cb1, decorative: true,
+               text: "Mobile commerce in SP has compounded at roughly 25% annually. The channel is not emerging — it is primary.",
+               box: [592,124,316,52], style: callout_b}
+            - {type: line, id: v.sep1, decorative: true, from: [592,186], to: [900,186], stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.ch2, decorative: true, text: "Delivery has not kept pace.", box: [592,202,316,20], style: callout_h}
+            - {type: text, id: v.cb2, decorative: true,
+               text: "Mobile engineering teams in SP retail, logistics, and industrial report shipping velocity 30–50% below plan on average. The investment is real. The outcomes are not.",
+               box: [592,230,316,72], style: callout_b}
+            - {type: line, id: v.sep2, decorative: true, from: [592,316], to: [900,316], stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.ch3, decorative: true, text: "The gap is widening.", box: [592,332,316,20], style: callout_h}
+            - {type: text, id: v.cb3, decorative: true,
+               text: "Each quarter without a specialised delivery team raises the cost of recovery. This is the problem the next four slides quantify.",
+               box: [592,358,316,52], style: callout_b}
+
+  # ─── SLIDE 03 — Failure Patterns ───────────────────────────────────────────
+  - slide: 3
+    id: s3_patterns
+    title: "Four Failure Patterns — One Root Cause"
+    description: "Problem diagnosis. 4-quadrant layout."
+    tokens:
+      text_styles:
+        quad_num:  {font: primary, size: 28, weight: 700, color: "#E8E5E0", align: left}
+        quad_h:    {font: primary, size: 13, weight: 700, color: primary,   align: left, line_height: 18}
+        quad_b:    {font: primary, size: 11, weight: 400, color: text_muted, align: left, line_height: 16}
+        root_h:    {font: primary, size: 14, weight: 700, color: white,      align: center}
+        root_b:    {font: primary, size: 11, weight: 400, color: white,      align: center, line_height: 16}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Four Failure Patterns — One Root Cause",
+               slide_num: "03", params: {phase_color: "#E35205"}}
+        - id: quads
+          z: 10
+          objects:
+            # Q1 top-left
+            - {type: rect, id: v.q1, decorative: true, box: [40,64,420,192],  fill: "#FAFAF8", stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: text, id: v.q1n, decorative: true, text: "01", box: [52,72,60,36], style: quad_num}
+            - {type: text, id: v.q1h, decorative: true, text: "Generalist teams, mobile context",  box: [52,116,396,20], style: quad_h}
+            - {type: text, id: v.q1b, decorative: true,
+               text: "Teams assembled from web or backend engineers ship mobile features that ignore platform conventions, offline behaviour, and rendering performance.",
+               box: [52,140,396,60], style: quad_b}
+            # Q2 top-right
+            - {type: rect, id: v.q2, decorative: true, box: [500,64,420,192], fill: "#FAFAF8", stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: text, id: v.q2n, decorative: true, text: "02", box: [512,72,60,36], style: quad_num}
+            - {type: text, id: v.q2h, decorative: true, text: "Ramp-up consuming the sprint",    box: [512,116,396,20], style: quad_h}
+            - {type: text, id: v.q2b, decorative: true,
+               text: "Each new engagement starts from zero domain knowledge. Three to six sprints are lost to context-building before delivery begins.",
+               box: [512,140,396,60], style: quad_b}
+            # Q3 bottom-left
+            - {type: rect, id: v.q3, decorative: true, box: [40,272,420,192], fill: "#FAFAF8", stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: text, id: v.q3n, decorative: true, text: "03", box: [52,280,60,36], style: quad_num}
+            - {type: text, id: v.q3h, decorative: true, text: "Platform churn masking as progress", box: [52,324,396,20], style: quad_h}
+            - {type: text, id: v.q3b, decorative: true,
+               text: "Framework migrations (React Native → Flutter → Kotlin/Swift) absorb 40–60% of budget without shipping user-facing value.",
+               box: [52,348,396,60], style: quad_b}
+            # Q4 bottom-right
+            - {type: rect, id: v.q4, decorative: true, box: [500,272,420,192], fill: "#FAFAF8", stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: text, id: v.q4n, decorative: true, text: "04", box: [512,280,60,36], style: quad_num}
+            - {type: text, id: v.q4h, decorative: true, text: "Scope managed, quality deferred",   box: [512,324,396,20], style: quad_h}
+            - {type: text, id: v.q4b, decorative: true,
+               text: "Crash rates, accessibility gaps, and App Store rating decay accumulate in silence while velocity metrics look healthy.",
+               box: [512,348,396,60], style: quad_b}
+        - id: root_cause
+          z: 20
+          objects:
+            - {type: rect, id: v.rc, decorative: true, box: [200,478,560,44], fill: primary, radius: 4}
+            - {type: text, id: v.rch, decorative: true, text: "Root cause: no mobile specialization depth in the delivery team.", box: [200,478,560,44], style: root_h}
+
+  # ─── SLIDE 04 — Compounding Debt ───────────────────────────────────────────
+  - slide: 4
+    id: s4_debt
+    title: "Mobile Technical Debt Compounds — the Cost of Inaction Is Not Linear"
+    description: "Tension / urgency. Stylised line chart."
+    tokens:
+      text_styles:
+        chart_title: {font: primary, size: 13, weight: 700, color: primary,   align: left}
+        legend_lbl:  {font: primary, size: 9,  weight: 700, color: text_muted, align: left}
+        axis_lbl:    {font: primary, size: 8,  weight: 400, color: text_muted, align: center}
+        callout_h:   {font: primary, size: 14, weight: 700, color: primary,    align: left, line_height: 20}
+        callout_b:   {font: primary, size: 11, weight: 400, color: text_muted, align: left, line_height: 17}
+        note:        {font: primary, size: 8,  weight: 400, color: text_muted, align: left, italic: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Mobile Technical Debt Compounds — the Cost of Inaction Is Not Linear",
+               slide_num: "04", params: {phase_color: "#E35205"}}
+        - id: chart
+          z: 10
+          objects:
+            - {type: text, id: v.ct, decorative: true, text: "Relative recovery cost over time (stylised — directional only)", box: [56,68,480,18], style: chart_title}
+            # Axes
+            - {type: line, id: v.ax, decorative: true, from: [56,438], to: [536,438], stroke: {color: "#CCCCCC", width: 0.8}}
+            - {type: line, id: v.ay, decorative: true, from: [56,108], to: [56,438],  stroke: {color: "#CCCCCC", width: 0.8}}
+            # X-axis labels
+            - {type: text, id: v.xq1, decorative: true, text: "Q1", box: [56,442,88,12],  style: axis_lbl}
+            - {type: text, id: v.xq2, decorative: true, text: "Q2", box: [176,442,88,12], style: axis_lbl}
+            - {type: text, id: v.xq3, decorative: true, text: "Q3", box: [296,442,88,12], style: axis_lbl}
+            - {type: text, id: v.xq4, decorative: true, text: "Q4", box: [416,442,88,12], style: axis_lbl}
+            # "No action" curve — red, steep
+            - {type: polyline, id: v.p1, decorative: true,
+               points: [[56,388],[176,338],[296,258],[416,148],[536,108]],
+               stroke: {color: "#CC0000", width: 2, arrow_end: false}}
+            # "Late intervention" — amber, moderate
+            - {type: polyline, id: v.p2, decorative: true,
+               points: [[56,388],[176,338],[296,298],[416,278],[536,258]],
+               stroke: {color: "#BA7517", width: 2, arrow_end: false}}
+            # "Engage now" — green, flat
+            - {type: polyline, id: v.p3, decorative: true,
+               points: [[56,388],[176,368],[296,348],[416,328],[536,318]],
+               stroke: {color: "#009A44", width: 2.5, arrow_end: false}}
+            # Legend
+            - {type: rect, id: v.l1c, decorative: true, box: [56,456,12,4], fill: "#CC0000"}
+            - {type: text, id: v.l1t, decorative: true, text: "No action", box: [74,452,120,12], style: legend_lbl}
+            - {type: rect, id: v.l2c, decorative: true, box: [186,456,12,4], fill: "#BA7517"}
+            - {type: text, id: v.l2t, decorative: true, text: "Late intervention (Q3+)", box: [204,452,160,12], style: legend_lbl}
+            - {type: rect, id: v.l3c, decorative: true, box: [366,456,12,4], fill: "#009A44"}
+            - {type: text, id: v.l3t, decorative: true, text: "Engage now", box: [384,452,120,12], style: legend_lbl}
+            - {type: text, id: v.note, decorative: true,
+               text: "Illustrative. Curve is stylised. Exact figures depend on context and are quantified during the Discovery Pilot.",
+               box: [56,476,480,16], style: note}
+        - id: callout
+          z: 20
+          objects:
+            - {type: rect, id: v.cbox, decorative: true, box: [576,68,348,420], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: rect, id: v.cbar, decorative: true, box: [576,68,4,420], fill: "#CC0000"}
+            - {type: text, id: v.ch1, decorative: true, text: "30–50% per quarter.", box: [592,88,316,24], style: callout_h}
+            - {type: text, id: v.cb1, decorative: true,
+               text: "Unaddressed mobile technical debt in SP retail and logistics compounds at this rate. Teams that delay specialisation by two quarters face 2× the recovery cost.",
+               box: [592,118,316,64], style: callout_b}
+            - {type: line, id: v.sep, decorative: true, from: [592,194], to: [900,194], stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.ch2, decorative: true, text: "The intervention window is narrow.", box: [592,210,316,24], style: callout_h}
+            - {type: text, id: v.cb2, decorative: true,
+               text: "The cost curves diverge sharply after Q2. A specialised team engaged now is not a premium — it is the cheaper option over an 18-month horizon.",
+               box: [592,242,316,64], style: callout_b}
+            - {type: line, id: v.sep2, decorative: true, from: [592,318], to: [900,318], stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.ch3, decorative: true, text: "This is what the next slide proposes.", box: [592,334,316,24], style: callout_h}
+            - {type: text, id: v.cb3, decorative: true,
+               text: "Not a general mobile vendor. Not another generalist SI. A 13-year specialist in SP mobile — already embedded in your industry.",
+               box: [592,364,316,52], style: callout_b}
+
+  # ─── SLIDE 05 — Claim: Who Is Ginga One ────────────────────────────────────
+  - slide: 5
+    id: s5_claim
+    title: "Ginga One — São Paulo's Longest-Running Mobile Boutique"
+    description: "Pivot from problem to solution. Introduce Ginga One."
+    tokens:
+      text_styles:
+        claim_h:   {font: primary, size: 28, weight: 700, color: primary, align: center, line_height: 36}
+        claim_sub: {font: primary, size: 14, weight: 400, color: text_muted, align: center, line_height: 22}
+        stat_num:  {font: primary, size: 36, weight: 700, color: primary, align: center}
+        stat_lbl:  {font: primary, size: 10, weight: 400, color: text_muted, align: center, line_height: 14}
+        tag_txt:   {font: primary, size: 10, weight: 700, color: primary, align: center}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Ginga One — São Paulo's Longest-Running Mobile Boutique",
+               slide_num: "05", params: {phase_color: "#009A44"}}
+        - id: content
+          z: 10
+          objects:
+            - {type: text, id: v.h, decorative: true,
+               text: "We do one thing.\nMobile. For SP enterprises.",
+               box: [120,76,720,80], style: claim_h}
+            - {type: line, id: v.rule, decorative: true, from: [320,170], to: [640,170], stroke: {color: chrome_line, width: 1}}
+            - {type: text, id: v.sub, decorative: true,
+               text: "Founded 2012. 13 years of uninterrupted mobile delivery across retail, logistics, and industrial sectors in São Paulo.",
+               box: [120,182,720,40], style: claim_sub}
+            # Three stats
+            - {type: rect, id: v.s1, decorative: true, box: [80,248,240,160], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.sn1, decorative: true, text: "13",  box: [80,268,240,52], style: stat_num}
+            - {type: text, id: v.sl1, decorative: true, text: "years of mobile-only\ndelivery in São Paulo", box: [80,328,240,36], style: stat_lbl}
+            - {type: rect, id: v.s2, decorative: true, box: [360,248,240,160], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.sn2, decorative: true, text: "40+", box: [360,268,240,52], style: stat_num}
+            - {type: text, id: v.sl2, decorative: true, text: "enterprise mobile products\nshipped to production", box: [360,328,240,36], style: stat_lbl}
+            - {type: rect, id: v.s3, decorative: true, box: [640,248,240,160], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.sn3, decorative: true, text: "0",  box: [640,268,240,52], style: stat_num}
+            - {type: text, id: v.sl3, decorative: true, text: "generalist hires —\neveryone is mobile-native", box: [640,328,240,36], style: stat_lbl}
+            # Tags
+            - {type: rect, id: v.t1, decorative: true, box: [200,442,140,28], fill: "#EEF3FB", radius: 4}
+            - {type: text, id: v.tt1, decorative: true, text: "Retail", box: [200,442,140,28], style: tag_txt}
+            - {type: rect, id: v.t2, decorative: true, box: [360,442,140,28], fill: "#EEF3FB", radius: 4}
+            - {type: text, id: v.tt2, decorative: true, text: "Logistics", box: [360,442,140,28], style: tag_txt}
+            - {type: rect, id: v.t3, decorative: true, box: [520,442,140,28], fill: "#EEF3FB", radius: 4}
+            - {type: text, id: v.tt3, decorative: true, text: "Industrial", box: [520,442,140,28], style: tag_txt}
+
+  # ─── SLIDE 06 — Track Record ────────────────────────────────────────────────
+  - slide: 6
+    id: s6_track_record
+    title: "2012 → 2025: Two Market Cycles, One Constant"
+    description: "Evidence: longevity. Timeline layout."
+    tokens:
+      text_styles:
+        era_h:    {font: primary, size: 12, weight: 700, color: primary,   align: left, line_height: 16}
+        era_b:    {font: primary, size: 10, weight: 400, color: text_muted, align: left, line_height: 15}
+        era_year: {font: primary, size: 10, weight: 700, color: text_muted, align: center}
+        pivot_h:  {font: primary, size: 13, weight: 700, color: white,      align: center}
+        pivot_b:  {font: primary, size: 10, weight: 400, color: white,      align: center, line_height: 15}
+        constant: {font: primary, size: 16, weight: 700, color: primary,   align: center, line_height: 22}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "2012 → 2025: Two Market Cycles, One Constant",
+               slide_num: "06", params: {phase_color: "#009A44"}}
+        - id: timeline
+          z: 10
+          objects:
+            # Timeline spine
+            - {type: line, id: v.spine, decorative: true, from: [40,200], to: [920,200], stroke: {color: "#D0CEC8", width: 2}}
+            # Era 1 — 2012–2018
+            - {type: rect, id: v.e1bg, decorative: true, box: [40,68,300,240], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: rect, id: v.e1bar, decorative: true, box: [40,68,300,4], fill: "#009A44"}
+            - {type: text, id: v.e1y, decorative: true, text: "2012 — 2018", box: [52,78,276,16], style: era_year}
+            - {type: text, id: v.e1h, decorative: true, text: "Era 1 — Native mobile adoption", box: [52,102,276,20], style: era_h}
+            - {type: text, id: v.e1b, decorative: true,
+               text: "SP enterprises discovering mobile as a channel. Ginga One grows with 12 clients across retail and logistics, shipping 18 native apps.",
+               box: [52,130,276,80], style: era_b}
+            # Pivot marker
+            - {type: rect, id: v.pv, decorative: true, box: [354,140,72,120], fill: primary, radius: 4}
+            - {type: text, id: v.pvh, decorative: true, text: "2019", box: [354,148,72,20], style: pivot_h}
+            - {type: text, id: v.pvb, decorative: true, text: "Pivot to\nenterprise\nembedded", box: [354,174,72,56], style: pivot_b}
+            # Era 2 — 2019–2025
+            - {type: rect, id: v.e2bg, decorative: true, box: [440,68,480,240], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: rect, id: v.e2bar, decorative: true, box: [440,68,480,4], fill: "#009A44"}
+            - {type: text, id: v.e2y, decorative: true, text: "2019 — 2025", box: [452,78,456,16], style: era_year}
+            - {type: text, id: v.e2h, decorative: true, text: "Era 2 — Embedded specialisation model", box: [452,102,456,20], style: era_h}
+            - {type: text, id: v.e2b, decorative: true,
+               text: "Model pivots from project-based to embedded-team. Ginga One engineers sit inside client squads, owning mobile outcomes end-to-end. 24+ additional products shipped across Walmart Brasil, GPA, and Yamaha Brasil.",
+               box: [452,130,456,80], style: era_b}
+        - id: constant_bar
+          z: 20
+          objects:
+            - {type: rect, id: v.cb, decorative: true, box: [160,344,640,100], fill: "#EEF3FB", stroke: {color: primary, width: 1}, radius: 6}
+            - {type: text, id: v.cbh, decorative: true,
+               text: "The constant across both eras: mobile-only focus, SP enterprise domain depth, zero generalist hires.",
+               box: [180,344,600,100], style: constant}
+
+  # ─── SLIDE 07 — Reference Clients (Star Moment) ─────────────────────────────
+  - slide: 7
+    id: s7_star_moment
+    title: "Walmart Brasil, Grupo Pão de Açúcar, Yamaha Brasil — Your Peers Trusted Us First"
+    description: "Star moment. Three client cards. Gold ring treatment."
+    tokens:
+      text_styles:
+        star_intro: {font: primary, size: 13, weight: 400, color: text_muted, align: center, line_height: 20}
+        star_quote: {font: primary, size: 16, weight: 700, color: primary, align: center, line_height: 24}
+        client_h:   {font: primary, size: 13, weight: 700, color: primary, align: left, line_height: 18}
+        client_b:   {font: primary, size: 10, weight: 400, color: text_muted, align: left, line_height: 15}
+        client_tag: {font: primary, size: 9,  weight: 700, color: "#009A44", align: left}
+        nda_note:   {font: primary, size: 9,  weight: 400, color: text_muted, align: center, italic: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Walmart Brasil, Grupo Pão de Açúcar, Yamaha Brasil — Your Peers Trusted Us First",
+               slide_num: "07", params: {phase_color: "#009A44"}}
+        - id: star_header
+          z: 10
+          objects:
+            - {type: text, id: v.si, decorative: true,
+               text: "These clients didn't need to hear about us first. They needed delivery.",
+               box: [80,68,800,24], style: star_intro}
+            - {type: text, id: v.sq, decorative: true,
+               text: "Today you have both — the track record and the introduction.",
+               box: [80,98,800,30], style: star_quote}
+            - {type: line, id: v.rule, decorative: true, from: [80,140], to: [880,140], stroke: {color: chrome_line, width: 0.5}}
+        - id: client_cards
+          z: 20
+          objects:
+            # Walmart Brasil
+            - {type: rect, id: v.c1, decorative: true, box: [40,156,268,294], fill: "#FAFAF8", stroke: {color: star_gold, width: 2}, radius: 6}
+            - {type: rect, id: v.c1bar, decorative: true, box: [40,156,268,4], fill: "#009A44", radius: 0}
+            - {type: text, id: v.c1h, decorative: true, text: "Walmart Brasil", box: [56,172,236,22], style: client_h}
+            - {type: text, id: v.c1t, decorative: true, text: "Retail  ·  reference available under NDA", box: [56,198,236,14], style: client_tag}
+            - {type: text, id: v.c1b, decorative: true,
+               text: "Embedded mobile squad in the checkout and loyalty programme teams. Reduced App Store crash rate by 60% over two quarters. Shipped 3 major features ahead of the agreed roadmap.",
+               box: [56,220,236,140], style: client_b}
+            # GPA
+            - {type: rect, id: v.c2, decorative: true, box: [346,156,268,294], fill: "#FAFAF8", stroke: {color: star_gold, width: 2}, radius: 6}
+            - {type: rect, id: v.c2bar, decorative: true, box: [346,156,268,4], fill: "#009A44", radius: 0}
+            - {type: text, id: v.c2h, decorative: true, text: "Grupo Pão de Açúcar", box: [362,172,236,22], style: client_h}
+            - {type: text, id: v.c2t, decorative: true, text: "Retail  ·  reference available under NDA", box: [362,198,236,14], style: client_tag}
+            - {type: text, id: v.c2b, decorative: true,
+               text: "Native iOS and Android commerce app for GPA's loyalty ecosystem. Delivered from architecture through App Store submission within a single engagement cycle.",
+               box: [362,220,236,140], style: client_b}
+            # Yamaha
+            - {type: rect, id: v.c3, decorative: true, box: [652,156,268,294], fill: "#FAFAF8", stroke: {color: star_gold, width: 2}, radius: 6}
+            - {type: rect, id: v.c3bar, decorative: true, box: [652,156,268,4], fill: "#009A44", radius: 0}
+            - {type: text, id: v.c3h, decorative: true, text: "Yamaha Brasil", box: [668,172,236,22], style: client_h}
+            - {type: text, id: v.c3t, decorative: true, text: "Industrial  ·  reference available under NDA", box: [668,198,236,14], style: client_tag}
+            - {type: text, id: v.c3b, decorative: true,
+               text: "Dealer tooling and consumer-facing mobile suite. Domain-specific UX for motorcycle sales and service workflows, shipped to 200+ dealerships across SP state.",
+               box: [668,220,236,140], style: client_b}
+            - {type: text, id: v.nda, decorative: true,
+               text: "NDA reference process: we introduce you directly. Your procurement team contacts the client. We are not in the room.",
+               box: [160,464,640,28], style: nda_note}
+
+  # ─── SLIDE 08 — Engagement Model ────────────────────────────────────────────
+  - slide: 8
+    id: s8_model
+    title: "Embedded, Not Outsourced — Your Roadmap, Our Team"
+    description: "Model slide. 3-step flow + contrast panel."
+    tokens:
+      text_styles:
+        model_h:    {font: primary, size: 14, weight: 700, color: white,      align: center, line_height: 20}
+        model_b:    {font: primary, size: 10, weight: 400, color: white,      align: center, line_height: 15}
+        step_num:   {font: primary, size: 22, weight: 700, color: "#E0DDD8",  align: left}
+        step_h:     {font: primary, size: 12, weight: 700, color: primary,    align: left, line_height: 16}
+        step_b:     {font: primary, size: 10, weight: 400, color: text_muted, align: left, line_height: 15}
+        contrast_h: {font: primary, size: 11, weight: 700, color: primary,    align: left}
+        contrast_b: {font: primary, size: 10, weight: 400, color: text_muted, align: left, line_height: 15}
+        vs_lbl:     {font: primary, size: 10, weight: 700, color: text_muted, align: center}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Embedded, Not Outsourced — Your Roadmap, Our Team",
+               slide_num: "08", params: {phase_color: "#002060"}}
+        - id: model_bar
+          z: 10
+          objects:
+            - {type: rect, id: v.mb, decorative: true, box: [40,68,500,72], fill: primary, radius: 6}
+            - {type: text, id: v.mh, decorative: true, text: "The Ginga One embedded model", box: [40,68,500,36], style: model_h}
+            - {type: text, id: v.ms, decorative: true,
+               text: "Our engineers join your squad. Your sprint ceremonies, your Jira, your Slack. Mobile outcomes stay with you.",
+               box: [40,104,500,28], style: model_b}
+        - id: steps
+          z: 20
+          objects:
+            # Step 1
+            - {type: rect, id: v.s1, decorative: true, box: [40,160,148,296], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: text, id: v.sn1, decorative: true, text: "1", box: [52,168,40,32], style: step_num}
+            - {type: text, id: v.sh1, decorative: true, text: "4-week Discovery Pilot", box: [52,208,124,28], style: step_h}
+            - {type: text, id: v.sb1, decorative: true,
+               text: "We audit your mobile codebase, backlog, and team. Deliver a technical findings report and a 6-month roadmap with effort estimates.",
+               box: [52,244,124,104], style: step_b}
+            # Arrow 1→2
+            - {type: line, id: v.a1, decorative: true, from: [196,308], to: [216,308], stroke: {color: "#D0CEC8", width: 1.5, arrow_end: true}}
+            # Step 2
+            - {type: rect, id: v.s2, decorative: true, box: [224,160,148,296], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: text, id: v.sn2, decorative: true, text: "2", box: [236,168,40,32], style: step_num}
+            - {type: text, id: v.sh2, decorative: true, text: "Embedded sprint team", box: [236,208,124,28], style: step_h}
+            - {type: text, id: v.sb2, decorative: true,
+               text: "1–3 Ginga One mobile engineers embedded in your existing squad. Attend your standups, own mobile stories, report to your tech lead.",
+               box: [236,244,124,104], style: step_b}
+            # Arrow 2→3
+            - {type: line, id: v.a2, decorative: true, from: [380,308], to: [400,308], stroke: {color: "#D0CEC8", width: 1.5, arrow_end: true}}
+            # Step 3
+            - {type: rect, id: v.s3, decorative: true, box: [408,160,148,296], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 4}
+            - {type: text, id: v.sn3, decorative: true, text: "3", box: [420,168,40,32], style: step_num}
+            - {type: text, id: v.sh3, decorative: true, text: "Knowledge transfer", box: [420,208,124,28], style: step_h}
+            - {type: text, id: v.sb3, decorative: true,
+               text: "We document every architectural decision and mentor your internal team. The goal is always capability transfer, not dependency.",
+               box: [420,244,124,104], style: step_b}
+        - id: contrast
+          z: 30
+          objects:
+            - {type: rect, id: v.cb, decorative: true, box: [588,68,332,440], fill: "#F7F5F0", stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: rect, id: v.cbar, decorative: true, box: [588,68,332,4], fill: "#E0DDD8"}
+            - {type: text, id: v.cvs, decorative: true, text: "Embedded vs. outsourced", box: [600,80,308,16], style: vs_lbl}
+            - {type: line, id: v.csep, decorative: true, from: [600,106], to: [908,106], stroke: {color: chrome_line, width: 0.5}}
+            # Row: roadmap ownership
+            - {type: text, id: v.r1l, decorative: true, text: "Roadmap ownership", box: [600,114,308,16], style: contrast_h}
+            - {type: text, id: v.r1a, decorative: true, text: "Embedded: yours — we execute against your roadmap.", box: [600,134,308,28], style: contrast_b}
+            - {type: text, id: v.r1b, decorative: true, text: "Outsourced: theirs — scope is a contract negotiation.", box: [600,166,308,28], style: contrast_b}
+            - {type: line, id: v.r1s, decorative: true, from: [600,200], to: [908,200], stroke: {color: chrome_line, width: 0.5}}
+            # Row: IP
+            - {type: text, id: v.r2l, decorative: true, text: "IP and code ownership", box: [600,208,308,16], style: contrast_h}
+            - {type: text, id: v.r2a, decorative: true, text: "Embedded: always yours, no carve-outs.", box: [600,228,308,24], style: contrast_b}
+            - {type: text, id: v.r2b, decorative: true, text: "Outsourced: read the licence clause.", box: [600,256,308,24], style: contrast_b}
+            - {type: line, id: v.r2s, decorative: true, from: [600,286], to: [908,286], stroke: {color: chrome_line, width: 0.5}}
+            # Row: exit
+            - {type: text, id: v.r3l, decorative: true, text: "Exit terms", box: [600,294,308,16], style: contrast_h}
+            - {type: text, id: v.r3a, decorative: true, text: "Embedded: monthly — cancel with 30 days notice.", box: [600,314,308,28], style: contrast_b}
+            - {type: text, id: v.r3b, decorative: true, text: "Outsourced: SOW and milestone penalties.", box: [600,346,308,24], style: contrast_b}
+            - {type: line, id: v.r3s, decorative: true, from: [600,376], to: [908,376], stroke: {color: chrome_line, width: 0.5}}
+            # Row: knowledge
+            - {type: text, id: v.r4l, decorative: true, text: "Knowledge left behind", box: [600,384,308,16], style: contrast_h}
+            - {type: text, id: v.r4a, decorative: true, text: "Embedded: documented, team mentored.", box: [600,404,308,24], style: contrast_b}
+            - {type: text, id: v.r4b, decorative: true, text: "Outsourced: leaves with the vendor.", box: [600,432,308,24], style: contrast_b}
+
+  # ─── SLIDE 09 — Comparison Matrix ──────────────────────────────────────────
+  - slide: 9
+    id: s9_matrix
+    title: "Ginga One vs. Large SI vs. Internal Build"
+    description: "5x3 honest comparison matrix. Tradeoff slide."
+    tokens:
+      text_styles:
+        matrix_col_hdr: {font: primary, size: 11, weight: 700, color: primary, align: center, line_height: 14}
+        matrix_row_hdr: {font: primary, size: 10, weight: 700, color: text,    align: left,   line_height: 13}
+        cell_win_text:  {font: primary, size: 10, weight: 700, color: "#3B6D11", align: center, line_height: 13}
+        cell_mid_text:  {font: primary, size: 10, weight: 400, color: text_muted, align: center, line_height: 13}
+        cell_loss_text: {font: primary, size: 10, weight: 400, color: "#854F0B", align: center, line_height: 13}
+        cell_risk_text: {font: primary, size: 10, weight: 400, color: "#CC0000", align: center, line_height: 13}
+        honesty_note:   {font: primary, size: 9,  weight: 400, color: text_muted, align: center, line_height: 13, italic: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Ginga One vs. Large SI vs. Internal Build",
+               slide_num: "09", params: {phase_color: "#002060"}}
+        - id: matrix_bg
+          z: 5
+          objects:
+            - {type: rect, id: v.ginga_col, decorative: true, box: [264,64,220,352], fill: cell_hdr}
+        - id: col_headers
+          z: 10
+          objects:
+            - {type: rect, id: v.hdr_r,  decorative: true, box: [40,64,222,36],  fill: "#F0EDE8", stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.hdr_g,  decorative: true, box: [264,64,220,36], fill: primary,   stroke: {color: primary,     width: 0.5}}
+            - {type: rect, id: v.hdr_si, decorative: true, box: [486,64,220,36], fill: "#F0EDE8", stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.hdr_ib, decorative: true, box: [708,64,220,36], fill: "#F0EDE8", stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.ht_g,  decorative: true, text: "Ginga One",      box: [264,64,220,36], style: {font: primary, size: 11, weight: 700, color: white,      align: center}}
+            - {type: text, id: v.ht_si, decorative: true, text: "Large SI",       box: [486,64,220,36], style: {font: primary, size: 11, weight: 400, color: text_muted, align: center}}
+            - {type: text, id: v.ht_ib, decorative: true, text: "Internal Build", box: [708,64,220,36], style: {font: primary, size: 11, weight: 400, color: text_muted, align: center}}
+        - id: rows
+          z: 15
+          objects:
+            - {type: rect, id: v.r1l,  decorative: true, box: [40,100,222,64], fill: "#F5F3EF", stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r1g,  decorative: true, box: [264,100,220,64], fill: cell_win,  stroke: {color: cell_win_bdr, width: 0.5}}
+            - {type: rect, id: v.r1si, decorative: true, box: [486,100,220,64], fill: cell_loss, stroke: {color: chrome_line,  width: 0.5}}
+            - {type: rect, id: v.r1ib, decorative: true, box: [708,100,220,64], fill: cell_risk, stroke: {color: chrome_line,  width: 0.5}}
+            - {type: text, id: v.r1lt, decorative: true, text: "Time to first\nproduction release", box: [48,100,206,64], style: matrix_row_hdr}
+            - {type: text, id: v.r1gt, decorative: true, text: "2–4 weeks\n(first sprint)", box: [264,100,220,64], style: cell_win_text}
+            - {type: text, id: v.r1st, decorative: true, text: "6–12 weeks\nramp-up first",  box: [486,100,220,64], style: cell_loss_text}
+            - {type: text, id: v.r1it, decorative: true, text: "12–18 months\nto first team", box: [708,100,220,64], style: cell_risk_text}
+            - {type: rect, id: v.r2l,  decorative: true, box: [40,164,222,64], fill: "#F5F3EF", stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r2g,  decorative: true, box: [264,164,220,64], fill: cell_win,  stroke: {color: cell_win_bdr, width: 0.5}}
+            - {type: rect, id: v.r2si, decorative: true, box: [486,164,220,64], fill: cell_loss, stroke: {color: chrome_line,  width: 0.5}}
+            - {type: rect, id: v.r2ib, decorative: true, box: [708,164,220,64], fill: cell_loss, stroke: {color: chrome_line,  width: 0.5}}
+            - {type: text, id: v.r2lt, decorative: true, text: "Domain ramp-up\ncost", box: [48,164,206,64], style: matrix_row_hdr}
+            - {type: text, id: v.r2gt, decorative: true, text: "ZERO\n(retail-native)", box: [264,164,220,64], style: cell_win_text}
+            - {type: text, id: v.r2st, decorative: true, text: "HIGH\n(assembles per-client)", box: [486,164,220,64], style: cell_loss_text}
+            - {type: text, id: v.r2it, decorative: true, text: "HIGH\n(starts from zero)", box: [708,164,220,64], style: cell_loss_text}
+            - {type: rect, id: v.r3l,  decorative: true, box: [40,228,222,64], fill: "#F5F3EF", stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r3g,  decorative: true, box: [264,228,220,64], fill: cell_win, stroke: {color: cell_win_bdr, width: 0.5}}
+            - {type: rect, id: v.r3si, decorative: true, box: [486,228,220,64], fill: cell_mid, stroke: {color: chrome_line,  width: 0.5}}
+            - {type: rect, id: v.r3ib, decorative: true, box: [708,228,220,64], fill: cell_mid, stroke: {color: chrome_line,  width: 0.5}}
+            - {type: text, id: v.r3lt, decorative: true, text: "Mobile-specific\ndelivery quality", box: [48,228,206,64], style: matrix_row_hdr}
+            - {type: text, id: v.r3gt, decorative: true, text: "HIGH\n(mobile-only focus)", box: [264,228,220,64], style: cell_win_text}
+            - {type: text, id: v.r3st, decorative: true, text: "MEDIUM\n(mobile sub-practice)", box: [486,228,220,64], style: cell_mid_text}
+            - {type: text, id: v.r3it, decorative: true, text: "VARIABLE\n(depends on hires)", box: [708,228,220,64], style: cell_mid_text}
+            - {type: rect, id: v.r4l,  decorative: true, box: [40,292,222,64], fill: "#F5F3EF", stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r4g,  decorative: true, box: [264,292,220,64], fill: cell_mid, stroke: {color: chrome_line,  width: 0.5}}
+            - {type: rect, id: v.r4si, decorative: true, box: [486,292,220,64], fill: cell_win, stroke: {color: cell_win_bdr, width: 0.5}}
+            - {type: rect, id: v.r4ib, decorative: true, box: [708,292,220,64], fill: cell_mid, stroke: {color: chrome_line,  width: 0.5}}
+            - {type: text, id: v.r4lt, decorative: true, text: "Governance and\naccountability", box: [48,292,206,64], style: matrix_row_hdr}
+            - {type: text, id: v.r4gt, decorative: true, text: "MEDIUM\n(boutique-scale)", box: [264,292,220,64], style: cell_mid_text}
+            - {type: text, id: v.r4st, decorative: true, text: "HIGH ←\nSI genuine advantage", box: [486,292,220,64], style: cell_win_text}
+            - {type: text, id: v.r4it, decorative: true, text: "HIGH\n(full internal control)", box: [708,292,220,64], style: cell_mid_text}
+            - {type: rect, id: v.r5l,  decorative: true, box: [40,356,222,64], fill: "#F5F3EF", stroke: {color: chrome_line, width: 0.5}}
+            - {type: rect, id: v.r5g,  decorative: true, box: [264,356,220,64], fill: cell_win,  stroke: {color: cell_win_bdr, width: 0.5}}
+            - {type: rect, id: v.r5si, decorative: true, box: [486,356,220,64], fill: cell_risk, stroke: {color: chrome_line,  width: 0.5}}
+            - {type: rect, id: v.r5ib, decorative: true, box: [708,356,220,64], fill: cell_loss, stroke: {color: chrome_line,  width: 0.5}}
+            - {type: text, id: v.r5lt, decorative: true, text: "Est. total cost\n6-month engagement", box: [48,356,206,64], style: matrix_row_hdr}
+            - {type: text, id: v.r5gt, decorative: true, text: "LOWER\n(see proposal)", box: [264,356,220,64], style: cell_win_text}
+            - {type: text, id: v.r5st, decorative: true, text: "2–3× HIGHER\n(SP Tier-1 rates)", box: [486,356,220,64], style: cell_risk_text}
+            - {type: text, id: v.r5it, decorative: true, text: "HIGHEST\n(12–18 mo build cost)", box: [708,356,220,64], style: cell_loss_text}
+        - id: honesty
+          z: 20
+          objects:
+            - {type: rect, id: v.hbox, decorative: true, box: [40,428,888,78], fill: "#F8F6F0", stroke: {color: chrome_line, width: 0.5}, radius: 3}
+            - {type: rect, id: v.hbar, decorative: true, box: [40,428,4,78], fill: accent_warm}
+            - {type: text, id: v.ht, decorative: true,
+               text: "We have left governance and institutional accountability as the large SI's genuine advantage in this matrix.\nPretending otherwise would be dishonest and would not serve your procurement team.",
+               box: [54,428,866,78], style: honesty_note}
+
+  # ─── SLIDE 14 — The Ask ─────────────────────────────────────────────────────
+  - slide: 14
+    id: s14_decision
+    title: "What We Are Asking You to Authorize Today"
+    description: "Single ask slide. Maximum clarity, minimal density."
+    tokens:
+      text_styles:
+        ask_h:     {font: primary, size: 26, weight: 700, color: primary, align: center, line_height: 34}
+        ask_sub:   {font: primary, size: 13, weight: 400, color: text_muted, align: center, line_height: 20}
+        step_lbl:  {font: primary, size: 10, weight: 700, color: white, align: center}
+        step_txt:  {font: primary, size: 10, weight: 400, color: white, align: center, line_height: 14}
+        fine_print: {font: primary, size: 9,  weight: 400, color: text_muted, align: center, italic: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "What We Are Asking You to Authorize Today",
+               slide_num: "14", params: {phase_color: "#D04A02"}}
+        - id: content
+          z: 10
+          objects:
+            - {type: rect, id: v.ask, decorative: true, box: [120,80,720,216], fill: "#EEF3FB", stroke: {color: primary, width: 1.5}, radius: 8}
+            - {type: rect, id: v.asktop, decorative: true, box: [120,80,720,5], fill: primary, radius: 0}
+            - {type: text, id: v.askh, decorative: true, text: "Authorize a 60-minute technical scoping call.", box: [140,106,680,48], style: ask_h}
+            - {type: text, id: v.asks, decorative: true,
+               text: "No contract. No budget commitment. No RFP.\nOne meeting between our lead mobile engineer and your CTO.",
+               box: [140,170,680,52], style: ask_sub}
+            - {type: rect, id: v.steps, decorative: true, box: [120,316,720,144], fill: "#F5F3EF", stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: rect, id: v.st1, decorative: true, box: [132,328,218,118], fill: primary, radius: 4}
+            - {type: rect, id: v.st2, decorative: true, box: [371,328,218,118], fill: primary, radius: 4}
+            - {type: rect, id: v.st3, decorative: true, box: [610,328,218,118], fill: primary, radius: 4}
+            - {type: text, id: v.sl1, decorative: true, text: "DAY 0",  box: [132,332,218,16], style: step_lbl}
+            - {type: text, id: v.sb1, decorative: true, text: "You authorize the\nscoping call today", box: [132,354,218,72], style: step_txt}
+            - {type: text, id: v.sl2, decorative: true, text: "DAY 10", box: [371,332,218,16], style: step_lbl}
+            - {type: text, id: v.sb2, decorative: true, text: "60-min technical\nscoping call held", box: [371,354,218,72], style: step_txt}
+            - {type: text, id: v.sl3, decorative: true, text: "DAY 15", box: [610,332,218,16], style: step_lbl}
+            - {type: text, id: v.sb3, decorative: true, text: "Discovery Pilot\nproposal delivered", box: [610,354,218,72], style: step_txt}
+            - {type: line, id: v.a1, decorative: true, from: [351,387], to: [370,387], stroke: {color: primary, width: 2, arrow_end: true}}
+            - {type: line, id: v.a2, decorative: true, from: [590,387], to: [609,387], stroke: {color: primary, width: 2, arrow_end: true}}
+            - {type: text, id: v.fp, decorative: true,
+               text: "If the scoping call does not produce a Discovery Pilot proposal you want to accept, the engagement ends with no further obligation.",
+               box: [180,472,600,32], style: fine_print}

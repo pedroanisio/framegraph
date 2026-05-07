@@ -1,0 +1,91 @@
+# FrameGraph Token Pack — Bain & Company
+# Bold red identity, structured and precise
+_meta:
+  type: token_pack
+  id: bain
+  version: 1.0
+  name: "Bain & Company"
+  brand_notes: >
+    Bain red (#CC0000) is the uncompromising primary. Dark navy secondary.
+    High contrast, very clean typography, results-oriented.
+
+colors:
+  primary:        "#CC0000"   # Bain red
+  primary_light:  "#FF4444"
+  secondary:      "#003366"   # dark navy
+  accent:         "#FF6600"   # warm amber
+  surface:        "#FFFFFF"
+  surface_tinted: "#FFF5F5"   # light red tint
+  panel:          "#F5E6E6"   # muted red panel
+  text:           "#1A1A1A"
+  text_muted:     "#666666"
+  border:         "#E0CCCC"
+  border_strong:  "#CC0000"
+  white:          "#FFFFFF"
+  data_1:         "#CC0000"
+  data_2:         "#003366"
+  data_3:         "#FF6600"
+  data_4:         "#F5C6C6"
+  data_5:         "#5B9E4D"
+  data_6:         "#6AAFE6"
+
+fonts:
+  primary: "Arial, Helvetica, sans-serif"
+  heading: "Arial, Helvetica, sans-serif"
+
+glyph_map: {}
+
+text_styles:
+  slide_title:
+    font:   heading
+    size:   22
+    weight: 700
+    color:  primary
+    align:  left
+    line_height: 26
+  node_label:
+    font:   primary
+    size:   13
+    weight: 700
+    color:  text
+    align:  center
+  node_desc:
+    font:   primary
+    size:   9
+    weight: 400
+    color:  text_muted
+    align:  center
+    italic: true
+  center_label:
+    font:   primary
+    size:   13
+    weight: 700
+    color:  secondary
+    align:  center
+    line_height: 16
+  icon_label:
+    font:   primary
+    size:   22
+    weight: 700
+    color:  white
+    align:  center
+  title:
+    font:   heading
+    size:   20
+    weight: 700
+    color:  primary
+    align:  left
+
+stroke_styles:
+  web:
+    color: border
+    width: 0.8
+  circle_outline:
+    color: primary
+    width: 2.0
+  center_outline:
+    color: secondary
+    width: 1.5
+  accent_rule:
+    color: primary
+    width: 4.0

@@ -1,0 +1,35 @@
+_meta: {type: token_pack, id: pwc, version: 1.0, name: "PwC"}
+colors:
+  primary:        "#D04A02"   # PwC orange
+  primary_dark:   "#A33800"
+  secondary:      "#2D2D2D"
+  accent:         "#EB8C00"
+  surface:        "#FFFFFF"
+  surface_tinted: "#FDF0E8"
+  panel:          "#FAEBD7"
+  text:           "#2D2D2D"
+  text_muted:     "#7D7D7D"
+  border:         "#F0C4A0"
+  border_strong:  "#D04A02"
+  white:          "#FFFFFF"
+  data_1: "#D04A02"
+  data_2: "#2D2D2D"
+  data_3: "#EB8C00"
+  data_4: "#F5C8A0"
+  data_5: "#0070C0"
+  data_6: "#5B9E4D"
+fonts:
+  primary: "Arial, Helvetica, sans-serif"
+  heading: "Arial, Helvetica, sans-serif"
+glyph_map: {}
+text_styles:
+  node_label:   {font: primary, size: 13, weight: 700, color: text,        align: center}
+  node_desc:    {font: primary, size: 9,  weight: 400, color: text_muted,  align: center, italic: true}
+  center_label: {font: primary, size: 13, weight: 700, color: primary_dark, align: center, line_height: 16}
+  icon_label:   {font: primary, size: 22, weight: 700, color: white,        align: center}
+  title:        {font: primary, size: 20, weight: 700, color: primary_dark, align: left}
+stroke_styles:
+  web:            {color: border,       width: 0.8}
+  circle_outline: {color: primary_dark, width: 2.0}
+  center_outline: {color: secondary,    width: 1.5}
+  accent_rule:    {color: primary,      width: 4.0}

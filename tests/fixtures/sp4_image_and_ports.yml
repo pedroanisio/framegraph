@@ -1,0 +1,153 @@
+dsl: FrameGraph
+version: 1.4
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: sp4_image_and_ports_fixture
+  canvas: {size: [640, 440]}
+  rendering_contract:
+    coordinate_mode: absolute
+    text: {min_font_size: 7}
+    semantics: {decorative_objects_may_omit_bind: true}
+
+semantic:
+  ontology: {node_types: {Node: {}}, edge_types: {FlowsTo: {directionality: directed}}}
+  nodes:
+    - {id: n.a, type: Node, label: "Card A"}
+    - {id: n.b, type: Node, label: "Card B"}
+    - {id: n.c, type: Node, label: "Card C"}
+  edges:
+    - {id: e.ab, type: FlowsTo, from: n.a, to: n.b}
+    - {id: e.bc, type: FlowsTo, from: n.b, to: n.c}
+
+visual:
+  tokens:
+    colors:
+      bg:      "#FFFFFF"
+      ink:     "#1A1A2E"
+      primary: "#002060"
+      surface: "#F7F5F0"
+      border:  "#E0DDD8"
+      arrow:   "#B4B2A9"
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+    text_styles:
+      card_title:
+        font: primary
+        size: 11
+        weight: 700
+        color: primary
+        align: center
+        v_align: middle
+      label:
+        font: primary
+        size: 9
+        weight: 400
+        color: "#888"
+        align: left
+    stroke_styles:
+      flow:
+        color: arrow
+        width: 1.5
+        arrow_end: true
+
+  symbols:
+    s_card:
+      box: [0, 0, 160, 80]
+      slots: [title]
+      ports:
+        center: [80, 40]
+        east:   [160, 40]
+        west:   [0, 40]
+        north:  [80, 0]
+        south:  [80, 80]
+      objects:
+        - {type: rect, id: bg,  box: [0,0,160,80], fill: surface, stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: rect, id: bar, box: [0,0,160,3],  fill: primary}
+        - {type: text, id: lbl, box: [0,12,160,56], text: "$title", style: card_title}
+
+  layers:
+    - id: bg_layer
+      z: 0
+      objects:
+        - {type: rect, id: bg, decorative: true, box: [0,0,640,440], fill: bg}
+
+    # ── SP-4a: image embed ──────────────────────────────────────────────
+    - id: image_test
+      z: 5
+      objects:
+        - {type: text,  id: lbl_img, decorative: true,
+           text: "SP-4a  ·  image embed (local path → base64 data URI)",
+           box: [24, 16, 592, 18], style: label}
+        - {type: image, id: img_local, decorative: true,
+           box: [24, 36, 120, 60],
+           href: "test_logo.png"}
+        - {type: rect, id: img_border, decorative: true,
+           box: [24, 36, 120, 60],
+           fill: none, stroke: {color: border, width: 0.5}, radius: 2}
+        - {type: text, id: img_caption, decorative: true,
+           text: "Local PNG → data:image/png;base64,…",
+           box: [156, 52, 460, 18], style: label}
+
+    # ── SP-4b: use port lift + dot-notation connector ──────────────────
+    - id: port_test
+      z: 10
+      objects:
+        - {type: text, id: lbl_port, decorative: true,
+           text: "SP-4b  ·  use port lift — connectors via dot-notation  \"card_a.east\"",
+           box: [24, 120, 592, 18], style: label}
+
+        # Three use instances
+        - {type: use, id: card_a, bind: n.a, symbol: s_card,
+           box: [24, 144, 160, 80], title: "Card A"}
+        - {type: use, id: card_b, bind: n.b, symbol: s_card,
+           box: [240, 144, 160, 80], title: "Card B"}
+        - {type: use, id: card_c, bind: n.c, symbol: s_card,
+           box: [456, 144, 160, 80], title: "Card C"}
+
+        # Connectors using dot-notation — SP-4b
+        - type: connector
+          id: arr_ab
+          bind: e.ab
+          from: "card_a.east"
+          to:   "card_b.west"
+          stroke_style: flow
+
+        - type: connector
+          id: arr_bc
+          bind: e.bc
+          from: "card_b.east"
+          to:   "card_c.west"
+          stroke_style: flow
+
+        # Also test map-form port reference (regression)
+        - type: connector
+          id: arr_ab2
+          decorative: true
+          from: {object: card_a, port: south}
+          to:   {object: card_b, port: south}
+          stroke: {color: "#D0CEC8", width: 1}
+
+    # ── Combined: image + card with spans caption ──────────────────────
+    - id: combined
+      z: 20
+      objects:
+        - {type: text, id: lbl_comb, decorative: true,
+           text: "Combined — image inside a card layout (manual positioning)",
+           box: [24, 268, 592, 18], style: label}
+
+        - {type: rect, id: card_bg, decorative: true,
+           box: [24, 290, 592, 120], fill: surface, stroke: {color: border, width: 0.5}, radius: 6}
+        - {type: rect, id: card_bar, decorative: true,
+           box: [24, 290, 592, 3], fill: primary}
+        - {type: image, id: card_logo, decorative: true,
+           box: [40, 306, 120, 60], href: "test_logo.png",
+           preserve_aspect_ratio: "xMidYMid meet"}
+        - type: text
+          id: card_content
+          decorative: true
+          box: [180, 306, 420, 80]
+          spans:
+            - {text: "Ginga One", weight: 700, color: primary}
+            - {text: " — SP mobile boutique, founded 2012.", weight: 400, color: ink}
+          style: {font: primary, size: 12, align: left, v_align: middle, wrap: true}

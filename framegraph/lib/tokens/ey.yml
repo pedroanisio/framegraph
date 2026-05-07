@@ -1,0 +1,35 @@
+_meta: {type: token_pack, id: ey, version: 1.0, name: "EY"}
+colors:
+  primary:        "#FFE600"   # EY yellow
+  primary_dark:   "#CCBA00"
+  secondary:      "#2E2E38"   # EY near-black
+  accent:         "#1A1A24"
+  surface:        "#FFFFFF"
+  surface_tinted: "#FFFDE0"
+  panel:          "#FFF8B0"
+  text:           "#2E2E38"
+  text_muted:     "#747480"
+  border:         "#E8DC80"
+  border_strong:  "#CCBA00"
+  white:          "#FFFFFF"
+  node_fill:      "#2E2E38"   # dark nodes for EY — white icons on dark
+  data_1: "#FFE600"
+  data_2: "#2E2E38"
+  data_3: "#FFF176"
+  data_4: "#BDBDBD"
+  data_5: "#1565C0"
+fonts:
+  primary: "Arial, Helvetica, sans-serif"
+  heading: "Arial, Helvetica, sans-serif"
+glyph_map: {}
+text_styles:
+  node_label:   {font: primary, size: 13, weight: 700, color: text,        align: center}
+  node_desc:    {font: primary, size: 9,  weight: 400, color: text_muted,  align: center, italic: true}
+  center_label: {font: primary, size: 13, weight: 700, color: secondary,   align: center, line_height: 16}
+  icon_label:   {font: primary, size: 22, weight: 700, color: primary,     align: center}
+  title:        {font: primary, size: 20, weight: 700, color: secondary,   align: left}
+stroke_styles:
+  web:            {color: border,       width: 0.8}
+  circle_outline: {color: primary_dark, width: 2.0}
+  center_outline: {color: secondary,    width: 1.5}
+  accent_rule:    {color: primary,      width: 4.0}

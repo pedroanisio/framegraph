@@ -1,0 +1,161 @@
+dsl: FrameGraph
+version: 1.4
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: sp_placeholders_fixture
+  canvas: {size: [640, 580]}
+  rendering_contract:
+    coordinate_mode: absolute
+    text: {min_font_size: 7}
+    semantics: {decorative_objects_may_omit_bind: true}
+
+semantic:
+  ontology: {node_types: {}, edge_types: {}}
+  nodes: []
+  edges: []
+
+visual:
+  tokens:
+    colors:
+      bg:      "#FFFFFF"
+      ink:     "#1A1A2E"
+      primary: "#002060"
+      surface: "#F7F5F0"
+      border:  "#E0DDD8"
+      muted:   "#6B6B6B"
+    fonts:
+      primary: "Arial, Helvetica, sans-serif"
+    text_styles:
+      label:
+        font: primary
+        size: 8
+        weight: 700
+        color: muted
+        align: left
+      body:
+        font: primary
+        size: 12
+        weight: 400
+        color: ink
+        align: left
+        v_align: top
+        wrap: true
+        line_height: 18
+      caption:
+        font: primary
+        size: 11
+        weight: 400
+        color: muted
+        align: left
+        v_align: top
+        wrap: true
+        line_height: 17
+
+  layers:
+    - id: bg_layer
+      z: 0
+      objects:
+        - {type: rect, id: bg, decorative: true, box: [0,0,640,580], fill: bg}
+
+    # ── Image placeholders ─────────────────────────────────────────────
+    - id: image_placeholders
+      z: 10
+      objects:
+        - {type: text, id: lbl_img, decorative: true,
+           box: [24, 16, 592, 12], text: "IMAGE PLACEHOLDERS", style: label}
+
+        # Missing href → auto placeholder
+        - {type: image, id: img_auto, decorative: true,
+           box: [24, 32, 160, 100]}
+
+        # placeholder: true with custom label
+        - {type: image, id: img_explicit, decorative: true,
+           box: [200, 32, 200, 120], placeholder: true,
+           label: "Hero image 200×120"}
+
+        # href: "placeholder"
+        - {type: image, id: img_href, decorative: true,
+           box: [416, 32, 200, 80], href: "placeholder",
+           label: "Logo 200×80"}
+
+        # Placeholder with radius
+        - {type: image, id: img_round, decorative: true,
+           box: [416, 124, 90, 90], placeholder: true,
+           radius: 45, label: "Avatar", fill: "#DDE8F5"}
+
+        # Narrow tall placeholder
+        - {type: image, id: img_tall, decorative: true,
+           box: [520, 124, 96, 90], placeholder: true,
+           label: "96×90"}
+
+    # ── Lorem ipsum text ───────────────────────────────────────────────
+    - id: lorem_tests
+      z: 20
+      objects:
+        - {type: text, id: lbl_lor, decorative: true,
+           box: [24, 230, 592, 12], text: "LOREM IPSUM PLACEHOLDER TEXT", style: label}
+
+        # "lorem" → 30 words
+        - {type: rect, id: t1_bg, decorative: true,
+           box: [24, 248, 280, 80], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: text, id: t1, decorative: true,
+           box: [32, 252, 264, 72],
+           text: "lorem",
+           style: body}
+
+        # "lorem:20" → 20 words
+        - {type: rect, id: t2_bg, decorative: true,
+           box: [336, 248, 280, 80], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: text, id: t2, decorative: true,
+           box: [344, 252, 264, 72],
+           text: "lorem:20",
+           style: body}
+
+        # "lorem:60" → 60 words, tighter font
+        - {type: rect, id: t3_bg, decorative: true,
+           box: [24, 344, 592, 96], fill: surface,
+           stroke: {color: border, width: 0.5}, radius: 4}
+        - {type: text, id: t3, decorative: true,
+           box: [32, 348, 576, 88],
+           text: "lorem:60",
+           style: caption}
+
+    # ── Combined: layout stress test ──────────────────────────────────
+    - id: stress_test
+      z: 30
+      objects:
+        - {type: text, id: lbl_stress, decorative: true,
+           box: [24, 456, 592, 12], text: "LAYOUT STRESS TEST  —  container + placeholders + lorem", style: label}
+
+        - type: container
+          id: stress_row
+          decorative: true
+          box: [24, 472, 592, 96]
+          layout:
+            kind:      stack
+            direction: horizontal
+            gap:       12
+            align:     stretch
+          children:
+            - type: image
+              id: stress_img
+              box: [0, 0, 96, 0]
+              placeholder: true
+              label: "96×96"
+
+            - type: rect
+              id: stress_card
+              flex: 1
+              fill: surface
+              stroke: {color: border, width: 0.5}
+              radius: 4
+
+            - type: image
+              id: stress_img2
+              box: [0, 0, 80, 0]
+              placeholder: true
+              label: "80×96"
+              fill: "#E8F0E8"
