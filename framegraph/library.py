@@ -27,7 +27,9 @@ import argparse
 import copy
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
+
+from framegraph._helpers import fnum
 
 try:
     import yaml
@@ -52,21 +54,22 @@ def deep_merge(base: Any, override: Any) -> Any:
     return result
 
 
-def strip_meta(d: dict) -> dict:
+def strip_meta(d: dict[str, Any]) -> dict[str, Any]:
     """Remove _meta keys — they are library metadata, not FrameGraph fields."""
     return {k: v for k, v in d.items() if not k.startswith("_")}
 
 
-def load_yaml(path: Path) -> dict:
+def load_yaml(path: Path) -> dict[str, Any]:
     with open(path, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+        loaded = yaml.safe_load(f)
+        return cast(dict[str, Any], loaded or {})
 
 
-def dump_yaml(data: dict, path: Path | None = None) -> str:
+def dump_yaml(data: dict[str, Any], path: Path | None = None) -> str:
     text = yaml.dump(data, allow_unicode=True, sort_keys=False, default_flow_style=False)
     if path:
         path.write_text(text, encoding="utf-8")
-    return text
+    return cast(str, text)
 
 
 # ---------------------------------------------------------------------------
@@ -122,7 +125,7 @@ class FrameGraphLibrary:
         """Return the sorted ids of every discovered symbol pack."""
         return sorted(self._symbol_packs)
 
-    def load_tokens(self, theme_id: str) -> dict:
+    def load_tokens(self, theme_id: str) -> dict[str, Any]:
         """Return the tokens section of a token pack (stripped of _meta)."""
         path = self._token_packs.get(theme_id)
         if not path:
@@ -132,7 +135,7 @@ class FrameGraphLibrary:
         raw = load_yaml(path)
         return strip_meta(raw)  # {colors, fonts, text_styles, stroke_styles, …}
 
-    def load_symbols(self, sym_ref: str) -> dict:
+    def load_symbols(self, sym_ref: str) -> dict[str, Any]:
         """Return the symbols dict from a symbol pack."""
         path = self._symbol_packs.get(sym_ref)
         if not path:
@@ -145,7 +148,7 @@ class FrameGraphLibrary:
                     f"unknown symbol pack '{sym_ref}'.  Available: {', '.join(self.symbol_ids())}"
                 )
         raw = load_yaml(path)
-        return raw.get("symbols", {})
+        return cast(dict[str, Any], raw.get("symbols", {}))
 
     def show_theme(self, theme_id: str) -> None:
         """Pretty-print a token pack's metadata and color table to stdout.
@@ -189,10 +192,10 @@ class FrameGraphComposer:
 
     def compose(
         self,
-        diagram: dict,
+        diagram: dict[str, Any],
         theme_override: str | None = None,
         extra_symbols: list[str] | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         doc = copy.deepcopy(diagram)
 
         # ── Extract directives ────────────────────────────────────────
@@ -212,7 +215,7 @@ class FrameGraphComposer:
 
         # ── 2. Merge symbol packs ─────────────────────────────────────
         if sym_refs:
-            lib_symbols: dict = {}
+            lib_symbols: dict[str, Any] = {}
             for ref in sym_refs:
                 lib_symbols.update(self.library.load_symbols(ref))
             diag_symbols = visual.get("symbols") or {}
@@ -348,7 +351,7 @@ class FrameGraphDeckRenderer:
 
     def __init__(
         self,
-        deck_yaml: dict,
+        deck_yaml: dict[str, Any],
         library: FrameGraphLibrary | None = None,
     ) -> None:
         """Build a deck renderer from a parsed deck YAML and an optional library.
@@ -380,11 +383,15 @@ class FrameGraphDeckRenderer:
         self.slides_raw = deck_yaml.get("slides", []) or []
         self.global_tokens, self.global_symbols, self.global_cdefs = self._build_globals()
         # Index slides by id for $extends resolution
-        self._slide_index: dict = {str(s["id"]): s for s in self.slides_raw if s.get("id")}
+        self._slide_index: dict[str, Any] = {
+            str(s["id"]): s for s in self.slides_raw if s.get("id")
+        }
 
-    def _build_globals(self):
+    def _build_globals(
+        self,
+    ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         theme_id = self.raw.get("$theme")
-        base_tokens: dict = {}
+        base_tokens: dict[str, Any] = {}
         if theme_id and self.library:
             base_tokens = self.library.load_tokens(theme_id)
         deck_tokens = deep_merge(base_tokens, self.deck_config.get("tokens") or {})
@@ -392,7 +399,7 @@ class FrameGraphDeckRenderer:
         deck_cdefs = {**(self.deck_config.get("component_defs") or {})}
         return deck_tokens, deck_symbols, deck_cdefs
 
-    def build_slide_doc(self, slide: dict) -> dict:
+    def build_slide_doc(self, slide: dict[str, Any]) -> dict[str, Any]:
         """Assemble a complete FrameGraph document for a single slide.
 
         Merge order (each layer wins over the one above):
@@ -407,7 +414,7 @@ class FrameGraphDeckRenderer:
 
         # ── SP-5a: $extends — inherit from a named base slide ────────────
         extends_id = slide.get("$extends")
-        base_slide: dict = {}
+        base_slide: dict[str, Any] = {}
         if extends_id:
             base_slide = self._slide_index.get(str(extends_id), {})
             if not base_slide:
@@ -458,6 +465,19 @@ class FrameGraphDeckRenderer:
         if slide_cdefs:
             slide_visual["component_defs"] = slide_cdefs
 
+        # ── Master-slide chrome ──────────────────────────────────────────
+        # `deck.chrome:` declares a symbol auto-stamped on every slide as
+        # a chrome layer (z=0). The slide may opt out via `chrome: false`,
+        # or override params/slot values via `chrome: {params: …, …}`.
+        chrome_layer = self._build_chrome_layer(slide, canvas)
+        if chrome_layer is not None:
+            existing_layers = list(slide_visual.get("layers") or [])
+            # Prepend so the chrome paints first; same-id slide layer
+            # would override via the existing dict-keyed merge above.
+            chrome_id = str(chrome_layer.get("id", "_chrome"))
+            if not any(str(lyr.get("id", "")) == chrome_id for lyr in existing_layers):
+                slide_visual["layers"] = [chrome_layer] + existing_layers
+
         # Canonical semantic fallback if the slide omits it
         slide_semantic = slide.get("semantic") or {
             "ontology": {"node_types": {}, "edge_types": {}},
@@ -485,11 +505,91 @@ class FrameGraphDeckRenderer:
             "visual": slide_visual,
         }
 
-    def collect_notes(self) -> dict:
+    def _build_chrome_layer(
+        self, slide: dict[str, Any], canvas: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        """Build the auto-prepended chrome layer for a slide.
+
+        Reads `deck.chrome` (the master-slide chrome declaration) and the
+        slide's own `chrome:` field. The slide may opt out
+        (`chrome: false`) or override the deck's params / slot values
+        (`chrome: {params: …, slot1: …}`).
+
+        Args:
+            slide: The slide entry from `self.slides_raw`.
+            canvas: The deck-level canvas mapping (size: [w, h]).
+
+        Returns:
+            A layer mapping ready to prepend to `visual.layers`, or
+            None when no chrome should be emitted.
+        """
+        deck_chrome = self.deck_config.get("chrome")
+        if not deck_chrome:
+            return None
+        # Per-slide opt-out: `chrome: false` (or null/0)
+        slide_chrome = slide.get("chrome", {})
+        if slide_chrome is False or slide_chrome == 0:
+            return None
+
+        # Normalize deck.chrome — accept either a string (symbol id) or a mapping.
+        if isinstance(deck_chrome, str):
+            deck_cfg: dict[str, Any] = {"symbol": deck_chrome}
+        elif isinstance(deck_chrome, dict):
+            deck_cfg = dict(deck_chrome)
+        else:
+            return None
+
+        symbol = deck_cfg.get("symbol")
+        if not symbol or symbol not in self.global_symbols:
+            return None
+
+        # Per-slide overrides — merged on top of deck.chrome's defaults.
+        override_cfg = dict(slide_chrome) if isinstance(slide_chrome, dict) else {}
+
+        # Build the `use` object. Top-level fields are slot pass-through;
+        # `params` is the nested parameter map. Both layers contribute.
+        size = canvas.get("size") or [960, 540]
+        canvas_box = [0, 0, fnum(size[0], 960), fnum(size[1], 540)]
+
+        use_obj: dict[str, Any] = {
+            "type": "use",
+            "id": "_chrome.use",
+            "decorative": True,
+            "symbol": str(symbol),
+            "box": canvas_box,
+        }
+        # Slot pass-through fields from deck.chrome (everything that isn't
+        # a structural key) become top-level fields on the use object.
+        structural_keys = {"symbol", "params", "id"}
+        for k, v in deck_cfg.items():
+            if k not in structural_keys:
+                use_obj[k] = v
+        for k, v in override_cfg.items():
+            if k not in structural_keys:
+                use_obj[k] = v
+
+        # Merged params: deck-level first, slide-level overrides last.
+        params: dict[str, Any] = {}
+        deck_params = deck_cfg.get("params")
+        if isinstance(deck_params, dict):
+            params.update(deck_params)
+        slide_params = override_cfg.get("params")
+        if isinstance(slide_params, dict):
+            params.update(slide_params)
+        if params:
+            use_obj["params"] = params
+
+        return {
+            "id": "_chrome",
+            "z": deck_cfg.get("z", 0),
+            "objects": [use_obj],
+        }
+
+    def collect_notes(self) -> dict[str, str]:
         """Return a dict mapping slide_id → notes string for all slides with notes.
         Notes are stripped from SVG output but available here for export.
         """
-        result = {}
+        result: dict[str, str] = {}
         for slide in self.slides_raw:
             notes = slide.get("notes")
             if notes:

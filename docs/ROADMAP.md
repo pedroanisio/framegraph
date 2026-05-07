@@ -40,15 +40,15 @@ It is the only open tool that combines all four of:
 
 | Artefact | Detail |
 |---|---|
-| Python LOC | 3 623 (non-comment, non-blank) across [framegraph/](../framegraph/) |
-| Runtime dependencies | PyYAML only ([pyproject.toml:40-42](../pyproject.toml#L40-L42)); cairosvg / Pillow / numpy in `[test]` extras |
+| Python LOC | 4 012 (non-comment, non-blank) across [framegraph/](../framegraph/) |
+| Runtime dependencies | PyYAML and Pydantic v2 ([pyproject.toml:40-43](../pyproject.toml#L40-L43)); cairosvg / Pillow / numpy in `[test]` extras |
 | Object types | 18 registered: `rect`, `ellipse`, `icon`, `use`, `image`, `line`, `polyline`, `path`, `connector`, `legend`, `text`, `bullet_list`, `bar_chart`, `line_chart`, `group`, `container`, `component`, `chip_row` (verified by enumerating each module's `RENDERERS` dict). `spans` is an inline-rich-text element of `text`, not a top-level object type. |
 | Renderer modules | 7: [shapes](../framegraph/renderers/shapes.py), [symbols](../framegraph/renderers/symbols.py), [image](../framegraph/renderers/image.py), [lines](../framegraph/renderers/lines.py), [text_objects](../framegraph/renderers/text_objects.py), [charts](../framegraph/renderers/charts.py), [layout](../framegraph/renderers/layout.py) |
 | Registration API | `renderer.register(type_name, fn)` — third-party custom types |
 | Token packs | 7 firm packs ([framegraph/lib/tokens/](../framegraph/lib/tokens/)): bain, bcg, deloitte, ey, kpmg, mckinsey, pwc |
 | Symbol packs | 2: `shared/s_node.sym.yml`, `shared/insight_box.sym.yml` |
-| Golden harness | [tests/run_tests.py](../tests/run_tests.py) — 21 fixtures · 48 golden PNGs · 1 % pixel tolerance ([tests/tolerance.cfg](../tests/tolerance.cfg)). **33 of 35 slides pass** as of commit `1bc5547`. The two remaining failures both live under `framegraph_genai_mediated_system_v2*` (max delta 100 %, suggesting a layer/object that fails to render at all) — see Section 4 v2.0 backlog. |
-| Pytest suite | 352 unit + integration tests at [tests/unit/](../tests/unit/) and [tests/integration/](../tests/integration/) · 90.65 % line + branch coverage · `--cov-fail-under=90` enforced in [pyproject.toml](../pyproject.toml) |
+| Golden harness | [tests/run_tests.py](../tests/run_tests.py) — 21 fixtures · 35 golden slides · 1 % pixel tolerance ([tests/tolerance.cfg](../tests/tolerance.cfg)). **35 / 35 slides pass** as of commit `843c2c4` (re-bless of `genai_mediated_system_v2*` in `58a1894`, content-invariant regression test in `843c2c4`). |
+| Pytest suite | 419 unit + integration tests at [tests/unit/](../tests/unit/) and [tests/integration/](../tests/integration/) · 91.39 % line + branch coverage · `--cov-fail-under=90` enforced in [pyproject.toml](../pyproject.toml) |
 | Document schema | Pydantic v2 models at [`framegraph/_schema.py`](../framegraph/_schema.py) — normative. Human-readable companion at [`static/specs/SCHEMA.md`](../static/specs/SCHEMA.md). The previous `GRAMMAR.ebnf` was removed in the schema migration (2026-05-07); see SCHEMA.md history. |
 | CLI | `framegraph render` · `framegraph deck` · `framegraph version` ([framegraph/cli.py](../framegraph/cli.py)) |
 
@@ -185,40 +185,36 @@ to that lane.
   free functions in `renderers/text_objects.py`, `renderers/shapes.py`,
   and `renderers/layout.py`. 29 regression tests in
   [tests/unit/test_modular_split_regression.py](../tests/unit/test_modular_split_regression.py)
-  guard the contract. Mypy strict mode (currently disabled in
-  [pyproject.toml](../pyproject.toml#L156-L168) because of this regression) can now
-  be re-enabled as a follow-up.
-- [ ] **Investigate the remaining two golden-snapshot failures** —
-  `framegraph_genai_mediated_system_v2.yml` and
-  `framegraph_genai_mediated_system_v2.1.yml` both fail with
-  `max delta 255.0px (100.00%)`. A 100 % delta means at least one full
-  pixel block differs by the maximum value — typically a layer that
-  rasterises in one path but not the other (e.g. an object dropped from
-  the SVG, or a fill that resolved to `none` instead of a colour). The
-  modular-split repair fixed 30 of 32 slides; these two need their own
-  diagnosis. Then either fix the renderer or re-bless after confirming
-  the output is correct.
-- [ ] **Reconcile golden snapshots (final pass)** — once the two
-  failures above are explained, run `python tests/run_tests.py --bless`
-  to lock the current correct output as the new golden baseline. The
-  release checklist in [pyproject.toml](../pyproject.toml) requires "all
-  goldens pass" before a stable tag.
+  guard the contract.
+- [x] **Diagnose & re-bless the two stale goldens** — *Done in [`58a1894`](#) (re-bless) and [`843c2c4`](#) (regression test).*
+  Visual side-by-side confirmed the goldens were pre-fix snapshots:
+  every label inside containers, every chip-row item, and every legend
+  rect-sample was missing — exactly the elements that
+  `r.text_svg` / `r.render_rect` used to silently drop. The renderer
+  was already correct after `1bc5547`. New PNGs grew from ~140 KB to
+  ~290 KB (the missing content restored). 8 content-invariant tests at
+  [tests/integration/test_genai_mediated_system_regression.py](../tests/integration/test_genai_mediated_system_regression.py)
+  prevent silent recurrence — they assert on string presence
+  (`"Foundation Model"`, `"Reasoning & Planning"`, etc.) rather than
+  pixels, so any future failure is diagnostic.
+- [x] **Reconcile golden snapshots (final pass)** — *Done.*
+  `python tests/run_tests.py` exits 0 with **35/35 slides passing**.
+  The release checklist's "all goldens must pass" gate is satisfied.
+- [ ] **Re-enable mypy strict mode** — possible now that the modular-split regression is gone. Update [pyproject.toml](../pyproject.toml#L156-L168) and remove the explanatory comment block.
+- [ ] **JSON Schema export from `framegraph._schema`** — Pydantic v2 produces JSON Schema via `Document.model_json_schema()`. Wire that into a `framegraph schema export` CLI command (or commit the artefact at `framegraph.schema.json`) so VS Code's YAML LSP can pick it up. The Pydantic schema migration in [`101ae61`](#) means the contract is already authoritative; this is just exporting it.
 - [ ] `grid` container — `layout.kind: grid` with `columns: N`, `gap`, `align`, `padding`. Currently rejected at [framegraph/renderers/layout.py:188](../framegraph/renderers/layout.py#L188) with a `not yet implemented` comment.
 - [ ] `row` container — syntactic sugar over grid (single-row auto-columns). Same rejection path.
 - [ ] `inner_box` reference syntax — `box: "$card.inner"` for padding-aware child positioning. Zero matches in codebase today.
 - [ ] `padding` on individual objects — exposes padded inner area to children.
-- [ ] JSON Schema (`framegraph.schema.json`) — enables YAML LSP autocomplete in VS Code. No such file in the repo today.
-- [ ] Re-enable mypy strict mode — possible now that the modular-split regression is gone. Update [pyproject.toml](../pyproject.toml#L156-L168) and remove the explanatory comment.
 - [ ] Full backward-compat audit — run all pre-v1.4 YAML through v2.0 renderer, report pixel drift.
 - [ ] Tag `2.0.0` stable release (currently `2.0.0.dev0` in [pyproject.toml](../pyproject.toml) and [framegraph/__init__.py](../framegraph/__init__.py)).
 
-**Why this order:** The modular-split regression was the only item
-silently corrupting output today; with it repaired, the golden harness
-recovered from 3/35 passing to 33/35. The two remaining failures are
-likely a single distinct bug — diagnose, fix or re-bless, then the
-release checklist becomes passable. After that the layout-engine
-extensions (`grid`/`row`/`inner_box`) and the JSON Schema are mostly
-mechanical and can be parallelised.
+**Status:** All three correctness blockers — modular-split regression,
+golden-snapshot reconciliation, and stable-tag readiness on those — are
+closed. The remaining v2.0 backlog is feature work (`grid`/`row`/`inner_box`/`padding`),
+ergonomics (mypy strict, JSON Schema export, compat audit), and the
+tag itself. None of these are blockers; the project could ship `2.0.0`
+today on the strength of the test suite and golden harness alone.
 
 ---
 
@@ -310,11 +306,12 @@ playground is essentially free once the MCP HTTP endpoint exists.
 
 | Item | Strategic value | Effort | Do when | Status |
 |---|---|---|---|---|
-| Repair modular-split regression (`text_svg`, `render_rect`, `eval_length` on `FrameGraphRenderer`) | Very high (silent corruption) | Low–medium | v2.0 | ✅ done in `1bc5547` (2026-05-07) — 33/35 goldens recovered |
-| **Diagnose 2 remaining golden failures** (`framegraph_genai_mediated_system_v2*`, 100 % pixel delta) | Very high (blocks stable tag) | Low if a known schema gap; medium if real bug | v2.0 — next | — |
-| **Re-bless goldens** (final pass) | Very high (unblocks stable tag) | Trivial | v2.0 — after the failure above is resolved | — |
-| **JSON Schema** (`framegraph.schema.json`) | Medium–high (prereq for v2.1 MCP `validate`) | Medium | v2.0 / v2.1 | — |
-| Re-enable mypy strict mode | Medium (catches future drift) | Low | v2.0 | — |
+| Repair modular-split regression (`text_svg`, `render_rect`, `eval_length` on `FrameGraphRenderer`) | Very high (silent corruption) | Low–medium | v2.0 | ✅ done in `1bc5547` (2026-05-07) |
+| Diagnose remaining golden failures + re-bless | Very high (blocked stable tag) | Trivial after diagnosis | v2.0 | ✅ done in `58a1894` + `843c2c4` (35/35 goldens passing) |
+| Pydantic v2 schema migration (replaces EBNF as normative contract) | High | Medium | v2.0 / v2.1 prereq | ✅ done in `101ae61` |
+| **Re-enable mypy strict mode** | Medium (catches future drift) | Low | v2.0 — next | — |
+| **Export `framegraph.schema.json` from `_schema.py`** | Medium–high (LSP autocomplete; v2.1 `validate` endpoint reuses it) | Low (Pydantic emits JSON Schema natively) | v2.0 — next | — |
+| **Tag `2.0.0` stable** | High (legitimises the project; unlocks PyPI in v3.0) | Trivial | v2.0 — after the two items above | — |
 | MCP server (v2.1) | Very high | Low | First after v2.0 stable | — |
 | `framegraph validate` JSON output | High | Low | With MCP server | — |
 | Few-shot LLM prompt template | High | Very low | With MCP server | — |
@@ -330,36 +327,42 @@ playground is essentially free once the MCP HTTP endpoint exists.
 
 ## 6. Summary
 
-FrameGraph v2.0.0.dev0 is a working DSL with **352 tests, 90.65 % line+branch
-coverage** and a per-type renderer dispatch that — as of commit `1bc5547`
-(2026-05-07) — no longer silently drops legend rect-samples, connector
-labels, or component slot text. The golden harness recovered from 3/35
-passing to 33/35 from that single fix.
+FrameGraph v2.0.0.dev0 is a working DSL with **419 tests, 91.39 % line+branch
+coverage**, **35 / 35 golden snapshots passing**, and a Pydantic v2 normative
+schema. As of commit `843c2c4` (2026-05-07) the three v2.0 correctness
+blockers — modular-split regression, golden-snapshot reconciliation, and
+the formal contract — are all closed. The project is mechanically
+shippable as `2.0.0` once the remaining ergonomics items below land.
 
 The actions with the highest near-term leverage, in order:
 
-1. **Diagnose the two remaining golden failures**
-   (`framegraph_genai_mediated_system_v2*`, max delta 255.0 px = 100 %).
-   A 100 % pixel delta means at least one whole rasterised region differs
-   by the maximum value — typically a layer or object that fails to render
-   at all. Likely a schema construct exercised only by these two
-   GenAI-system fixtures. Once explained, fix or re-bless. This is the
-   last blocker on the v2.0 release checklist.
+1. **Re-enable mypy strict mode.** The reason it was disabled
+   ([pyproject.toml:156-168](../pyproject.toml#L156-L168)) — the modular-split
+   regression — is gone. Flipping `strict = true` and fixing whatever
+   surfaces locks in the structural integrity that the regression repair
+   restored, prevents the same class of drift from re-emerging silently,
+   and clears the explanatory comment block that's currently the only
+   reason `framegraph/renderer.py` is excluded from mypy.
 
-2. **Ship the JSON Schema** (`framegraph.schema.json`). It's the smallest
-   v2.0 backlog item with the largest authoring-experience payoff and a
-   hard prerequisite for v2.1's MCP `validate` endpoint. The 18 registered
-   object types and their per-type fields can be enumerated mechanically
-   from each renderer module's `obj.get(...)` calls.
+2. **Export `framegraph.schema.json`** from the existing
+   `framegraph._schema` Pydantic models via `Document.model_json_schema()`.
+   Either commit the artefact at the repo root or wire a
+   `framegraph schema export` CLI subcommand (or both — the artefact for
+   YAML LSP autocomplete in editors, the command for CI regeneration).
+   The Pydantic schema is already authoritative; this just makes it
+   addressable by tools that don't import Python.
 
-3. **Build the MCP server (v2.1).** A single endpoint that accepts YAML
-   and returns SVG, exposed over MCP. Becomes valuable the moment the
-   JSON Schema lands (free structured validation). Makes FrameGraph
-   directly addressable by every LLM agent in the 2026 ecosystem.
+3. **Tag `2.0.0` stable.** With (1) and (2) landed and the golden harness
+   green, the release checklist in [pyproject.toml](../pyproject.toml#L100-L109)
+   is satisfied. Bump the version, update CHANGELOG, tag, push. This
+   legitimises the project, unlocks the v2.1 (MCP server) work that
+   benefits from a stable surface, and is a prerequisite for v3.0's
+   PyPI publication.
 
-After (1), the v2.0 stable tag becomes possible. After (2) and (3),
-FrameGraph occupies the consulting-authoring lane that no current
-open-source tool currently fills. The remaining backlog
-(`grid`/`row`/`inner_box`/compat audit, mypy strict, VS Code extension,
-web playground, PyPI publication) is mostly mechanical and parallelisable
-once the items above land.
+After the tag, v2.1's MCP server becomes the highest-leverage single
+piece of work in the entire roadmap — it is what makes FrameGraph
+addressable by every LLM agent in the 2026 ecosystem and is the entry
+point to the consulting-authoring lane that no current open-source tool
+currently fills. The remaining v2.0 feature backlog
+(`grid`/`row`/`inner_box`/`padding`, compat audit) is parallelisable
+and not on the critical path.

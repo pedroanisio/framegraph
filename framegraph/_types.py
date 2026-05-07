@@ -31,25 +31,27 @@ class RendererContext(Protocol):
     """
 
     # ── Document state ────────────────────────────────────────────────
-    # `object_index` is intentionally a concrete `dict[..., dict[...]]`
-    # rather than `Mapping[..., Mapping[...]]`: container layout
-    # (`renderers/layout.py`) writes resolved child boxes back into the
-    # index after a layout pass. Read-only consumers can still treat
-    # this as a Mapping structurally.
-    scene: Mapping[str, Any]
+    # All five attributes are typed as concrete `dict` to match what
+    # `FrameGraphRenderer` constructs in `__init__`. Mypy's Protocol
+    # attribute matching is invariant, so widening to `Mapping` here
+    # would force the implementing class to declare the same — losing
+    # mutability that `renderers/layout.py` relies on (it writes
+    # resolved child boxes into `object_index`). Read-only consumers
+    # can still treat these as Mappings structurally.
+    scene: dict[str, Any]
     object_index: dict[str, dict[str, Any]]
-    symbols: Mapping[str, Any]
-    component_defs: Mapping[str, Mapping[str, Any]]
-    glyph_map: Mapping[str, str]
+    symbols: dict[str, Any]
+    component_defs: dict[str, dict[str, Any]]
+    glyph_map: dict[str, str]
 
     # `_uses_icon_font` is mutated by plug-ins that emit icon-font glyphs;
     # `defs_svg()` reads it to decide whether to inject the Tabler webfont.
     _uses_icon_font: bool
 
     # `yaml_source_dir` is the absolute directory of the source YAML
-    # document. `renderers/image.py` reads it through `getattr` to
-    # resolve relative `<image>` `href`s; the CLI / deck renderer set
-    # it after construction. Optional — plug-ins must tolerate absence.
+    # document. `renderers/image.py` reads it to resolve relative
+    # `<image>` `href`s; the CLI / deck renderer set it after
+    # construction. Empty string when no source path is known.
     yaml_source_dir: str
 
     # ── Token resolution ──────────────────────────────────────────────
@@ -70,9 +72,6 @@ class RendererContext(Protocol):
         obj: Mapping[str, Any],
         extra: Mapping[str, Any] | None = ...,
     ) -> dict[str, Any]: ...
-
-    # ── HD effect filters (shadow / glow) ─────────────────────────────
-    def effect_filter_attrs(self, obj: Mapping[str, Any]) -> dict[str, Any]: ...
 
     # ── Object-index queries ──────────────────────────────────────────
     def object_box(self, obj: Mapping[str, Any]) -> Box | None: ...
@@ -96,12 +95,16 @@ class RendererContext(Protocol):
     def render_object(self, obj: Mapping[str, Any]) -> str: ...
     def register(self, type_name: str, fn: RenderFn) -> None: ...
 
-    # ── Plug-in helpers delegated to per-type renderer modules ────────
-    # `text_svg` lives in `renderers.text_objects`, `render_rect` in
-    # `renderers.shapes`, `eval_length` in `renderers.layout`. The
-    # `FrameGraphRenderer` methods are thin delegates so plug-ins can
-    # call them through the `r` parameter without importing the
-    # modules directly.
+    # ── Plug-in helpers ────────────────────────────────────────────────
+    # `text_svg`, `render_rect`, `eval_length` are the "modular-split"
+    # delegates: they live as free functions in `framegraph.renderers.*`
+    # and are wired onto `FrameGraphRenderer` as thin methods so plug-ins
+    # can call them as `r.text_svg(...)`, `r.render_rect(...)`, etc.
+    #
+    # `effect_filter_attrs` is the v3.0 HD-effects Protocol member:
+    # shape renderers call it to receive the SVG `filter="url(#…)"`
+    # attribute (or `{}`) for the requested effect chain.
+    # ──────────────────────────────────────────────────────────────────
     def text_svg(
         self,
         content: Any,
@@ -113,3 +116,4 @@ class RendererContext(Protocol):
     ) -> str: ...
     def render_rect(self, obj: Mapping[str, Any]) -> str: ...
     def eval_length(self, value: Any, total: float) -> float: ...
+    def effect_filter_attrs(self, obj: Mapping[str, Any]) -> dict[str, Any]: ...

@@ -144,14 +144,16 @@ convention = "google"
 "tests/**" = ["D"]
 
 # ── Mypy ──────────────────────────────────────────────────────────────────────
-# Strict mode is intentionally NOT enabled yet. Most renderer call sites
-# pass plain `Mapping[str, Any]` records into typed helpers — flipping
-# `strict = true` would force pervasive `# type: ignore` clutter without
-# catching real defects. Re-evaluate after the schema models in
-# `_schema.py` are threaded through the renderer pipeline.
+# Strict mode is enabled. The v2.0 modular-split regression that previously
+# blocked it was repaired in commit 1bc5547; the four Protocol delegates
+# (`text_svg`, `render_rect`, `eval_length`, `effect_filter_attrs`) are
+# implemented on `FrameGraphRenderer`, and per-attribute types in
+# `framegraph._types.RendererContext` match the concrete renderer's
+# mutable `dict` shapes. Loosening this back to non-strict requires
+# explaining what regressed.
 [tool.mypy]
 python_version         = "3.10"
-strict                 = false
+strict                 = true
 ignore_missing_imports = true
 warn_unused_ignores    = true
 

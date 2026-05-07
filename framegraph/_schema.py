@@ -45,7 +45,7 @@ Point = Annotated[list[float], Field(min_length=2, max_length=2)]
 Color = str
 
 # Stroke spec: either a single COLOR string or a full StrokeInline mapping.
-StrokeInlineLike = str | dict
+StrokeInlineLike = str | dict[str, Any]
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -354,6 +354,26 @@ class LineChartObject(_ObjectBase):
     type: Literal["line_chart"]
 
 
+class TableObject(_ObjectBase):
+    """Tabular grid of cells with optional header and zebra-striping.
+
+    `columns` declares column-width hints (numbers in document units, or
+    percent strings, or `null` for auto-equal distribution). `header`
+    is a list of strings for the title row; `rows` is a list of row
+    lists, each cell is a string or a mapping `{text, style, align}`.
+    """
+
+    type: Literal["table"]
+    columns: list[Any] | None = None
+    header: list[Any] | None = None
+    rows: list[list[Any]] | None = None
+    row_height: float | None = None
+    header_height: float | None = None
+    zebra: bool | None = None
+    cell_padding: float | list[float] | None = None
+    style: dict[str, Any] | None = None
+
+
 class _UnknownObject(_ObjectBase):
     """Fall-through for third-party `register(type_name, fn)` types.
 
@@ -383,7 +403,8 @@ KnownObject = Annotated[
     | ComponentObject
     | ChipRowObject
     | BarChartObject
-    | LineChartObject,
+    | LineChartObject
+    | TableObject,
     Field(discriminator="type"),
 ]
 
@@ -450,6 +471,28 @@ class Document(BaseModel):
     visual: Visual = Field(default_factory=Visual)
 
 
+class ChromeConfig(BaseModel):
+    """Master-slide chrome — auto-prepended layer on every slide.
+
+    Declared at deck level via `deck.chrome:`. The slide may opt out
+    via `chrome: false` or override per-instance via `chrome: {…}`.
+    `extra="allow"` permits arbitrary slot pass-through fields, the
+    same convention used on `use` objects.
+    """
+
+    model_config = ConfigDict(extra="allow")
+    symbol: str
+    params: dict[str, Any] | None = None
+    z: float | None = None
+
+
+# A slide's `chrome:` field accepts either:
+#   - false / null  → opt out
+#   - a mapping     → per-instance overrides
+# We accept Any here and resolve at the deck-renderer level.
+SlideChrome = bool | dict[str, Any] | None
+
+
 class SlideEntry(BaseModel):
     """Single slide in a deck. Every field is optional except `id`."""
 
@@ -464,6 +507,7 @@ class SlideEntry(BaseModel):
     symbols: dict[str, SymbolDef] | None = None
     semantic: Semantic | None = None
     visual: Visual | None = None
+    chrome: SlideChrome = None
 
 
 class DeckConfig(BaseModel):
@@ -474,6 +518,8 @@ class DeckConfig(BaseModel):
     tokens: Tokens | None = None
     symbols: dict[str, SymbolDef] | None = None
     component_defs: dict[str, ComponentDef] | None = None
+    # `chrome` accepts a string (symbol id) or a full ChromeConfig mapping.
+    chrome: str | ChromeConfig | None = None
 
 
 class DeckDocument(BaseModel):
