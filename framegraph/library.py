@@ -542,8 +542,12 @@ class FrameGraphDeckRenderer:
 
         pattern = self._resolve_pattern(slide["use"])
 
-        # Sidecar auto-discovery — same convention as the CLI.
-        fills_dir = Path(__file__).resolve().parent.parent / "static" / "refs" / "fills"
+        # Sidecar auto-discovery — same convention as the CLI's
+        # `_find_sidecar`. Sidecars ship inside the package under
+        # `framegraph/data/fills/` (moved from the legacy
+        # `static/refs/fills/` path in the publish-prep commit so the
+        # wheel carries them).
+        fills_dir = Path(__file__).resolve().parent / "data" / "fills"
         sidecar_matches = (
             sorted(fills_dir.glob(f"{pattern.id:03d}-*.yml")) if fills_dir.exists() else []
         )
@@ -1192,6 +1196,17 @@ class FrameGraphDeckRenderer:
     ) -> list[Path]:
         """Render every slide; return the per-slide output paths.
 
+        Phase 2 of ADR 0001: the slide loop now drives off the
+        FrameSet view of `self.raw` (via `coerce_to_frameset`) so
+        the deck path participates in the same graph traversal that
+        FrameSet-native YAML uses. Per-slide enrichment continues to
+        flow through `self.build_slide_doc` so deck-merge semantics
+        (`library $theme < deck.tokens < $extends < slide.tokens`,
+        master-slide chrome, pattern composition) stay byte-identical
+        to Phase 1 output. The legacy direct iteration over
+        `self.slides_raw` is retired in favour of the FrameSet
+        spine; ordering, ids, and per-slide rendering are unchanged.
+
         Args:
             output_dir: Directory to receive `slide_<N>_<id>.svg` files.
             yaml_source_dir: Absolute directory of the deck YAML, used by
@@ -1202,7 +1217,31 @@ class FrameGraphDeckRenderer:
         # Deferred import: `framegraph.renderer` imports `framegraph.library`
         # via the package's `__init__.py`, so a top-level import here would
         # close the cycle.
+        from framegraph._frameset import coerce_to_frameset
         from framegraph.renderer import FrameGraphRenderer
+
+        # Build the FrameSet view of `self.raw`. `coerce_to_frameset`
+        # is total over deck YAML — Phase 1 pinned this. The Frame
+        # ids match the slide ids 1:1 (preserves the
+        # `slide_<NN>_<id>.svg` filename convention below).
+        #
+        # `coerce_to_frameset` requires a top-level `dsl: FrameGraph`
+        # marker; the deck-renderer constructor accepts dicts
+        # without it (the validate-only-when-dsl-set gate matches
+        # `FrameGraphRenderer.__init__`). Inject the marker when
+        # absent so deck dicts assembled programmatically (the
+        # `tests/unit/test_library.py` fixtures, the deck-composer
+        # intermediate builds) participate in the FrameSet spine.
+        raw_for_coerce = (
+            self.raw
+            if isinstance(self.raw, dict) and self.raw.get("dsl") == "FrameGraph"
+            else {**(self.raw if isinstance(self.raw, dict) else {}), "dsl": "FrameGraph"}
+        )
+        frameset = coerce_to_frameset(raw_for_coerce)
+        slides_by_id = {
+            str(slide.get("id", f"slide_{slide.get('slide', i + 1):02d}")): slide
+            for i, slide in enumerate(self.slides_raw)
+        }
 
         output_dir.mkdir(parents=True, exist_ok=True)
         source_dir = str(Path(yaml_source_dir).resolve()) if yaml_source_dir else ""
@@ -1212,10 +1251,16 @@ class FrameGraphDeckRenderer:
         # faithful and emits no reports of its own — the planner is
         # the single decision-maker for geometry + uniform typography
         # scale, and the only source of overflow facts.
-        self.constraint_reports: list[dict[str, Any]] = []
-        for slide in self.slides_raw:
+        self.constraint_reports = []
+        for frame in frameset.frames:
+            slide = slides_by_id.get(frame.id)
+            if slide is None:
+                # `coerce_to_frameset` synthesizes an "empty"
+                # placeholder Frame for empty deck YAML. Skip it —
+                # there's no slide payload to enrich or render.
+                continue
             n = slide.get("slide", 0)
-            sid = slide.get("id", f"slide_{n:02d}")
+            sid = frame.id
             doc = self.build_slide_doc(slide)
             renderer = FrameGraphRenderer(doc)
             renderer.yaml_source_dir = source_dir

@@ -618,6 +618,243 @@ def project_frame_to_document(
 
 
 # ─────────────────────────────────────────────────────────────────
+# Phase 2 — native-FrameSet enrichment (deck-merge lift)
+# ─────────────────────────────────────────────────────────────────
+
+
+_CANONICAL_RENDERING_CONTRACT: dict[str, Any] = {
+    "coordinate_mode": "absolute",
+    "preserve_manual_line_breaks": True,
+    "text": {"min_font_size": 7, "overflow": "shrink_to_fit"},
+    "semantics": {"decorative_objects_may_omit_bind": True},
+}
+"""The four canonical rendering contracts that `library.build_slide_doc`
+auto-injects on every deck slide. The native-FrameSet enrichment path
+applies them when the source Frame doesn't already declare its own
+``scene.rendering_contract``.
+"""
+
+
+_CANONICAL_EMPTY_SEMANTIC: dict[str, Any] = {
+    "ontology": {"node_types": {}, "edge_types": {}},
+    "nodes": [],
+    "edges": [],
+}
+"""Empty semantic block matching `library.build_slide_doc`'s fallback."""
+
+
+def _deep_merge(base: Any, override: Any) -> Any:
+    """Recursive dict merge — `override` wins on scalar conflicts.
+
+    Inlined here rather than imported from `framegraph.library` so
+    `_frameset.py` stays free of circular-import worries; keeps the
+    module a self-contained Phase-1+2 surface. Behaviour mirrors
+    `library.deep_merge` exactly: lists are *replaced*, not
+    concatenated.
+    """
+    if not isinstance(base, dict) or not isinstance(override, dict):
+        return override
+    result: dict[str, Any] = dict(base)
+    for k, v in override.items():
+        result[k] = _deep_merge(result.get(k), v) if k in result else v
+    return result
+
+
+def _resolve_extends_chain(
+    frame: Frame, frameset: FrameSetDocument, _seen: frozenset[str] = frozenset()
+) -> Frame:
+    """Resolve a Frame's `extends` chain into a single merged Frame.
+
+    Walks `frame.extends` recursively and merges the chain
+    *base-first* — so the most-derived Frame's keys win. Cycles raise
+    `ValueError`. Phase 1's `FrameSetDocument` validator already
+    rejects dangling `extends` references; this helper assumes
+    they're resolved.
+
+    Token / symbol / component_def / layer merge semantics mirror
+    `library.build_slide_doc`'s `$extends` handling:
+
+    - **tokens** — recursive `_deep_merge`, derived wins on scalar conflicts.
+    - **symbols** — shallow union, derived wins on key conflicts.
+    - **component_defs** — shallow union, derived wins.
+    - **layers** — base layers first, derived layers second; same-id
+      derived layer replaces the base layer of that id.
+    """
+    if frame.extends is None:
+        return frame
+    if frame.id in _seen:
+        raise ValueError(
+            f"Cycle detected resolving Frame.extends for {frame.id!r}: {sorted(_seen | {frame.id})}"
+        )
+    base_frame = next((f for f in frameset.frames if f.id == frame.extends), None)
+    if base_frame is None:
+        # Phase 1's validator should have caught this; fail cleanly
+        # here in case a user constructed FrameSetDocument by hand.
+        raise ValueError(f"Frame {frame.id!r} extends unknown frame {frame.extends!r}")
+    base_resolved = _resolve_extends_chain(base_frame, frameset, _seen | {frame.id})
+
+    # Token / symbol / component_def merge inside `visual`.
+    base_visual: dict[str, Any] = dict(base_resolved.visual or {})
+    derived_visual: dict[str, Any] = dict(frame.visual or {})
+
+    merged_visual: dict[str, Any] = {}
+    base_tokens = base_visual.get("tokens") or {}
+    derived_tokens = derived_visual.get("tokens") or {}
+    if base_tokens or derived_tokens:
+        merged_visual["tokens"] = _deep_merge(base_tokens, derived_tokens)
+
+    base_symbols = base_visual.get("symbols") or {}
+    derived_symbols = derived_visual.get("symbols") or {}
+    if base_symbols or derived_symbols:
+        merged_visual["symbols"] = {**base_symbols, **derived_symbols}
+
+    base_cdefs = base_visual.get("component_defs") or {}
+    derived_cdefs = derived_visual.get("component_defs") or {}
+    if base_cdefs or derived_cdefs:
+        merged_visual["component_defs"] = {**base_cdefs, **derived_cdefs}
+
+    # Layer merge: base layers first, derived second; same-id derived
+    # layer replaces base layer of that id.
+    base_layers = list(base_visual.get("layers") or [])
+    derived_layers = list(derived_visual.get("layers") or [])
+    if base_layers or derived_layers:
+        merged_layer_map: dict[str, dict[str, Any]] = {}
+        for lyr in base_layers + derived_layers:
+            if isinstance(lyr, dict):
+                merged_layer_map[str(lyr.get("id", ""))] = lyr
+        merged_visual["layers"] = list(merged_layer_map.values())
+
+    # Carry through any other visual-block keys the derived frame
+    # declared (e.g. style overrides we haven't formalized yet).
+    for k, v in derived_visual.items():
+        if k not in merged_visual:
+            merged_visual[k] = v
+    for k, v in base_visual.items():
+        if k not in merged_visual:
+            merged_visual[k] = v
+
+    # Same merge order for the scene block: derived keys win.
+    merged_scene = _deep_merge(base_resolved.scene or {}, frame.scene or {})
+
+    # Build a synthetic merged Frame. Use the derived frame's id, links,
+    # next/prev, targets — those are not inheritable. `extends` clears
+    # because the chain is now resolved.
+    return Frame(
+        id=frame.id,
+        title=frame.title or base_resolved.title,
+        targets=frame.targets,
+        next=frame.next,
+        prev=frame.prev,
+        links=frame.links,
+        extends=None,
+        visual=merged_visual or None,
+        semantic=frame.semantic or base_resolved.semantic,
+        scene=merged_scene or None,
+        use=frame.use if frame.use is not None else base_resolved.use,
+        fill=frame.fill if frame.fill is not None else base_resolved.fill,
+        notes=frame.notes or base_resolved.notes,
+    )
+
+
+def build_frame_doc(
+    frameset: FrameSetDocument, frame: Frame, target: FrameTarget
+) -> dict[str, Any]:
+    """Assemble an enriched single-doc dict for one Frame at one target.
+
+    The native-FrameSet equivalent of `library.build_slide_doc`.
+    Applies the same enrichment chain so the rendered output is
+    consistent across the deck and FrameSet code paths:
+
+    1. Resolve `Frame.extends` recursively (cycles raise).
+    2. Token deep-merge: `frameset.tokens` < `frame.visual.tokens`.
+       Frame-local tokens win on scalar conflicts.
+    3. Symbol shallow-merge: `frameset.symbols` ∪ `frame.visual.symbols`.
+       Frame-local wins on key conflicts.
+    4. Component_defs shallow-merge: same rule.
+    5. Canvas: from the chosen `FrameTarget`.
+    6. Rendering contract: take the Frame's `scene.rendering_contract`
+       when set; otherwise apply the four canonical contracts that
+       `library.build_slide_doc` injects on every deck slide.
+    7. Semantic block: take the Frame's, otherwise canonical-empty.
+
+    Pattern composition (`Frame.use` set) is **out of scope** for
+    Phase 2 — that requires `FrameGraphLibrary` access (theme +
+    stylesheet lookup). When `frame.use` is set, `build_frame_doc`
+    raises `NotImplementedError` with a pointer to use
+    `FrameGraphDeckRenderer.build_slide_doc` via the legacy deck
+    path until Phase 7 lands the FrameSet-native composer.
+
+    Args:
+        frameset: The validated `FrameSetDocument`.
+        frame: The Frame to project.
+        target: The render target whose canvas is used.
+
+    Returns:
+        A `dict` shaped like a legacy
+        ``kind: hybrid-semantic-visual-diagram`` document.
+
+    Raises:
+        ValueError: If `frame.extends` introduces a cycle or refers
+            to an unknown Frame id.
+        NotImplementedError: If `frame.use` is set (pattern
+            composition — Phase 7 scope).
+    """
+    if frame.use is not None:
+        raise NotImplementedError(
+            f"Frame {frame.id!r} carries `use:` (pattern composition) — "
+            f"Phase 2 doesn't yet support patterns through the FrameSet path. "
+            f"Use `FrameGraphDeckRenderer.build_slide_doc` for now (legacy deck path)."
+        )
+
+    resolved = _resolve_extends_chain(frame, frameset)
+
+    # Token deep-merge: frameset-level < frame-level.
+    fs_tokens = frameset.frameset.tokens or {}
+    frame_visual = dict(resolved.visual or {})
+    frame_tokens = frame_visual.get("tokens") or {}
+    merged_tokens = _deep_merge(fs_tokens, frame_tokens)
+
+    # Symbol / component_def shallow merge: frameset-level ∪ frame-level.
+    fs_symbols = frameset.frameset.symbols or {}
+    frame_symbols = frame_visual.get("symbols") or {}
+    merged_symbols = {**fs_symbols, **frame_symbols}
+
+    fs_cdefs = frameset.frameset.component_defs or {}
+    frame_cdefs = frame_visual.get("component_defs") or {}
+    merged_cdefs = {**fs_cdefs, **frame_cdefs}
+
+    visual: dict[str, Any] = dict(frame_visual)
+    if merged_tokens:
+        visual["tokens"] = merged_tokens
+    if merged_symbols:
+        visual["symbols"] = merged_symbols
+    if merged_cdefs:
+        visual["component_defs"] = merged_cdefs
+
+    # Scene: start from the Frame's existing scene (so per-Frame
+    # rendering_contract / source_image / etc. survive); inject the
+    # canvas from the resolved target; default rendering_contract
+    # when the Frame doesn't already declare one.
+    scene: dict[str, Any] = dict(resolved.scene or {})
+    scene.setdefault("id", resolved.id)
+    if resolved.title is not None:
+        scene.setdefault("name", resolved.title)
+    scene["canvas"] = {"size": list(target.canvas), "units": "px"}
+    scene.setdefault("rendering_contract", dict(_CANONICAL_RENDERING_CONTRACT))
+
+    semantic = resolved.semantic or dict(_CANONICAL_EMPTY_SEMANTIC)
+
+    return {
+        "dsl": "FrameGraph",
+        "version": frameset.version,
+        "kind": "hybrid-semantic-visual-diagram",
+        "scene": scene,
+        "semantic": semantic,
+        "visual": visual,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────
 # Renderer adapter — emit one SVG per (Frame, target)
 # ─────────────────────────────────────────────────────────────────
 
@@ -695,10 +932,18 @@ def render_frameset(
     """Render every Frame in the FrameSet to SVG at the given target.
 
     Each Frame is projected to a legacy single-document dict via
-    `project_frame_to_document` and fed through
-    `FrameGraphRenderer(doc).render_svg()`. The per-type renderer
-    modules and the pattern bridge stay untouched — this function
-    is purely an envelope.
+    `build_frame_doc` (Phase 2 — applies deck-merge enrichments:
+    deep-merged tokens / symbols / component_defs from
+    ``frameset.frameset.*`` plus canonical rendering-contract
+    defaults) and fed through `FrameGraphRenderer(doc).render_svg()`.
+    The per-type renderer modules and the pattern bridge stay
+    untouched — this function is purely an envelope.
+
+    Byte-identical-parity contract: for FrameSets coerced from
+    legacy single-document YAML (where every Frame already carries
+    a complete `scene` block), `build_frame_doc` is a no-op
+    enrichment (the canonical defaults `setdefault` past the
+    existing values). Phase 1's render-parity tests pin this.
 
     Args:
         frameset: A validated `FrameSetDocument`.
@@ -739,7 +984,14 @@ def render_frameset(
     rendered: list[RenderedFrame] = []
     for frame in selected:
         target = _resolve_target(frame, frameset, target_name)
-        doc = project_frame_to_document(frameset, frame, target)
+        # Phase 2 dispatcher: pattern-composed Frames (`use:` set)
+        # cannot yet take the FrameSet path because the FrameSet
+        # doesn't carry library theme + stylesheet — Phase 7 scope.
+        # Until then, emit a clear NotImplementedError via
+        # `build_frame_doc` rather than silently falling back to
+        # `project_frame_to_document` (which would skip pattern
+        # composition entirely).
+        doc = build_frame_doc(frameset, frame, target)
         renderer = FrameGraphRenderer(doc)
         svg = renderer.render_svg()
         rendered.append(
@@ -762,6 +1014,7 @@ __all__ = [
     "FrameSetMeta",
     "FrameTarget",
     "RenderedFrame",
+    "build_frame_doc",
     "coerce_to_frameset",
     "project_frame_to_document",
     "render_frameset",

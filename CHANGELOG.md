@@ -28,26 +28,49 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- `framegraph._frameset` module — Phase 1 of [ADR 0001](docs/adr/0001-frameset-reframe.md)
-  ("Collapse `Document` and `Deck` into a `FrameSet` graph"). New
-  Pydantic models: `Frame`, `FrameLink`, `FrameTarget`,
-  `FrameSetDocument`. New entry points: `validate_frameset`,
-  `coerce_to_frameset`, `render_frameset`, `project_frame_to_document`.
-  `kind: frameset` is the new top-level YAML shape; old shapes
-  (`hybrid-semantic-visual-diagram`, `presentation-deck`) lift
-  into a FrameSet via the total `coerce_to_frameset` shim.
-- `framegraph._schema.validate_any` — single dispatch over the
-  three `kind:` values (frameset / presentation-deck / hybrid-…).
-- 70 regression tests across `test_frameset_schema.py`,
-  `test_frameset_coerce.py`, and `test_frameset_render_parity.py`
-  pinning byte-identical SVG parity between the legacy and FrameSet
-  paths for every single-document fixture, plus structural
-  equivalence (slide count, ids, chain-link materialization) for
-  every deck fixture.
+- **ADR 0001 Phase 2** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
+  — Renderer Graph Dispatch + Deck-Merge Lift. `FrameGraphDeckRenderer.render_all`
+  now drives off the FrameSet view of the deck via `coerce_to_frameset`;
+  per-slide enrichment continues to flow through
+  `build_slide_doc` so SVG output is byte-identical to the
+  pre-Phase-2 path. Native-FrameSet YAML gains a parallel
+  enrichment path: `framegraph._frameset.build_frame_doc` lifts
+  `library.build_slide_doc`'s deck-merge logic (token deep-merge,
+  `extends` chain, symbol / component_def shallow-merge,
+  canonical `rendering_contract` defaults) for `kind: frameset`
+  documents.
+- `framegraph._frameset.build_frame_doc(frameset, frame, target)` —
+  enriches a `(FrameSet, Frame, FrameTarget)` triple into a
+  legacy single-document dict ready for `FrameGraphRenderer`.
+- `framegraph._frameset._resolve_extends_chain` — recursive
+  `Frame.extends` resolver with cycle detection, mirroring
+  `library.build_slide_doc`'s `$extends` semantics for native
+  FrameSets.
+- 19 Phase 2 regression tests in
+  `tests/integration/test_frameset_phase2.py`:
+  byte-identical deck SVG parity across every deck fixture; the
+  `build_frame_doc` enrichment contract; multi-frame `extends`
+  chain resolution; cycle rejection; `NotImplementedError` on
+  pattern-composed Frames (Phase 7 scope).
+- **Phase 1** ([2026-05-08]): `framegraph._frameset` module — new
+  Pydantic models (`Frame`, `FrameLink`, `FrameTarget`,
+  `FrameSetDocument`), `validate_frameset`, `coerce_to_frameset`,
+  `render_frameset`, `project_frame_to_document`.
+  `framegraph._schema.validate_any` single dispatch.
+  70 regression tests pinning byte-identical SVG parity for every
+  single-document fixture and structural equivalence for every
+  deck fixture.
+
+### Fixed
+- `framegraph/library.py::FrameGraphDeckRenderer._build_pattern_slide_doc`
+  — sidecar auto-discovery path was still pointing at the legacy
+  `static/refs/fills/` location (sidecars moved into the package
+  at `framegraph/data/fills/` in the publish-prep commit). Pattern-
+  composed deck slides with `item_kind: object` sidecar overrides
+  (BMC `revenue_streams` / `cost_structure`) failed validation
+  pre-fix because the sidecar wasn't found.
 
 ### Planned
-- Phase 2: byte-identical render parity for coerced decks (lifts
-  `library.build_slide_doc` enrichments into the FrameSet path).
 - Phase 3: `framegraph render --target <name>` and `framegraph deck
   --target <name>` flags for multi-target rendering.
 - Phase 4: `framegraph sitemap <frameset.yml>` emitter.

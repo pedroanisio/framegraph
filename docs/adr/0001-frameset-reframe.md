@@ -108,17 +108,17 @@ Existing models (`Document`, `DeckDocument`) and the existing CLI / library entr
 
 ## Phasing
 
-This ADR scopes only **Phase 1**: schema + coercion + renderer dispatch.
-
 | Phase | Scope | Effort | Status |
 |---|---|---|---|
-| 1 | Pydantic models, coercion shim, renderer dispatch over FrameSets, byte-identical regression locks for old YAML | M | This commit |
-| 2 | `framegraph render --target <name>` and `framegraph deck --target <name>` flags; multi-target output | S | Follow-up |
-| 3 | `framegraph sitemap <frameset.yml>` emits `sitemap.xml` from the link graph | XS | Follow-up |
-| 4 | Per-target `adjustments` (font scale, padding deltas, hide-on-target) | M | Follow-up |
-| 5 | Link injection into HTML / SVG / PDF outputs (clickable navigation) | S–M | Tier B from `docs/ANALYSIS.md` recommendations |
+| **1** | **Pydantic models, coercion shim, renderer adapter, byte-identical regression locks for single-doc YAML** | **M** | ✅ Shipped (commit `c0d1615`, 2026-05-08) |
+| **2** | **Renderer Graph Dispatch + Deck-Merge Lift — `FrameGraphDeckRenderer.render_all` iterates via FrameSet spine; `build_frame_doc` mirrors `build_slide_doc` semantics for native FrameSet YAML; byte-identical deck SVG parity locked across every deck fixture** | **M** | ✅ Shipped (this commit) |
+| 3 | `framegraph render --target <name>` and `framegraph deck --target <name>` flags; multi-target output | S | Next |
+| 4 | `framegraph sitemap <frameset.yml>` emits `sitemap.xml` from the link graph | XS | Follow-up |
+| 5 | Per-target `adjustments` (font scale, padding deltas, hide-on-target) | M | Follow-up |
+| 6 | Link injection into HTML / SVG / PDF outputs (clickable navigation) | S–M | Depends on Tier B from `docs/ANALYSIS.md` |
+| 7 | Pattern-composition (`Frame.use:` + `fill:`) through the FrameSet path — requires `FrameGraphLibrary` access for theme + stylesheet resolution; today raises `NotImplementedError` | S | Follow-up |
 
-Each follow-up is independently shippable. Phase 1 is the one that has to land coherently because everything after it depends on the schema shape.
+Each follow-up is independently shippable.
 
 ---
 
