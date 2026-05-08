@@ -13,6 +13,8 @@ _meta:
 colors:
   primary:        "#002060"   # McKinsey deep blue
   secondary:      "#00A0DC"   # bright teal-blue accent
+  accent:         "#E8633C"   # warm orange — universal "accent" alias
+  surface_tinted: "#F5F3EF"   # universal "surface_tinted" alias — soft cream
   accent_warm:    "#E35205"   # amber-orange (charts, callouts)
   surface:        "#F5F3EF"   # warm off-white slide bg
   surface_dark:   "#2C2826"   # dark surface / govenance bars

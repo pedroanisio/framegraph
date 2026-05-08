@@ -16,7 +16,10 @@ from framegraph.patterns.fill import (
 )
 from framegraph.patterns.layout import (
     Box,
+    LayoutPlan,
+    LayoutReport,
     compute_boxes,
+    compute_layout_plan,
 )
 from framegraph.patterns.render import (
     compose_document,
@@ -29,6 +32,14 @@ from framegraph.patterns.sidecar import (
     SidecarZoneOverride,
     derive_fill_schema_with_sidecar,
     load_sidecar,
+)
+from framegraph.patterns.style import (
+    MatchSpec,
+    RoleRule,
+    Stylesheet,
+    load_bundled_stylesheet,
+    load_stylesheet,
+    resolve_zone_style,
 )
 
 __all__ = [
@@ -44,10 +55,20 @@ __all__ = [
     "SidecarZoneOverride",
     "derive_fill_schema_with_sidecar",
     "load_sidecar",
-    # Phase 3
+    # Phase 3 (layout) + planner
     "Box",
+    "LayoutPlan",
+    "LayoutReport",
     "compute_boxes",
+    "compute_layout_plan",
     # Phase 4
     "compose_document",
     "render_pattern_svg",
+    # Stylesheet (framework's third orthogonal layer)
+    "MatchSpec",
+    "RoleRule",
+    "Stylesheet",
+    "load_bundled_stylesheet",
+    "load_stylesheet",
+    "resolve_zone_style",
 ]

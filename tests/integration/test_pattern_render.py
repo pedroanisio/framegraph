@@ -180,6 +180,155 @@ class TestGoldenSnapshot:
 # ─────────────────────────────────────────────────────────────────
 
 
+# ─────────────────────────────────────────────────────────────────
+# Round 2 Phase 3 — list[object] sidecar overrides emit table objects
+# ─────────────────────────────────────────────────────────────────
+
+
+class TestListObjectTableEmission:
+    """When a sidecar declares `item_kind: object` for a list_items
+    zone, the renderer bridge must emit a `table` object (not the
+    flattened `bullet_list` with stringified items).
+    """
+
+    def test_bmc_revenue_streams_emits_table(
+        self, bmc_pattern, bmc_filled, bmc_layout
+    ) -> None:
+        doc = compose_document(bmc_pattern, bmc_filled, bmc_layout, CANVAS_W, CANVAS_H)
+        objects = [
+            o for layer in doc["visual"]["layers"] for o in layer["objects"]
+        ]
+        revenue_obj = next(
+            (o for o in objects if o.get("id") == "zone_revenue_streams"), None
+        )
+        assert revenue_obj is not None
+        assert revenue_obj["type"] == "table", (
+            f"revenue_streams should emit a table; got {revenue_obj['type']!r}"
+        )
+
+    def test_bmc_cost_structure_emits_table(
+        self, bmc_pattern, bmc_filled, bmc_layout
+    ) -> None:
+        doc = compose_document(bmc_pattern, bmc_filled, bmc_layout, CANVAS_W, CANVAS_H)
+        objects = [
+            o for layer in doc["visual"]["layers"] for o in layer["objects"]
+        ]
+        cost_obj = next(
+            (o for o in objects if o.get("id") == "zone_cost_structure"), None
+        )
+        assert cost_obj is not None
+        assert cost_obj["type"] == "table"
+
+    def test_bmc_table_headers_from_sidecar_fields(
+        self, bmc_pattern, bmc_filled, bmc_layout
+    ) -> None:
+        """Table header row matches the sidecar's `item_fields` keys."""
+        doc = compose_document(bmc_pattern, bmc_filled, bmc_layout, CANVAS_W, CANVAS_H)
+        objects = [
+            o for layer in doc["visual"]["layers"] for o in layer["objects"]
+        ]
+        revenue_obj = next(
+            (o for o in objects if o.get("id") == "zone_revenue_streams"), None
+        )
+        # Sidecar declared `label` + `metric` on revenue_streams.
+        assert revenue_obj["header"] == ["label", "metric"]
+
+    def test_bmc_table_rows_carry_field_values(
+        self, bmc_pattern, bmc_filled, bmc_layout
+    ) -> None:
+        """Each list item becomes one row of cell values."""
+        doc = compose_document(bmc_pattern, bmc_filled, bmc_layout, CANVAS_W, CANVAS_H)
+        objects = [
+            o for layer in doc["visual"]["layers"] for o in layer["objects"]
+        ]
+        revenue_obj = next(
+            (o for o in objects if o.get("id") == "zone_revenue_streams"), None
+        )
+        rows = revenue_obj["rows"]
+        # Sidecar example_fill has 3 revenue streams; each row has [label, metric].
+        assert len(rows) == 3
+        for row in rows:
+            assert len(row) == 2
+        # First row's label should match the example fill.
+        assert "Subscription tiers" in rows[0][0]
+
+    def test_bmc_other_zones_still_bullet_list(
+        self, bmc_pattern, bmc_filled, bmc_layout
+    ) -> None:
+        """Non-object list_items zones (the 7 simple BMC blocks) still
+        render as bullet_list — the override is per-zone."""
+        doc = compose_document(bmc_pattern, bmc_filled, bmc_layout, CANVAS_W, CANVAS_H)
+        objects = [
+            o for layer in doc["visual"]["layers"] for o in layer["objects"]
+        ]
+        key_partners_obj = next(
+            (o for o in objects if o.get("id") == "zone_key_partners"), None
+        )
+        assert key_partners_obj is not None
+        assert key_partners_obj["type"] == "bullet_list"
+
+    def test_string_list_still_bullet_list(self) -> None:
+        """A pattern with no sidecar override on a list_items zone keeps
+        bullet_list emission (default behavior unchanged)."""
+        # Catalog #10 SWOT — list_items zones, no object overrides.
+        from framegraph._patterns import load_pattern_catalog
+        from framegraph.patterns import (
+            compute_boxes as _compute_boxes,
+            derive_default_fill_schema,
+        )
+
+        cat = load_pattern_catalog()
+        swot = cat.get(10)
+        Model = derive_default_fill_schema(swot)
+        fill = Model.model_validate(
+            {
+                "strengths": ["S1", "S2"],
+                "weaknesses": ["W1"],
+                "opportunities": ["O1"],
+                "threats": ["T1"],
+            }
+        )
+        layout = _compute_boxes(swot, CANVAS_W, CANVAS_H)
+        doc = compose_document(swot, fill, layout, CANVAS_W, CANVAS_H)
+        objects = [
+            o for layer in doc["visual"]["layers"] for o in layer["objects"]
+        ]
+        # Every SWOT zone is bullet_list.
+        for o in objects:
+            assert o["type"] == "bullet_list", (
+                f"SWOT zone {o.get('id')!r} should be bullet_list; got {o['type']!r}"
+            )
+
+    def test_empty_list_still_bullet_list(self) -> None:
+        """An empty list (no items to introspect) falls back to
+        bullet_list — we don't speculate on shape with no data."""
+        from framegraph._patterns import SlidePattern
+        from framegraph.patterns import compute_boxes as _compute_boxes
+        from framegraph.patterns import derive_default_fill_schema
+
+        p = SlidePattern.model_validate(
+            {
+                "id": 99300,
+                "name": "T",
+                "layout_disposition": "x",
+                "zones": [
+                    {
+                        "role": "items",
+                        "size": "medium",
+                        "placement": {"anchor": {"h": "center", "v": "middle"}},
+                        "content_type": "list_items",
+                    }
+                ],
+            }
+        )
+        Model = derive_default_fill_schema(p)
+        fill = Model.model_validate({"items": []})
+        layout = _compute_boxes(p, CANVAS_W, CANVAS_H)
+        doc = compose_document(p, fill, layout, CANVAS_W, CANVAS_H)
+        obj = doc["visual"]["layers"][0]["objects"][0]
+        assert obj["type"] == "bullet_list"
+
+
 class TestNegative:
     def test_wrong_content_shape_rejected(
         self, bmc_pattern, bmc_sidecar, bmc_layout

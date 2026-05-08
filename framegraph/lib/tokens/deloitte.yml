@@ -3,6 +3,7 @@ colors:
   primary:        "#86BC25"   # Deloitte lime green
   primary_dark:   "#5C8018"
   secondary:      "#0076A8"   # Deloitte blue
+  accent:         "#F2A735"   # universal "accent" alias — warm contrast to greens/blues
   surface:        "#F5F5F3"
   surface_tinted: "#EDF4D9"
   panel:          "#D8EDB5"

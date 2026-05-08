@@ -10,9 +10,126 @@ disclaimer:
 
 # Authoring fills and sidecars
 
-This guide explains how to fill a slide-template pattern with
-content and how to author a sidecar when the default schema isn't
-expressive enough.
+This guide covers two distinct workflows:
+
+- **A. Filling a pattern** (per-render task, performed by humans
+  *or* AI agents on every slide they produce). Pure CLI, no Python.
+- **B. Authoring a sidecar** (rare maintainer task, performed once
+  per pattern that needs a richer fill shape than the defaults).
+
+If you're an AI agent producing a deck, you almost always want
+section A. Skip to it.
+
+---
+
+## Section A — Filling a pattern (CLI-only workflow)
+
+The fill workflow has four CLI verbs, ordered by the agent's loop:
+
+| Verb | Purpose |
+|---|---|
+| `framegraph patterns list [--has-sidecar] [--json]` | Discover available patterns. `--has-sidecar` filters to patterns with a curated example. `--json` emits machine-readable records. |
+| `framegraph patterns show <id>` | Print one pattern's zones, content_types, sizes, placements, and whether a sidecar exists. |
+| `framegraph patterns example <id> [-o fill.yml] [--format=yaml\|json]` | Emit the sidecar's curated `example_fill` as a flat `{role: content}` payload — exactly the shape `patterns build --fill` expects. |
+| `framegraph patterns build <id> --fill content.yml [-o out.svg]` | Validate the fill against the pattern's effective schema (default + sidecar overrides) and render to SVG. |
+
+### Agent recipe — render one slide from a curated example
+
+```sh
+framegraph patterns example 10 -o swot.fill.yml
+framegraph patterns build 10 --fill swot.fill.yml -o swot.svg
+```
+
+That's the entire happy path. No Python glue.
+
+### Agent recipe — render an entire deck from sidecar examples
+
+```sh
+framegraph patterns deck --pdf -o ./deck-output
+```
+
+Renders every pattern that ships a sidecar `example_fill` into one
+multi-page PDF (and per-page SVGs + per-page fill YAMLs for audit).
+Filter with `--category=consulting` or `--ids=10,44,91`.
+
+### Agent recipe — author a fill from scratch
+
+For a pattern *without* a sidecar (the majority of the catalog):
+
+```sh
+framegraph patterns show 7
+# inspect the zones table; map each role to its content_type's default shape
+# (see `Default content shapes` below)
+$EDITOR my-fill.yml
+framegraph patterns build 7 --fill my-fill.yml -o out.svg
+```
+
+### Fill payload shape (the contract)
+
+A fill file is a **flat top-level mapping** from zone role to
+content. It is *not* a sidecar — it has no `pattern_id`, no
+`zones:` wrapper, no `example_fill:` key.
+
+Sidecar (lives in `static/refs/fills/`):
+
+```yaml
+pattern_id: 10
+zones: {}
+example_fill:
+  strengths: ["Brand", "Team"]
+  weaknesses: ["Mobile UX"]
+  opportunities: ["AI"]
+  threats: ["Macro"]
+```
+
+Fill (what an agent passes to `--fill`):
+
+```yaml
+strengths: ["Brand", "Team"]
+weaknesses: ["Mobile UX"]
+opportunities: ["AI"]
+threats: ["Macro"]
+```
+
+Conflating these is the most common authoring error. `patterns
+example` always emits the latter shape.
+
+### Predictable validation errors
+
+`patterns build` prints `pydantic.ValidationError` on bad fills.
+Common message fragments and their cause:
+
+| Error fragment | Cause | Fix |
+|---|---|---|
+| `extra inputs are not permitted` | Fill has a key not in the pattern's roles | Run `patterns show <id>` and remove the unknown role |
+| `field required` | Fill is missing a required role | Add the missing role with a value matching its content_type |
+| `Input should be a valid string` | Wrong shape for a `list_items` zone (e.g. dict instead of string) | Either the zone is `list[str]` and you sent objects, or the sidecar declares object items and you sent strings — `patterns show` flags the sidecar; the override schema is in the sidecar file |
+| `Input should be a valid list` | Wrong top-level type (e.g. dict for a `list_items` zone) | Wrap the content in a YAML list |
+
+### Discovering the catalog
+
+```sh
+framegraph patterns list                          # all 375
+framegraph patterns list --category=consulting    # filter
+framegraph patterns list --has-sidecar            # only the curated 17
+framegraph patterns list --has-sidecar --json     # machine-readable
+```
+
+For machine consumption (agents wiring patterns into a planner):
+
+```sh
+framegraph patterns list --has-sidecar --json | jq '.[].id'
+```
+
+---
+
+## Section B — Authoring a sidecar (maintainer workflow)
+
+The rest of this document covers when and how to add a sidecar
+under `static/refs/fills/`. This is rare: only do it when the
+default content_type-derived schema is genuinely too loose for
+agents to produce useful content, or when a worked example would
+help agents understand the pattern.
 
 ## Concepts
 
@@ -249,24 +366,6 @@ The script:
 Fails loudly if any sidecar is malformed or its example doesn't
 match its declared shape.
 
-## Discovering pattern shapes
-
-To see a pattern's zones and their content_types:
-
-```sh
-framegraph patterns show 44
-```
-
-Output includes the role, content_type, size, and placement of
-every zone — enough for an agent to construct a fill payload
-without reading source.
-
-To list all patterns by category:
-
-```sh
-framegraph patterns list --category=consulting
-```
-
 ## Authoring guidance
 
 | Situation | Default shape works? | Sidecar needed? |
@@ -300,5 +399,30 @@ framegraph patterns list --category=consulting
   Phase 2 sidecar loader and effective-schema builder.
 - [`framegraph/patterns/render.py`](../framegraph/patterns/render.py) —
   Phase 4 pattern-to-SVG renderer bridge.
+- [`framegraph/cli.py`](../framegraph/cli.py) — `patterns list / show /
+  example / build / deck` agent surface.
 - [`static/refs/fills/`](../static/refs/fills/) — the 17 shipped
   sidecars.
+
+## Demonstrating the end-to-end flow
+
+To verify the entire authoring surface in one CLI invocation:
+
+```sh
+framegraph patterns deck --pdf -o ./demo
+# Rendering 17 pattern(s) → ./demo
+#   ✓ pattern  10  SWOT Analysis ...
+#   ✓ pattern  44  Business Model Canvas ...
+#   ...
+#   wrote patterns-deck.pdf  (~2 MB, 17 pages, raster, 150 DPI)
+```
+
+This single command exercises every CLI verb internally: discovers
+sidecared patterns, fetches each `example_fill`, validates it
+against the effective schema, renders the SVG, and assembles the
+multi-page PDF. The output directory contains:
+
+- `patterns-deck.pdf` — the assembled deck.
+- `svgs/<pid>.svg` — one SVG per pattern.
+- `fills/<pid>.fill.yml` — the flat fill payload an agent would
+  write by hand to reproduce the same slide.

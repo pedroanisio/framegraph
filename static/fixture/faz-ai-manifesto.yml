@@ -1,0 +1,456 @@
+dsl: FrameGraph
+version: 1.1
+kind: hybrid-semantic-visual-diagram
+
+scene:
+  id: faz_ai_manifesto_storyboard_v1
+  name: "faz.ai — Manifesto Storyboard"
+  description: "10-slide narrative map. Internal/founder-aligned audience, ~20 min. Defends faz.ai's values commitments at every quarterly review for ten years. Ask: adopt the values, refuse to ship the alternatives."
+  canvas:
+    size: [960, 660]
+    units: px
+  rendering_contract:
+    coordinate_mode: absolute
+    preserve_manual_line_breaks: true
+    text: {min_font_size: 7, overflow: shrink_to_fit}
+    semantics: {decorative_objects_may_omit_bind: true}
+    # ── HD render polish ─────────────────────────────────────────────
+    render_quality: hd        # adds shape-rendering / text-rendering hints
+    hairline_guard: true      # promote sub-px strokes to hairline_min
+    hairline_min: 0.75
+
+semantic:
+  ontology:
+    node_types:
+      Slide: {meaning: "A slide in the faz.ai manifesto deck."}
+    edge_types:
+      FlowsTo: {meaning: "Narrative sequence.", directionality: directed}
+  nodes:
+    - {id: sl.01, type: Slide, label: "Cover"}
+    - {id: sl.02, type: Slide, label: "The world we refuse to accept"}
+    - {id: sl.03, type: Slide, label: "What we will not be"}
+    - {id: sl.04, type: Slide, label: "The reframe — achievement, not workforce"}
+    - {id: sl.05, type: Slide, label: "The commitments only we can make"}
+    - {id: sl.06, type: Slide, label: "The relationship structure"}
+    - {id: sl.07, type: Slide, label: "AI says No"}
+    - {id: sl.08, type: Slide, label: "The voice"}
+    - {id: sl.09, type: Slide, label: "What we refuse to ship"}
+    - {id: sl.10, type: Slide, label: "The founder commitment"}
+  edges:
+    - {id: e.01_02, type: FlowsTo, from: sl.01, to: sl.02}
+    - {id: e.02_03, type: FlowsTo, from: sl.02, to: sl.03}
+    - {id: e.03_04, type: FlowsTo, from: sl.03, to: sl.04}
+    - {id: e.04_05, type: FlowsTo, from: sl.04, to: sl.05}
+    - {id: e.05_06, type: FlowsTo, from: sl.05, to: sl.06}
+    - {id: e.06_07, type: FlowsTo, from: sl.06, to: sl.07}
+    - {id: e.07_08, type: FlowsTo, from: sl.07, to: sl.08}
+    - {id: e.08_09, type: FlowsTo, from: sl.08, to: sl.09}
+    - {id: e.09_10, type: FlowsTo, from: sl.09, to: sl.10}
+
+visual:
+  tokens:
+    colors:
+      # Phase backgrounds — warm-cream / sage / cool-grey progression
+      phase1_bg:   "#FBF1E8"      # the problem — warm
+      phase2_bg:   "#EEF4EE"      # the commitment — sage
+      phase3_bg:   "#EDEEF2"      # the proof — cool
+      page_bg:     "#F4F2EE"      # warm cream (matches faz.ai UI)
+      header_bg:   "#1A1A1A"
+      footer_bg:   "#2C2C2A"
+      white:       "#FFFFFF"
+      text:        "#1A1A1A"
+      text_muted:  "#888780"
+      card_bdr:    "#D0CEC8"
+      divider:     "#D0CEC8"
+      ph1_text:    "#9A4D2C"      # brand rust — phase 1 label
+      ph2_text:    "#2A5A3A"      # deep sage — phase 2 label
+      ph3_text:    "#3A4566"      # cool slate — phase 3 label
+      arr:         "#B4B2A9"
+      star_gold:   "#C99000"
+      star_fill:   "#FFF8DC"
+      # Card accent palette (per-phase rust → sage → slate)
+      accent_problem:    "#9A4D2C"
+      accent_rejection:  "#7A3A1F"
+      accent_reframe:    "#3D7A4D"
+      accent_commit:     "#2A5A3A"
+      accent_structure:  "#4A6651"
+      accent_mechanism:  "#1F3D29"
+      accent_voice:      "#5A4D7A"
+      accent_taboo:      "#3A4566"
+      accent_close:      "#1A2D4A"
+
+    fonts:
+      # HD type stack: prefer Inter when installed, fall back through
+      # high-quality system stack to Arial as last resort. Covers macOS,
+      # Windows, Linux, and modern browsers without web-font load.
+      primary: "Inter, 'Inter Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+
+    text_styles:
+      hdr_title:
+        font: primary
+        size: 13
+        weight: 700
+        color: white
+        align: left
+        line_height: 16
+      hdr_sub:
+        font: primary
+        size: 9
+        weight: 400
+        color: "#888780"
+        align: right
+        line_height: 12
+      ph_label:
+        font: primary
+        size: 8
+        weight: 700
+        color: ph1_text
+        align: left
+      ph_label_2:
+        font: primary
+        size: 8
+        weight: 700
+        color: ph2_text
+        align: left
+      ph_label_3:
+        font: primary
+        size: 8
+        weight: 700
+        color: ph3_text
+        align: left
+      ph_meta:
+        font: primary
+        size: 8
+        weight: 400
+        color: text_muted
+        align: right
+        italic: true
+      card_num:
+        font: primary
+        size: 10
+        weight: 700
+        color: text_muted
+        align: left
+      card_layout:
+        font: primary
+        size: 8
+        weight: 400
+        color: text_muted
+        align: right
+      card_title:
+        font: primary
+        size: 10
+        weight: 700
+        color: text
+        align: left
+        line_height: 13
+      card_role:
+        font: primary
+        size: 8
+        weight: 400
+        color: text_muted
+        align: left
+      footer_txt:
+        font: primary
+        size: 8
+        weight: 400
+        color: "#888780"
+        align: left
+      footer_right:
+        font: primary
+        size: 8
+        weight: 400
+        color: "#888780"
+        align: right
+      star_badge:
+        font: primary
+        size: 8
+        weight: 700
+        color: star_gold
+        align: center
+
+    stroke_styles:
+      flow:
+        color: arr
+        width: 1.0
+        arrow_end: true
+      card_border:
+        color: card_bdr
+        width: 0.5
+      divider_line:
+        color: divider
+        width: 0.5
+
+  symbols:
+    s_card:
+      box: [0, 0, 170, 142]
+      slots: [num, short_title, role_text, layout_icon]
+      objects:
+        - type: rect
+          id: bg
+          box: [0, 0, 170, 142]
+          fill: white
+          stroke: {color: "#D0CEC8", width: 0.5}
+          shadow: small         # HD: lift cards off the phase band
+        - type: rect
+          id: accent
+          box: [0, 0, 4, 142]
+          fill: "$accent"
+        - type: text
+          id: num_lbl
+          box: [8, 5, 26, 12]
+          text: "$num"
+          style: card_num
+        - type: text
+          id: layout_lbl
+          box: [90, 5, 76, 11]
+          text: "$layout_icon"
+          style: card_layout
+        - type: text
+          id: title_lbl
+          box: [8, 20, 156, 92]
+          text: "$short_title"
+          style: card_title
+        - type: text
+          id: role_lbl
+          box: [8, 124, 156, 13]
+          text: "$role_text"
+          style: card_role
+      ports:
+        center: [85, 71]
+        east:   [170, 71]
+        west:   [0, 71]
+        north:  [85, 0]
+        south:  [85, 142]
+
+  layers:
+
+    # ── Background ──────────────────────────────────────────────────────
+    - id: bg_layer
+      z: 0
+      objects:
+        - {type: rect, id: v.bg, decorative: true, box: [0,0,960,660], fill: page_bg}
+
+    # ── Header ──────────────────────────────────────────────────────────
+    - id: header
+      z: 5
+      objects:
+        - {type: rect, id: v.hdr_bg, decorative: true, box: [0,0,960,44], fill: header_bg}
+        - {type: text, id: v.hdr_t, decorative: true,
+           text: "faz.ai  ·  Manifesto Storyboard",
+           box: [14,0,640,44], style: hdr_title}
+        - {type: text, id: v.hdr_sub, decorative: true,
+           text: "10 slides  ·  ~20 min  ·  internal / founder-aligned  ·  defended at every quarterly review",
+           box: [340,0,606,44], style: hdr_sub}
+
+    # ── Phase bands ──────────────────────────────────────────────────────
+    # Phase 1: y=44–240 (h=196)   Phase 2: y=244–440   Phase 3: y=444–640
+    - id: phases
+      z: 10
+      objects:
+        - {type: rect, id: v.ph1, decorative: true, box: [0,44,960,196], fill: phase1_bg}
+        - {type: rect, id: v.ph2, decorative: true, box: [0,244,960,196], fill: phase2_bg}
+        - {type: rect, id: v.ph3, decorative: true, box: [0,444,960,196], fill: phase3_bg}
+        # Phase divider lines
+        - {type: line, id: v.div12, decorative: true, from: [0,241], to: [960,241], stroke_style: divider_line}
+        - {type: line, id: v.div23, decorative: true, from: [0,441], to: [960,441], stroke_style: divider_line}
+
+    # ── Phase labels ─────────────────────────────────────────────────────
+    - id: phase_labels
+      z: 15
+      objects:
+        - {type: text, id: v.ph1_lbl, decorative: true,
+           text: "PHASE 1  ·  THE PROBLEM",
+           box: [14,47,300,13], style: ph_label}
+        - {type: text, id: v.ph1_meta, decorative: true,
+           text: "~5 min  ·  the world we refuse to accept, and what we will not be",
+           box: [430,47,516,13], style: ph_meta}
+        - {type: text, id: v.ph2_lbl, decorative: true,
+           text: "PHASE 2  ·  THE COMMITMENT",
+           box: [14,247,300,13], style: ph_label_2}
+        - {type: text, id: v.ph2_meta, decorative: true,
+           text: "~10 min  ·  reframe, structural commitments, relationship design, refusal mechanism",
+           box: [350,247,596,13], style: ph_meta}
+        - {type: text, id: v.ph3_lbl, decorative: true,
+           text: "PHASE 3  ·  THE PROOF",
+           box: [14,447,300,13], style: ph_label_3}
+        - {type: text, id: v.ph3_meta, decorative: true,
+           text: "~5 min  ·  the voice made concrete, taboos enumerated, founder line",
+           box: [430,447,516,13], style: ph_meta}
+
+    # ── Flow arrows (within each row) ────────────────────────────────────
+    # Row 1 has 3 cards → 2 arrows. Row 2 has 4 cards → 3 arrows. Row 3 has 3 cards → 2 arrows.
+    # Card mid-y per row: r1=137, r2=335, r3=533
+    # 3-card row positions: x=203, 395, 587 (gap=22)
+    #   arrows from x=373→393 and x=565→585
+    # 4-card row positions: x=107, 299, 491, 683 (gap=22)
+    #   arrows from x=277→297, x=469→489, x=661→681
+    - id: arrows
+      z: 20
+      objects:
+        # Row 1  (y=137) — 3 cards, 2 arrows
+        - {type: line, id: v.a.r1_1, decorative: true, from: [373,137], to: [393,137], stroke_style: flow}
+        - {type: line, id: v.a.r1_2, decorative: true, from: [565,137], to: [585,137], stroke_style: flow}
+        # Row 2  (y=335) — 4 cards, 3 arrows
+        - {type: line, id: v.a.r2_1, decorative: true, from: [277,335], to: [297,335], stroke_style: flow}
+        - {type: line, id: v.a.r2_2, decorative: true, from: [469,335], to: [489,335], stroke_style: flow}
+        - {type: line, id: v.a.r2_3, decorative: true, from: [661,335], to: [681,335], stroke_style: flow}
+        # Row 3  (y=533) — 3 cards, 2 arrows
+        - {type: line, id: v.a.r3_1, decorative: true, from: [373,533], to: [393,533], stroke_style: flow}
+        - {type: line, id: v.a.r3_2, decorative: true, from: [565,533], to: [585,533], stroke_style: flow}
+
+    # ── Slide cards ──────────────────────────────────────────────────────
+    # Card layout: 170×142 px
+    # Row 1 (Phase 1, 3 cards):  x = 203, 395, 587  ·  y=66
+    # Row 2 (Phase 2, 4 cards):  x = 107, 299, 491, 683  ·  y=264
+    # Row 3 (Phase 3, 3 cards):  x = 203, 395, 587  ·  y=462
+    - id: cards
+      z: 30
+      objects:
+        # ── ROW 1: PHASE 1 — The Problem ─────────────────────────────
+        - type: use
+          id: v.card.01
+          bind: sl.01
+          symbol: s_card
+          box: [203, 66, 170, 142]
+          num: "01"
+          short_title: "faz.ai\nThe achievement layer\nfor operators who want\ntheir life back"
+          role_text: "OPENING  ·  brand"
+          layout_icon: "[COVER]"
+          params: {accent: "#1A1A1A"}
+
+        - type: use
+          id: v.card.02
+          bind: sl.02
+          symbol: s_card
+          box: [395, 66, 170, 142]
+          num: "02"
+          short_title: "47-second attention.\n95% pilot failure.\n43-pt perception gap.\nAI is making it worse."
+          role_text: "DIAGNOSTIC  ·  the world"
+          layout_icon: "[STATS]"
+          params: {accent: "#9A4D2C"}
+
+        - type: use
+          id: v.card.03
+          bind: sl.03
+          symbol: s_card
+          box: [587, 66, 170, 142]
+          num: "03"
+          short_title: "Engagement-maximizing\nAI is the disease,\nnot the cure.\nWe will not ship that."
+          role_text: "REJECTION  ·  stance"
+          layout_icon: "[ANTI]"
+          params: {accent: "#7A3A1F"}
+
+        # ── ROW 2: PHASE 2 — The Commitment ──────────────────────────
+        - type: use
+          id: v.card.04
+          bind: sl.04
+          symbol: s_card
+          box: [107, 264, 170, 142]
+          num: "04"
+          short_title: "Workforce is the means.\nAchievement is the end.\nCognition offload over\ntask processing."
+          role_text: "REFRAME  ·  positioning"
+          layout_icon: "[FRAME]"
+          params: {accent: "#3D7A4D"}
+
+        - type: use
+          id: v.card.05
+          bind: sl.05
+          symbol: s_card
+          box: [299, 264, 170, 142]
+          num: "05"
+          short_title: "Privacy posture.\nAnti-engagement UX.\nWork-life merge.\nRefusal as feature."
+          role_text: "COMMITMENTS  ·  what only we can"
+          layout_icon: "[GRID]"
+          params: {accent: "#2A5A3A"}
+
+        - type: use
+          id: v.card.06
+          bind: sl.06
+          symbol: s_card
+          box: [491, 264, 170, 142]
+          num: "06"
+          short_title: "User has agency\nover workers.\nSystem is constitutional.\nCancel-subscription is real."
+          role_text: "STRUCTURE  ·  authority"
+          layout_icon: "[STACK]"
+          params: {accent: "#4A6651"}
+
+        - type: use
+          id: v.card.07
+          bind: sl.07
+          symbol: s_card
+          box: [683, 264, 170, 142]
+          num: "07"
+          short_title: "Four-layer cascade.\nThree refusal tiers.\nNo is No.\nSleep on it. Or leave."
+          role_text: "MECHANISM  ·  AI says No"
+          layout_icon: "[CASCADE]"
+          params: {accent: "#1F3D29"}
+
+        # ── ROW 3: PHASE 3 — The Proof ───────────────────────────────
+        - type: use
+          id: v.card.08
+          bind: sl.08
+          symbol: s_card
+          box: [203, 462, 170, 142]
+          num: "08"
+          short_title: "\"You've done enough\nthinking today.\"\n\"faz is working.\nYou are resting.\""
+          role_text: "VOICE  ·  proof"
+          layout_icon: "[QUOTE]"
+          params: {accent: "#5A4D7A"}
+
+        - type: use
+          id: v.card.09
+          bind: sl.09
+          symbol: s_card
+          box: [395, 462, 170, 142]
+          num: "09"
+          short_title: "No dark patterns.\nNo training without consent.\nNo soft-refusal that relents.\nNo hidden Core."
+          role_text: "DISCIPLINE  ·  taboos"
+          layout_icon: "[LIST]"
+          params: {accent: "#3A4566"}
+
+        - type: use
+          id: v.card.10
+          bind: sl.10
+          symbol: s_card
+          box: [587, 462, 170, 142]
+          num: "10"
+          short_title: "I will model\nthe AI to\nsay No."
+          role_text: "COMMITMENT  ·  founder line"
+          layout_icon: "[CLOSE]"
+          params: {accent: "#1A2D4A"}
+
+    # ── Star moment highlight + annotation ───────────────────────────────
+    # Star: card 08 — the voice slide. Where abstract values become concrete prose
+    # the reader can feel. Most viscerally compelling slide in the manifesto.
+    # Card 08 at (203, 462) — gold ring + badge
+    - id: star_layer
+      z: 35
+      objects:
+        - type: rect
+          id: v.star_ring
+          decorative: true
+          box: [201, 460, 174, 146]
+          fill: none
+          stroke:
+            color: "#C99000"
+            width: 2.5
+          glow: medium           # HD: soft gold halo around the star moment
+        - type: text
+          id: v.star_badge
+          decorative: true
+          text: "★  STAR MOMENT"
+          box: [203, 447, 170, 12]
+          style: star_badge
+
+    # ── Footer ───────────────────────────────────────────────────────────
+    - id: footer
+      z: 40
+      objects:
+        - {type: rect, id: v.ftr_bg, decorative: true, box: [0,640,960,20], fill: footer_bg}
+        - {type: text, id: v.ftr_l, decorative: true,
+           text: "faz.ai  ·  The achievement layer for operators  ·  Manifesto v0.1",
+           box: [14,640,460,20], style: footer_txt}
+        - {type: text, id: v.ftr_r, decorative: true,
+           text: "Defended at every quarterly review  ·  For the next ten years",
+           box: [460,640,486,20], style: footer_right}

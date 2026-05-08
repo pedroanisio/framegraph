@@ -136,19 +136,96 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
     else:
         h_pad = v_pad = fnum(pad_raw)
 
-    # Row heights — uniform, with optional override for the header
+    # Row heights — uniform, with optional override for the header.
+    #
+    # When no explicit `row_height` is given, the row height auto-sizes
+    # to a content-driven natural value (≈ body font-size × 2.5) and
+    # only stretches to fill `bh` when that natural value would leave
+    # the rows shorter than the available space *and* there's a header.
+    # This avoids the failure mode where 3 rows of short text get
+    # 110px each on a tall card. Authors who want the "fill the box"
+    # behavior can pass `row_height: <px>` explicitly.
     n_body_rows = len(rows)
     has_header = bool(header)
     row_h_explicit = obj.get("row_height")
     header_h_explicit = obj.get("header_height")
 
-    # Distribute height across header + body rows when no explicit value
-    if row_h_explicit is None:
-        denom = n_body_rows + (1 if has_header else 0)
-        row_h = bh / denom if denom > 0 else bh
+    # Row height is uniform when explicit; otherwise *per-row* heights
+    # are derived from the measured number of wrapped lines each row
+    # needs. This keeps short rows tight and grows tall rows enough
+    # to contain wrapped content without colliding with the next row.
+    # The renderer's `_str_width` is the wrap oracle; same 8% safety
+    # margin as `_emit_cell_text`.
+    body_size_default = fnum(
+        (style.get("body_text_style") or {}).get("size")
+        if isinstance(style.get("body_text_style"), Mapping)
+        else None,
+        11,
+    )
+    body_line_h = body_size_default * 1.3
+    header_size_default = fnum(
+        (style.get("header_text_style") or {}).get("size")
+        if isinstance(style.get("header_text_style"), Mapping)
+        else None,
+        12,
+    )
+    header_line_h = header_size_default * 1.3
+
+    def _measure_lines(text: str, font_size: float, col_w: float) -> int:
+        """Count wrapped lines a cell's text needs at the given column width."""
+        if not text:
+            return 1
+        avail = max(1.0, col_w - 2 * h_pad) * 0.92
+        n = 0
+        for paragraph in text.split("\n"):
+            words = paragraph.split()
+            if not words:
+                n += 1
+                continue
+            line = ""
+            for w in words:
+                test = (line + " " + w).strip()
+                if line and r._str_width(test, font_size, False) > avail:
+                    n += 1
+                    line = w
+                else:
+                    line = test
+            if line:
+                n += 1
+        return max(1, n)
+
+    def _row_height(cells: list[Any], font_size: float, line_h: float) -> float:
+        max_lines = 1
+        for i in range(n_cols):
+            if i < len(cells):
+                cell = _normalize_cell(cells[i])
+                cell_text = str(cell.get("text", ""))
+                max_lines = max(
+                    max_lines, _measure_lines(cell_text, font_size, col_widths[i])
+                )
+        return max_lines * line_h + 2 * v_pad
+
+    row_h_explicit = obj.get("row_height")
+    header_h_explicit = obj.get("header_height")
+
+    if row_h_explicit is not None:
+        # Author-pinned uniform row height.
+        uniform_h = fnum(row_h_explicit)
+        body_row_heights = [uniform_h] * n_body_rows
     else:
-        row_h = fnum(row_h_explicit)
-    header_h = fnum(header_h_explicit) if header_h_explicit is not None else row_h
+        body_row_heights = [
+            _row_height(row, body_size_default, body_line_h) for row in rows
+        ]
+    if header_h_explicit is not None:
+        header_h = fnum(header_h_explicit)
+    elif has_header:
+        header_h = _row_height(list(header), header_size_default, header_line_h)
+    else:
+        header_h = 0.0
+
+    row_h = (
+        sum(body_row_heights) / len(body_row_heights) if body_row_heights else 0.0
+    )
 
     # Style defaults
     border_color = r.color(style.get("border_color", "#D0CEC8"), "#D0CEC8")
@@ -169,6 +246,11 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
         style.get("body_text_style"),
         {"size": 11, "weight": 400, "color": "#1A1A1A", "align": cell_align},
     )
+
+    # Render is faithful: rows draw at the styles the planner gave
+    # us. No shrink, no truncation, no constraint reporting from
+    # here. The layout planner is the sole decision-maker for
+    # geometry and typography scale.
 
     out = [f"<g {attrs(r.group_attrs(obj))}>"]
 
@@ -198,16 +280,23 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
                     h_pad,
                     v_pad,
                     header_text_style,
+                    estimate_width=r._str_width,
                 )
             x_cursor += cw
         y += header_h
 
     # ── Body rows ──
+    # Render every row the author declared. Auto-shrink above
+    # already attempted to fit content via typography compression;
+    # if rows still overflow the box, the constraint report has
+    # been emitted and the operator can decide. The render itself
+    # is faithful — no row is dropped.
     for row_idx, row in enumerate(rows):
+        rh = body_row_heights[row_idx] if row_idx < len(body_row_heights) else row_h
         row_fill = zebra_fill if (zebra_on and row_idx % 2 == 1) else body_fill_default
         if row_fill and row_fill != "none":
             out.append(
-                f'<rect x="{fmt(bx)}" y="{fmt(y)}" width="{fmt(bw)}" height="{fmt(row_h)}" '
+                f'<rect x="{fmt(bx)}" y="{fmt(y)}" width="{fmt(bw)}" height="{fmt(rh)}" '
                 f'fill="{row_fill}"/>'
             )
         x_cursor = bx
@@ -221,13 +310,14 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
                     x_cursor,
                     y,
                     cw,
-                    row_h,
+                    rh,
                     h_pad,
                     v_pad,
                     body_text_style,
+                    estimate_width=r._str_width,
                 )
             x_cursor += cw
-        y += row_h
+        y += rh
 
     # ── Borders ──
     # Outer frame
@@ -265,12 +355,13 @@ def _emit_cell_text(
     h_pad: float,
     v_pad: float,
     base_style: dict[str, Any],
+    estimate_width: Any = None,
 ) -> None:
     """Emit a single cell's `<text>` element honouring per-cell overrides.
 
     Per-cell `style` mapping merges over `base_style`. `align` may be
-    `left` / `center` / `right`. Text is vertically centered in the
-    cell box.
+    `left` / `center` / `right`. Long text wraps to the cell's
+    available width and the text block is vertically centered.
     """
     text = str(cell.get("text", ""))
     cell_style = dict(base_style)
@@ -293,22 +384,56 @@ def _emit_cell_text(
         anchor = "start"
 
     size = fnum(cell_style.get("size"), 11)
-    # Vertically center: baseline = top + (rh + size) / 2  approximates
-    # cap-height-aware vertical centering well enough for body text.
-    ty = y + (rh + size * 0.7) / 2
+    weight = str(cell_style.get("weight", 400))
+    bold = weight in ("700", "bold", "bolder")
+    line_h = fnum(cell_style.get("line_height"), size * 1.3)
+    avail_w = max(1.0, cw - 2 * h_pad)
 
-    a: dict[str, Any] = {
-        "x": fmt(tx),
-        "y": fmt(ty),
+    # Wrap text into lines that fit `avail_w`. The width estimator
+    # tends to undercount; trim 8% off avail_w as a safety margin so
+    # rendered glyphs stay clear of the next column's separator.
+    safe_w = avail_w * 0.92
+    lines: list[str] = []
+    if estimate_width is not None and text:
+        for paragraph in text.split("\n"):
+            words = paragraph.split()
+            if not words:
+                lines.append("")
+                continue
+            line = ""
+            for w in words:
+                test = (line + " " + w).strip()
+                if line and estimate_width(test, size, bold) > safe_w:
+                    lines.append(line)
+                    line = w
+                else:
+                    line = test
+            if line:
+                lines.append(line)
+    else:
+        lines = [text]
+
+    # Vertical centering: stack of N lines, total height = N * line_h,
+    # first baseline = y + (rh - N * line_h) / 2 + size * 0.78.
+    n = max(1, len(lines))
+    block_h = n * line_h
+    baseline_y = y + max(v_pad, (rh - block_h) / 2) + size * 0.78
+
+    a_base: dict[str, Any] = {
         "font-family": str(cell_style.get("font", "Helvetica, Arial, sans-serif")),
         "font-size": fmt(size),
-        "font-weight": str(cell_style.get("weight", 400)),
+        "font-weight": weight,
         "fill": str(cell_style.get("color", "#1A1A1A")),
         "text-anchor": anchor,
     }
     if cell_style.get("italic"):
-        a["font-style"] = "italic"
-    out.append(f"<text {attrs(a)}>{esc(text)}</text>")
+        a_base["font-style"] = "italic"
+
+    for i, ln in enumerate(lines):
+        a = dict(a_base)
+        a["x"] = fmt(tx)
+        a["y"] = fmt(baseline_y + i * line_h)
+        out.append(f"<text {attrs(a)}>{esc(ln)}</text>")
 
 
 RENDERERS = {

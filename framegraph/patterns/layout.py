@@ -77,7 +77,10 @@ from framegraph._patterns import (
 
 __all__ = [
     "Box",
+    "LayoutPlan",
+    "LayoutReport",
     "compute_boxes",
+    "compute_layout_plan",
 ]
 
 
@@ -93,6 +96,297 @@ Box = tuple[float, float, float, float]
 
 _H_INDEX = {"left": 0, "center": 1, "right": 2}
 _V_INDEX = {"top": 0, "middle": 1, "bottom": 2}
+
+
+# ─────────────────────────────────────────────────────────────────
+# AnchorGrid — universal NxM partition derived from used anchors
+# ─────────────────────────────────────────────────────────────────
+
+
+class _AnchorGrid:
+    """The rectilinear partition implied by a pattern's anchor zones.
+
+    A pattern declares each zone's anchor as one of nine ``(h, v)``
+    positions — ``(left|center|right) × (top|middle|bottom)``. The
+    grid this implies is **not** a fixed 3×3; it is the cross product
+    of the *unique* h-coordinates and v-coordinates the pattern
+    actually uses, expanded to cover any spans. SWOT's four corner
+    anchors imply a 2×2 partition; a one-row 3-up implies a 1×3; the
+    full 9-block BMC implies a 3×3.
+
+    Cells fill the inner canvas (canvas minus outer margin) with
+    equal-sized columns and rows separated by gutters of one margin.
+
+    The grid is total over the pattern's anchor cells (every used
+    ``(h, v)`` resolves to a cell). Asking for an unused ``(h, v)``
+    raises KeyError — by construction no caller does.
+    """
+
+    __slots__ = (
+        "cols",
+        "rows",
+        "_col_x",
+        "_col_w",
+        "_row_y",
+        "_row_h",
+        "_margin",
+    )
+
+    def __init__(
+        self,
+        cols: list[str],
+        rows: list[str],
+        col_x: list[float],
+        col_w: list[float],
+        row_y: list[float],
+        row_h: list[float],
+        margin: float,
+    ) -> None:
+        self.cols = cols
+        self.rows = rows
+        self._col_x = col_x
+        self._col_w = col_w
+        self._row_y = row_y
+        self._row_h = row_h
+        self._margin = margin
+
+    @classmethod
+    def from_zones(
+        cls,
+        zones: list[PatternZone],
+        canvas_w: float,
+        canvas_h: float,
+        margin: float,
+        fill: BaseModel | None = None,
+    ) -> "_AnchorGrid":
+        """Derive the partition from the union of anchor coordinates.
+
+        Two universal rules apply:
+
+        1. **Used coordinates only.** The grid's columns and rows are
+           the unique (h, v) values the pattern's anchors actually
+           use, expanded by spans. Unused axes don't appear, so dead
+           bands never exist.
+
+        2. **Weighted by demand.** Column widths are proportional to
+           the maximum content density across all cells in that
+           column (and analogously for row heights). A column whose
+           cell holds two table-data zones gets more width than a
+           column whose cell holds one short list. Without this rule,
+           equal-width columns force same-cell siblings to fight over
+           too narrow a slice; with it, demand follows usage.
+
+        Without any zones the grid degenerates to a 1×1 covering the
+        full inner canvas.
+        """
+        used_cols: set[str] = set()
+        used_rows: set[str] = set()
+        # cell_demand_w / cell_demand_h: per-cell width / height
+        # demand from each zone, indexed by (col, row).
+        cell_demand_w: dict[tuple[str, str], list[float]] = {}
+        cell_demand_h: dict[tuple[str, str], list[float]] = {}
+        for z in zones:
+            place = z.placement
+            if not isinstance(place, Anchor) or place.fullbleed:
+                continue
+            assert place.h is not None and place.v is not None
+            col = _H_INDEX[place.h]
+            row = _V_INDEX[place.v]
+            cells_for_zone: list[tuple[str, str]] = []
+            for c in range(col, min(3, col + max(1, z.span.h))):
+                used_cols.add(_inv(_H_INDEX, c))
+                for r in range(row, min(3, row + max(1, z.span.v))):
+                    used_rows.add(_inv(_V_INDEX, r))
+                    cells_for_zone.append((_inv(_H_INDEX, c), _inv(_V_INDEX, r)))
+            w_demand = _density_weight(z, fill)
+            h_demand = _row_demand_weight(z, fill)
+            for cell_key in cells_for_zone:
+                cell_demand_w.setdefault(cell_key, []).append(w_demand)
+                cell_demand_h.setdefault(cell_key, []).append(h_demand)
+
+        cols = sorted(used_cols, key=lambda c: _H_INDEX[c]) or ["left"]
+        rows = sorted(used_rows, key=lambda r: _V_INDEX[r]) or ["top"]
+
+        # Per-column width demand. For columns whose cells contain
+        # siblings that will stack vertically (wide-content types),
+        # the column-width demand is the *max* across siblings (not
+        # sum) since they share full width. For horizontally-split
+        # siblings, sum applies.
+        wide_types = {"table_data", "chart_data", "list_items"}
+        col_weight: list[float] = []
+        for col in cols:
+            best = 0.0
+            for row in rows:
+                key = (col, row)
+                widths = cell_demand_w.get(key, [])
+                # Look at the actual zones in this cell to decide
+                # split vs. stack.
+                zones_here = [
+                    z
+                    for z in zones
+                    if isinstance(z.placement, Anchor)
+                    and not z.placement.fullbleed
+                    and z.placement.h == col
+                    and z.placement.v == row
+                ]
+                n_wide = sum(
+                    1 for z in zones_here if (z.content_type or "") in wide_types
+                )
+                stacks = n_wide >= (len(zones_here) + 1) // 2
+                if not widths:
+                    cell_w = 0.0
+                else:
+                    cell_w = (max(widths) if stacks else sum(widths)) or 1.0
+                best = max(best, cell_w)
+            col_weight.append(best)
+
+        # Per-row height demand. Stacking siblings need the SUM of
+        # their heights (each gets full width but its own row slot);
+        # split siblings need only the max (they share row height).
+        row_weight: list[float] = []
+        for row in rows:
+            best = 0.0
+            for col in cols:
+                key = (col, row)
+                heights = cell_demand_h.get(key, [])
+                zones_here = [
+                    z
+                    for z in zones
+                    if isinstance(z.placement, Anchor)
+                    and not z.placement.fullbleed
+                    and z.placement.h == col
+                    and z.placement.v == row
+                ]
+                n_wide = sum(
+                    1 for z in zones_here if (z.content_type or "") in wide_types
+                )
+                stacks = n_wide >= (len(zones_here) + 1) // 2 and len(zones_here) > 1
+                cell_h = (sum(heights) if stacks else (max(heights) if heights else 0.0))
+                best = max(best, cell_h)
+            row_weight.append(best or 1.0)
+
+        n_cols = len(cols)
+        n_rows = len(rows)
+        inner_w = canvas_w - 2 * margin
+        inner_h = canvas_h - 2 * margin
+        avail_w = inner_w - (n_cols - 1) * margin
+        avail_h = inner_h - (n_rows - 1) * margin
+
+        total_cw = sum(col_weight) or 1.0
+        total_rw = sum(row_weight) or 1.0
+        col_w = [avail_w * (w / total_cw) for w in col_weight]
+        row_h = [avail_h * (w / total_rw) for w in row_weight]
+
+        # Enforce minimum row heights up to the available canvas
+        # height — but never push the layout *past* the canvas
+        # surface the deck reserved. When the natural floors fit
+        # within `avail_h`, raise short rows to their floor and
+        # shrink over-allocated rows proportionally to absorb the
+        # difference. When floors exceed `avail_h`, allocate every
+        # row its weighted share of `avail_h` (so cards always stay
+        # inside the slide's content area) and let the renderer
+        # auto-shrink + report violations from there.
+        row_min_h: list[float] = []
+        for row in rows:
+            best_min = 0.0
+            for col in cols:
+                zones_here = [
+                    z
+                    for z in zones
+                    if isinstance(z.placement, Anchor)
+                    and not z.placement.fullbleed
+                    and z.placement.h == col
+                    and z.placement.v == row
+                ]
+                if not zones_here:
+                    continue
+                wide_types = {"table_data", "chart_data", "list_items"}
+                n_wide = sum(
+                    1 for z in zones_here if (z.content_type or "") in wide_types
+                )
+                stacks = (
+                    n_wide >= (len(zones_here) + 1) // 2 and len(zones_here) > 1
+                )
+                if stacks:
+                    cell_min = sum(_min_natural_height(z, fill) for z in zones_here)
+                    cell_min += (len(zones_here) - 1) * (margin / 2)
+                else:
+                    cell_min = max(_min_natural_height(z, fill) for z in zones_here)
+                best_min = max(best_min, cell_min)
+            row_min_h.append(best_min)
+
+        # Apply floors when they fit; otherwise scale them down
+        # proportionally so the *whole* layout fits within `avail_h`.
+        # The render layer handles further shrinking and reporting.
+        total_min = sum(row_min_h)
+        if total_min <= avail_h:
+            # Fit comfortably. Raise short rows to their floor and
+            # rebalance the surplus across over-weighted rows.
+            for i in range(n_rows):
+                if row_h[i] < row_min_h[i]:
+                    row_h[i] = row_min_h[i]
+            overshoot = sum(row_h) - avail_h
+            if overshoot > 0:
+                # Shrink rows that are above their floor by the
+                # overshoot, weighted by their headroom.
+                headroom = [max(0.0, row_h[i] - row_min_h[i]) for i in range(n_rows)]
+                total_head = sum(headroom)
+                if total_head > 0:
+                    for i in range(n_rows):
+                        row_h[i] -= overshoot * (headroom[i] / total_head)
+        else:
+            # Floors exceed the canvas. Allocate every row a
+            # proportional share of `avail_h` so cards stay in
+            # bounds; the renderer's auto-shrink + constraint report
+            # tells the operator which zones got squeezed.
+            scale = avail_h / total_min
+            for i in range(n_rows):
+                row_h[i] = row_min_h[i] * scale
+
+        col_x: list[float] = []
+        x = margin
+        for w in col_w:
+            col_x.append(x)
+            x += w + margin
+        row_y: list[float] = []
+        y = margin
+        for h in row_h:
+            row_y.append(y)
+            y += h + margin
+
+        return cls(cols, rows, col_x, col_w, row_y, row_h, margin)
+
+    def cell(self, h: str, v: str) -> Box:
+        """Return the box for a single ``(h, v)`` cell."""
+        ci = self.cols.index(h)
+        ri = self.rows.index(v)
+        return (self._col_x[ci], self._row_y[ri], self._col_w[ci], self._row_h[ri])
+
+    def span_box(self, h: str, v: str, h_span: int, v_span: int) -> Box:
+        """Return the box covering ``h_span × v_span`` cells starting at ``(h, v)``.
+
+        The span is clamped to the grid's actual extent — a span past
+        the last column collapses to 1 in that axis, never extends
+        beyond the canvas.
+        """
+        ci = self.cols.index(h)
+        ri = self.rows.index(v)
+        h_span = max(1, min(h_span, len(self.cols) - ci))
+        v_span = max(1, min(v_span, len(self.rows) - ri))
+        x = self._col_x[ci]
+        y = self._row_y[ri]
+        # Sum cell widths in the span plus inter-cell gutters.
+        w = sum(self._col_w[ci : ci + h_span]) + (h_span - 1) * self._margin
+        h_box = sum(self._row_h[ri : ri + v_span]) + (v_span - 1) * self._margin
+        return (x, y, w, h_box)
+
+
+def _inv(idx: dict[str, int], v: int) -> str:
+    """Inverse lookup for the H_INDEX / V_INDEX maps."""
+    for k, n in idx.items():
+        if n == v:
+            return k
+    raise KeyError(v)
 
 
 def _grid_cell(
@@ -185,19 +479,128 @@ _BASE_DENSITY: dict[str, float] = {
 }
 
 
+# Multipliers applied on top of _BASE_DENSITY based on the zone's
+# declared visual `size`. A `xl` title or a `full`-bleed image claims
+# more layout space than an `xs` caption, regardless of their
+# content_type. `equal` and `medium` are the neutral baseline; the
+# others scale around them.
+_SIZE_MULTIPLIER: dict[str, float] = {
+    "xs": 0.4,
+    "small": 0.65,
+    "medium": 1.0,
+    "equal": 1.0,
+    "variable": 1.0,
+    "contextual": 1.0,
+    "large": 1.5,
+    "xl": 2.0,
+    "full": 2.5,
+}
+
+
+def _row_demand_weight(zone: PatternZone, fill: BaseModel | None) -> float:
+    """Estimate a zone's relative VERTICAL demand.
+
+    Row heights need a different weighting than column widths: a
+    list with 8 items demands much more vertical space than a list
+    with 2, even if both have the same content_type. This function
+    is the row-height analogue of `_density_weight` (which estimates
+    horizontal demand).
+
+    Without a fill, returns the size multiplier — patterns get
+    unweighted rows. With a fill, refines based on item count for
+    list_items and key_value, and row count for tables.
+    """
+    weight = _SIZE_MULTIPLIER.get(zone.size, 1.0)
+    if fill is None:
+        return weight
+    value = getattr(fill, zone.role, None)
+    if value is None:
+        return weight
+    ct = zone.content_type or "title_body"
+    try:
+        if ct == "list_items":
+            n = len(list(value or []))
+            # Each item ≈ 1 unit; baseline of 2 to avoid zero rows.
+            weight *= max(2.0, float(n))
+        elif ct == "key_value":
+            n = len(dict(value or {}))
+            weight *= max(2.0, float(n))
+        elif ct == "table_data":
+            rows = list(getattr(value, "rows", None) or [])
+            n = len(rows) + (1 if getattr(value, "headers", None) else 0)
+            weight *= max(2.0, float(n))
+        elif ct == "chart_data":
+            weight *= 4.0  # charts need vertical room
+        elif ct in ("title_body", "comparison"):
+            weight *= 2.5
+        elif ct == "metric":
+            weight *= 2.0
+    except (TypeError, AttributeError):
+        pass
+    return weight
+
+
+# Minimum pixel heights per content_type — the layout must guarantee
+# at least this much vertical room per zone, before chrome and card
+# padding. List_items and table_data scale with item count.
+_MIN_BODY_LINE_PX: float = 19.0  # one body line at 14px font with line-height 1.35
+_MIN_CARD_OVERHEAD_PX: float = 36.0  # label band + card padding (top+bottom)
+
+
+def _min_natural_height(zone: PatternZone, fill: BaseModel | None) -> float:
+    """Minimum pixel height a zone needs to render its content honestly.
+
+    This is the floor the layout module must respect — anything less
+    means content is crushed or hidden. The estimate is intentionally
+    conservative; real rendered content may need a bit more, which
+    the renderer accommodates by drawing slightly past the box.
+    """
+    base = _MIN_CARD_OVERHEAD_PX
+    if fill is None:
+        return base + _MIN_BODY_LINE_PX * 2  # default: room for ≈2 lines
+    value = getattr(fill, zone.role, None)
+    ct = zone.content_type or "title_body"
+    if value is None:
+        return base + _MIN_BODY_LINE_PX * 2
+    try:
+        if ct == "list_items":
+            n = max(1, len(list(value or [])))
+            return base + _MIN_BODY_LINE_PX * n
+        if ct == "key_value":
+            n = max(1, len(dict(value or {})))
+            return base + _MIN_BODY_LINE_PX * n
+        if ct == "table_data":
+            rows = list(getattr(value, "rows", None) or [])
+            n = len(rows) + (1 if getattr(value, "headers", None) else 0)
+            # Tables need a bit more per row than a list line.
+            return base + 26.0 * max(1, n)
+        if ct == "chart_data":
+            return base + 120.0
+        if ct in ("title_body", "comparison"):
+            return base + _MIN_BODY_LINE_PX * 4
+        if ct == "metric":
+            return base + 70.0
+    except (TypeError, AttributeError):
+        pass
+    return base + _MIN_BODY_LINE_PX * 2
+
+
 def _density_weight(zone: PatternZone, fill: BaseModel | None) -> float:
     """Estimate a zone's relative width demand.
 
-    Without a fill, returns the base weight for the zone's
-    content_type. When a fill is supplied, refines the estimate
-    using actual content shape: a table with 5 columns claims more
-    width than a table with 2; a list with long items claims more
-    than one with short items.
+    The weight combines three signals:
+
+      1. Base demand for the zone's ``content_type`` (tables claim
+         more than captions).
+      2. The declared visual ``size`` (``xl`` claims more than
+         ``xs``).
+      3. Optional content-aware refinement when ``fill`` is supplied
+         (a 5-column table claims more than a 2-column table).
 
     The function is total: any zone returns a positive float.
     """
     ct = zone.content_type or "title_body"
-    weight = _BASE_DENSITY.get(ct, 1.0)
+    weight = _BASE_DENSITY.get(ct, 1.0) * _SIZE_MULTIPLIER.get(zone.size, 1.0)
 
     if fill is None:
         return weight
@@ -447,44 +850,60 @@ def _density_subdivide(
     fill: BaseModel | None,
     margin: float,
 ) -> list[Box]:
-    """Subdivide a cell among same-cell siblings using density weights.
+    """Subdivide a cell among same-cell siblings.
 
-    When ``fill`` is None or all weights are equal, falls through to
-    the uniform `_subdivide_cell` (Round 1 behavior). Otherwise
-    allocates horizontal width proportional to each zone's density
-    weight.
+    Universal rule:
 
-    The vertical dimension is not subdivided — same-cell siblings
-    always share full cell height (matches the existing
-    horizontal-first subdivision pattern). For ≥4 siblings the
-    fallback to `_subdivide_cell` (which switches to a 2D grid) wins.
+      - **Wide-content siblings** (``table_data``, ``chart_data``,
+        ``list_items``) stack **vertically** — each gets full cell
+        width, sized proportional to its content's vertical demand
+        (so a 7-row table ends up taller than a 2-row sibling).
+      - **Narrow-content siblings** (``metric``, ``axis_label``,
+        short ``title_body``) split **horizontally** by density
+        weight.
+
+    Decision is by majority of zones in the cell. ``n >= 4`` falls
+    through to a uniform 2D grid (Round 1 deterministic behavior).
     """
     n = len(zones_in_cell)
     if n <= 1:
         return [cell]
-    if n >= 4 or fill is None:
-        # Fall through to Round 1 uniform subdivision for ≥4 siblings
-        # and when no fill is supplied (preserves the deterministic
-        # corpus-coverage and BMC golden snapshots).
-        return _subdivide_cell(cell, n, margin)
-
-    weights = [_density_weight(z, fill) for z in zones_in_cell]
-    total = sum(weights)
-    if total <= 0:
-        return _subdivide_cell(cell, n, margin)
-
-    # Detect "all equal" within a small tolerance — fall back to
-    # uniform subdivision for byte-identical Round 1 behavior on
-    # patterns where density agrees with default.
-    if max(weights) - min(weights) < 0.01:
+    if n >= 4:
         return _subdivide_cell(cell, n, margin)
 
     cx, cy, cw, ch = cell
     gutter = margin / 2
-    # n-1 gutters between n cells.
+    wide_types = {"table_data", "chart_data", "list_items"}
+    n_wide = sum(1 for z in zones_in_cell if (z.content_type or "") in wide_types)
+
+    if n_wide >= (n + 1) // 2:
+        # Vertical stack, weighted by row-demand when fill present.
+        weights = (
+            [_row_demand_weight(z, fill) for z in zones_in_cell]
+            if fill is not None
+            else [1.0] * n
+        )
+        total = sum(weights) or 1.0
+        available_h = ch - (n - 1) * gutter
+        boxes: list[Box] = []
+        y = cy
+        for w_i in weights:
+            sub_h = available_h * (w_i / total)
+            boxes.append((cx, y, cw, sub_h))
+            y += sub_h + gutter
+        return boxes
+
+    # Horizontal split for narrow-content siblings.
+    if fill is None:
+        return _subdivide_cell(cell, n, margin)
+    weights = [_density_weight(z, fill) for z in zones_in_cell]
+    total = sum(weights)
+    if total <= 0:
+        return _subdivide_cell(cell, n, margin)
+    if max(weights) - min(weights) < 0.01:
+        return _subdivide_cell(cell, n, margin)
     available_w = cw - (n - 1) * gutter
     sub_widths = [available_w * (w / total) for w in weights]
-
     boxes: list[Box] = []
     x = cx
     for sub_w in sub_widths:
@@ -556,6 +975,30 @@ def compute_boxes(
         boxes[z.role] = _fullbleed(canvas_w, canvas_h, margin)
 
     # ──── Pass 1c: place anchor zones ────
+    #
+    # The anchor grid is **derived from the anchor positions actually
+    # used by the pattern**, not a fixed 3×3. This is the universal
+    # rule: a pattern's grid is its rectilinear partition.
+    #
+    #   SWOT (corners only)          → 2 cols × 2 rows
+    #   2-up comparison (one row)    → 2 cols × 1 row
+    #   3-up trio                    → 3 cols × 1 row
+    #   BMC nine-block               → 3 cols × 3 rows
+    #
+    # We project every anchor zone — including its row/column span
+    # extent — onto the (h, v) coordinate axes, take the union of
+    # used coordinates, sort them, and compute pixel offsets so each
+    # column/row gets a proportional slice of the inner canvas. This
+    # collapses dead space when the pattern doesn't use the full 3×3
+    # grid, while remaining a no-op when it does.
+    grid = _AnchorGrid.from_zones(
+        zones=[z for zs in anchor_buckets.values() for z in zs],
+        canvas_w=canvas_w,
+        canvas_h=canvas_h,
+        margin=margin,
+        fill=fill,
+    )
+
     # When a single zone occupies the cell *and* declares span > 1,
     # use its full spanning box. Otherwise treat as a normal cell
     # and subdivide among same-cell siblings.
@@ -565,14 +1008,12 @@ def compute_boxes(
         # Single-zone cell — honor span.
         if len(zones_in_cell) == 1:
             z = zones_in_cell[0]
-            boxes[z.role] = _grid_span_box(
-                canvas_w, canvas_h, margin, h, v, z.span.h, z.span.v
-            )
+            boxes[z.role] = grid.span_box(h, v, z.span.h, z.span.v)
             continue
 
         # Multi-zone cell — span is guaranteed default (1, 1) by
         # annotation invariant; subdivide.
-        cell = _grid_cell(canvas_w, canvas_h, margin, h, v)
+        cell = grid.cell(h, v)
         sub_boxes = _density_subdivide(cell, zones_in_cell, fill, margin)
         for z, box in zip(zones_in_cell, sub_boxes):
             boxes[z.role] = box
@@ -597,3 +1038,203 @@ def compute_boxes(
             )
 
     return boxes
+
+
+# ─────────────────────────────────────────────────────────────────
+# Layout planner — single decision-maker for geometry + scale
+# ─────────────────────────────────────────────────────────────────
+
+
+class LayoutReport:
+    """Outcome record for one slide's layout pass.
+
+    The planner emits exactly one report per slide. It records:
+
+    - the global typography scale that was applied (1.0 = nominal,
+      < 1.0 = uniformly shrunk),
+    - any zones whose content overflows even at the floor scale, with
+      ``required_h`` / ``available_h`` per zone.
+
+    Render is faithful — it does not look at this. Downstream
+    consumers (deck loader, CLI) read the report to surface honest
+    feedback to the operator.
+    """
+
+    __slots__ = ("scale", "min_scale", "overflows")
+
+    def __init__(
+        self,
+        scale: float,
+        min_scale: float,
+        overflows: list[dict[str, Any]] | None = None,
+    ) -> None:
+        self.scale = scale
+        self.min_scale = min_scale
+        self.overflows = overflows or []
+
+    @property
+    def fits(self) -> bool:
+        """True when no zone overflows at the applied scale."""
+        return not self.overflows
+
+    @property
+    def shrunk(self) -> bool:
+        """True when the planner had to scale typography below 1.0."""
+        return self.scale < 0.999
+
+
+class LayoutPlan:
+    """Result of `compute_layout_plan`: boxes + scale + report.
+
+    Attributes:
+        boxes: Per-zone box mapping ``role → (x, y, w, h)``.
+        scale: Uniform typography scale to apply across the slide.
+            1.0 = nominal stylesheet sizes; smaller values mean every
+            text style on the slide is shrunk by this factor for
+            visual coherence.
+        report: `LayoutReport` carrying scale + per-zone overflow
+            info for the operator.
+    """
+
+    __slots__ = ("boxes", "scale", "report")
+
+    def __init__(
+        self,
+        boxes: dict[str, Box],
+        scale: float,
+        report: LayoutReport,
+    ) -> None:
+        self.boxes = boxes
+        self.scale = scale
+        self.report = report
+
+
+# Floor for global typography scale. Anything below this is unreadable
+# regardless of what the renderer would draw, so the planner caps and
+# reports overflow instead of going further.
+_MIN_GLOBAL_SCALE: float = 0.6
+
+
+def _zone_min_h_at_scale(
+    zone: PatternZone,
+    fill: BaseModel | None,
+    scale: float,
+) -> float:
+    """Estimated minimum pixel height the zone needs at a given scale.
+
+    Layered on top of `_min_natural_height`, applies the planner's
+    uniform scale factor to typography-derived demands. Card chrome
+    (label band, padding) doesn't scale with the global font.
+    """
+    base = _MIN_CARD_OVERHEAD_PX
+    natural = _min_natural_height(zone, fill)
+    text_demand = max(0.0, natural - _MIN_CARD_OVERHEAD_PX)
+    return base + text_demand * scale
+
+
+def _solve_layout_at_scale(
+    pattern: SlidePattern,
+    canvas_w: float,
+    canvas_h: float,
+    margin: float,
+    fill: BaseModel | None,
+    scale: float,
+) -> tuple[dict[str, Box], dict[str, float]]:
+    """Compute boxes for the pattern at the given typography scale.
+
+    Returns ``(boxes, demand_h_by_role)`` where demand is the
+    estimated content-height each zone needs at this scale. The
+    caller compares each ``boxes[role][3]`` to demand to detect
+    overflow.
+    """
+    boxes = compute_boxes(pattern, canvas_w, canvas_h, margin=margin, fill=fill)
+    demand_h = {z.role: _zone_min_h_at_scale(z, fill, scale) for z in pattern.zones}
+    return boxes, demand_h
+
+
+def compute_layout_plan(
+    pattern: SlidePattern,
+    canvas_w: float,
+    canvas_h: float,
+    *,
+    margin: float = 24.0,
+    fill: BaseModel | None = None,
+) -> LayoutPlan:
+    """Plan a slide layout — single decision-maker for geometry + scale.
+
+    Algorithm:
+
+      1. Try the layout at scale = 1.0 (nominal typography).
+      2. If every zone's allocated box height ≥ the zone's
+         estimated content-height demand, return scale = 1.0.
+      3. Otherwise, find the largest scale factor in
+         [_MIN_GLOBAL_SCALE, 1.0] at which all zones fit (binary
+         search to ~0.01 precision).
+      4. If even at the floor scale some zones overflow, return
+         floor scale + a `LayoutReport` listing offenders.
+
+    Renderer downstream applies `scale` uniformly to every text
+    style on the slide. Render itself is faithful — it never
+    decides scale or geometry.
+    """
+    # 1) try nominal
+    boxes, demand = _solve_layout_at_scale(
+        pattern, canvas_w, canvas_h, margin, fill, scale=1.0
+    )
+    overflows_at = lambda boxes, demand: [
+        {
+            "role": role,
+            "required_h": round(demand[role], 1),
+            "available_h": round(box[3], 1),
+        }
+        for role, box in boxes.items()
+        if demand.get(role, 0.0) > box[3] + 0.5
+    ]
+    overflows = overflows_at(boxes, demand)
+    if not overflows:
+        return LayoutPlan(
+            boxes=boxes,
+            scale=1.0,
+            report=LayoutReport(scale=1.0, min_scale=_MIN_GLOBAL_SCALE),
+        )
+
+    # 2) binary-search for the largest fitting scale in [floor, 1.0)
+    lo, hi = _MIN_GLOBAL_SCALE, 1.0
+    best_fit_scale: float | None = None
+    for _ in range(8):  # ~0.005 precision over [0.6, 1.0]
+        mid = (lo + hi) / 2.0
+        b, d = _solve_layout_at_scale(
+            pattern, canvas_w, canvas_h, margin, fill, scale=mid
+        )
+        if not overflows_at(b, d):
+            best_fit_scale = mid
+            lo = mid  # try larger
+        else:
+            hi = mid  # try smaller
+
+    if best_fit_scale is not None:
+        boxes, demand = _solve_layout_at_scale(
+            pattern, canvas_w, canvas_h, margin, fill, scale=best_fit_scale
+        )
+        return LayoutPlan(
+            boxes=boxes,
+            scale=best_fit_scale,
+            report=LayoutReport(
+                scale=best_fit_scale, min_scale=_MIN_GLOBAL_SCALE
+            ),
+        )
+
+    # 3) doesn't fit even at floor — emit boxes at floor and report
+    #    every offending zone so the operator can act.
+    boxes, demand = _solve_layout_at_scale(
+        pattern, canvas_w, canvas_h, margin, fill, scale=_MIN_GLOBAL_SCALE
+    )
+    return LayoutPlan(
+        boxes=boxes,
+        scale=_MIN_GLOBAL_SCALE,
+        report=LayoutReport(
+            scale=_MIN_GLOBAL_SCALE,
+            min_scale=_MIN_GLOBAL_SCALE,
+            overflows=overflows_at(boxes, demand),
+        ),
+    )

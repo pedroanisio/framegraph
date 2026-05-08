@@ -1,35 +1,32 @@
-"""Renderer bridge — pattern + fill + layout → SVG.
+"""Renderer bridge — pattern + fill + layout (+ stylesheet) → SVG.
 
-Phase 4 of the fill-and-render roadmap. This module composes a
-FrameGraph `Document` from a pattern, a validated fill, and a
-computed layout, then drives the existing `FrameGraphRenderer`
-to produce SVG.
+The framework's universal "designed-by-default" promise lives here.
+Every content_type's emitter delegates to one **structured card**
+primitive that lays out its slots — accent_bar, number, label,
+title, body — driven by the stylesheet's `treatments` block. Themes
+swap freely; patterns swap freely; the visual language is constant.
 
-The composition rule per zone:
+Without a stylesheet the composed Document is bare and the renderer
+falls back on its defaults (debug path used by
+`framegraph patterns build`). With a stylesheet, every zone gets
+typography, treatment, and palette resolved by
+`framegraph.patterns.style.resolve_zone_style`.
 
-  - Look up the zone's `content_type`.
-  - Read the corresponding fill content (a Pydantic model
-    instance whose attribute name is the zone's role).
-  - Emit one or more FrameGraph visual objects with the zone's
-    `[x, y, w, h]` box from the layout.
+Architecture
+------------
 
-Per-content_type → object emitter map:
-
-  | content_type | object type   | source fields |
-  |--------------|---------------|----------------|
-  | title_body   | text (spans)  | title (bold) + body |
-  | metric       | text (spans)  | value (large bold) + label |
-  | list_items   | bullet_list   | items as strings (or "label: metric") |
-  | key_value    | bullet_list   | "k: v" pairs |
-  | comparison   | text          | "left  |  right" |
-  | chart_data   | bar_chart     | series passed through |
-  | table_data   | table         | headers + rows passed through |
-  | image        | image         | src, alt |
-  | axis_label   | text          | "{title} ({units})" |
-  | decorative   | rect          | empty bordered box (placeholder) |
-
-Per the roadmap, this bridge does *not* re-implement SVG; it
-delegates to the existing renderer.
+  compose_document(pattern, fill, layout, canvas, stylesheet)
+      │
+      ├── for each pattern.zone:
+      │       resolve style ← stylesheet.roles[]
+      │       _emit_card(zone, value, layout-box, style, stylesheet)
+      │            │
+      │            ├── treatment background rect (+ accent bar)
+      │            ├── slot grid: number / label / title / body
+      │            └── body slot filled by content-type-specific
+      │                 visual (text, bullet_list, table, chart, …)
+      │
+      └── chrome / synthesis layers handled by the deck loader
 """
 
 from __future__ import annotations
@@ -40,6 +37,7 @@ from pydantic import BaseModel
 
 from framegraph._patterns import SlidePattern
 from framegraph.patterns.layout import Box
+from framegraph.patterns.style import Stylesheet, resolve_zone_style
 
 __all__ = [
     "compose_document",
@@ -48,72 +46,31 @@ __all__ = [
 
 
 # ─────────────────────────────────────────────────────────────────
-# Per-content_type emitters
+# Helpers
 # ─────────────────────────────────────────────────────────────────
 
 
 def _content_value(content_obj: Any, role: str) -> Any:
-    """Extract the per-role content from a fill object.
-
-    The fill `content` is a Pydantic model with one attribute per
-    role. We use `getattr` to read it.
-    """
+    """Extract the per-role content from a fill object."""
     return getattr(content_obj, role, None)
 
 
-def _emit_title_body(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
-    title = getattr(value, "title", None) or ""
-    body = getattr(value, "body", None) or ""
-    spans: list[dict[str, Any]] = []
-    if title:
-        spans.append({"text": title, "weight": "bold"})
-    if body:
-        # Two-line approximation: title bold, body plain. Real
-        # multi-line layout is the renderer's job; here we just
-        # supply the spans.
-        if title:
-            spans.append({"text": "\n"})
-        spans.append({"text": body})
-    return [
-        {
-            "id": f"zone_{role}",
-            "type": "text",
-            "box": list(box),
-            "spans": spans or [{"text": ""}],
-        }
-    ]
-
-
-def _emit_metric(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
-    val = getattr(value, "value", None) or ""
-    label = getattr(value, "label", None) or ""
-    trend = getattr(value, "trend", None)
-    spans: list[dict[str, Any]] = [
-        {"text": val, "weight": "bold", "size": 32}
-    ]
-    if label:
-        spans.append({"text": "\n"})
-        spans.append({"text": label, "size": 14})
-    if trend:
-        spans.append({"text": " "})
-        spans.append({"text": trend, "size": 14, "italic": True})
-    return [
-        {
-            "id": f"zone_{role}",
-            "type": "text",
-            "box": list(box),
-            "spans": spans,
-        }
-    ]
+def _humanize_role(role: str, case: str = "upper") -> str:
+    """`key_partners` → `KEY PARTNERS` (upper) / `Key partners` (title)."""
+    words = role.replace("_", " ").replace("-", " ").strip()
+    if case == "upper":
+        return words.upper()
+    if case == "title":
+        return words[:1].upper() + words[1:]
+    return words
 
 
 def _stringify_item(item: Any) -> str:
-    """Reduce a list-item entry to a single string for bullet_list rendering.
+    """Reduce a list-item entry to a string for bullet rendering.
 
-    Strings pass through unchanged. Pydantic objects with `label`
-    and `metric` attributes (the BMC sidecar override shape)
-    render as ``"label: metric"``. Other objects fall back to
-    ``str(item)``.
+    Strings pass through. Pydantic models or dicts with `label` and
+    `metric` render as ``"label: metric"``. Everything else falls
+    back to ``str(item)``.
     """
     if isinstance(item, str):
         return item
@@ -126,90 +83,396 @@ def _stringify_item(item: Any) -> str:
     return str(item)
 
 
-def _emit_list_items(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
-    if value is None:
-        items: list[Any] = []
-    else:
-        items = list(value)
-    return [
-        {
-            "id": f"zone_{role}",
-            "type": "bullet_list",
-            "box": list(box),
-            "items": [_stringify_item(it) for it in items],
+def _resolve_typography_ref(
+    ref: Any, stylesheet: Stylesheet | None
+) -> dict[str, Any]:
+    """Look up a typography reference (string id or inline mapping)."""
+    if not ref:
+        return {}
+    if isinstance(ref, dict):
+        return dict(ref)
+    if isinstance(ref, str) and stylesheet is not None:
+        return dict(stylesheet.text_styles.get(ref, {}))
+    return {}
+
+
+def _padding_tuple(pad: Any) -> tuple[float, float, float, float]:
+    """Normalize a padding spec to ``(top, right, bottom, left)``."""
+    if pad is None:
+        return (0.0, 0.0, 0.0, 0.0)
+    if isinstance(pad, (int, float)):
+        v = float(pad)
+        return (v, v, v, v)
+    if isinstance(pad, (list, tuple)) and len(pad) == 4:
+        return tuple(float(p) for p in pad)  # type: ignore[return-value]
+    return (0.0, 0.0, 0.0, 0.0)
+
+
+# ─────────────────────────────────────────────────────────────────
+# Universal card primitive
+# ─────────────────────────────────────────────────────────────────
+
+
+def _emit_card(
+    role: str,
+    zone_box: Box,
+    style: dict[str, Any],
+    stylesheet: Stylesheet | None,
+    *,
+    label_text: str | None,
+    number_text: str | None,
+    title_text: str | None,
+    body_emit: Any,
+) -> list[dict[str, Any]]:
+    """Render one structured card and return its visual objects.
+
+    The card is a stylesheet-driven slot grid:
+
+        ┌─────────────────────────────────────┐
+        │┃                                    │  ← accent bar (left)
+        │┃ 01   LABEL                          │  ← number, label
+        │┃      Title (optional)               │  ← title
+        │┃      Body content emitted by caller │  ← body
+        │┃                                    │
+        └─────────────────────────────────────┘
+
+    Slots that have no content (e.g. no number was supplied) are
+    skipped and their height is reclaimed by the body. Treatments
+    that lack an ``accent_bar`` block render without one. The
+    body slot is filled by ``body_emit(body_box) -> list[obj]`` —
+    the caller decides what goes there (text, bullets, table, etc.).
+
+    Args:
+        role: Zone role (used in object IDs and as label fallback).
+        zone_box: The full zone box ``(x, y, w, h)``.
+        style: The role's resolved stylesheet rule (output of
+            ``resolve_zone_style``). Carries the treatment name and
+            any per-rule overrides.
+        stylesheet: The active `Stylesheet`. Used to look up the
+            treatment definition and named typography styles.
+        label_text: Text for the LABEL slot (e.g. "STRENGTHS").
+            None → slot omitted. Empty string → slot omitted.
+        number_text: Text for the NUMBER slot (e.g. "01"). None →
+            slot omitted unless the treatment forbids omission.
+        title_text: Text for the TITLE slot. None → slot omitted.
+        body_emit: Callable taking ``(body_box) → list[obj]`` that
+            renders whatever fills the body slot.
+
+    Returns:
+        A list of visual objects (dicts) ready to drop into the
+        Document.
+    """
+    treatment_name = style.get("treatment") if style else None
+    treatments = (
+        stylesheet.model_dump().get("treatments", {})
+        if stylesheet is not None
+        else {}
+    )
+    treatment = treatments.get(treatment_name, {}) if treatment_name else {}
+
+    objects: list[dict[str, Any]] = []
+    x, y, w, h = zone_box
+
+    # ── 1. Background rect (the card body) ──
+    fill_color = treatment.get("fill_color")
+    stroke_color = treatment.get("stroke_color")
+    stroke_width = float(treatment.get("stroke_width", 0) or 0)
+    corner_radius = float(treatment.get("corner_radius", 0) or 0)
+    has_fill = fill_color not in (None, "none")
+    has_stroke = stroke_color not in (None, "none") and stroke_width > 0
+
+    if has_fill or has_stroke:
+        bg: dict[str, Any] = {
+            "id": f"zone_{role}_bg",
+            "type": "rect",
+            "box": [x, y, w, h],
         }
-    ]
+        if has_fill:
+            bg["fill"] = fill_color
+        if has_stroke:
+            bg["stroke"] = stroke_color
+            bg["stroke_width"] = stroke_width
+        if corner_radius:
+            bg["corner_radius"] = corner_radius
+        objects.append(bg)
+
+    # ── 2. Accent bar ──
+    accent_bar = treatment.get("accent_bar")
+    if accent_bar:
+        bar_w = float(accent_bar.get("width", 3))
+        bar_color = accent_bar.get("color", "accent")
+        side = accent_bar.get("side", "left")
+        if side == "left":
+            bar_box = [x, y, bar_w, h]
+        elif side == "right":
+            bar_box = [x + w - bar_w, y, bar_w, h]
+        elif side == "top":
+            bar_box = [x, y, w, bar_w]
+        else:
+            bar_box = [x, y + h - bar_w, w, bar_w]
+        objects.append(
+            {
+                "id": f"zone_{role}_accent",
+                "type": "rect",
+                "box": bar_box,
+                "fill": bar_color,
+                "decorative": True,
+            }
+        )
+
+    # ── 3. Slot grid inside the padded inner area ──
+    pad_top, pad_right, pad_bottom, pad_left = _padding_tuple(
+        treatment.get("padding")
+    )
+    inner_x = x + pad_left
+    inner_y = y + pad_top
+    inner_w = max(0.0, w - pad_left - pad_right)
+    inner_h = max(0.0, h - pad_top - pad_bottom)
+
+    slots: dict[str, Any] = treatment.get("slots") or {}
+    cur_y = inner_y
+
+    # Optional NUMBER slot — sits in its own column on the left so
+    # label/title/body don't shift when present.
+    number_slot = slots.get("number")
+    body_left = inner_x
+    body_right = inner_x + inner_w
+    if number_slot and number_text:
+        n_height = float(number_slot.get("height", 22))
+        n_width = float(number_slot.get("width", 32))
+        n_x_offset = float(number_slot.get("x_offset", 0))
+        objects.append(
+            {
+                "id": f"zone_{role}_number",
+                "type": "text",
+                "box": [inner_x, inner_y, n_width, n_height],
+                "text": str(number_text),
+                "style": _resolve_typography_ref(
+                    number_slot.get("typography"), stylesheet
+                ),
+            }
+        )
+        # Body content shifts to the right of the number column.
+        body_left = inner_x + n_width + max(0.0, n_x_offset)
+
+    # LABEL slot
+    label_slot = slots.get("label")
+    if label_slot is not None and label_text:
+        lh = float(label_slot.get("height", 12))
+        gap_below = float(label_slot.get("gap_below", 4))
+        objects.append(
+            {
+                "id": f"zone_{role}_label",
+                "type": "text",
+                "box": [body_left, cur_y, body_right - body_left, lh],
+                "text": label_text,
+                "style": _resolve_typography_ref(
+                    label_slot.get("typography"), stylesheet
+                ),
+            }
+        )
+        cur_y += lh + gap_below
+
+    # TITLE slot
+    title_slot = slots.get("title")
+    if title_slot is not None and title_text:
+        th = float(title_slot.get("height", 22))
+        gap_below = float(title_slot.get("gap_below", 6))
+        objects.append(
+            {
+                "id": f"zone_{role}_title",
+                "type": "text",
+                "box": [body_left, cur_y, body_right - body_left, th],
+                "text": title_text,
+                "style": _resolve_typography_ref(
+                    title_slot.get("typography"), stylesheet
+                ),
+            }
+        )
+        cur_y += th + gap_below
+
+    # BODY slot — caller fills it.
+    body_box: Box = (
+        body_left,
+        cur_y,
+        body_right - body_left,
+        max(0.0, (inner_y + inner_h) - cur_y),
+    )
+    body_objs = body_emit(body_box) if callable(body_emit) else []
+    objects.extend(body_objs)
+
+    return objects
 
 
-def _emit_key_value(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
-    if value is None:
-        items: list[str] = []
-    else:
-        items = [f"{k}: {v}" for k, v in value.items()]
-    return [
-        {
-            "id": f"zone_{role}",
-            "type": "bullet_list",
-            "box": list(box),
-            "items": items,
-            "marker": "–",
-        }
-    ]
+# ─────────────────────────────────────────────────────────────────
+# Per-content_type body emitters — fill the card's body slot.
+# Each takes (role, value, body_box, style, stylesheet) and returns
+# a list of visual objects.
+# ─────────────────────────────────────────────────────────────────
 
 
-def _emit_comparison(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
+def _body_title_body(
+    role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
+) -> list[dict[str, Any]]:
+    """`title_body` body slot: bold title + body text, both wrapped."""
+    typography = _resolve_typography_ref(
+        (style.get("slots") or {}).get("body", {}).get("typography")
+        or "card_body",
+        stylesheet,
+    )
+    title = getattr(value, "title", None) or ""
+    body = getattr(value, "body", None) or ""
+    spans: list[dict[str, Any]] = []
+    if title:
+        spans.append({"text": title, "weight": "bold"})
+    if body:
+        if title:
+            spans.append({"text": "\n"})
+        spans.append({"text": body})
+    obj: dict[str, Any] = {
+        "id": f"zone_{role}",
+        "type": "text",
+        "box": list(body_box),
+        "spans": spans or [{"text": ""}],
+    }
+    if typography:
+        obj["style"] = typography
+    return [obj]
+
+
+def _body_list_items(
+    role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
+) -> list[dict[str, Any]]:
+    """`list_items` body slot: bullet list, theme-styled markers."""
+    items = list(value or [])
+    typography = _resolve_typography_ref("card_body", stylesheet)
+    obj: dict[str, Any] = {
+        "id": f"zone_{role}",
+        "type": "bullet_list",
+        "box": list(body_box),
+        "items": [_stringify_item(it) for it in items],
+    }
+    if typography:
+        obj["style"] = typography
+    obj["marker_color"] = "accent"
+    return [obj]
+
+
+def _body_key_value(
+    role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
+) -> list[dict[str, Any]]:
+    items = (
+        []
+        if value is None
+        else [f"{k}: {v}" for k, v in value.items()]
+    )
+    typography = _resolve_typography_ref("card_body_small", stylesheet)
+    obj: dict[str, Any] = {
+        "id": f"zone_{role}",
+        "type": "bullet_list",
+        "box": list(body_box),
+        "items": items,
+        "marker": "–",
+    }
+    if typography:
+        obj["style"] = typography
+    return [obj]
+
+
+def _body_comparison(
+    role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
+) -> list[dict[str, Any]]:
     left = getattr(value, "left", "")
     right = getattr(value, "right", "")
-    return [
-        {
-            "id": f"zone_{role}",
-            "type": "text",
-            "box": list(box),
-            "spans": [
-                {"text": left, "weight": "bold"},
-                {"text": "  |  "},
-                {"text": right, "weight": "bold"},
-            ],
-        }
-    ]
+    typography = _resolve_typography_ref("card_body", stylesheet)
+    obj: dict[str, Any] = {
+        "id": f"zone_{role}",
+        "type": "text",
+        "box": list(body_box),
+        "spans": [
+            {"text": left, "weight": "bold"},
+            {"text": "  |  "},
+            {"text": right, "weight": "bold"},
+        ],
+    }
+    if typography:
+        obj["style"] = typography
+    return [obj]
 
 
-def _emit_chart_data(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
+def _body_chart_data(
+    role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
+) -> list[dict[str, Any]]:
     chart_type = getattr(value, "type", None) or "bar"
     series_raw = getattr(value, "series", None) or []
     series = list(series_raw) if series_raw else []
     obj_type = "bar_chart" if chart_type != "line" else "line_chart"
-    return [
-        {
-            "id": f"zone_{role}",
-            "type": obj_type,
-            "box": list(box),
-            "series": series,
-        }
-    ]
+    obj: dict[str, Any] = {
+        "id": f"zone_{role}",
+        "type": obj_type,
+        "box": list(body_box),
+        "series": series,
+    }
+    treatments = (
+        stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
+    )
+    treatment_name = style.get("treatment") if style else None
+    palette = (
+        ((treatments.get(treatment_name) or {}).get("slots") or {})
+        .get("chart", {})
+        .get("palette")
+    )
+    if palette:
+        obj["palette"] = palette
+    return [obj]
 
 
-def _emit_table_data(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
+def _body_table_data(
+    role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
+) -> list[dict[str, Any]]:
     headers = getattr(value, "headers", None) or []
     rows = getattr(value, "rows", None) or []
-    return [
-        {
-            "id": f"zone_{role}",
-            "type": "table",
-            "box": list(box),
-            "header": list(headers) if headers else None,
-            "rows": [list(r) for r in rows],
-        }
-    ]
+    treatments = (
+        stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
+    )
+    treatment_name = style.get("treatment") if style else None
+    table_slot = (
+        (treatments.get(treatment_name) or {}).get("slots", {}).get("table") or {}
+    )
+    obj: dict[str, Any] = {
+        "id": f"zone_{role}",
+        "type": "table",
+        "box": list(body_box),
+        "header": list(headers) if headers else None,
+        "rows": [list(r) for r in rows],
+    }
+    style_block: dict[str, Any] = {}
+    if table_slot.get("header_typography"):
+        style_block["header_text_style"] = _resolve_typography_ref(
+            table_slot["header_typography"], stylesheet
+        )
+    if table_slot.get("cell_typography"):
+        style_block["body_text_style"] = _resolve_typography_ref(
+            table_slot["cell_typography"], stylesheet
+        )
+    if table_slot.get("header_fill"):
+        style_block["header_fill"] = table_slot["header_fill"]
+    if table_slot.get("border_color"):
+        style_block["border_color"] = table_slot["border_color"]
+    if style_block:
+        obj["style"] = style_block
+    return [obj]
 
 
-def _emit_image(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
+def _body_image(
+    role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
+) -> list[dict[str, Any]]:
     src = getattr(value, "src", "") or ""
     alt = getattr(value, "alt", None)
     obj: dict[str, Any] = {
         "id": f"zone_{role}",
         "type": "image",
-        "box": list(box),
+        "box": list(body_box),
         "href": src,
     }
     if alt:
@@ -217,42 +480,97 @@ def _emit_image(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
     return [obj]
 
 
-def _emit_axis_label(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
+def _body_metric(
+    role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
+) -> list[dict[str, Any]]:
+    """`metric` body slot: large KPI value above small label/trend."""
+    treatments = (
+        stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
+    )
+    treatment_name = style.get("treatment") if style else None
+    slots = (treatments.get(treatment_name) or {}).get("slots") or {}
+    value_typo = _resolve_typography_ref(
+        (slots.get("kpi_value") or {}).get("typography") or "kpi_value", stylesheet
+    )
+    label_typo = _resolve_typography_ref("kpi_label", stylesheet)
+
+    val = getattr(value, "value", None) or ""
+    label = getattr(value, "label", None) or ""
+    trend = getattr(value, "trend", None)
+
+    bx, by, bw, bh = body_box
+    value_h = float((slots.get("kpi_value") or {}).get("height", 40))
+    objects: list[dict[str, Any]] = [
+        {
+            "id": f"zone_{role}_value",
+            "type": "text",
+            "box": [bx, by, bw, value_h],
+            "text": val,
+            "style": value_typo,
+        }
+    ]
+    if label or trend:
+        bottom_text = label
+        if trend:
+            bottom_text = f"{label}  {trend}" if label else trend
+        objects.append(
+            {
+                "id": f"zone_{role}_label",
+                "type": "text",
+                "box": [bx, by + value_h, bw, max(0.0, bh - value_h)],
+                "text": bottom_text,
+                "style": label_typo,
+            }
+        )
+    return objects
+
+
+def _body_axis_label(
+    role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
+) -> list[dict[str, Any]]:
     title = getattr(value, "title", "") or ""
     units = getattr(value, "units", None)
     text = f"{title} ({units})" if units else title
+    typography = _resolve_typography_ref(
+        style.get("typography") if style else "axis_label", stylesheet
+    )
     return [
         {
             "id": f"zone_{role}",
             "type": "text",
-            "box": list(box),
+            "box": list(body_box),
             "text": text,
+            "style": typography,
         }
     ]
 
 
-def _emit_decorative(role: str, value: Any, box: Box) -> list[dict[str, Any]]:
+def _body_decorative(
+    role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
+) -> list[dict[str, Any]]:
+    bx, by, bw, bh = body_box
     return [
         {
             "id": f"zone_{role}",
             "type": "rect",
-            "box": list(box),
+            "box": [bx, by + bh / 2 - 0.5, bw, 1],
+            "fill": (style or {}).get("fill_color", "border"),
             "decorative": True,
         }
     ]
 
 
-_EMITTERS = {
-    "title_body": _emit_title_body,
-    "metric": _emit_metric,
-    "list_items": _emit_list_items,
-    "key_value": _emit_key_value,
-    "comparison": _emit_comparison,
-    "chart_data": _emit_chart_data,
-    "table_data": _emit_table_data,
-    "image": _emit_image,
-    "axis_label": _emit_axis_label,
-    "decorative": _emit_decorative,
+_BODY_EMITTERS = {
+    "title_body": _body_title_body,
+    "metric": _body_metric,
+    "list_items": _body_list_items,
+    "key_value": _body_key_value,
+    "comparison": _body_comparison,
+    "chart_data": _body_chart_data,
+    "table_data": _body_table_data,
+    "image": _body_image,
+    "axis_label": _body_axis_label,
+    "decorative": _body_decorative,
 }
 
 
@@ -261,40 +579,56 @@ _EMITTERS = {
 # ─────────────────────────────────────────────────────────────────
 
 
+def _zone_label_text(
+    role: str,
+    label_overrides: dict[str, str] | None,
+    label_cfg: dict[str, Any] | None,
+) -> str | None:
+    """Return the label text for a zone, or None to skip."""
+    if label_overrides and role in label_overrides:
+        return label_overrides[role]
+    case = (label_cfg or {}).get("case", "upper")
+    return _humanize_role(role, case)
+
+
 def compose_document(
     pattern: SlidePattern,
     fill: BaseModel,
     layout: dict[str, Box],
     canvas_w: float,
     canvas_h: float,
+    *,
+    stylesheet: Stylesheet | None = None,
+    label_overrides: dict[str, str] | None = None,
+    numbers: dict[str, str] | None = None,
+    titles: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    """Build a FrameGraph `Document` (as a dict) from pattern + fill + layout.
+    """Build a FrameGraph `Document` from pattern + fill + layout.
+
+    With a stylesheet, every zone is rendered through the universal
+    `_emit_card` primitive. The stylesheet's `treatments` block
+    controls slot geometry; theme tokens supply colors and fonts.
 
     Args:
-        pattern: The catalog pattern being rendered.
-        fill: A validated fill — typically the result of
-            ``derive_fill_schema_with_sidecar(pattern, sidecar)
-            .model_validate(...)``. Must expose one attribute per
-            zone role.
-        layout: A mapping from zone role → ``(x, y, w, h)``.
-            Typically the result of
-            ``compute_boxes(pattern, canvas_w, canvas_h)``.
-        canvas_w: Canvas width in pixels.
-        canvas_h: Canvas height in pixels.
-
-    Returns:
-        A `Document`-shaped dict ready for
-        ``Document.model_validate`` and consumption by
-        ``FrameGraphRenderer``.
-
-    Raises:
-        KeyError: If `layout` is missing a box for any zone in the
-            pattern, or if a zone's `content_type` is unknown.
-        ValueError: If a zone has no `content_type` (the pattern
-            must be fully annotated or the sidecar must override
-            every un-annotated zone).
+        pattern: The catalog pattern.
+        fill: A validated fill object.
+        layout: Per-zone box mapping.
+        canvas_w / canvas_h: Canvas size in pixels.
+        stylesheet: Active `Stylesheet`. Without one, the card
+            primitive degrades to a single body emission and the
+            renderer uses defaults.
+        label_overrides: Optional ``{role: humanized label}`` map
+            from the slide entry.
+        numbers: Optional ``{role: number_string}`` to fill the
+            card-number slot per zone.
+        titles: Optional ``{role: title_string}`` to fill the
+            card-title slot per zone.
     """
     objects: list[dict[str, Any]] = []
+    label_cfg = (
+        stylesheet.model_dump().get("zone_labels", {}) if stylesheet else {}
+    )
+
     for zone in pattern.zones:
         if zone.role not in layout:
             raise KeyError(
@@ -307,9 +641,47 @@ def compose_document(
                 f"pattern {pattern.id} ({pattern.name!r}): zone "
                 f"{zone.role!r} has no content_type; cannot emit"
             )
-        emitter = _EMITTERS[ct]
+
+        zone_box = layout[zone.role]
+        zone_style: dict[str, Any] = {}
+        if stylesheet is not None:
+            zone_style = resolve_zone_style(zone, stylesheet)
+
         value = _content_value(fill, zone.role)
-        objects.extend(emitter(zone.role, value, layout[zone.role]))
+        body_emitter = _BODY_EMITTERS[ct]
+
+        # Per-zone label, number, title — skip label for decorative
+        # zones (they're chrome) and table_data when treatments
+        # disable it.
+        label_text: str | None = None
+        if ct != "decorative":
+            label_text = _zone_label_text(zone.role, label_overrides, label_cfg)
+
+        number_text = (numbers or {}).get(zone.role)
+        title_text = (titles or {}).get(zone.role)
+
+        if stylesheet is None:
+            # Bare debug path — no card, just body.
+            objects.extend(body_emitter(zone.role, value, zone_box, {}, None))
+            continue
+
+        def make_body_emit(_zone=zone, _value=value, _style=zone_style):
+            def _emit(body_box: Box) -> list[dict[str, Any]]:
+                return body_emitter(_zone.role, _value, body_box, _style, stylesheet)
+            return _emit
+
+        objects.extend(
+            _emit_card(
+                zone.role,
+                zone_box,
+                zone_style,
+                stylesheet,
+                label_text=label_text,
+                number_text=number_text,
+                title_text=title_text,
+                body_emit=make_body_emit(),
+            )
+        )
 
     return {
         "dsl": "FrameGraph",
@@ -344,25 +716,24 @@ def render_pattern_svg(
     layout: dict[str, Box],
     canvas_w: float,
     canvas_h: float,
+    *,
+    stylesheet: Stylesheet | None = None,
+    label_overrides: dict[str, str] | None = None,
+    numbers: dict[str, str] | None = None,
+    titles: dict[str, str] | None = None,
 ) -> str:
-    """Render a pattern + fill + layout to SVG.
-
-    Composes a Document and drives the existing
-    `FrameGraphRenderer`. The renderer is the source of truth for
-    visual output; this function exists only as the bridge from
-    pattern-fill semantics to renderer input.
-
-    Args:
-        pattern: The catalog pattern.
-        fill: Validated fill object (one attribute per zone role).
-        layout: Zone-role → ``(x, y, w, h)`` mapping.
-        canvas_w: Canvas width in pixels.
-        canvas_h: Canvas height in pixels.
-
-    Returns:
-        The SVG document as a string.
-    """
+    """Render a pattern + fill + layout (+ optional stylesheet) to SVG."""
     from framegraph import FrameGraphRenderer
 
-    doc = compose_document(pattern, fill, layout, canvas_w, canvas_h)
+    doc = compose_document(
+        pattern,
+        fill,
+        layout,
+        canvas_w,
+        canvas_h,
+        stylesheet=stylesheet,
+        label_overrides=label_overrides,
+        numbers=numbers,
+        titles=titles,
+    )
     return FrameGraphRenderer(doc).render_svg()

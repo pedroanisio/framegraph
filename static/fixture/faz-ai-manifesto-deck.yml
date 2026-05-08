@@ -1615,3 +1615,424 @@ slides:
                text: "Use-case view: the User has four interactions; the Core has three autonomous actions of its own. \"Refuse Itself\" is the fourth-layer cascade made visible at the system boundary.",
                box: [60,498,840,16],
                style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}
+
+  # ─── SLIDE 18 — UML component diagram (wired-system view) ───────────────
+  - slide: 18
+    id: s18_arch_component
+    title: "Architecture — Wired Components (UML Component Diagram)"
+    description: "Components wired by provided/required interfaces — the runtime composition view."
+    notes: "The Core provides IRefuse and IObserve (the constitutional surface) and requires IMemory and IClassify. Workers require IRefuse so they can never bypass it. This is the same content as slide 14, expressed as runtime wiring instead of type relationships."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Architecture — Wired Components (UML Component Diagram)",
+               slide_num: "18", params: {phase_color: phase3}}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
+               fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── Wires connecting interface tips. The convention is a
+        # *short* segment between each socket/lollipop tip and its
+        # mating partner, drawn at the same y as the interface
+        # decoration.
+        # Layout — three rows, all left→right:
+        #   Row 1 (y=160): UserSurface ──IObserve── Core
+        #   Row 2 (y=290): Core ──IRefuse── Worker
+        #   Row 3 split: Core ──IMemory── MemoryStore (y=160 right);
+        #                Core ──IClassify── Classifier (y=290 right).
+        - id: uml.edges
+          z: 10
+          objects:
+
+            # IObserve wire — UserSurface socket-tip to Core lollipop-tip.
+            - {type: line, id: w.iobs,
+               from: [310, 175], to: [350, 175],
+               stroke: {color: primary, width: 1.0}}
+
+            # IRefuse wire — Core lollipop-tip to Worker socket-tip.
+            - {type: line, id: w.iref,
+               from: [610, 305], to: [650, 305],
+               stroke: {color: primary, width: 1.0}}
+
+            # IMemory wire — Core socket-tip to MemoryStore lollipop-tip.
+            - {type: line, id: w.imem,
+               from: [610, 175], to: [650, 175],
+               stroke: {color: primary, width: 1.0}}
+
+            # IClassify wire — Core socket-tip to Classifier lollipop-tip.
+            # Routes orthogonally because the y values differ.
+            - {type: polyline, id: w.icls,
+               points: [[610, 380], [630, 380], [630, 420], [650, 420]],
+               stroke: {color: primary, width: 1.0}}
+
+        # ── Components (rectangles with the «component» icon glyph).
+        # Three rows of equally-sized boxes:
+        #   Row 1: UserSurface (left), Core (center), MemoryStore (right)
+        #   Row 2 (below center): Core continues; Worker (right)
+        #   Row 3 (bottom-right): Classifier
+        - id: uml.classifiers
+          z: 20
+          objects:
+
+            # UserSurface — top-left.
+            - type: uml.component_box
+              id: UserSurface
+              box: [60, 130, 220, 90]
+              name: UserSurface
+              required_interfaces: [IObserve]
+
+            # Core — top-center. Provides IObserve (right-out) and
+            # IRefuse (right-out, lower); requires IMemory (right-in,
+            # upper) and IClassify (right-in, lower-down).
+            - type: uml.component_box
+              id: Core
+              box: [380, 130, 220, 280]
+              name: Core
+              stereotype: constitutional
+              provided_interfaces: [IObserve, IRefuse]
+              required_interfaces: [IMemory, IClassify]
+
+            # MemoryStore — top-right.
+            - type: uml.component_box
+              id: MemoryStore
+              box: [700, 130, 200, 90]
+              name: MemoryStore
+              stereotype: encrypted
+              provided_interfaces: [IMemory]
+
+            # Worker — middle-right.
+            - type: uml.component_box
+              id: Worker
+              box: [700, 260, 200, 90]
+              name: Worker
+              required_interfaces: [IRefuse]
+
+            # Classifier — bottom-right.
+            - type: uml.component_box
+              id: Classifier
+              box: [700, 380, 200, 80]
+              name: Classifier
+              stereotype: ml
+              provided_interfaces: [IClassify]
+
+        # ── Interface decorations placed at the box edges.
+        # Each lollipop/socket extends 30px outward from the box's
+        # face. The wire above covers the gap (40px) between mating
+        # tips so they look "plugged together."
+        - id: uml.interfaces
+          z: 25
+          objects:
+
+            # Row 1 — IObserve: UserSurface (east, socket) ↔ Core (west, lollipop)
+            - {type: uml.socket, id: sk.iobs,
+               box: [280, 167, 30, 16], name: IObserve, attach: east}
+            - {type: uml.lollipop, id: lp.iobs,
+               box: [350, 167, 30, 16], name: "", attach: west}
+
+            # Row 1 right — IMemory: Core (east, socket) ↔ MemoryStore (west, lollipop)
+            - {type: uml.socket, id: sk.imem,
+               box: [600, 167, 30, 16], name: IMemory, attach: east}
+            - {type: uml.lollipop, id: lp.imem,
+               box: [670, 167, 30, 16], name: "", attach: west}
+
+            # Row 2 — IRefuse: Core (east, lollipop) ↔ Worker (west, socket)
+            - {type: uml.lollipop, id: lp.iref,
+               box: [600, 297, 30, 16], name: IRefuse, attach: east}
+            - {type: uml.socket, id: sk.iref,
+               box: [670, 297, 30, 16], name: "", attach: west}
+
+            # Row 3 — IClassify: Core (east, socket) ↔ Classifier (west, lollipop)
+            - {type: uml.socket, id: sk.icls,
+               box: [600, 372, 30, 16], name: IClassify, attach: east}
+            - {type: uml.lollipop, id: lp.icls,
+               box: [670, 412, 30, 16], name: "", attach: west}
+
+        # Caption.
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: v.cap, decorative: true,
+               text: "Wiring is the architecture. Worker depends on IRefuse — there's no codepath that bypasses the constitutional surface, because the Core's lollipop is the only thing the Worker's socket fits.",
+               box: [60,498,840,16],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}
+
+  # ─── SLIDE 19 — UML deployment diagram (where it runs) ──────────────────
+  - slide: 19
+    id: s19_arch_deployment
+    title: "Architecture — Deployment Topology (UML Deployment Diagram)"
+    description: "Where each component runs and how artifacts deploy. Native macOS device, encrypted local store, optional inference runtime."
+    notes: "The point: privacy is not a flag; it's a topology. The Core, Workers, and MemoryStore all sit on the user's device. Inference can hit a remote runtime — but only with per-request consent, never with bulk training data."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Architecture — Deployment Topology (UML Deployment Diagram)",
+               slide_num: "19", params: {phase_color: phase3}}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
+               fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── Communication links between deployment nodes.
+        - id: uml.edges
+          z: 10
+          objects:
+
+            # User Device <—https—> Inference Runtime  (communication link)
+            - {type: line, id: link.https,
+               from: [380, 290], to: [620, 290],
+               stroke: {color: primary, width: 1.0}}
+            - {type: text, id: link.https.l, decorative: true,
+               text: "«https» (consent-gated)",
+               box: [400,272,200,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+
+        # ── Deployment nodes (3D cuboids).
+        - id: uml.classifiers
+          z: 20
+          objects:
+
+            # User device — the home environment for Core, Workers, MemoryStore.
+            - type: uml.node_box
+              id: UserDevice
+              box: [80, 100, 300, 380]
+              name: "User Device"
+              kind: device
+              stereotype: macOS
+              depth: 18
+
+            # Inference runtime — optional, consent-gated.
+            - type: uml.node_box
+              id: InferenceRuntime
+              box: [620, 240, 240, 110]
+              name: "Inference Runtime"
+              kind: execution_environment
+              stereotype: cloud
+              depth: 18
+
+        # ── Inner execution environment + artifacts on the User Device.
+        - id: uml.inner
+          z: 25
+          objects:
+
+            # macOS app runtime nested inside the User Device.
+            - type: uml.node_box
+              id: MacOSRuntime
+              box: [110, 156, 240, 290]
+              name: "faz.ai (app)"
+              kind: execution_environment
+              depth: 12
+
+            # Artifacts deployed in the runtime.
+            - type: uml.artifact_box
+              id: art.core
+              box: [130, 200, 200, 70]
+              name: "Core.bundle"
+              stereotype: signed
+
+            - type: uml.artifact_box
+              id: art.worker
+              box: [130, 286, 200, 70]
+              name: "Worker.bundle"
+              stereotype: signed
+
+            - type: uml.artifact_box
+              id: art.mem
+              box: [130, 372, 200, 60]
+              name: "memory.encrypted.db"
+              stereotype: encrypted
+
+            # Artifact deployed in the inference runtime.
+            - type: uml.artifact_box
+              id: art.model
+              box: [640, 268, 200, 70]
+              name: "shared-classifier"
+              stereotype: foundation
+
+        # Caption.
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: v.cap, decorative: true,
+               text: "Privacy is a deployment property: Core, Workers, and the encrypted memory all sit on the user's device. Remote inference is consent-gated and never receives training-eligible data.",
+               box: [60,498,840,16],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}
+
+  # ─── SLIDE 20 — UML activity diagram (refusal cascade as control flow) ──
+  - slide: 20
+    id: s20_arch_activity
+    title: "Architecture — The Cascade as Control Flow (UML Activity Diagram)"
+    description: "The four-layer cascade as an activity diagram, with the decision diamond branching by classification severity."
+    notes: "This is slide 7's cascade rendered as a control-flow graph. The same logic — but now you can trace any single request from initial node to one of three terminal positions: served, deferred, or relationship-ended."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Architecture — The Cascade as Control Flow (UML Activity Diagram)",
+               slide_num: "20", params: {phase_color: phase3}}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
+               fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── Control-flow edges.
+        - id: uml.edges
+          z: 10
+          objects:
+
+            # initial → Receive Request
+            - {type: connector, id: f.start,
+               from: {object: ps.initial, side: south},
+               to:   {object: act.recv,   side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Receive Request → Classify Severity
+            - {type: connector, id: f.recv_cls,
+               from: {object: act.recv, side: south},
+               to:   {object: act.cls,  side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Classify → Decision
+            - {type: connector, id: f.cls_dec,
+               from: {object: act.cls, side: south},
+               to:   {object: dec.sev, side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Decision → Action: Serve  [ok]
+            - {type: connector, id: f.dec_serve,
+               from: {object: dec.sev,   side: west},
+               to:   {object: act.serve, side: north},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Decision → Action: Soft No  [tier=1]
+            - {type: connector, id: f.dec_soft,
+               from: {object: dec.sev,  side: south},
+               to:   {object: act.soft, side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Decision → Action: Hard No  [tier≥2]
+            - {type: connector, id: f.dec_hard,
+               from: {object: dec.sev,  side: east},
+               to:   {object: act.hard, side: north},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Serve → final
+            - {type: connector, id: f.serve_end,
+               from: {object: act.serve, side: south},
+               to:   {object: ps.final,  side: west},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Soft No → final  (request not served, but relationship intact)
+            - {type: connector, id: f.soft_end,
+               from: {object: act.soft, side: south},
+               to:   {object: ps.final, side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Hard No → final
+            - {type: connector, id: f.hard_end,
+               from: {object: act.hard, side: south},
+               to:   {object: ps.final, side: east},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+        # ── Edge labels (the decision branches).
+        - id: edge_labels
+          z: 15
+          objects:
+            - {type: text, id: lb.serve, decorative: true,
+               text: "[ok]",
+               box: [320,295,40,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: text, id: lb.soft, decorative: true,
+               text: "[tier=1]",
+               box: [490,335,80,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: text, id: lb.hard, decorative: true,
+               text: "[tier ≥ 2]",
+               box: [600,295,80,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+
+        # ── Activity nodes.
+        - id: uml.classifiers
+          z: 20
+          objects:
+
+            # Initial pseudostate (top-center)
+            - {type: uml.activity_node, id: ps.initial,
+               box: [469, 80, 22, 22], kind: initial}
+
+            # Action: receive request
+            - type: uml.action
+              id: act.recv
+              box: [380, 124, 200, 50]
+              name: "Receive Request"
+
+            # Action: classify severity
+            - type: uml.action
+              id: act.cls
+              box: [380, 198, 200, 50]
+              name: "Classify Severity"
+
+            # Decision diamond (severity branch)
+            - {type: uml.activity_node, id: dec.sev,
+               box: [430, 270, 100, 60], kind: decision, name: "severity?"}
+
+            # Action: serve  (left branch)
+            - type: uml.action
+              id: act.serve
+              box: [120, 358, 200, 50]
+              name: "Serve Worker Result"
+
+            # Action: soft no  (center branch)
+            - type: uml.action
+              id: act.soft
+              box: [380, 358, 200, 50]
+              name: "Render Soft No + Waiver"
+
+            # Action: hard no  (right branch)
+            - type: uml.action
+              id: act.hard
+              box: [640, 358, 200, 50]
+              name: "Refuse + Offer Defer/Exit"
+
+            # Final pseudostate
+            - {type: uml.activity_node, id: ps.final,
+               box: [469, 444, 22, 22], kind: final}
+
+        # Caption.
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: v.cap, decorative: true,
+               text: "Three terminal branches, one decision diamond. The classification step happens BEFORE any worker is invoked — Tier 1+ outcomes never make it into a Worker's input queue.",
+               box: [60,498,840,16],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}

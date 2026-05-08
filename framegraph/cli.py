@@ -9,9 +9,24 @@ Usage
                                     [--4k] [--pdf [--vector] [--dpi N]]
     framegraph docs     [-o catalog.json]
     framegraph patterns list [--category=generic|consulting|expert]
+                             [--has-sidecar] [--json]
     framegraph patterns show <id>
+    framegraph patterns example <id> [-o fill.yml] [--format=yaml|json]
     framegraph patterns build <id> --fill content.yml [-o out.svg]
+                                    [--theme=<name>] [--stylesheet=<name>]
     framegraph version
+
+The framework's primary surface is `framegraph deck`, which consumes
+deck.yml files where each slide can be a one-liner pattern reference:
+
+    slides:
+      - use: 10            # by id (or by slug, e.g. "swot-analysis")
+        fill: { … }        # flat {role: content} payload
+
+The deck-level `$theme:` and `stylesheet:` declarations bind every
+slide into one coherent visual identity. `patterns build` is the
+debug entry point for inspecting one pattern in isolation; in a
+real authoring workflow, use the deck pipeline.
 
 PDF backends
 ------------
@@ -451,6 +466,52 @@ def cmd_deck(args: argparse.Namespace) -> int:
                 f"({deck_pdf.stat().st_size / 1024:.1f} KB, "
                 f"{len(paths)} pages, {mode})"
             )
+
+    # ── Layout report ──
+    # The planner is the single decision-maker for geometry + uniform
+    # typography scale. Render is faithful and reports nothing. For
+    # each templated slide the planner emits one LayoutReport with:
+    #   - scale:     uniform typography scale applied (1.0 = nominal)
+    #   - shrunk:    whether the planner had to drop below 1.0
+    #   - fits:      whether all zones fit at the applied scale
+    #   - overflows: per-zone (role, required_h, available_h) facts
+    #
+    # Operator reads this to edit content, swap pattern, or accept
+    # overflow. Exit code stays 0 — the deck rendered honestly.
+    reports = list(getattr(deck, "constraint_reports", []) or [])
+    interesting = [r for r in reports if r.get("shrunk") or not r.get("fits", True)]
+    if interesting and not args.quiet:
+        print()
+        print(
+            f"⚠  layout report — {len(interesting)} slide(s) "
+            f"required typography shrink and/or overflow:"
+        )
+        for v in interesting:
+            slide_num = v.get("slide_num")
+            slide_id = v.get("slide_id", "")
+            slide_title = v.get("slide_title", "")
+            scale = v.get("scale", 1.0)
+            fits = v.get("fits", True)
+            overflows = v.get("overflows") or []
+            tag = "OK" if fits else "OVERFLOW"
+            print(
+                f"   slide {slide_num:>2}  {slide_id:<28}  "
+                f"scale={scale:>4}  {tag}"
+            )
+            if slide_title:
+                print(f"        title: {slide_title}")
+            for ov in overflows:
+                print(
+                    f"        zone {ov.get('role', ''):<28}  "
+                    f"needs {ov.get('required_h', '?')}px / "
+                    f"has {ov.get('available_h', '?')}px"
+                )
+        # One-line guidance for the operator.
+        print()
+        print(
+            "   Render is faithful — every word the author wrote is drawn. "
+            "Edit content, widen canvas, or pick a different pattern."
+        )
     return 0
 
 
@@ -503,11 +564,16 @@ def cmd_patterns_list(args: argparse.Namespace) -> int:
 
     Args:
         args: Parsed namespace. Optional: ``args.category`` filters
-            to one of generic / consulting / expert.
+            to one of generic / consulting / expert; ``args.has_sidecar``
+            restricts to patterns shipping a sidecar; ``args.as_json``
+            switches to JSON output (one record per pattern, suitable
+            for agent consumption).
 
     Returns:
         Process exit code 0 on success.
     """
+    import json
+
     from framegraph._patterns import load_pattern_catalog
 
     catalog = load_pattern_catalog()
@@ -515,12 +581,33 @@ def cmd_patterns_list(args: argparse.Namespace) -> int:
     if args.category:
         rows = [p for p in rows if p.category == args.category]
 
+    sidecar_for = {p.id: _find_sidecar(p.id) for p in rows}
+    if getattr(args, "has_sidecar", False):
+        rows = [p for p in rows if sidecar_for[p.id] is not None]
+
     if not rows:
+        if getattr(args, "as_json", False):
+            print("[]")
         return 0
 
-    print(f"# {'id':>4}  {'category':<11}  {'zones':>5}  name")
+    if getattr(args, "as_json", False):
+        records = [
+            {
+                "id": p.id,
+                "name": p.name,
+                "category": p.category,
+                "zones": len(p.zones),
+                "sidecar": sidecar_for[p.id].name if sidecar_for[p.id] else None,
+            }
+            for p in rows
+        ]
+        print(json.dumps(records, indent=2, ensure_ascii=False))
+        return 0
+
+    print(f"# {'id':>4}  {'category':<11}  {'zones':>5}  {'sidecar':<8}  name")
     for p in rows:
-        print(f"  {p.id:>4}  {p.category:<11}  {len(p.zones):>5}  {p.name}")
+        sc = "yes" if sidecar_for[p.id] else "—"
+        print(f"  {p.id:>4}  {p.category:<11}  {len(p.zones):>5}  {sc:<8}  {p.name}")
     return 0
 
 
@@ -575,6 +662,83 @@ def cmd_patterns_show(args: argparse.Namespace) -> int:
         ct = z.content_type or "(unannotated)"
         shape_part = f" shape={z.shape}" if z.shape else ""
         print(f"  - {z.role:30s}  {ct:<12} {z.size:<10} {place_repr}{shape_part}")
+    return 0
+
+
+def cmd_patterns_example(args: argparse.Namespace) -> int:
+    """Handle `framegraph patterns example <id>` — emit example fill.
+
+    Reads the sidecar at ``static/refs/fills/<id>-*.yml`` and writes
+    its ``example_fill`` payload as a flat ``{role: content}`` mapping
+    — exactly the shape `patterns build --fill` expects. This closes
+    the agent loop: discover → introspect → fetch example → render,
+    all via the CLI without reading sidecar internals.
+
+    Args:
+        args: Parsed namespace. Required: ``args.pattern_id``.
+            Optional: ``args.output`` (default: stdout),
+            ``args.format`` (yaml | json, default: yaml).
+
+    Returns:
+        Process exit code 0 on success, 1 if no sidecar exists for
+        the pattern or the sidecar has no ``example_fill``.
+    """
+    import json
+
+    from framegraph._patterns import load_pattern_catalog
+    from framegraph.patterns import load_sidecar
+
+    catalog = load_pattern_catalog()
+    try:
+        pattern = catalog.get(args.pattern_id)
+    except KeyError:
+        print(
+            f"ERROR: pattern id {args.pattern_id} not found in catalog",
+            file=sys.stderr,
+        )
+        return 1
+
+    sidecar_path = _find_sidecar(pattern.id)
+    if sidecar_path is None:
+        print(
+            f"ERROR: pattern {pattern.id} has no sidecar in static/refs/fills/. "
+            f"Without a sidecar there is no curated example_fill to emit. "
+            f"Construct a fill payload from `patterns show {pattern.id}` "
+            f"and the default content_type shapes documented in "
+            f"docs/AUTHORING-FILLS.md.",
+            file=sys.stderr,
+        )
+        return 1
+
+    sidecar = load_sidecar(sidecar_path)
+    if not sidecar.example_fill:
+        print(
+            f"ERROR: sidecar {sidecar_path.name} has no example_fill. "
+            f"Add one or render with a hand-authored fill payload.",
+            file=sys.stderr,
+        )
+        return 1
+
+    fmt = getattr(args, "format", "yaml")
+    if fmt == "json":
+        rendered = json.dumps(sidecar.example_fill, indent=2, ensure_ascii=False)
+    else:
+        rendered = yaml.safe_dump(
+            sidecar.example_fill, sort_keys=False, allow_unicode=True
+        )
+
+    if args.output:
+        out = Path(args.output)
+        out.write_text(rendered, encoding="utf-8")
+        if not getattr(args, "quiet", False):
+            print(
+                f"wrote {out}  ({out.stat().st_size / 1024:.1f} KB, "
+                f"source: {sidecar_path.name})"
+            )
+    else:
+        sys.stdout.write(rendered)
+        if fmt == "json":
+            sys.stdout.write("\n")
     return 0
 
 
@@ -788,10 +952,41 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["generic", "consulting", "expert"],
         help="Filter by pattern category",
     )
+    pl.add_argument(
+        "--has-sidecar",
+        dest="has_sidecar",
+        action="store_true",
+        help="Only show patterns that ship a sidecar in static/refs/fills/",
+    )
+    pl.add_argument(
+        "--json",
+        dest="as_json",
+        action="store_true",
+        help="Emit JSON records instead of a human-readable table",
+    )
 
     # patterns show
     ps = pp_sub.add_parser("show", help="Print one pattern's definition")
     ps.add_argument("pattern_id", type=int, help="Catalog pattern id")
+
+    # patterns example
+    pe = pp_sub.add_parser(
+        "example",
+        help="Emit the sidecar's example_fill payload for a pattern",
+    )
+    pe.add_argument("pattern_id", type=int, help="Catalog pattern id")
+    pe.add_argument(
+        "-o",
+        "--output",
+        help="Output fill file path (default: write to stdout)",
+    )
+    pe.add_argument(
+        "--format",
+        choices=["yaml", "json"],
+        default="yaml",
+        help="Output format (default: yaml — same shape as patterns build --fill)",
+    )
+    pe.add_argument("--quiet", action="store_true", help="Suppress progress output")
 
     # patterns build
     pb = pp_sub.add_parser(
@@ -849,6 +1044,7 @@ def main(argv: list[str] | None = None) -> int:
         patterns_dispatch = {
             "list": cmd_patterns_list,
             "show": cmd_patterns_show,
+            "example": cmd_patterns_example,
             "build": cmd_patterns_build,
         }
         return patterns_dispatch[args.patterns_subcommand](args)
