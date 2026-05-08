@@ -1329,35 +1329,65 @@ def render_lifeline(r: RendererContext, obj: Mapping[str, Any]) -> str:
     out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
 
     if actor:
-        # Stick-figure head: delegate by reconstructing the actor's
-        # expected box (head sits in the upper portion).
-        out.append(
-            f'<line x1="{fmt(cx)}" y1="{fmt(by + head_h)}" '
-            f'x2="{fmt(cx)}" y2="{fmt(by + bh)}" '
-            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}" '
-            f'stroke-dasharray="6,5"/>'
-        )
-        # Inline actor stick figure (head + body + arms + legs).
-        head_r = head_h * 0.18
-        head_cy = by + head_r + 4
-        body_top_y = head_cy + head_r
-        body_bot_y = by + head_h - 6
+        # Inline actor stick figure (head + body + arms + legs) sized
+        # to fit inside `head_h` (the band reserved for the head). The
+        # dashed timeline starts BELOW the figure + label so neither
+        # overlaps the line.
+        head_r = max(6.0, min(head_h * 0.16, 10.0))
+        # Allocate the head_h band: head circle, body trunk (with
+        # arms), legs, gap, label. Anchor everything to `by + 2`.
+        head_cy = by + head_r + 2
+        trunk_top_y = head_cy + head_r
+        trunk_h = head_r * 1.8
+        trunk_bot_y = trunk_top_y + trunk_h
+        leg_h = head_r * 1.4
+        leg_bot_y = trunk_bot_y + leg_h
+        arm_y = trunk_top_y + trunk_h * 0.35
+        arm_half = head_r * 1.6
+
+        # Head
         out.append(
             f'<circle cx="{fmt(cx)}" cy="{fmt(head_cy)}" r="{fmt(head_r)}" '
             f'fill="none" stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
         )
+        # Trunk (body)
         out.append(
-            f'<line x1="{fmt(cx)}" y1="{fmt(body_top_y)}" '
-            f'x2="{fmt(cx)}" y2="{fmt(body_bot_y)}" '
+            f'<line x1="{fmt(cx)}" y1="{fmt(trunk_top_y)}" '
+            f'x2="{fmt(cx)}" y2="{fmt(trunk_bot_y)}" '
             f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
         )
-        # Label below the head
-        label_y = by + head_h + name_size + 2
+        # Arms (horizontal, crossing trunk)
+        out.append(
+            f'<line x1="{fmt(cx - arm_half)}" y1="{fmt(arm_y)}" '
+            f'x2="{fmt(cx + arm_half)}" y2="{fmt(arm_y)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        # Legs (V from waist)
+        out.append(
+            f'<line x1="{fmt(cx)}" y1="{fmt(trunk_bot_y)}" '
+            f'x2="{fmt(cx - arm_half * 0.8)}" y2="{fmt(leg_bot_y)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        out.append(
+            f'<line x1="{fmt(cx)}" y1="{fmt(trunk_bot_y)}" '
+            f'x2="{fmt(cx + arm_half * 0.8)}" y2="{fmt(leg_bot_y)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}"/>'
+        )
+        # Label below the figure (with breathing room).
+        label_y = leg_bot_y + name_size + 4
         label = f"{name}:{type_name}" if type_name else name
         out.append(
             f'<text x="{fmt(cx)}" y="{fmt(label_y)}" '
             f'font-family="{font_family}" font-size="{fmt(name_size)}" '
             f'fill="{text_color}" text-anchor="middle">{esc(label)}</text>'
+        )
+        # Dashed timeline starts BELOW the label, not at by+head_h.
+        timeline_start_y = label_y + 6
+        out.append(
+            f'<line x1="{fmt(cx)}" y1="{fmt(timeline_start_y)}" '
+            f'x2="{fmt(cx)}" y2="{fmt(by + bh)}" '
+            f'stroke="{stroke_color}" stroke-width="{fmt(stroke_width)}" '
+            f'stroke-dasharray="6,5"/>'
         )
     else:
         # Head rectangle
