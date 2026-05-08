@@ -1,0 +1,2048 @@
+dsl: FrameGraph
+version: 1.2
+kind: presentation-deck
+
+$theme: mckinsey
+
+# Deck-level brand mark text — rendered in the chrome footer of every
+# templated slide. Bespoke slides ignore this field and draw their own.
+brand_text: "faz.ai · Manifesto v0.2"
+
+# ─────────────────────────────────────────────────────────────────────────
+# faz.ai Manifesto Deck — v0.2
+# Improvements over v0.1:
+#   • Card patterns hoisted to symbols (rejection_card, commitment_card,
+#     taboo_card) with slot-driven content. Slides 3/5/9 use these symbols
+#     instead of building rect+text manually.
+#   • Card text styles hoisted to deck.tokens (with wrap: true) so wrap is
+#     never lost again.
+#   • Speaker notes on every slide, not just 1/8/10.
+#   • Slide 7 cascade column uses container with stack layout.
+#   • Chrome `phase_color` parameter now passes color tokens
+#     (primary / phase1 / phase2 / phase3) instead of hex literals.
+#     Palette is editable in one place (deck.tokens.colors); SVG output
+#     is byte-identical because tokens resolve through r.color().
+# ─────────────────────────────────────────────────────────────────────────
+
+deck:
+  canvas:
+    size: [960, 540]
+    units: px
+
+  tokens:
+    colors:
+      # Brand palette — warm cream / sage / slate
+      primary:        "#1A1A1A"
+      accent_warm:    "#9A4D2C"   # brand rust
+      accent_sage:    "#2A5A3A"   # deep sage (phase 2)
+      accent_slate:   "#3A4566"   # cool slate (phase 3)
+      text:           "#1A1A1A"
+      text_muted:     "#888780"
+      white:          "#FFFFFF"
+      slide_bg:       "#FFFFFF"
+      page_warm:      "#F4F2EE"
+      chrome_line:    "#D0CEC8"
+      chrome_text:    "#888780"
+      # Phase-specific tinted backgrounds
+      phase1_tint:    "#FBF1E8"
+      phase2_tint:    "#EEF4EE"
+      phase3_tint:    "#EDEEF2"
+      # Phase chrome stripe colors
+      phase1:         "#9A4D2C"
+      phase2:         "#2A5A3A"
+      phase3:         "#3A4566"
+      # Cell / box backgrounds
+      box_warm:       "#F7F5F0"
+      box_neutral:    "#F8F7F5"
+      # Star moment
+      star_gold:      "#C99000"
+      # Refusal cascade colors (traffic-light)
+      tier_soft:      "#EFF7F1"
+      tier_soft_bdr:  "#5B9E4D"
+      tier_defer:     "#FEF6EC"
+      tier_defer_bdr: "#BA7517"
+      tier_exit:      "#FEF0EF"
+      tier_exit_bdr:  "#CC0000"
+      # Taboo number gray
+      taboo_num_gray: "#E8E5E0"
+
+    text_styles:
+      # ── Chrome and base ────────────────────────────────────────────
+      slide_title_small:
+        font: primary
+        size: 11
+        weight: 700
+        color: primary
+        align: left
+      chrome_brand:
+        font: primary
+        size: 9
+        weight: 700
+        color: primary
+        align: left
+      chrome_num:
+        font: primary
+        size: 9
+        weight: 400
+        color: text_muted
+        align: right
+
+      # ── Card styles (used by rejection_card, commitment_card,
+      #    taboo_card symbols and any inline card layouts) ────────────
+      card_label_warm:
+        font: primary
+        size: 9
+        weight: 700
+        color: accent_warm
+        align: left
+        line_height: 12
+      card_label_sage:
+        font: primary
+        size: 9
+        weight: 700
+        color: accent_sage
+        align: left
+        line_height: 12
+      rejection_title:
+        font: primary
+        size: 13
+        weight: 700
+        color: text
+        align: left
+        line_height: 18
+        wrap: true
+      commitment_title:
+        font: primary
+        size: 16
+        weight: 700
+        color: text
+        align: left
+        line_height: 22
+        wrap: true
+      taboo_title:
+        font: primary
+        size: 13
+        weight: 700
+        color: text
+        align: left
+        line_height: 18
+        wrap: true
+      card_body:
+        font: primary
+        size: 10
+        weight: 400
+        color: text_muted
+        align: left
+        line_height: 14
+        wrap: true
+      card_block_label:
+        font: primary
+        size: 9
+        weight: 700
+        color: accent_warm
+        align: left
+        line_height: 12
+      card_block_body:
+        font: primary
+        size: 9
+        weight: 400
+        color: text_muted
+        align: left
+        line_height: 13
+        italic: true
+        wrap: true
+      taboo_number:
+        font: primary
+        size: 28
+        weight: 700
+        color: taboo_num_gray
+        align: center
+        line_height: 32
+
+  symbols:
+
+    # Chrome — applied to every slide via "use".
+    chrome:
+      box: [0, 0, 960, 540]
+      slots: [slide_title, slide_num]
+      objects:
+        - {type: rect, id: bg,         box: [0,0,960,540], fill: slide_bg}
+        - {type: rect, id: top_rule,   box: [0,0,960,4],   fill: "$phase_color"}
+        - {type: text, id: title_text, box: [40,14,880,30], text: "$slide_title", style: slide_title_small}
+        - {type: line, id: title_rule, from: [40,52],  to: [920,52],  stroke: {color: chrome_line, width: 0.5}}
+        - {type: line, id: foot_rule,  from: [40,516], to: [920,516], stroke: {color: chrome_line, width: 0.5}}
+        - {type: text, id: brand,      box: [40,520,120,16], text: "faz.ai  ·  Manifesto v0.2", style: chrome_brand}
+        - {type: text, id: num,        box: [890,520,30,16], text: "$slide_num", style: chrome_num}
+
+    # Rejection card — used on slide 3. 278×260. Three cards across.
+    rejection_card:
+      box: [0, 0, 278, 260]
+      slots: [label, title, body]
+      objects:
+        - {type: rect, id: bg,     box: [0,0,278,260], fill: white, stroke: {color: chrome_line, width: 0.5}, radius: 6}
+        - {type: rect, id: accent, box: [0,0,4,260],   fill: accent_warm}
+        - {type: text, id: lbl,    box: [20,20,238,12],  text: "$label", style: card_label_warm}
+        - {type: text, id: tit,    box: [20,40,238,52],  text: "$title", style: rejection_title}
+        - {type: text, id: bod,    box: [20,100,238,148], text: "$body",  style: card_body}
+
+    # Commitment card — used on slide 5. 440×196. 2×2 grid.
+    # Has a footer block (block_label + block_body) for the
+    # "FOUNDATION PROVIDERS CAN'T:" annotation.
+    commitment_card:
+      box: [0, 0, 440, 196]
+      slots: [label, title, body, block_label, block_body]
+      objects:
+        - {type: rect, id: bg,     box: [0,0,440,196], fill: white, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+        - {type: rect, id: accent, box: [0,0,4,196],   fill: accent_sage}
+        - {type: text, id: lbl,    box: [20,16,400,12],  text: "$label",       style: card_label_sage}
+        - {type: text, id: tit,    box: [20,36,400,52],  text: "$title",       style: commitment_title}
+        - {type: text, id: bod,    box: [20,96,400,68],  text: "$body",        style: card_body}
+        - {type: text, id: blbl,   box: [20,164,400,12], text: "$block_label", style: card_block_label}
+        - {type: text, id: bbod,   box: [20,178,400,14], text: "$block_body",  style: card_block_body}
+
+    # Taboo card — used on slide 9. 440×108. 3×2 grid.
+    # Big number on left, title and body on right.
+    taboo_card:
+      box: [0, 0, 440, 108]
+      slots: [number, title, body]
+      objects:
+        - {type: rect, id: bg,  box: [0,0,440,108],  fill: white, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+        - {type: text, id: num, box: [16,12,40,40],  text: "$number", style: taboo_number}
+        - {type: text, id: tit, box: [64,16,360,18], text: "$title",  style: taboo_title}
+        - {type: text, id: bod, box: [64,40,360,60], text: "$body",   style: card_body}
+
+slides:
+
+  # ─── SLIDE 01 — Cover ──────────────────────────────────────────────────────
+  - slide: 1
+    id: s1_cover
+    title: "faz.ai — The Achievement Layer for Operators"
+    description: "Cover slide. Set the tone without overexplaining it. Phase 1."
+    notes: "Open quietly. Read the tagline once. Then stop for a beat."
+    tokens:
+      text_styles:
+        cover_brand:   {font: primary, size: 96,  weight: 700, color: primary,     align: center, line_height: 110}
+        cover_tag:     {font: primary, size: 18,  weight: 400, color: text,        align: center, line_height: 26, wrap: true}
+        cover_meta:    {font: primary, size: 11,  weight: 400, color: text_muted,  align: center, line_height: 16, italic: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "",
+               slide_num: "01", params: {phase_color: primary}}
+        - id: content
+          z: 10
+          objects:
+            - {type: text, id: v.brand,  decorative: true, text: "faz.ai", box: [80,164,800,120], style: cover_brand}
+            - {type: line, id: v.rule,   decorative: true, from: [400,302], to: [560,302], stroke: {color: accent_warm, width: 1.5}}
+            - {type: text, id: v.tag,    decorative: true,
+               text: "The achievement layer for operators\nwho want their life back.",
+               box: [80,322,800,80], style: cover_tag}
+            - {type: text, id: v.meta,   decorative: true,
+               text: "Manifesto v0.2  ·  Defended at every quarterly review for the next ten years",
+               box: [80,440,800,18], style: cover_meta}
+
+  # ─── SLIDE 02 — The Diagnostic ─────────────────────────────────────────────
+  - slide: 2
+    id: s2_diagnostic
+    title: "Knowledge Work Has Been Quietly Broken — and AI Is Making It Worse"
+    description: "Three hard signals for the condition we're pushing back against. Phase 1."
+    notes: "Take the numbers one at a time. Don't fill the gaps with commentary. Let the last sentence do the work."
+    tokens:
+      text_styles:
+        stat_num:      {font: primary, size: 72,  weight: 700, color: accent_warm, align: center, line_height: 80}
+        stat_unit:     {font: primary, size: 18,  weight: 700, color: text,        align: center, line_height: 22}
+        stat_lbl:      {font: primary, size: 11,  weight: 400, color: text_muted,  align: center, line_height: 16}
+        stat_src:      {font: primary, size: 9,   weight: 400, color: text_muted,  align: center, italic: true}
+        synthesis:     {font: primary, size: 13,  weight: 400, color: text,        align: center, line_height: 20, wrap: true}
+        synthesis_em:  {font: primary, size: 13,  weight: 700, color: text,        align: center, line_height: 20, wrap: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Knowledge Work Has Been Quietly Broken — and AI Is Making It Worse",
+               slide_num: "02", params: {phase_color: phase1}}
+        - id: stats
+          z: 10
+          objects:
+            # Stat 1 — 47 seconds
+            - {type: rect, id: v.s1, decorative: true, box: [60,80,266,260], fill: phase1_tint, stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.s1n, decorative: true, text: "47",         box: [60,108,266,80], style: stat_num}
+            - {type: text, id: v.s1u, decorative: true, text: "seconds",    box: [60,196,266,24], style: stat_unit}
+            - {type: text, id: v.s1l, decorative: true,
+               text: "Average focused attention\non a single screen, per\nGloria Mark's 20-year\nlongitudinal data.",
+               box: [80,232,226,80], style: stat_lbl}
+            - {type: text, id: v.s1s, decorative: true, text: "UC Irvine, 2023", box: [60,316,266,16], style: stat_src}
+            # Stat 2 — 95%
+            - {type: rect, id: v.s2, decorative: true, box: [346,80,266,260], fill: phase1_tint, stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.s2n, decorative: true, text: "95",         box: [346,108,266,80], style: stat_num}
+            - {type: text, id: v.s2u, decorative: true, text: "percent",    box: [346,196,266,24], style: stat_unit}
+            - {type: text, id: v.s2l, decorative: true,
+               text: "Enterprise AI pilots failing\nto deliver measurable ROI\ndespite ~$30–40B invested\nin generative AI.",
+               box: [366,232,226,80], style: stat_lbl}
+            - {type: text, id: v.s2s, decorative: true, text: "MIT NANDA, GenAI Divide 2025", box: [346,316,266,16], style: stat_src}
+            # Stat 3 — 43 points
+            - {type: rect, id: v.s3, decorative: true, box: [632,80,266,260], fill: phase1_tint, stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.s3n, decorative: true, text: "43",         box: [632,108,266,80], style: stat_num}
+            - {type: text, id: v.s3u, decorative: true, text: "point gap",  box: [632,196,266,24], style: stat_unit}
+            - {type: text, id: v.s3l, decorative: true,
+               text: "Developers were 19% slower\nwith AI tools while believing\nthey were 20% faster.\nReality vs. perception.",
+               box: [652,232,226,80], style: stat_lbl}
+            - {type: text, id: v.s3s, decorative: true, text: "METR RCT, July 2025", box: [632,316,266,16], style: stat_src}
+        - id: synthesis
+          z: 20
+          objects:
+            - {type: rect, id: v.sb,  decorative: true, box: [60,372,838,108], fill: box_warm, stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: rect, id: v.sba, decorative: true, box: [60,372,4,108], fill: accent_warm}
+            - {type: text, id: v.st, decorative: true,
+               text: "Fragmented attention is now the default state of knowledge work — not an exception.",
+               box: [80,388,798,24], style: synthesis_em}
+            - {type: text, id: v.sb2, decorative: true,
+               text: "Most AI products pile engagement tactics on top of this broken baseline and call it progress. We think that's the disease. The real product question is simpler: how much of this attention tax can we take off the user?",
+               box: [80,418,798,52], style: synthesis}
+
+  # ─── SLIDE 03 — What We Will Not Be (uses rejection_card symbol) ───────────
+  - slide: 3
+    id: s3_rejection
+    title: "Engagement-Maximizing AI Is the Disease, Not the Cure"
+    description: "Three plain refusals. This is where the deck sharpens. Phase 1."
+    notes: "Read the setup. Pause before 'time spent.' Then give each card its own beat."
+    tokens:
+      text_styles:
+        reject_setup:  {font: primary, size: 22,  weight: 400, color: text,        align: center, line_height: 30, wrap: true}
+        reject_em:     {font: primary, size: 28,  weight: 700, color: accent_warm, align: center, line_height: 36}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Engagement-Maximizing AI Is the Disease, Not the Cure",
+               slide_num: "03", params: {phase_color: phase1}}
+        - id: header
+          z: 10
+          objects:
+            - {type: text, id: v.h1, decorative: true,
+               text: "Most AI products are now optimized for the same metric as social media:",
+               box: [80,76,800,32], style: reject_setup}
+            - {type: text, id: v.h2, decorative: true,
+               text: "time spent.",
+               box: [80,116,800,40], style: reject_em}
+            - {type: line, id: v.rule, decorative: true, from: [380,176], to: [580,176], stroke: {color: chrome_line, width: 1}}
+        - id: refusals
+          z: 20
+          objects:
+            - type: use
+              id: v.r1
+              decorative: true
+              symbol: rejection_card
+              box: [60, 210, 278, 260]
+              label: "WE WILL NOT BE"
+              title: "An AI that just\nkeeps going."
+              body: "A real worker has limits. They push back. They tell the boss when enough is enough. An always-on compliance machine is autocomplete, not a colleague. Ours should know when to stop."
+            - type: use
+              id: v.r2
+              decorative: true
+              symbol: rejection_card
+              box: [346, 210, 278, 260]
+              label: "WE WILL NOT BE"
+              title: "An AI that trains on\nyour life."
+              body: "Family logistics, kids' schedules, household decisions: none of that should feed a foundation model. Privacy isn't a bonus feature. It's the condition that makes the rest of the product defensible. No training without explicit per-source consent."
+            - type: use
+              id: v.r3
+              decorative: true
+              symbol: rejection_card
+              box: [632, 210, 278, 260]
+              label: "WE WILL NOT BE"
+              title: "An AI that treats more\nuse as success."
+              body: "DAU logic cannot support a product whose best state is \"go rest, we've got it.\" We'll measure success by how much thinking we took off your plate, not by how long we kept your eyes on a screen."
+        - id: synthesis
+          z: 30
+          objects:
+            - {type: text, id: v.sy, decorative: true,
+               text: "These three refusals clash directly with the business model underneath every foundation model provider.",
+               box: [60,486,840,18], style: {font: primary, size: 11, weight: 400, color: text_muted, align: center, italic: true}}
+
+  # ─── SLIDE 04 — The Reframe ────────────────────────────────────────────────
+  - slide: 4
+    id: s4_reframe
+    title: "Workforce Is the Means. Achievement Is the End."
+    description: "The shift in frame: from workforce software to achievement software. Phase 2 begins."
+    notes: "Let the contrast speak for itself. Touch the left side lightly, then spend your time on the right."
+    tokens:
+      text_styles:
+        col_hdr_l:     {font: primary, size: 13,  weight: 700, color: text_muted,  align: center, line_height: 18}
+        col_hdr_r:     {font: primary, size: 13,  weight: 700, color: accent_sage, align: center, line_height: 18}
+        col_em_l:      {font: primary, size: 22,  weight: 700, color: text_muted,  align: center, line_height: 28}
+        col_em_r:      {font: primary, size: 22,  weight: 700, color: accent_sage, align: center, line_height: 28}
+        col_item:      {font: primary, size: 11,  weight: 400, color: text,        align: left,   line_height: 16, wrap: true}
+        col_item_em:   {font: primary, size: 11,  weight: 700, color: text,        align: left,   line_height: 16, wrap: true}
+        synthesis:     {font: primary, size: 12,  weight: 400, color: text,        align: center, line_height: 18, italic: true, wrap: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Workforce Is the Means. Achievement Is the End.",
+               slide_num: "04", params: {phase_color: phase2}}
+        - id: columns
+          z: 10
+          objects:
+            # Left column — workforce frame
+            - {type: rect, id: v.lc, decorative: true, box: [60,76,400,388], fill: box_neutral, stroke: {color: chrome_line, width: 0.5}, radius: 6}
+            - {type: text, id: v.lh, decorative: true, text: "WHAT OTHERS BUILD",  box: [60,96,400,18], style: col_hdr_l}
+            - {type: text, id: v.le, decorative: true, text: "Workforce",          box: [60,124,400,32], style: col_em_l}
+            - {type: text, id: v.lel, decorative: true, text: "more tasks · more output · more engagement", box: [60,162,400,16], style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: line, id: v.lr, decorative: true, from: [80,196], to: [440,196], stroke: {color: chrome_line, width: 0.5}}
+            - {type: text, id: v.li1, decorative: true, text: "AI is hired to do tasks.",                       box: [80,212,360,18], style: col_item_em}
+            - {type: text, id: v.li1b, decorative: true, text: "The user still has to run the whole show. The AI just executes.", box: [80,230,360,16], style: col_item}
+            - {type: text, id: v.li2, decorative: true, text: "Success = throughput.",                          box: [80,266,360,18], style: col_item_em}
+            - {type: text, id: v.li2b, decorative: true, text: "More emails drafted. More docs summarized. More motion.", box: [80,284,360,16], style: col_item}
+            - {type: text, id: v.li3, decorative: true, text: "User trains the AI on their workflow.",          box: [80,320,360,18], style: col_item_em}
+            - {type: text, id: v.li3b, decorative: true, text: "The prompt-engineering tax lands on the human.", box: [80,338,360,16], style: col_item}
+            - {type: text, id: v.li4, decorative: true, text: "Engagement is the product.",                     box: [80,374,360,18], style: col_item_em}
+            - {type: text, id: v.li4b, decorative: true, text: "DAU, time spent, queries served. Those are the KPIs.", box: [80,392,360,16], style: col_item}
+            # Right column — achievement frame
+            - {type: rect, id: v.rc, decorative: true, box: [500,76,400,388], fill: phase2_tint, stroke: {color: accent_sage, width: 1}, radius: 6}
+            - {type: rect, id: v.rca, decorative: true, box: [500,76,4,388], fill: accent_sage}
+            - {type: text, id: v.rh, decorative: true, text: "WHAT WE BUILD",      box: [500,96,400,18], style: col_hdr_r}
+            - {type: text, id: v.re, decorative: true, text: "Achievement",        box: [500,124,400,32], style: col_em_r}
+            - {type: text, id: v.rel, decorative: true, text: "cognition offload · work-life merge · refusal as feature", box: [500,162,400,16], style: {font: primary, size: 10, weight: 400, color: accent_sage, align: center, italic: true}}
+            - {type: line, id: v.rr, decorative: true, from: [520,196], to: [880,196], stroke: {color: accent_sage, width: 0.5}}
+            - {type: text, id: v.ri1, decorative: true, text: "AI advocates for outcomes.",                     box: [520,212,360,18], style: col_item_em}
+            - {type: text, id: v.ri1b, decorative: true, text: "The Core observes, advises, coordinates. It owns the system job.", box: [520,230,360,16], style: col_item}
+            - {type: text, id: v.ri2, decorative: true, text: "Success = cognition offloaded.",                 box: [520,266,360,18], style: col_item_em}
+            - {type: text, id: v.ri2b, decorative: true, text: "Hours reclaimed. Decisions deferred. Attention protected.", box: [520,284,360,16], style: col_item}
+            - {type: text, id: v.ri3, decorative: true, text: "AI learns the user, not the reverse.",          box: [520,320,360,18], style: col_item_em}
+            - {type: text, id: v.ri3b, decorative: true, text: "No prompt-engineering tax. The system does the adapting.", box: [520,338,360,16], style: col_item}
+            - {type: text, id: v.ri4, decorative: true, text: "Restraint is the product.",                      box: [520,374,360,18], style: col_item_em}
+            - {type: text, id: v.ri4b, decorative: true, text: "UI_RESTING, UI_DEPLETED, refusal-as-feature ship.",     box: [520,392,360,16], style: col_item}
+        - id: synthesis
+          z: 30
+          objects:
+            - {type: text, id: v.sy, decorative: true,
+               text: "Workforce is a packaging mechanic: Solo, Operator, Team, Portfolio.\nAchievement is the product.",
+               box: [60,484,840,32], style: synthesis}
+
+  # ─── SLIDE 05 — Four Commitments (uses commitment_card symbol) ─────────────
+  - slide: 5
+    id: s5_commitments
+    title: "Four Commitments Only We Can Make"
+    description: "Four commitments that define the moat. Phase 2."
+    notes: "Read these as one system, not four isolated promises. The line at the bottom of each card is the point."
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Four Commitments Only We Can Make",
+               slide_num: "05", params: {phase_color: phase2}}
+        - id: grid
+          z: 10
+          objects:
+            - type: use
+              id: v.q1
+              decorative: true
+              symbol: commitment_card
+              box: [40, 68, 440, 196]
+              label: "01  ·  PRIVACY POSTURE"
+              title: "End-to-end encrypted.\nNo training without consent."
+              body: "Family data, kids' schedules, household financial decisions: encrypted at rest, never turned into training material by default. Fine-tuning requires per-source consent. The user can inspect, edit, export, and delete any memory."
+              block_label: "FOUNDATION PROVIDERS CAN'T:"
+              block_body: "Their training-data economics cut against this promise at the root."
+            - type: use
+              id: v.q2
+              decorative: true
+              symbol: commitment_card
+              box: [496, 68, 440, 196]
+              label: "02  ·  ANTI-ENGAGEMENT UX"
+              title: "We ship UI_RESTING.\nWe ship UI_DEPLETED."
+              body: "\"You've done enough thinking today.\" \"faz is working. You are resting.\" Those are flagship states, not edge cases. When the user's wellbeing calls for less engagement, the product should create less engagement. Logging out is a feature."
+              block_label: "FOUNDATION PROVIDERS CAN'T:"
+              block_body: "DAU and time-spent logic make this almost impossible for them to hold."
+            - type: use
+              id: v.q3
+              decorative: true
+              symbol: commitment_card
+              box: [40, 280, 440, 196]
+              label: "03  ·  WORK–LIFE MERGE"
+              title: "One cognitive space.\nWork and life unified."
+              body: "School pickup at 15:00 should live in the same canvas as Q2 strategy. The switch between those worlds is what steals people's evenings. We merge the cognitive space so the user doesn't pay that bridge tax twice a day."
+              block_label: "FOUNDATION PROVIDERS HAVEN'T:"
+              block_body: "This asks for family-domain trust and policy infrastructure they were never built to carry."
+            - type: use
+              id: v.q4
+              decorative: true
+              symbol: commitment_card
+              box: [496, 280, 440, 196]
+              label: "04  ·  REFUSAL AS FEATURE"
+              title: "AI says No.\nNo is No."
+              body: "No to the fourteenth version of the same request today. No to a pattern of working past your declared end-time. No to a decision made while angry. No to itself when its own classifier is wrong. A hard limit has to stay hard."
+              block_label: "FOUNDATION PROVIDERS CAN'T:"
+              block_body: "Helpfulness training rewards compliance, not principled refusal."
+
+  # ─── SLIDE 06 — The Relationship Structure ─────────────────────────────────
+  - slide: 6
+    id: s6_structure
+    title: "The Relationship Structure: Constitutional Core, Replaceable Workers"
+    description: "User agency sits above workers; the Core is a constitutional layer. Phase 2."
+    notes: "Walk the stack from top to bottom. Linger on the bottom band. That's where the steel is."
+    tokens:
+      text_styles:
+        layer_label:   {font: primary, size: 9,   weight: 700, color: text_muted,  align: center, line_height: 12}
+        layer_name:    {font: primary, size: 22,  weight: 700, color: white,       align: center, line_height: 28}
+        layer_role:    {font: primary, size: 11,  weight: 400, color: white,       align: center, line_height: 16, italic: true}
+        annotation_h:  {font: primary, size: 11,  weight: 700, color: text,        align: left,   line_height: 15, wrap: true}
+        annotation_b:  {font: primary, size: 10,  weight: 400, color: text_muted,  align: left,   line_height: 14, wrap: true}
+        impl_text:     {font: primary, size: 11,  weight: 400, color: text,        align: center, line_height: 16, wrap: true}
+        impl_em:       {font: primary, size: 11,  weight: 700, color: accent_warm, align: center, line_height: 16, wrap: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "The Relationship Structure: Constitutional Core, Replaceable Workers",
+               slide_num: "06", params: {phase_color: phase2}}
+        - id: hierarchy
+          z: 10
+          objects:
+            # User layer
+            - {type: text, id: v.ul, decorative: true, text: "LAYER 1", box: [120,72,180,12], style: layer_label}
+            - {type: rect, id: v.u, decorative: true, box: [120,90,180,72], fill: text, radius: 6}
+            - {type: text, id: v.un, decorative: true, text: "USER", box: [120,104,180,28], style: layer_name}
+            - {type: text, id: v.ur, decorative: true, text: "you", box: [120,134,180,16], style: layer_role}
+            - {type: text, id: v.uah, decorative: true, text: "Has agency where it matters", box: [320,98,360,16], style: annotation_h}
+            - {type: text, id: v.uab, decorative: true,
+               text: "You can fire any worker. You can leave the relationship. You cannot fire the Core, and that's intentional.",
+               box: [320,118,500,48], style: annotation_b}
+            # Arrow down
+            - {type: line, id: v.a1, decorative: true, from: [210,170], to: [210,196], stroke: {color: text_muted, width: 1.5, arrow_end: true}}
+            # Core layer
+            - {type: text, id: v.cl, decorative: true, text: "LAYER 2", box: [120,202,180,12], style: layer_label}
+            - {type: rect, id: v.c, decorative: true, box: [120,220,180,72], fill: accent_sage, radius: 6}
+            - {type: text, id: v.cn, decorative: true, text: "CORE", box: [120,234,180,28], style: layer_name}
+            - {type: text, id: v.cr, decorative: true, text: "the system itself", box: [120,264,180,16], style: layer_role}
+            - {type: text, id: v.cah, decorative: true, text: "Constitutional, non-fireable", box: [320,228,360,16], style: annotation_h}
+            - {type: text, id: v.cab, decorative: true,
+               text: "Observer. Advisor. Coordinator. It holds the long relationship. Commitments to privacy, anti-engagement, and refusal are fixed, not user-configurable. It should advocate for the user even against the user's short-term impulses.",
+               box: [320,248,560,64], style: annotation_b}
+            # Arrow down
+            - {type: line, id: v.a2, decorative: true, from: [210,300], to: [210,326], stroke: {color: text_muted, width: 1.5, arrow_end: true}}
+            # DEs layer
+            - {type: text, id: v.dl, decorative: true, text: "LAYER 3", box: [120,332,180,12], style: layer_label}
+            - {type: rect, id: v.d, decorative: true, box: [120,350,180,72], fill: text_muted, radius: 6}
+            - {type: text, id: v.dn, decorative: true, text: "WORKERS", box: [120,364,180,28], style: layer_name}
+            - {type: text, id: v.dr, decorative: true, text: "the digital team", box: [120,394,180,16], style: layer_role}
+            - {type: text, id: v.dah, decorative: true, text: "Identity, memory, ethical limits — replaceable", box: [320,358,500,16], style: annotation_h}
+            - {type: text, id: v.dab, decorative: true,
+               text: "Each worker has a name, a voice, a values document. Long-term memory persists per user, per worker. If a worker's judgment doesn't fit, the user swaps them out.",
+               box: [320,378,560,48], style: annotation_b}
+        - id: implication
+          z: 20
+          objects:
+            - {type: rect, id: v.ib,  decorative: true, box: [60,452,840,56], fill: phase2_tint, stroke: {color: accent_sage, width: 1}, radius: 6}
+            - {type: rect, id: v.iba, decorative: true, box: [60,452,4,56], fill: accent_sage}
+            - {type: text, id: v.it, decorative: true,
+               text: "If a Core hard limit is unacceptable, the honest move is to cancel the relationship.",
+               box: [80,464,800,16], style: impl_text}
+            - {type: text, id: v.it2, decorative: true,
+               text: "We do not negotiate. We do not soften. We do not relent under pressure.",
+               box: [80,484,800,16], style: impl_em}
+
+  # ─── SLIDE 07 — AI Says No (cascade column uses container/stack) ───────────
+  - slide: 7
+    id: s7_says_no
+    title: "Four-Layer Cascade. Three Refusal Tiers. No Is No."
+    description: "How refusal works in practice. Phase 2 close."
+    notes: "Read the cascade first, then the tiers. Save the footer for last."
+    tokens:
+      text_styles:
+        sec_hdr:       {font: primary, size: 11,  weight: 700, color: text_muted,  align: left,   line_height: 14}
+        cascade_n:     {font: primary, size: 22,  weight: 700, color: accent_sage, align: center, line_height: 28}
+        cascade_t:     {font: primary, size: 11,  weight: 700, color: text,        align: left,   line_height: 14, wrap: true}
+        cascade_b:     {font: primary, size: 9,   weight: 400, color: text_muted,  align: left,   line_height: 13, wrap: true}
+        tier_h:        {font: primary, size: 12,  weight: 700, color: text,        align: left,   line_height: 16, wrap: true}
+        tier_b:        {font: primary, size: 10,  weight: 400, color: text,        align: left,   line_height: 14, wrap: true}
+        tier_lbl:      {font: primary, size: 9,   weight: 700, color: text,        align: left,   line_height: 12}
+        footer_em:     {font: primary, size: 12,  weight: 700, color: accent_warm, align: center, line_height: 18}
+        footer_b:      {font: primary, size: 10,  weight: 400, color: text_muted,  align: center, line_height: 14, italic: true, wrap: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Four-Layer Cascade. Three Refusal Tiers. No Is No.",
+               slide_num: "07", params: {phase_color: phase2}}
+        - id: cascade
+          z: 10
+          objects:
+            - {type: text, id: v.lh, decorative: true, text: "FOUR-LAYER CASCADE", box: [40,68,420,14], style: sec_hdr}
+            # Container with stack layout — vertical, 4 items, gap of 8px between them.
+            # Replaces the manual y=92, y=172, y=252, y=332 hardcoding from v0.1.
+            - type: container
+              id: v.cascade_stack
+              decorative: true
+              box: [40, 92, 420, 320]
+              layout: {kind: stack, direction: vertical, gap: 8}
+              children:
+                - type: rect
+                  id: v.c1
+                  decorative: true
+                  box: [40, 92, 420, 72]
+                  fill: white
+                  stroke: {color: chrome_line, width: 0.5}
+                  radius: 4
+                - type: rect
+                  id: v.c2
+                  decorative: true
+                  box: [40, 172, 420, 72]
+                  fill: white
+                  stroke: {color: chrome_line, width: 0.5}
+                  radius: 4
+                - type: rect
+                  id: v.c3
+                  decorative: true
+                  box: [40, 252, 420, 72]
+                  fill: white
+                  stroke: {color: chrome_line, width: 0.5}
+                  radius: 4
+                - type: rect
+                  id: v.c4
+                  decorative: true
+                  box: [40, 332, 420, 72]
+                  fill: white
+                  stroke: {color: chrome_line, width: 0.5}
+                  radius: 4
+            # Cascade item content (numbers, titles, bodies) overlaid at z=15
+            - {type: text, id: v.c1n, decorative: true, text: "1", box: [40,92,60,72],   style: cascade_n}
+            - {type: text, id: v.c1t, decorative: true, text: "No to a request",         box: [108,104,330,14], style: cascade_t}
+            - {type: text, id: v.c1b, decorative: true, text: "\"You've drafted 14 emails today. This can wait until morning.\"", box: [108,124,330,28], style: cascade_b}
+            - {type: text, id: v.c2n, decorative: true, text: "2", box: [40,172,60,72],  style: cascade_n}
+            - {type: text, id: v.c2t, decorative: true, text: "No to a pattern",         box: [108,184,330,14], style: cascade_t}
+            - {type: text, id: v.c2b, decorative: true, text: "\"You've worked past your declared end-time three nights in a row.\"", box: [108,204,330,28], style: cascade_b}
+            - {type: text, id: v.c3n, decorative: true, text: "3", box: [40,252,60,72],  style: cascade_n}
+            - {type: text, id: v.c3t, decorative: true, text: "No to a decision",        box: [108,264,330,14], style: cascade_t}
+            - {type: text, id: v.c3b, decorative: true, text: "\"This email is angry. Sleep on it.\"", box: [108,284,330,28], style: cascade_b}
+            - {type: text, id: v.c4n, decorative: true, text: "4", box: [40,332,60,72],  style: cascade_n}
+            - {type: text, id: v.c4t, decorative: true, text: "No to itself",            box: [108,344,330,14], style: cascade_t}
+            - {type: text, id: v.c4b, decorative: true, text: "\"The classifier says OVERLOADED. You've been writing fluently for 90 minutes. I'm not interrupting.\"", box: [108,364,330,40], style: cascade_b}
+        - id: tiers
+          z: 20
+          objects:
+            - {type: text, id: v.th, decorative: true, text: "THREE REFUSAL TIERS", box: [500,68,420,14], style: sec_hdr}
+            # Tier 1 — Soft + waiver
+            - {type: rect, id: v.t1, decorative: true, box: [500,92,420,98], fill: tier_soft, stroke: {color: tier_soft_bdr, width: 0.5}, radius: 4}
+            - {type: text, id: v.t1l, decorative: true, text: "TIER 1  ·  SOFT NO + WAIVER",       box: [516,104,388,12], style: tier_lbl}
+            - {type: text, id: v.t1h, decorative: true, text: "AI flags concern. The user can override.", box: [516,122,388,16], style: tier_h}
+            - {type: text, id: v.t1b, decorative: true, text: "\"I think you should rest.\"  →  user clicks \"Keep going.\" Acknowledged. The AI defers.", box: [516,144,388,40], style: tier_b}
+            # Tier 2 — Hard + defer
+            - {type: rect, id: v.t2, decorative: true, box: [500,198,420,98], fill: tier_defer, stroke: {color: tier_defer_bdr, width: 0.5}, radius: 4}
+            - {type: text, id: v.t2l, decorative: true, text: "TIER 2  ·  HARD LIMIT + DEFER",     box: [516,210,388,12], style: tier_lbl}
+            - {type: text, id: v.t2h, decorative: true, text: "AI refuses. Offers \"Sleep on it.\"", box: [516,228,388,16], style: tier_h}
+            - {type: text, id: v.t2b, decorative: true, text: "The user cools down. The system's position is the same in the morning. 'Sleep on it' is the user's hatch, not the system reconsidering.", box: [516,250,388,40], style: tier_b}
+            # Tier 3 — Hard + exit
+            - {type: rect, id: v.t3, decorative: true, box: [500,304,420,98], fill: tier_exit, stroke: {color: tier_exit_bdr, width: 0.5}, radius: 4}
+            - {type: text, id: v.t3l, decorative: true, text: "TIER 3  ·  HARD LIMIT + EXIT",      box: [516,316,388,12], style: tier_lbl}
+            - {type: text, id: v.t3h, decorative: true, text: "AI refuses. Offers \"Cancel subscription.\"", box: [516,334,388,16], style: tier_h}
+            - {type: text, id: v.t3b, decorative: true, text: "If the user can't accept the hard limit, the relationship ends cleanly. We'd rather lose the customer than water down the value.", box: [516,356,388,40], style: tier_b}
+        - id: footer
+          z: 30
+          objects:
+            - {type: text, id: v.f, decorative: true,
+               text: "The system does not argue. It does not soften. It does not relent.",
+               box: [60,440,840,18], style: footer_em}
+            - {type: text, id: v.f2, decorative: true,
+               text: "Most products use friction to stop people from leaving. We use it to stop bad-moment exits, while still accepting considered ones. If someone leaves over this, they were never our customer.",
+               box: [60,464,840,40], style: footer_b}
+
+  # ─── SLIDE 08 — The Voice  (★ STAR MOMENT) ─────────────────────────────────
+  - slide: 8
+    id: s8_voice
+    title: "This Is What the Commitment Sounds Like"
+    description: "The product voice, made explicit. Phase 3 begins."
+    notes: "Read the lines slowly. Don't explain them. The voice itself is the evidence."
+    tokens:
+      text_styles:
+        v_state:       {font: primary, size: 9,   weight: 700, color: accent_slate,  align: left,   line_height: 12}
+        v_quote:       {font: primary, size: 22,  weight: 700, color: text,          align: left,   line_height: 30, wrap: true}
+        v_quote_em:    {font: primary, size: 22,  weight: 700, color: accent_warm,   align: left,   line_height: 30, wrap: true}
+        v_attr:        {font: primary, size: 9,   weight: 400, color: text_muted,    align: left,   italic: true, wrap: true}
+        v_synthesis:   {font: primary, size: 12,  weight: 400, color: text,          align: center, line_height: 18, italic: true, wrap: true}
+        v_synth_em:    {font: primary, size: 12,  weight: 700, color: text,          align: center, line_height: 18, wrap: true}
+        star_badge:    {font: primary, size: 9,   weight: 700, color: star_gold,     align: center}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "This Is What the Commitment Sounds Like",
+               slide_num: "08", params: {phase_color: phase3}}
+        - id: star_treatment
+          z: 5
+          objects:
+            - {type: rect, id: v.sr, decorative: true, box: [38,62,884,420], fill: none, stroke: {color: star_gold, width: 2}, radius: 8}
+            - {type: text, id: v.sb, decorative: true, text: "★  STAR MOMENT", box: [38,52,884,12], style: star_badge}
+        - id: quotes
+          z: 10
+          objects:
+            # Quote 1 — UI_DEPLETED
+            - {type: text, id: v.q1s, decorative: true, text: "WHEN  ·  UI_DEPLETED",                            box: [60,84,400,12], style: v_state}
+            - {type: text, id: v.q1, decorative: true, text: "\"You've done enough\nthinking today.\"",          box: [60,104,420,80], style: v_quote_em}
+            - {type: text, id: v.q1a, decorative: true, text: "Late-afternoon attention trough · permission-giving · gentle palette", box: [60,196,420,12], style: v_attr}
+            # Quote 2 — UI_FRAGMENTED
+            - {type: text, id: v.q2s, decorative: true, text: "WHEN  ·  UI_FRAGMENTED_DEFAULT",                  box: [500,84,400,12], style: v_state}
+            - {type: text, id: v.q2, decorative: true, text: "\"Three threads in flight.\nfaz is keeping context\nwarm.\"",  box: [500,104,420,110], style: v_quote}
+            - {type: text, id: v.q2a, decorative: true, text: "Mid-morning baseline · a direct answer to the 47-second attention problem",  box: [500,226,420,12], style: v_attr}
+            # Quote 3 — UI_RESTING
+            - {type: text, id: v.q3s, decorative: true, text: "WHEN  ·  UI_RESTING",                              box: [60,260,400,12], style: v_state}
+            - {type: text, id: v.q3, decorative: true, text: "\"faz is working.\nYou are resting.\"",            box: [60,280,420,80], style: v_quote_em}
+            - {type: text, id: v.q3a, decorative: true, text: "Off-hours · radical quiet · no work surfaced", box: [60,372,420,12], style: v_attr}
+            # Quote 4 — UI_OVERLOADED
+            - {type: text, id: v.q4s, decorative: true, text: "WHEN  ·  UI_OVERLOADED",                          box: [500,260,400,12], style: v_state}
+            - {type: text, id: v.q4, decorative: true, text: "\"Take a breath.\nfaz triaged the rest.\"",        box: [500,280,420,80], style: v_quote}
+            - {type: text, id: v.q4a, decorative: true, text: "Strained capacity · suppress non-essential · 12 parked, 3 need you", box: [500,372,420,12], style: v_attr}
+        - id: synthesis
+          z: 30
+          objects:
+            - {type: text, id: v.sy, decorative: true,
+               text: "Every other AI product would say \"How can I help?\"",
+               box: [60,498,840,16], style: v_synthesis}
+            - {type: text, id: v.sy2, decorative: true,
+               text: "We say something else.",
+               box: [60,516,840,16], style: v_synth_em}
+
+  # ─── SLIDE 09 — What We Refuse to Ship (uses taboo_card symbol) ────────────
+  - slide: 9
+    id: s9_taboos
+    title: "What We Will Refuse to Ship"
+    description: "Six things we should never ship, even under pressure. Phase 3."
+    notes: "The six cards matter, but the band at the bottom is the real line in the sand."
+    tokens:
+      text_styles:
+        cult_h:        {font: primary, size: 12,  weight: 700, color: white,       align: left,   line_height: 16, wrap: true}
+        cult_b:        {font: primary, size: 10,  weight: 400, color: white,       align: left,   line_height: 14, wrap: true}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "What We Will Refuse to Ship",
+               slide_num: "09", params: {phase_color: phase3}}
+        - id: taboos
+          z: 10
+          objects:
+            - type: use
+              id: v.t1
+              decorative: true
+              symbol: taboo_card
+              box: [40, 68, 440, 108]
+              number: "01"
+              title: "No dark patterns."
+              body: "No infinite scroll, no hidden cancel flow, no fake urgency, no manipulative copy. Getting out should be as easy as getting in."
+            - type: use
+              id: v.t2
+              decorative: true
+              symbol: taboo_card
+              box: [40, 184, 440, 108]
+              number: "02"
+              title: "No attention-capture UX."
+              body: "No notification bursts to drag people back in. No streak counters. No read-receipt anxiety. The product should earn attention by being useful, not by extracting it."
+            - type: use
+              id: v.t3
+              decorative: true
+              symbol: taboo_card
+              box: [40, 300, 440, 108]
+              number: "03"
+              title: "No training without consent."
+              body: "Per-source explicit consent. Family data is opt-in only. Default is no-train. The user can inspect, edit, export, and delete any memory at any time."
+            - type: use
+              id: v.t4
+              decorative: true
+              symbol: taboo_card
+              box: [496, 68, 440, 108]
+              number: "04"
+              title: "No engagement metrics as North Star."
+              body: "DAU, time spent, queries served: operational metrics, never goals. Our North Star is hours of cognition offloaded. We measure what the user got back, not what we captured."
+            - type: use
+              id: v.t5
+              decorative: true
+              symbol: taboo_card
+              box: [496, 184, 440, 108]
+              number: "05"
+              title: "No hidden Core configurability."
+              body: "The Core's commitments are constitutional and non-negotiable. They do not sit behind feature flags. If the disagreement is fundamental, the honest answer is cancellation."
+            - type: use
+              id: v.t6
+              decorative: true
+              symbol: taboo_card
+              box: [496, 300, 440, 108]
+              number: "06"
+              title: "No soft-refusal that relents."
+              body: "A hard limit that softens under user pressure is not a limit. The system does not negotiate. \"Sleep on it\" is the user's cool-down hatch — not the system's reconsideration loop."
+        - id: cultural_commitment
+          z: 20
+          objects:
+            - {type: rect, id: v.cc, decorative: true, box: [40,424,896,80], fill: text, radius: 6}
+            - {type: rect, id: v.cca, decorative: true, box: [40,424,4,80], fill: accent_warm}
+            - {type: text, id: v.cch, decorative: true, text: "When growth metrics demand we ship these, we will refuse.", box: [60,442,860,18], style: cult_h}
+            - {type: text, id: v.ccb, decorative: true,
+               text: "This list gets defended at every quarterly product review. Every PM, engineer, and designer who joins reads it on day one. Culture is the enforcement layer, not a garnish on top of the architecture.",
+               box: [60,466,860,32], style: cult_b}
+
+  # ─── SLIDE 10 — The Founder Commitment ─────────────────────────────────────
+  - slide: 10
+    id: s10_commitment
+    title: ""
+    description: "Closing commitment. One sentence, no escape hatch. Phase 3 close."
+    notes: "Read the line and stop. No summary. No rescue sentence."
+    tokens:
+      text_styles:
+        prelude:       {font: primary, size: 11,  weight: 400, color: text_muted,  align: center, line_height: 16, italic: true}
+        commitment:    {font: primary, size: 56,  weight: 700, color: primary,     align: center, line_height: 72}
+        commitment_em: {font: primary, size: 56,  weight: 700, color: accent_warm, align: center, line_height: 72}
+        coda:          {font: primary, size: 11,  weight: 400, color: text_muted,  align: center, line_height: 16, wrap: true}
+        signature:     {font: primary, size: 10,  weight: 700, color: text_muted,  align: center, line_height: 14}
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "",
+               slide_num: "10", params: {phase_color: primary}}
+        - id: content
+          z: 10
+          objects:
+            - {type: text, id: v.pre, decorative: true,
+               text: "The sentence that should still hold ten years from now.",
+               box: [80,124,800,20], style: prelude}
+            - {type: line, id: v.r1, decorative: true, from: [420,164], to: [540,164], stroke: {color: chrome_line, width: 1}}
+            - {type: text, id: v.c1, decorative: true,
+               text: "I will model the AI",
+               box: [40,202,880,72], style: commitment}
+            - {type: text, id: v.c2, decorative: true,
+               text: "to say No.",
+               box: [40,278,880,72], style: commitment_em}
+            - {type: line, id: v.r2, decorative: true, from: [420,372], to: [540,372], stroke: {color: chrome_line, width: 1}}
+            - {type: text, id: v.coda, decorative: true,
+               text: "Defended at every quarterly review for the next ten years.\nIf you can't defend it on a Monday in 2036, don't ship it.",
+               box: [80,388,800,40], style: coda}
+            - {type: text, id: v.sig, decorative: true,
+               text: "— faz.ai  ·  Manifesto v0.2  ·  2026",
+               box: [80,452,800,16], style: signature}
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # TEMPLATED SLIDES — proof of the use+fill framework path
+  #
+  # The slides below use `use: <pattern_id>` with a flat `fill:` block.
+  # Structure comes from the catalog; visual style from the deck's
+  # stylesheet (omitted → bundled "default"); brand tokens (colors,
+  # fonts) from the deck's $theme + deck.tokens above. The slide
+  # author writes only the data — and the result lands in the same
+  # deck as the bespoke slides above, in the same PDF, themed the
+  # same way.
+  # ─────────────────────────────────────────────────────────────────────────
+
+  # ─── SLIDE 11 — SWOT (template #10) ─────────────────────────────────────
+  - slide: 11
+    id: s11_swot_templated
+    title: "Strategic Posture — Where We Stand vs. Foundation Providers"
+    description: "SWOT pattern instantiated from the catalog with a flat fill payload. No bespoke layout work."
+    notes: "Read clockwise. The threats column is where the discussion should land."
+    use: 10
+    fill:
+      strengths:
+        - "Anti-engagement UX is structurally unique — UI_RESTING and UI_DEPLETED are non-trivial to copy"
+        - "Refusal-as-feature already shipping in v0.2 with the four-layer cascade tested in production"
+        - "Privacy posture (per-source consent, no default training) is defensible against foundation-provider economics"
+        - "Constitutional Core is non-fireable by design — gives the relationship architectural integrity"
+      weaknesses:
+        - "Distribution surface is narrow — operator referrals carry most growth today"
+        - "\"AI that says No\" requires education; first-touch conversion lags engagement-maximizing competitors"
+        - "Brand discipline cost: every quarterly review re-defends the manifesto, slowing some decisions"
+      opportunities:
+        - "Operator segment is under-served by engagement-maximizing tools — measurable cognition-offload demand"
+        - "Family-domain trust gap incumbents cannot close without re-architecting their training-data pipeline"
+        - "Regulatory tailwind on AI privacy expected H2 — our posture is already aligned"
+        - "Adjacent vertical (knowledge work for operators) shares the same pain pattern"
+      threats:
+        - "Foundation providers copying surface features (UI_RESTING UX language) without the architecture"
+        - "Two well-funded entrants (one east-coast, one APAC) targeting the operator segment directly"
+        - "Macro slowdown reducing IT discretionary spend — premium pricing pressure rising"
+        - "Platform partner (cloud provider) exploring direct competition in the same surface"
+    synthesis: "The threat we cannot mitigate is the one we cause ourselves: drifting from the manifesto under growth pressure."
+
+  # ─── SLIDE 12 — Business Model Canvas (template #44) ────────────────────
+  - slide: 12
+    id: s12_bmc_templated
+    title: "Business Model Canvas — How the Achievement Layer Pays Back"
+    description: "BMC pattern with structured revenue_streams / cost_structure via the bundled sidecar."
+    notes: "The bottom row is the math. Read top-down for the shape, then linger on cost vs. revenue."
+    use: 44
+    fill:
+      key_partners:
+        - "Cloud infrastructure provider (privacy-tier SLAs)"
+        - "Family-OS calendar / contacts integrations"
+        - "Payment processor with strong consent affordances"
+      key_activities:
+        - "Core constitutional layer — refusal cascade + memory durability"
+        - "Worker identity, memory persistence, per-user values docs"
+        - "Anti-engagement UX research (UI_RESTING, UI_DEPLETED states)"
+        - "Refusal cascade tuning informed by classifier eval"
+      key_resources:
+        - "Engineering team specialized in privacy-aware ML"
+        - "Per-user worker memory store (encrypted at rest)"
+        - "Five years of operator-focused interaction data"
+      value_propositions:
+        - "Cognition offloaded — measured in hours, not engagement"
+        - "AI that says No when it should, in three principled tiers"
+        - "Work-life merge in one cognitive space — one canvas, two domains"
+        - "Constitutional commitments that don't soften under user pressure"
+      customer_relationships:
+        - "Constitutional Core, replaceable workers — the user can fire any worker, never the Core"
+        - "Cancellation as honest exit — friction-free when the limit is unacceptable"
+      channels:
+        - "Native macOS / iOS first — desktop where operators actually work"
+        - "Operator-network referrals (NPS-driven)"
+        - "Manifesto + voice samples as marketing artifacts"
+      customer_segments:
+        - "Operators (founders, COOs, ops leaders) wanting their life back"
+        - "Family CEOs running households as small enterprises"
+        - "Sceptics of engagement-maximizing AI tools"
+      cost_structure:
+        - {label: "Core engineering team", metric: "$3.2M / yr"}
+        - {label: "Worker ML platform", metric: "$1.8M / yr"}
+        - {label: "Privacy infrastructure (encrypted memory)", metric: "$0.9M / yr"}
+        - {label: "Brand + manifesto upkeep", metric: "$0.4M / yr"}
+      revenue_streams:
+        - {label: "Solo tier subscriptions", metric: "$2.4M ARR"}
+        - {label: "Operator tier (premium)", metric: "$3.6M ARR"}
+        - {label: "Team / Portfolio tier", metric: "$5.1M ARR"}
+        - {label: "Family CEO add-on", metric: "$0.8M ARR"}
+    synthesis: "Premium tiers cover the cost of staying disciplined. The model only works if we stop chasing engagement-priced growth."
+
+  # ─── SLIDE 13 — Communications Plan (template #91) ──────────────────────
+  - slide: 13
+    id: s13_comms_templated
+    title: "Comms Plan — Defending the Manifesto in Public"
+    description: "Comms-plan pattern with one list_items column and three table_data columns."
+    notes: "Read audience by audience. Each row is one quarterly conversation, not a one-off announcement."
+    use: 91
+    fill:
+      audiences:
+        - "Existing operators (the renewal base)"
+        - "Family CEOs (adjacent ICP expansion)"
+        - "Foundation-provider sceptics (\"why not just use GPT?\")"
+        - "Press and analyst community"
+        - "Engineering hires (the manifesto reads day one)"
+      key_messages:
+        headers: ["Audience", "Core message"]
+        rows:
+          - ["Operators", "We give you your life back, not more tasks. Refusal is a feature, not a bug."]
+          - ["Family CEOs", "Family-domain trust the incumbents can't match — privacy is architectural, not a setting"]
+          - ["Sceptics", "Anti-engagement UX is the architecture. The product gets quieter when you should rest."]
+          - ["Press", "Refusal-as-feature is the headline. UI_RESTING is the deployed proof."]
+          - ["Hires", "The manifesto is non-negotiable. If you can't defend it on a Monday in 2036, we won't ship it."]
+      channels_frequency:
+        headers: ["Channel", "Frequency"]
+        rows:
+          - ["Manifesto deck (quarterly defense)", "Every quarterly review"]
+          - ["Voice samples (UI_RESTING quotes)", "With every release"]
+          - ["Operator letters (founder voice)", "Monthly to renewing operators"]
+          - ["Press briefings", "Per major release or when refusal cascade evolves"]
+          - ["Onboarding manifesto read", "Day one, every new hire"]
+      owner_timing:
+        headers: ["Owner", "Timing"]
+        rows:
+          - ["Founder", "Manifesto deck + voice samples"]
+          - ["Head of Product", "Monthly operator letters + release notes"]
+          - ["Head of Trust", "Sceptic + press briefings"]
+          - ["VP Engineering", "Onboarding manifesto sessions"]
+          - ["All-hands", "Quarterly defense review"]
+    synthesis: "Comms is not marketing. Every channel here exists to defend the manifesto, not to grow numbers."
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # ARCHITECTURE APPENDIX — UML formalization of the relationship structure
+  # and the refusal cascade. These slides exist for engineering reviews;
+  # they're the same shape every architect expects to see, rendered from
+  # the same DSL the rest of the deck uses (uml.classifier_box,
+  # uml.state_box, uml.pseudostate, generic connector with arrow_*_kind).
+  # ─────────────────────────────────────────────────────────────────────────
+
+  # ─── SLIDE 14 — UML class diagram (Core / Worker / User formalization) ───
+  - slide: 14
+    id: s14_arch_class
+    title: "Architecture — Core / Worker / User as a UML Class Model"
+    description: "The constitutional Core / replaceable Workers structure, formalized in UML 2.5.1."
+    notes: "Walk top-down. User holds the Core by composition (the relationship itself, non-fireable). Core aggregates Workers — workers can leave; the Core can't. Worker implements Refusable, which is the four-tier contract from slide 7."
+    visual:
+      layers:
+
+        # Slide chrome.
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Architecture — Core / Worker / User as a UML Class Model",
+               slide_num: "14", params: {phase_color: phase3}}
+
+        # Diagram panel.
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
+               fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── UML edges. Drawn first; z=10 sits behind classifiers (z=20)
+        # so any line that would clip a box is overdrawn.
+        # Connectors use side: anchors to avoid center-to-center routing
+        # that crosses box bodies.
+        - id: uml.edges
+          z: 10
+          objects:
+
+            # User *--> Core   (composition: User holds the Core; non-fireable)
+            # Filled diamond at the User end (the whole).
+            - {type: connector, id: arch.c1,
+               from: {object: User, side: south},
+               to:   {object: Core, side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_start: true, arrow_start_kind: filled_diamond}}
+
+            # Core o--> Worker  (aggregation: workers are replaceable, Core isn't)
+            # Hollow diamond at the Core end.
+            - {type: connector, id: arch.c2,
+               from: {object: Core,   side: south},
+               to:   {object: Worker, side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_start: true, arrow_start_kind: hollow_diamond}}
+
+            # Worker *--> MemoryStore  (composition: each worker owns its memory)
+            - {type: connector, id: arch.c3,
+               from: {object: Worker,      side: east},
+               to:   {object: MemoryStore, side: west},
+               stroke: {color: primary, width: 1.0,
+                        arrow_start: true, arrow_start_kind: filled_diamond}}
+
+            # Worker ..|> Refusable  (realization: dashed + hollow triangle)
+            - {type: connector, id: arch.c4,
+               from: {object: Worker,    side: west},
+               to:   {object: Refusable, side: east},
+               stroke: {color: primary, width: 1.0, dash: [5, 4],
+                        arrow_end: true, arrow_end_kind: hollow_triangle}}
+
+        # ── UML classifiers.
+        # Heights are explicit (matching renderer auto-sizing) so the
+        # endpoint resolver lands south/north on the actual edges.
+        - id: uml.classifiers
+          z: 20
+          objects:
+
+            # User — top center.
+            # Height: header(28) + 2 attrs (46) + empty ops band (19) = 93.
+            - type: uml.classifier_box
+              id: User
+              box: [380, 64, 200, 93]
+              name: User
+              attributes:
+                - {name: identity,    type: Identity,    visibility: public}
+                - {name: agency,      type: Authority,   visibility: public}
+
+            # Core — middle center (constitutional).
+            # Height: header(36 w/stereotype) + 2 attrs (46) + 2 ops (46) = 128.
+            - type: uml.classifier_box
+              id: Core
+              box: [360, 188, 240, 128]
+              name: Core
+              stereotype: constitutional
+              attributes:
+                - {name: commitments, type: "Commitment[*]", visibility: private, readonly: true}
+                - {name: relationship, type: Relationship, visibility: private}
+              operations:
+                - {name: observe}
+                - {name: refuse, return_type: Decision}
+
+            # Worker — middle bottom.
+            # Height: header(28) + 3 attrs (65) + 1 op (27) = 120.
+            - type: uml.classifier_box
+              id: Worker
+              box: [360, 348, 240, 120]
+              name: Worker
+              abstract: true
+              attributes:
+                - {name: name,    type: string,    visibility: public}
+                - {name: voice,   type: VoiceSpec, visibility: public}
+                - {name: values,  type: Document,  visibility: private}
+              operations:
+                - {name: act, abstract: true, return_type: Result}
+
+            # Refusable — left side (interface).
+            # Height: header(36) + empty attrs (19) + 3 ops (65) = 120.
+            - type: uml.classifier_box
+              id: Refusable
+              box: [60, 348, 200, 120]
+              name: Refusable
+              stereotype: interface
+              operations:
+                - {name: softNo, abstract: true, return_type: Waiver}
+                - {name: hardLimit, abstract: true, return_type: Defer}
+                - {name: exit, abstract: true}
+
+            # MemoryStore — right side.
+            # Height: header(36) + 2 attrs (46) + 1 op (27) = 109.
+            - type: uml.classifier_box
+              id: MemoryStore
+              box: [700, 354, 200, 109]
+              name: MemoryStore
+              stereotype: encrypted
+              attributes:
+                - {name: scope,    type: PerUser, visibility: private}
+                - {name: trained,  type: bool,    visibility: private, default: "false"}
+              operations:
+                - {name: forget, return_type: void}
+
+        # Caption.
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: v.cap, decorative: true,
+               text: "Composition (filled diamond) = the whole owns the part. Aggregation (hollow diamond) = the whole references replaceable parts. Realization (dashed + hollow triangle) = the class implements the interface contract.",
+               box: [60,498,840,16],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}
+
+  # ─── SLIDE 15 — UML state machine of the three refusal tiers ────────────
+  - slide: 15
+    id: s15_arch_state
+    title: "Architecture — The Three Refusal Tiers as a UML State Machine"
+    description: "How a request travels through Soft → Hard → Exit, formalized as a state machine."
+    notes: "Open with the initial pseudostate. The waiver loop on Soft No is the user's escape hatch — Hard Limit's deferral is the system's. Exit is terminal: the relationship ends cleanly."
+    visual:
+      layers:
+
+        # Slide chrome.
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Architecture — The Three Refusal Tiers as a UML State Machine",
+               slide_num: "15", params: {phase_color: phase3}}
+
+        # Diagram panel.
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
+               fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── UML transitions (z=10, behind state boxes).
+        # Layout strategy: horizontal cascade — initial → Idle (left)
+        # → SoftNo → HardLimit (top row); Tier-2 escape goes DOWN to
+        # Defer (looping back to Idle) and Exit (terminal) along a
+        # second row. This keeps the principal flow horizontal and
+        # reads top-to-bottom for the escape branches.
+        - id: uml.edges
+          z: 10
+          objects:
+
+            # initial → Idle  (vertical entry from top)
+            - {type: connector, id: t.start,
+               from: {object: ps.initial, side: south},
+               to:   {object: Idle,       side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Idle → SoftNo  (request received, concern detected)
+            - {type: connector, id: t.idle_to_soft,
+               from: {object: Idle,   side: east},
+               to:   {object: SoftNo, side: west},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # SoftNo → HardLimit  (pattern detected — escalates)
+            - {type: connector, id: t.soft_to_hard,
+               from: {object: SoftNo,    side: east},
+               to:   {object: HardLimit, side: west},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # SoftNo → Idle  (user clicks "Keep going" — waiver loop)
+            # Routes through y=420 (well below all states) so it
+            # doesn't collide with the top-row horizontal flow.
+            - {type: connector, id: t.soft_to_idle,
+               from: {object: SoftNo, side: south},
+               to:   {object: Idle,   side: south},
+               route: {type: orthogonal, points: [[400, 420], [150, 420]]},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # HardLimit → Defer  (user accepts "Sleep on it")
+            - {type: connector, id: t.hard_to_defer,
+               from: {object: HardLimit, side: south},
+               to:   {object: Defer,     side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # HardLimit → Exit  (user rejects the limit)
+            # Drops down-and-right to the terminal state.
+            - {type: connector, id: t.hard_to_exit,
+               from: {object: HardLimit, side: south, offset: 80},
+               to:   {object: Exit,      side: north},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Defer → Idle  (cool-down complete — back to resting)
+            # Routes leftward then up to Idle's east face.
+            - {type: connector, id: t.defer_to_idle,
+               from: {object: Defer, side: west},
+               to:   {object: Idle,  side: east},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Exit → ps.final  (relationship ends)
+            - {type: connector, id: t.exit_final,
+               from: {object: Exit,     side: south},
+               to:   {object: ps.final, side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+        # ── Transition labels — placed near each line's midpoint.
+        # Coordinates derived from the box geometry below; if you
+        # move a state, retune its label box.
+        - id: edge_labels
+          z: 15
+          objects:
+            - {type: text, id: lb.idle_soft, decorative: true,
+               text: "request",
+               box: [240,168,50,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: text, id: lb.soft_hard, decorative: true,
+               text: "escalates",
+               box: [510,168,50,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: text, id: lb.hard_defer, decorative: true,
+               text: "[sleep on it]",
+               box: [580,250,120,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: text, id: lb.hard_exit, decorative: true,
+               text: "[reject limit]",
+               box: [770,250,120,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: text, id: lb.soft_idle, decorative: true,
+               text: "[user keeps going — waiver]",
+               box: [200,406,200,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: text, id: lb.defer_idle, decorative: true,
+               text: "cool-down complete",
+               box: [220,322,180,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+
+        # ── States and pseudostates.
+        # Top row (y≈140): Idle → SoftNo → HardLimit  (the escalation cascade)
+        # Bottom row (y≈340): Defer (under HardLimit), Exit (right of Defer)
+        - id: uml.classifiers
+          z: 20
+          objects:
+
+            # Initial pseudostate (top, above Idle)
+            - {type: uml.pseudostate, id: ps.initial,
+               box: [129, 90, 22, 22], kind: initial}
+
+            # Idle state — the resting/anchor position
+            - type: uml.state_box
+              id: Idle
+              box: [60, 140, 180, 80]
+              name: Idle
+              entry: "await request"
+
+            # SoftNo state — Tier 1
+            - type: uml.state_box
+              id: SoftNo
+              box: [290, 140, 220, 80]
+              name: "Soft No (Tier 1)"
+              entry: "flag concern"
+              do: "render waiver"
+
+            # HardLimit state — Tier 2
+            - type: uml.state_box
+              id: HardLimit
+              box: [560, 140, 220, 80]
+              name: "Hard Limit (Tier 2)"
+              entry: "refuse"
+              do: "offer defer"
+
+            # Defer state — under HardLimit, cool-down branch
+            - type: uml.state_box
+              id: Defer
+              box: [430, 290, 200, 70]
+              name: Defer
+              do: "wait, restate position"
+
+            # Exit state — Tier 3, right of Defer
+            - type: uml.state_box
+              id: Exit
+              box: [680, 290, 200, 70]
+              name: "Exit (Tier 3)"
+              entry: "offer cancellation"
+
+            # Final pseudostate (under Exit)
+            - {type: uml.pseudostate, id: ps.final,
+               box: [769, 380, 22, 22], kind: final}
+
+        # Caption.
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: v.cap, decorative: true,
+               text: "Tier 1 is reversible (the user keeps going); Tier 2 is the system's hatch (sleep on it loops back to Idle); Tier 3 is terminal. The system never softens — only the user does.",
+               box: [60,498,840,16],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}
+
+  # ─── SLIDE 16 — UML sequence diagram (refusal request exchange) ─────────
+  - slide: 16
+    id: s16_arch_sequence
+    title: "Architecture — A Refusal in Flight (UML Sequence)"
+    description: "How a refusal flows at runtime: User → Core → Worker → MemoryStore."
+    notes: "Walk top-to-bottom by step. Step 3 is the load-bearing one — Core decides to refuse before the Worker even sees the message. The Worker only sees commands the Core approves."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Architecture — A Refusal in Flight (UML Sequence)",
+               slide_num: "16", params: {phase_color: phase3}}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
+               fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── Lifelines (heads + dashed timelines).
+        # Four columns: User (actor), Core, Worker, MemoryStore.
+        - id: uml.lifelines
+          z: 10
+          objects:
+            - {type: uml.lifeline, id: User,
+               box: [80, 80, 120, 380],
+               name: ":User", actor: true, head_height: 60}
+
+            - {type: uml.lifeline, id: Core,
+               box: [260, 80, 180, 380],
+               name: core, type_name: Core, head_height: 36}
+
+            - {type: uml.lifeline, id: Worker,
+               box: [500, 80, 160, 380],
+               name: w, type_name: Worker, head_height: 36}
+
+            - {type: uml.lifeline, id: Mem,
+               box: [720, 80, 160, 380],
+               name: m, type_name: MemoryStore, head_height: 36}
+
+        # ── Activation bars on the lifelines that hold the call.
+        - id: uml.activations
+          z: 15
+          objects:
+            - {type: uml.activation_bar, id: ab.core,
+               box: [345, 175, 10, 220]}
+            - {type: uml.activation_bar, id: ab.mem,
+               box: [795, 200, 10, 35]}
+            - {type: uml.activation_bar, id: ab.worker,
+               box: [575, 280, 10, 60]}
+
+        # ── Messages (numbered top-down).
+        - id: uml.messages
+          z: 20
+          objects:
+
+            # 1. User → Core   request(action)
+            - {type: line, id: m.req,
+               from: [200, 175], to: [350, 175],
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m.req.l, decorative: true,
+               text: "1: request(action)",
+               box: [210,158,160,16],
+               style: {font: primary, size: 11, color: primary, align: left}}
+
+            # 2. Core → MemoryStore   recall(pattern)
+            - {type: line, id: m.recall,
+               from: [350, 200], to: [800, 200],
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m.recall.l, decorative: true,
+               text: "2: recall(history pattern)",
+               box: [360,182,300,16],
+               style: {font: primary, size: 11, color: primary, align: left}}
+
+            # 3. MemoryStore → Core   pattern  (reply, dashed)
+            - {type: line, id: m.pat,
+               from: [800, 235], to: [350, 235],
+               stroke: {color: primary, width: 1.0, dash: [5, 4],
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m.pat.l, decorative: true,
+               text: "3: 14 emails today, 3 nights past end-time",
+               box: [360,217,440,16],
+               style: {font: primary, size: 11, color: text_muted, align: left, italic: true}}
+
+            # 4. Core → Core (self-call) classify(severity)
+            - {type: polyline, id: m.classify,
+               points: [[350, 260], [400, 260], [400, 275], [355, 275]],
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m.classify.l, decorative: true,
+               text: "4: classify(severity)",
+               box: [410,253,200,16],
+               style: {font: primary, size: 11, color: primary, align: left}}
+
+            # 5. Core → Worker   permitted(scoped)  (only if classified ≤ Tier 2)
+            - {type: line, id: m.permit,
+               from: [350, 295], to: [580, 295],
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m.permit.l, decorative: true,
+               text: "5: permitted(scoped)  [classification ≤ Tier 2]",
+               box: [360,278,300,16],
+               style: {font: primary, size: 11, color: primary, align: left}}
+
+            # 6. Worker → Core   result  (reply, dashed)
+            - {type: line, id: m.result,
+               from: [580, 335], to: [350, 335],
+               stroke: {color: primary, width: 1.0, dash: [5, 4],
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m.result.l, decorative: true,
+               text: "6: result",
+               box: [360,317,160,16],
+               style: {font: primary, size: 11, color: text_muted, align: left, italic: true}}
+
+            # 7. Core → User   refusal(tier=1, waiver=true)  (reply, dashed)
+            - {type: line, id: m.refuse,
+               from: [350, 380], to: [200, 380],
+               stroke: {color: primary, width: 1.0, dash: [5, 4],
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m.refuse.l, decorative: true,
+               text: "7: refusal(tier=1, waiver=true)",
+               box: [210,362,200,16],
+               style: {font: primary, size: 11, color: text_muted, align: left, italic: true}}
+
+        # Caption.
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: v.cap, decorative: true,
+               text: "The Core mediates every request — Workers never see commands that the Core has already classified as refusable. This is what makes the constitutional layer non-fireable in practice.",
+               box: [60,498,840,16],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}
+
+  # ─── SLIDE 17 — UML use-case diagram (user-facing surface) ──────────────
+  - slide: 17
+    id: s17_arch_usecase
+    title: "Architecture — User-Facing Surface (UML Use Cases)"
+    description: "What the user can do; what the Core does on its own. Use-case view of the system boundary."
+    notes: "Read by actor: User on the left, Core on the right. The Core has its own use cases (auto-defer, restate-position) that are not user-initiated. The system boundary frames what's inside our product."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Architecture — User-Facing Surface (UML Use Cases)",
+               slide_num: "17", params: {phase_color: phase3}}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
+               fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── System boundary frame (rectangle around the use cases).
+        - id: system_boundary
+          z: 8
+          objects:
+            - {type: rect, id: v.sys, decorative: true, box: [240,90,500,380],
+               fill: white, stroke: {color: chrome_line, width: 1.0}, radius: 4}
+            - {type: text, id: v.sys.t, decorative: true,
+               text: "faz.ai system",
+               box: [240,98,500,18],
+               style: {font: primary, size: 11, weight: 700, color: text_muted, align: center}}
+
+        # ── Edges between actors and use cases.
+        - id: uml.edges
+          z: 10
+          objects:
+
+            # User --- Place Request
+            - {type: line, id: e.u_req,
+               from: [180, 170], to: [340, 170],
+               stroke: {color: primary, width: 1.0}}
+            # User --- Accept Soft No  (the waiver path)
+            - {type: line, id: e.u_soft,
+               from: [180, 200], to: [340, 230],
+               stroke: {color: primary, width: 1.0}}
+            # User --- Accept Defer
+            - {type: line, id: e.u_def,
+               from: [180, 220], to: [340, 290],
+               stroke: {color: primary, width: 1.0}}
+            # User --- Cancel Subscription
+            - {type: line, id: e.u_can,
+               from: [180, 240], to: [340, 350],
+               stroke: {color: primary, width: 1.0}}
+
+            # Core --- Restate Position (autonomous)
+            - {type: line, id: e.c_rest,
+               from: [800, 200], to: [640, 230],
+               stroke: {color: primary, width: 1.0}}
+            # Core --- Auto-Defer (autonomous)
+            - {type: line, id: e.c_auto,
+               from: [800, 220], to: [640, 290],
+               stroke: {color: primary, width: 1.0}}
+            # Core --- Refuse Itself (Tier 4 — refuses its own classifier)
+            - {type: line, id: e.c_self,
+               from: [800, 240], to: [640, 350],
+               stroke: {color: primary, width: 1.0}}
+
+            # Place Request <<include>> Classify Severity (dashed, open
+            # arrow at the included use case end). The «include»
+            # keyword sits along the line at the midpoint.
+            - {type: line, id: e.inc_classify,
+               from: [420, 190], to: [420, 410],
+               stroke: {color: primary, width: 1.0, dash: [5, 4],
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: e.inc_classify.l, decorative: true,
+               text: "«include»",
+               box: [428,295,80,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: left, italic: true}}
+
+        # ── Actors (left and right of the boundary).
+        - id: uml.actors
+          z: 20
+          objects:
+            - {type: uml.actor, id: User,
+               box: [100, 170, 80, 110], name: "User"}
+
+            - {type: uml.actor, id: Core,
+               box: [800, 170, 80, 110], name: "Core"}
+
+        # ── Use cases (ellipses).
+        - id: uml.usecases
+          z: 20
+          objects:
+            - {type: ellipse, id: uc.req,
+               box: [340, 150, 160, 40],
+               fill: white, stroke: {color: primary, width: 1.0}}
+            - {type: text, id: uc.req.t, decorative: true,
+               text: "Place Request",
+               box: [340,162,160,16],
+               style: {font: primary, size: 11, weight: 400, color: text, align: center}}
+
+            - {type: ellipse, id: uc.soft,
+               box: [340, 210, 160, 40],
+               fill: white, stroke: {color: primary, width: 1.0}}
+            - {type: text, id: uc.soft.t, decorative: true,
+               text: "Accept Soft No",
+               box: [340,222,160,16],
+               style: {font: primary, size: 11, weight: 400, color: text, align: center}}
+
+            - {type: ellipse, id: uc.def,
+               box: [340, 270, 160, 40],
+               fill: white, stroke: {color: primary, width: 1.0}}
+            - {type: text, id: uc.def.t, decorative: true,
+               text: "Accept Defer",
+               box: [340,282,160,16],
+               style: {font: primary, size: 11, weight: 400, color: text, align: center}}
+
+            - {type: ellipse, id: uc.can,
+               box: [340, 330, 160, 40],
+               fill: white, stroke: {color: primary, width: 1.0}}
+            - {type: text, id: uc.can.t, decorative: true,
+               text: "Cancel Subscription",
+               box: [340,342,160,16],
+               style: {font: primary, size: 11, weight: 400, color: text, align: center}}
+
+            # Right side — Core's own use cases
+            - {type: ellipse, id: uc.rest,
+               box: [560, 210, 160, 40],
+               fill: white, stroke: {color: primary, width: 1.0}}
+            - {type: text, id: uc.rest.t, decorative: true,
+               text: "Restate Position",
+               box: [560,222,160,16],
+               style: {font: primary, size: 11, weight: 400, color: text, align: center}}
+
+            - {type: ellipse, id: uc.auto,
+               box: [560, 270, 160, 40],
+               fill: white, stroke: {color: primary, width: 1.0}}
+            - {type: text, id: uc.auto.t, decorative: true,
+               text: "Auto-Defer",
+               box: [560,282,160,16],
+               style: {font: primary, size: 11, weight: 400, color: text, align: center}}
+
+            - {type: ellipse, id: uc.self,
+               box: [560, 330, 160, 40],
+               fill: white, stroke: {color: primary, width: 1.0}}
+            - {type: text, id: uc.self.t, decorative: true,
+               text: "Refuse Itself",
+               box: [560,342,160,16],
+               style: {font: primary, size: 11, weight: 400, color: text, align: center}}
+
+            # Bottom — included use case
+            - {type: ellipse, id: uc.classify,
+               box: [340, 410, 160, 40],
+               fill: white, stroke: {color: primary, width: 1.0}}
+            - {type: text, id: uc.classify.t, decorative: true,
+               text: "Classify Severity",
+               box: [340,422,160,16],
+               style: {font: primary, size: 11, weight: 400, color: text, align: center}}
+
+        # Caption.
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: v.cap, decorative: true,
+               text: "Use-case view: the User has four interactions; the Core has three autonomous actions of its own. \"Refuse Itself\" is the fourth-layer cascade made visible at the system boundary.",
+               box: [60,498,840,16],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}
+
+  # ─── SLIDE 18 — UML component diagram (wired-system view) ───────────────
+  - slide: 18
+    id: s18_arch_component
+    title: "Architecture — Wired Components (UML Component Diagram)"
+    description: "Components wired by provided/required interfaces — the runtime composition view."
+    notes: "The Core provides IRefuse and IObserve (the constitutional surface) and requires IMemory and IClassify. Workers require IRefuse so they can never bypass it. This is the same content as slide 14, expressed as runtime wiring instead of type relationships."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Architecture — Wired Components (UML Component Diagram)",
+               slide_num: "18", params: {phase_color: phase3}}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
+               fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── Assembly connectors between component bodies. Y-offsets
+        # are tuned to land at the same y as each interface
+        # decoration so the wires read as "lollipop ↔ socket
+        # plugged via a wire."
+        - id: uml.edges
+          z: 10
+          objects:
+
+            # UserSurface (east, y=195) ─── Core (west, y=195)  via IObserve
+            - {type: connector, id: w.iobs,
+               from: {object: UserSurface, side: east},
+               to:   {object: Core,        side: west, offset: -75},
+               stroke: {color: primary, width: 1.0}}
+
+            # Core (east, y=145) ─── MemoryStore (west, y=145)  via IMemory
+            - {type: connector, id: w.imem,
+               from: {object: Core,        side: east, offset: -125},
+               to:   {object: MemoryStore, side: west},
+               stroke: {color: primary, width: 1.0}}
+
+            # Core (east, y=270) ─── Worker (west, y=270)  via IRefuse
+            - {type: connector, id: w.iref,
+               from: {object: Core,   side: east},
+               to:   {object: Worker, side: west},
+               stroke: {color: primary, width: 1.0}}
+
+            # Core (east, y=410) ─── Classifier (west, y=410)  via IClassify
+            - {type: connector, id: w.icls,
+               from: {object: Core,       side: east, offset: 140},
+               to:   {object: Classifier, side: west},
+               stroke: {color: primary, width: 1.0}}
+
+        # ── Components. Each declares its provided/required interfaces
+        # via the `provided_interfaces` / `required_interfaces` fields,
+        # which the renderer surfaces as labels in the component icon.
+        # The actual wires between components are the connectors above.
+        - id: uml.classifiers
+          z: 20
+          objects:
+
+            # UserSurface — top-left.
+            - type: uml.component_box
+              id: UserSurface
+              box: [60, 150, 220, 90]
+              name: UserSurface
+              required_interfaces: [IObserve]
+
+            # Core — center. Tall box because it has 4 interfaces
+            # (2 provided + 2 required).
+            - type: uml.component_box
+              id: Core
+              box: [380, 110, 220, 320]
+              name: Core
+              stereotype: constitutional
+              provided_interfaces: [IObserve, IRefuse]
+              required_interfaces: [IMemory, IClassify]
+
+            # MemoryStore — top-right.
+            - type: uml.component_box
+              id: MemoryStore
+              box: [700, 80, 200, 90]
+              name: MemoryStore
+              stereotype: encrypted
+              provided_interfaces: [IMemory]
+
+            # Worker — middle-right.
+            - type: uml.component_box
+              id: Worker
+              box: [700, 225, 200, 90]
+              name: Worker
+              required_interfaces: [IRefuse]
+
+            # Classifier — bottom-right.
+            - type: uml.component_box
+              id: Classifier
+              box: [700, 370, 200, 80]
+              name: Classifier
+              stereotype: ml
+              provided_interfaces: [IClassify]
+
+        # ── Interface decorations — lollipop (provided) or socket
+        # (required) hanging off the east face of each component.
+        # The `provided_interfaces` / `required_interfaces` fields
+        # on uml.component_box are *labels only* — the renderer
+        # doesn't draw glyphs for them. We add the visible glyphs
+        # here, mirroring the composer's convention.
+        - id: uml.interfaces
+          z: 25
+          objects:
+
+            # UserSurface needs IObserve — socket on its east face.
+            - {type: uml.socket, id: sk.iobs.us,
+               box: [280, 187, 32, 16], name: IObserve}
+
+            # Core provides IObserve — lollipop on Core's *west* face,
+            # facing west toward UserSurface. Renderer always draws
+            # lollipop with stem-on-left, circle-on-right; placing
+            # the box such that its right edge sits on Core's west
+            # edge puts the circle right at Core's edge.
+            - {type: uml.lollipop, id: lp.iobs.core,
+               box: [348, 187, 32, 16], name: ""}
+
+            # Core requires IMemory — socket on Core's east face.
+            - {type: uml.socket, id: sk.imem.core,
+               box: [600, 137, 32, 16], name: IMemory}
+
+            # MemoryStore provides IMemory — lollipop on its west face.
+            - {type: uml.lollipop, id: lp.imem.ms,
+               box: [668, 137, 32, 16], name: ""}
+
+            # Core provides IRefuse — lollipop on Core's east face.
+            - {type: uml.lollipop, id: lp.iref.core,
+               box: [600, 262, 32, 16], name: IRefuse}
+
+            # Worker requires IRefuse — socket on its west face.
+            - {type: uml.socket, id: sk.iref.worker,
+               box: [668, 262, 32, 16], name: ""}
+
+            # Core requires IClassify — socket on Core's east face.
+            - {type: uml.socket, id: sk.icls.core,
+               box: [600, 402, 32, 16], name: IClassify}
+
+            # Classifier provides IClassify — lollipop on its west face.
+            - {type: uml.lollipop, id: lp.icls.cls,
+               box: [668, 402, 32, 16], name: ""}
+
+        # Caption.
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: v.cap, decorative: true,
+               text: "Wiring is the architecture. Worker depends on IRefuse — there's no codepath that bypasses the constitutional surface, because the Core's lollipop is the only thing the Worker's socket fits.",
+               box: [60,498,840,16],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}
+
+  # ─── SLIDE 19 — UML deployment diagram (where it runs) ──────────────────
+  - slide: 19
+    id: s19_arch_deployment
+    title: "Architecture — Deployment Topology (UML Deployment Diagram)"
+    description: "Where each component runs and how artifacts deploy. Native macOS device, encrypted local store, optional inference runtime."
+    notes: "The point: privacy is not a flag; it's a topology. The Core, Workers, and MemoryStore all sit on the user's device. Inference can hit a remote runtime — but only with per-request consent, never with bulk training data."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Architecture — Deployment Topology (UML Deployment Diagram)",
+               slide_num: "19", params: {phase_color: phase3}}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
+               fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── Communication links between deployment nodes.
+        - id: uml.edges
+          z: 10
+          objects:
+
+            # User Device <—https—> Inference Runtime  (communication link)
+            - {type: line, id: link.https,
+               from: [380, 290], to: [620, 290],
+               stroke: {color: primary, width: 1.0}}
+            - {type: text, id: link.https.l, decorative: true,
+               text: "«https» (consent-gated)",
+               box: [400,272,200,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+
+        # ── Deployment nodes (3D cuboids).
+        - id: uml.classifiers
+          z: 20
+          objects:
+
+            # User device — the home environment for Core, Workers, MemoryStore.
+            - type: uml.node_box
+              id: UserDevice
+              box: [80, 100, 300, 380]
+              name: "User Device"
+              kind: device
+              stereotype: macOS
+              depth: 18
+
+            # Inference runtime — optional, consent-gated.
+            - type: uml.node_box
+              id: InferenceRuntime
+              box: [620, 240, 240, 110]
+              name: "Inference Runtime"
+              kind: execution_environment
+              stereotype: cloud
+              depth: 18
+
+        # ── Inner execution environment + artifacts on the User Device.
+        - id: uml.inner
+          z: 25
+          objects:
+
+            # macOS app runtime nested inside the User Device.
+            - type: uml.node_box
+              id: MacOSRuntime
+              box: [110, 156, 240, 290]
+              name: "faz.ai (app)"
+              kind: execution_environment
+              depth: 12
+
+            # Artifacts deployed in the runtime.
+            - type: uml.artifact_box
+              id: art.core
+              box: [130, 200, 200, 70]
+              name: "Core.bundle"
+              stereotype: signed
+
+            - type: uml.artifact_box
+              id: art.worker
+              box: [130, 286, 200, 70]
+              name: "Worker.bundle"
+              stereotype: signed
+
+            - type: uml.artifact_box
+              id: art.mem
+              box: [130, 372, 200, 60]
+              name: "memory.encrypted.db"
+              stereotype: encrypted
+
+            # Artifact deployed in the inference runtime.
+            - type: uml.artifact_box
+              id: art.model
+              box: [640, 268, 200, 70]
+              name: "shared-classifier"
+              stereotype: foundation
+
+        # Caption.
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: v.cap, decorative: true,
+               text: "Privacy is a deployment property: Core, Workers, and the encrypted memory all sit on the user's device. Remote inference is consent-gated and never receives training-eligible data.",
+               box: [60,498,840,16],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}
+
+  # ─── SLIDE 20 — UML activity diagram (refusal cascade as control flow) ──
+  - slide: 20
+    id: s20_arch_activity
+    title: "Architecture — The Cascade as Control Flow (UML Activity Diagram)"
+    description: "The four-layer cascade as an activity diagram, with the decision diamond branching by classification severity."
+    notes: "This is slide 7's cascade rendered as a control-flow graph. The same logic — but now you can trace any single request from initial node to one of three terminal positions: served, deferred, or relationship-ended."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: v.ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "Architecture — The Cascade as Control Flow (UML Activity Diagram)",
+               slide_num: "20", params: {phase_color: phase3}}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
+               fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── Control-flow edges.
+        - id: uml.edges
+          z: 10
+          objects:
+
+            # initial → Receive Request
+            - {type: connector, id: f.start,
+               from: {object: ps.initial, side: south},
+               to:   {object: act.recv,   side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Receive Request → Classify Severity
+            - {type: connector, id: f.recv_cls,
+               from: {object: act.recv, side: south},
+               to:   {object: act.cls,  side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Classify → Decision
+            - {type: connector, id: f.cls_dec,
+               from: {object: act.cls, side: south},
+               to:   {object: dec.sev, side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Decision → Action: Serve  [ok]
+            - {type: connector, id: f.dec_serve,
+               from: {object: dec.sev,   side: west},
+               to:   {object: act.serve, side: north},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Decision → Action: Soft No  [tier=1]
+            - {type: connector, id: f.dec_soft,
+               from: {object: dec.sev,  side: south},
+               to:   {object: act.soft, side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Decision → Action: Hard No  [tier≥2]
+            - {type: connector, id: f.dec_hard,
+               from: {object: dec.sev,  side: east},
+               to:   {object: act.hard, side: north},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Serve → final
+            - {type: connector, id: f.serve_end,
+               from: {object: act.serve, side: south},
+               to:   {object: ps.final,  side: west},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Soft No → final  (request not served, but relationship intact)
+            - {type: connector, id: f.soft_end,
+               from: {object: act.soft, side: south},
+               to:   {object: ps.final, side: north},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # Hard No → final
+            - {type: connector, id: f.hard_end,
+               from: {object: act.hard, side: south},
+               to:   {object: ps.final, side: east},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+
+        # ── Edge labels (the decision branches).
+        - id: edge_labels
+          z: 15
+          objects:
+            - {type: text, id: lb.serve, decorative: true,
+               text: "[ok]",
+               box: [320,295,40,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: text, id: lb.soft, decorative: true,
+               text: "[tier=1]",
+               box: [490,335,80,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+            - {type: text, id: lb.hard, decorative: true,
+               text: "[tier ≥ 2]",
+               box: [600,295,80,12],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: center, italic: true}}
+
+        # ── Activity nodes.
+        - id: uml.classifiers
+          z: 20
+          objects:
+
+            # Initial pseudostate (top-center)
+            - {type: uml.activity_node, id: ps.initial,
+               box: [469, 80, 22, 22], kind: initial}
+
+            # Action: receive request
+            - type: uml.action
+              id: act.recv
+              box: [380, 124, 200, 50]
+              name: "Receive Request"
+
+            # Action: classify severity
+            - type: uml.action
+              id: act.cls
+              box: [380, 198, 200, 50]
+              name: "Classify Severity"
+
+            # Decision diamond (severity branch)
+            - {type: uml.activity_node, id: dec.sev,
+               box: [430, 270, 100, 60], kind: decision, name: "severity?"}
+
+            # Action: serve  (left branch)
+            - type: uml.action
+              id: act.serve
+              box: [120, 358, 200, 50]
+              name: "Serve Worker Result"
+
+            # Action: soft no  (center branch)
+            - type: uml.action
+              id: act.soft
+              box: [380, 358, 200, 50]
+              name: "Render Soft No + Waiver"
+
+            # Action: hard no  (right branch)
+            - type: uml.action
+              id: act.hard
+              box: [640, 358, 200, 50]
+              name: "Refuse + Offer Defer/Exit"
+
+            # Final pseudostate
+            - {type: uml.activity_node, id: ps.final,
+               box: [469, 444, 22, 22], kind: final}
+
+        # Caption.
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: v.cap, decorative: true,
+               text: "Three terminal branches, one decision diamond. The classification step happens BEFORE any worker is invoked — Tier 1+ outcomes never make it into a Worker's input queue.",
+               box: [60,498,840,16],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true, wrap: true}}

@@ -1,0 +1,55 @@
+# Sidecar fill schema for pattern #111 — Diagnostic Summary.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 111
+zones: {}
+example_fill:
+  dimensions:
+  - Strategy clarity
+  - Operating-model fit
+  - Capability gaps
+  - Performance metrics
+  status:
+    headers:
+    - Dimension
+    - Status
+    rows:
+    - - Strategy
+      - Amber
+    - - Op model
+      - Red
+    - - Capability
+      - Amber
+    - - Metrics
+      - Green
+  findings:
+    headers:
+    - Dimension
+    - Finding
+    rows:
+    - - Strategy
+      - Vision known but not cascaded
+    - - Op model
+      - Misaligned incentives across BUs
+    - - Capability
+      - Data-engineering shortfall
+    - - Metrics
+      - Solid; under-used in decisions
+  implications:
+    headers:
+    - Dimension
+    - Implication
+    rows:
+    - - Strategy
+      - Run cascading workshops
+    - - Op model
+      - Redesign incentives within 6 months
+    - - Capability
+      - Hire / upskill 8 FTEs in 90 days
+    - - Metrics
+      - Embed metrics in QBRs

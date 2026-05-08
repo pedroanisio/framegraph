@@ -1,0 +1,70 @@
+# Sidecar fill schema for pattern #44 — Business Model Canvas.
+#
+# 9 zones, all content_type=list_items. Defaults give every zone
+# a list[str]. This sidecar overrides two zones whose lists carry
+# named amounts (revenue_streams, cost_structure) so an agent can
+# supply the structured data consulting decks expect.
+#
+# The other 7 zones use the default list[str] — bullet points are
+# fine for partners, activities, resources, propositions, etc.
+
+pattern_id: 44
+
+zones:
+  revenue_streams:
+    item_kind: object
+    item_fields:
+      label:
+        type: string
+        required: true
+      metric:
+        type: string
+        required: true
+
+  cost_structure:
+    item_kind: object
+    item_fields:
+      label:
+        type: string
+        required: true
+      metric:
+        type: string
+        required: true
+
+example_fill:
+  key_partners:
+    - "Cloud infrastructure provider"
+    - "Logistics network"
+    - "Payment processor"
+  key_activities:
+    - "Platform development"
+    - "Customer onboarding"
+    - "Operations and support"
+  key_resources:
+    - "Engineering team"
+    - "Brand and IP"
+    - "Customer data"
+  value_propositions:
+    - "On-demand delivery in under 30 minutes"
+    - "Transparent pricing"
+    - "Quality guarantee"
+  customer_relationships:
+    - "Self-service via app"
+    - "24/7 chat support"
+    - "Loyalty program"
+  channels:
+    - "Mobile app"
+    - "Web platform"
+    - "Partner integrations"
+  customer_segments:
+    - "Urban professionals"
+    - "Small businesses"
+    - "Enterprise accounts"
+  cost_structure:
+    - {label: "Engineering and product", metric: "$8.4M"}
+    - {label: "Customer acquisition",    metric: "$3.2M"}
+    - {label: "Infrastructure and ops",  metric: "$2.1M"}
+  revenue_streams:
+    - {label: "Subscription tiers",   metric: "$12.6M"}
+    - {label: "Transaction fees",     metric: "$4.8M"}
+    - {label: "Enterprise contracts", metric: "$7.0M"}

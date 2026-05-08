@@ -1,0 +1,29 @@
+# Sidecar fill schema for pattern #10 — SWOT Analysis.
+#
+# 4-quadrant family (parent of RAID Log #93, Unknowns Map #280,
+# Optionality Portfolio #290). Each quadrant takes a list of
+# bullet items. The default `list[str]` works fine for SWOT —
+# this sidecar exists to provide a canonical example_fill so
+# agents see what good SWOT content looks like.
+
+pattern_id: 10
+
+zones: {}   # all four zones use defaults (list_items → list[str])
+
+example_fill:
+  strengths:
+    - "Strong brand recognition in target segment"
+    - "Proprietary data moat from 5+ years of usage"
+    - "Best-in-class customer success team"
+  weaknesses:
+    - "Mobile experience lags competitors"
+    - "Sales cycle longer than industry median"
+    - "Concentration risk: top-3 customers = 40% of revenue"
+  opportunities:
+    - "Adjacent vertical with similar pain point"
+    - "AI-augmented workflow now technically feasible"
+    - "Regulatory tailwind expected H2"
+  threats:
+    - "Two well-funded entrants targeting our segment"
+    - "Platform partner exploring direct competition"
+    - "Macro slowdown reducing IT discretionary spend"

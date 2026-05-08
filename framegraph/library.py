@@ -54,6 +54,45 @@ def deep_merge(base: Any, override: Any) -> Any:
     return result
 
 
+def _scale_text_styles(
+    text_styles: dict[str, Any], scale: float
+) -> dict[str, Any]:
+    """Apply a uniform scale factor to every text-style's size + line_height.
+
+    Used by the deck loader to expose the layout planner's chosen
+    typography scale to the renderer. Render itself stays faithful;
+    the planner is the only thing that decides how big text gets.
+
+    Args:
+        text_styles: Stylesheet's named text-style mapping.
+        scale: Scale factor in (0, 1]. 1.0 returns input unchanged.
+
+    Returns:
+        A new dict with the same keys; each style's ``size`` and
+        ``line_height`` (when present) multiplied by ``scale``.
+    """
+    if scale >= 0.999 or not text_styles:
+        return dict(text_styles)
+    out: dict[str, Any] = {}
+    for name, raw in text_styles.items():
+        if not isinstance(raw, dict):
+            out[name] = raw
+            continue
+        scaled = dict(raw)
+        if "size" in scaled:
+            try:
+                scaled["size"] = float(scaled["size"]) * scale
+            except (TypeError, ValueError):
+                pass
+        if "line_height" in scaled:
+            try:
+                scaled["line_height"] = float(scaled["line_height"]) * scale
+            except (TypeError, ValueError):
+                pass
+        out[name] = scaled
+    return out
+
+
 def strip_meta(d: dict[str, Any]) -> dict[str, Any]:
     """Remove _meta keys — they are library metadata, not FrameGraph fields."""
     return {k: v for k, v in d.items() if not k.startswith("_")}
@@ -386,6 +425,17 @@ class FrameGraphDeckRenderer:
         self._slide_index: dict[str, Any] = {
             str(s["id"]): s for s in self.slides_raw if s.get("id")
         }
+        # Stylesheet — resolved once at construction. Slides using
+        # `use: <pattern>` consult this to style every zone uniformly.
+        # Top-level `stylesheet:` accepts a bundled name (e.g.
+        # "default") or a path. Defaults to the bundled "default".
+        self._stylesheet = self._load_stylesheet()
+        # Pattern catalog — lazy-loaded on first `use:` encounter.
+        self._catalog = None
+        # Per-slide layout reports — populated by `build_slide_doc`
+        # for templated slides. Keyed by slide id; carries the
+        # planner's scale and overflow facts.
+        self._layout_reports: dict[str, Any] = {}
 
     def _build_globals(
         self,
@@ -399,8 +449,534 @@ class FrameGraphDeckRenderer:
         deck_cdefs = {**(self.deck_config.get("component_defs") or {})}
         return deck_tokens, deck_symbols, deck_cdefs
 
+    def _load_stylesheet(self) -> Any:
+        """Resolve the deck's stylesheet declaration.
+
+        Reads the top-level ``stylesheet:`` field. Accepts a bundled
+        name (string, looked up under ``framegraph/lib/styles/``), a
+        filesystem path, or an inline mapping. Defaults to the
+        bundled ``default`` stylesheet so a deck that omits the
+        field still renders coherently.
+        """
+        from framegraph.patterns.style import (
+            Stylesheet,
+            load_bundled_stylesheet,
+            load_stylesheet,
+        )
+
+        ref = self.raw.get("stylesheet")
+        if ref is None:
+            return load_bundled_stylesheet("default")
+        if isinstance(ref, dict):
+            return Stylesheet.model_validate(ref)
+        if isinstance(ref, str):
+            ref_path = Path(ref)
+            if ref_path.exists():
+                return load_stylesheet(ref_path)
+            return load_bundled_stylesheet(ref)
+        raise ValueError(
+            f"deck.stylesheet must be a name, path, or mapping; got {type(ref).__name__}"
+        )
+
+    def _get_catalog(self) -> Any:
+        """Lazy-load the bundled pattern catalog."""
+        if self._catalog is None:
+            from framegraph._patterns import load_pattern_catalog
+
+            self._catalog = load_pattern_catalog()
+        return self._catalog
+
+    def _resolve_pattern(self, ref: Any) -> Any:
+        """Resolve a `use:` reference to a SlidePattern.
+
+        Accepts an integer id, a numeric string, or a slug
+        (lowercased pattern name with spaces → hyphens).
+        """
+        catalog = self._get_catalog()
+        # Integer id (or numeric string).
+        if isinstance(ref, int):
+            return catalog.get(ref)
+        if isinstance(ref, str):
+            s = ref.strip()
+            if s.isdigit():
+                return catalog.get(int(s))
+            # Slug: match against pattern.name lowercased+slugified.
+            target = s.lower().replace("_", "-")
+            for p in catalog.slide_template_patterns:
+                slug = "".join(
+                    ch if ch.isalnum() or ch == "-" else "-" if ch == " " else ""
+                    for ch in p.name.lower()
+                )
+                # Collapse runs of '-'.
+                while "--" in slug:
+                    slug = slug.replace("--", "-")
+                slug = slug.strip("-")
+                if slug == target:
+                    return p
+            raise KeyError(f"no pattern matching slug {ref!r}")
+        raise TypeError(
+            f"`use:` expects an int id or string slug; got {type(ref).__name__}"
+        )
+
+    def _build_pattern_slide_doc(
+        self, slide: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Build a Document for a slide using `use: <pattern>` + `fill:`.
+
+        Composition pipeline:
+
+          structure  ← bundled catalog pattern
+          data       ← slide.fill
+          visual     ← deck.stylesheet (treatments, typography, chrome)
+          tokens     ← deck.$theme + deck.tokens + slide.tokens
+          chrome     ← stylesheet.slide_chrome (top stripe, title bar,
+                       page number, brand mark, footer rule)
+          synthesis  ← stylesheet.synthesis_band (when slide has
+                       `synthesis: "..."`)
+
+        The slide author writes only `use` + `fill` + optional
+        `synthesis`. Every slide gets the same chrome + footer +
+        card discipline regardless of which pattern it uses.
+        """
+        from framegraph.patterns import (
+            compose_document,
+            compute_layout_plan,
+            derive_default_fill_schema,
+            derive_fill_schema_with_sidecar,
+            load_sidecar,
+        )
+
+        pattern = self._resolve_pattern(slide["use"])
+
+        # Sidecar auto-discovery — same convention as the CLI.
+        fills_dir = (
+            Path(__file__).resolve().parent.parent
+            / "static"
+            / "refs"
+            / "fills"
+        )
+        sidecar_matches = (
+            sorted(fills_dir.glob(f"{pattern.id:03d}-*.yml"))
+            if fills_dir.exists()
+            else []
+        )
+
+        if sidecar_matches:
+            sidecar = load_sidecar(sidecar_matches[0])
+            Model = derive_fill_schema_with_sidecar(pattern, sidecar)
+        else:
+            Model = derive_default_fill_schema(pattern)
+
+        fill = Model.model_validate(slide.get("fill") or {})
+
+        canvas = self.deck_config.get("canvas", {"size": [960, 540]})
+        size = canvas.get("size", [960, 540])
+        canvas_w, canvas_h = float(size[0]), float(size[1])
+
+        # Compute the content rect (canvas minus chrome / footer /
+        # synthesis reservations).
+        ss = self._stylesheet.model_dump() if self._stylesheet is not None else {}
+        chrome_cfg = ss.get("slide_chrome") or {}
+        synthesis_cfg = ss.get("synthesis_band") or {}
+
+        top_reserve = 0.0
+        if chrome_cfg.get("enabled"):
+            top_reserve = float(
+                (chrome_cfg.get("title_separator") or {}).get("y_offset", 56)
+            )
+        bottom_reserve = 0.0
+        footer_cfg = chrome_cfg.get("footer") or {}
+        if footer_cfg:
+            bottom_reserve += float(footer_cfg.get("height", 24))
+
+        synthesis_text = slide.get("synthesis")
+        if synthesis_text and synthesis_cfg.get("enabled"):
+            bottom_reserve += float(synthesis_cfg.get("height", 72)) + float(
+                synthesis_cfg.get("margin_bottom", 24)
+            )
+
+        # Pad between chrome and the first card.
+        content_top_pad = 16.0
+        content_bottom_pad = 8.0
+
+        content_y = top_reserve + content_top_pad
+        content_h = max(
+            1.0,
+            canvas_h - content_y - bottom_reserve - content_bottom_pad,
+        )
+
+        # Layout planner — single decision-maker for geometry +
+        # uniform typography scale. Returns boxes, the scale factor
+        # to apply to every text style on this slide, and the
+        # LayoutReport (overflow facts for the operator).
+        plan = compute_layout_plan(pattern, canvas_w, content_h, fill=fill)
+        layout = {
+            role: (x, y + content_y, w, h)
+            for role, (x, y, w, h) in plan.boxes.items()
+        }
+        plan_scale = plan.scale
+        plan_report = plan.report
+
+        label_overrides = (
+            slide.get("labels") if isinstance(slide.get("labels"), dict) else None
+        )
+        numbers = (
+            slide.get("numbers") if isinstance(slide.get("numbers"), dict) else None
+        )
+        titles = (
+            slide.get("titles") if isinstance(slide.get("titles"), dict) else None
+        )
+
+        doc = compose_document(
+            pattern,
+            fill,
+            layout,
+            canvas_w,
+            canvas_h,
+            stylesheet=self._stylesheet,
+            label_overrides=label_overrides,
+            numbers=numbers,
+            titles=titles,
+        )
+
+        # Merge tokens — theme + deck + slide. The stylesheet's
+        # named text_styles are exposed as tokens so referenced
+        # styles (`style: card_label`, etc.) resolve at render time.
+        slide_num = slide.get("slide", 0)
+        slide_id = slide.get("id", f"slide_{slide_num:02d}")
+        slide_tokens = deep_merge(self.global_tokens, slide.get("tokens") or {})
+
+        if self._stylesheet is not None and self._stylesheet.text_styles:
+            existing_text_styles = slide_tokens.get("text_styles") or {}
+            # Apply the planner's uniform scale to every text style so
+            # the slide reads as a single consistent typographic scale.
+            # Card chrome (label band, padding) does not scale, by
+            # design — only the text-size axis bends.
+            scaled_text_styles = (
+                _scale_text_styles(self._stylesheet.text_styles, plan_scale)
+                if plan_scale < 0.999
+                else self._stylesheet.text_styles
+            )
+            slide_tokens = dict(slide_tokens)
+            slide_tokens["text_styles"] = {
+                **scaled_text_styles,
+                **existing_text_styles,
+            }
+
+        doc["visual"]["tokens"] = slide_tokens
+        doc["scene"]["id"] = slide_id
+        doc["scene"]["name"] = slide.get("title", pattern.name)
+        if slide.get("description"):
+            doc["scene"]["description"] = slide["description"]
+
+        # Build chrome + synthesis layers and prepend so they paint
+        # behind the content.
+        layers = list(doc["visual"].get("layers") or [])
+        chrome_layer = self._build_chrome_layer_v2(
+            slide=slide,
+            chrome_cfg=chrome_cfg,
+            canvas_w=canvas_w,
+            canvas_h=canvas_h,
+            brand_text=self.deck_config.get("brand_text") or self.raw.get("brand_text"),
+        )
+        if chrome_layer is not None:
+            layers.insert(0, chrome_layer)
+
+        if synthesis_text and synthesis_cfg.get("enabled"):
+            synthesis_layer = self._build_synthesis_layer(
+                synthesis_text=synthesis_text,
+                synthesis_cfg=synthesis_cfg,
+                canvas_w=canvas_w,
+                canvas_h=canvas_h,
+                footer_h=float(footer_cfg.get("height", 24)) if footer_cfg else 0.0,
+            )
+            if synthesis_layer is not None:
+                layers.append(synthesis_layer)
+
+        doc["visual"]["layers"] = layers
+
+        # Stash the planner's report for downstream collection by the
+        # deck loader. One report per slide; keyed by slide id.
+        self._layout_reports[slide_id] = plan_report
+
+        return doc
+
+    def _build_chrome_layer_v2(
+        self,
+        slide: dict[str, Any],
+        chrome_cfg: dict[str, Any],
+        canvas_w: float,
+        canvas_h: float,
+        brand_text: str | None,
+    ) -> dict[str, Any] | None:
+        """Universal chrome: top stripe, title band, separator, page number,
+        brand mark, footer rule. Driven entirely by `slide_chrome` config.
+
+        Author can opt out with `chrome: false` on the slide. Author
+        can override individual fields with `chrome: { ... }` map.
+        """
+        if not chrome_cfg or not chrome_cfg.get("enabled"):
+            return None
+        slide_chrome = slide.get("chrome", {})
+        if slide_chrome is False or slide_chrome == 0:
+            return None
+        overrides = dict(slide_chrome) if isinstance(slide_chrome, dict) else {}
+
+        objects: list[dict[str, Any]] = []
+
+        # 1. Top stripe (full-bleed band of accent color)
+        top_stripe = chrome_cfg.get("top_stripe") or {}
+        if top_stripe:
+            stripe_h = float(top_stripe.get("height", 4))
+            stripe_color = overrides.get("top_stripe_color") or top_stripe.get(
+                "color", "accent"
+            )
+            objects.append(
+                {
+                    "id": "_chrome.top_stripe",
+                    "type": "rect",
+                    "box": [0, 0, canvas_w, stripe_h],
+                    "fill": stripe_color,
+                    "decorative": True,
+                }
+            )
+
+        # 2. Title band — slide title in the top strip
+        title_band = chrome_cfg.get("title_band") or {}
+        if title_band:
+            band_h = float(title_band.get("height", 52))
+            band_y = float(title_band.get("y_offset", 0))
+            margin_l = float(title_band.get("margin_left", 32))
+            margin_r = float(title_band.get("margin_right", 80))
+            title_text = overrides.get("title") or slide.get("title", "") or ""
+            if title_text:
+                objects.append(
+                    {
+                        "id": "_chrome.title",
+                        "type": "text",
+                        "decorative": True,
+                        "box": [
+                            margin_l,
+                            band_y,
+                            max(0.0, canvas_w - margin_l - margin_r),
+                            band_h,
+                        ],
+                        "text": title_text,
+                        "style": title_band.get("typography", "slide_title_band"),
+                    }
+                )
+
+        # 3. Title separator rule
+        sep = chrome_cfg.get("title_separator") or {}
+        if sep:
+            sep_y = float(sep.get("y_offset", 56))
+            margin_l = float((title_band or {}).get("margin_left", 32))
+            margin_r = float((title_band or {}).get("margin_right", 80))
+            objects.append(
+                {
+                    "id": "_chrome.title_rule",
+                    "type": "line",
+                    "decorative": True,
+                    "from": [margin_l, sep_y],
+                    "to": [canvas_w - margin_r, sep_y],
+                    "stroke": {
+                        "color": sep.get("color", "border"),
+                        "width": float(sep.get("width", 0.5)),
+                    },
+                }
+            )
+
+        # 4. Page number — top-right
+        page_num_cfg = chrome_cfg.get("page_number") or {}
+        slide_num = slide.get("slide")
+        if page_num_cfg and slide_num is not None:
+            x_from_right = float(page_num_cfg.get("x_from_right", 32))
+            y = float(page_num_cfg.get("y", 18))
+            fmt = page_num_cfg.get("format", "{n:02d}")
+            try:
+                num_text = fmt.format(n=int(slide_num))
+            except (ValueError, KeyError):
+                num_text = str(slide_num)
+            objects.append(
+                {
+                    "id": "_chrome.page_num",
+                    "type": "text",
+                    "decorative": True,
+                    "box": [
+                        canvas_w - x_from_right - 40,
+                        y - 8,
+                        40,
+                        18,
+                    ],
+                    "text": num_text,
+                    "style": page_num_cfg.get("typography", "page_num"),
+                }
+            )
+
+        # 5. Footer band (rule + brand mark)
+        footer_cfg = chrome_cfg.get("footer") or {}
+        if footer_cfg:
+            footer_h = float(footer_cfg.get("height", 24))
+            footer_y = canvas_h - footer_h
+            margin_l = float(footer_cfg.get("margin_left", 32))
+            margin_r = float(footer_cfg.get("margin_right", 32))
+            rule_color = footer_cfg.get("rule_color", "border")
+            rule_width = float(footer_cfg.get("rule_width", 0.5))
+            rule_y = footer_y + float(footer_cfg.get("rule_y_offset", 0))
+            if rule_color and rule_width > 0:
+                objects.append(
+                    {
+                        "id": "_chrome.footer_rule",
+                        "type": "line",
+                        "decorative": True,
+                        "from": [margin_l, rule_y],
+                        "to": [canvas_w - margin_r, rule_y],
+                        "stroke": {"color": rule_color, "width": rule_width},
+                    }
+                )
+            # Brand mark
+            brand_cfg = chrome_cfg.get("brand_mark") or {}
+            if brand_cfg and brand_text:
+                bx = float(brand_cfg.get("x", margin_l))
+                by_offset = float(brand_cfg.get("y_offset", 8))
+                objects.append(
+                    {
+                        "id": "_chrome.brand",
+                        "type": "text",
+                        "decorative": True,
+                        "box": [
+                            bx,
+                            footer_y + by_offset,
+                            canvas_w - margin_l - margin_r,
+                            footer_h - by_offset,
+                        ],
+                        "text": brand_text,
+                        "style": brand_cfg.get("typography", "brand_mark"),
+                    }
+                )
+
+        if not objects:
+            return None
+        return {"id": "_slide_chrome", "z": 0, "objects": objects}
+
+    def _build_synthesis_layer(
+        self,
+        synthesis_text: Any,
+        synthesis_cfg: dict[str, Any],
+        canvas_w: float,
+        canvas_h: float,
+        footer_h: float,
+    ) -> dict[str, Any] | None:
+        """Build the optional synthesis band rendered above the footer.
+
+        `synthesis_text` may be a string (single emphasis line) or a
+        mapping `{title: "...", body: "..."}` for two-line treatment.
+        """
+        if not synthesis_cfg.get("enabled"):
+            return None
+        height = float(synthesis_cfg.get("height", 72))
+        margin_bottom = float(synthesis_cfg.get("margin_bottom", 24))
+        margin_l = float(synthesis_cfg.get("margin_left", 32))
+        margin_r = float(synthesis_cfg.get("margin_right", 32))
+
+        band_y = canvas_h - footer_h - margin_bottom - height
+        band_x = margin_l
+        band_w = canvas_w - margin_l - margin_r
+        objects: list[dict[str, Any]] = []
+
+        # Background rect
+        objects.append(
+            {
+                "id": "_synth.bg",
+                "type": "rect",
+                "decorative": True,
+                "box": [band_x, band_y, band_w, height],
+                "fill": synthesis_cfg.get("fill_color", "text"),
+                "corner_radius": float(synthesis_cfg.get("corner_radius", 4)),
+            }
+        )
+        # Accent bar
+        accent_bar = synthesis_cfg.get("accent_bar") or {}
+        if accent_bar:
+            bw = float(accent_bar.get("width", 4))
+            objects.append(
+                {
+                    "id": "_synth.accent",
+                    "type": "rect",
+                    "decorative": True,
+                    "box": [band_x, band_y, bw, height],
+                    "fill": accent_bar.get("color", "accent"),
+                }
+            )
+        # Text
+        pad = synthesis_cfg.get("padding") or [14, 24, 14, 24]
+        if isinstance(pad, (int, float)):
+            pad = [pad, pad, pad, pad]
+        pt, pr, pb, pl = (float(p) for p in pad)
+        text_x = band_x + pl
+        text_y = band_y + pt
+        text_w = max(0.0, band_w - pl - pr)
+        text_h = max(0.0, height - pt - pb)
+
+        if isinstance(synthesis_text, str):
+            objects.append(
+                {
+                    "id": "_synth.body",
+                    "type": "text",
+                    "decorative": True,
+                    "box": [text_x, text_y, text_w, text_h],
+                    "text": synthesis_text,
+                    "style": synthesis_cfg.get(
+                        "emphasis_typography", "synthesis_em"
+                    ),
+                }
+            )
+        elif isinstance(synthesis_text, dict):
+            title_t = synthesis_text.get("title") or ""
+            body_t = synthesis_text.get("body") or ""
+            if title_t:
+                objects.append(
+                    {
+                        "id": "_synth.title",
+                        "type": "text",
+                        "decorative": True,
+                        "box": [text_x, text_y, text_w, 22],
+                        "text": title_t,
+                        "style": synthesis_cfg.get(
+                            "emphasis_typography", "synthesis_em"
+                        ),
+                    }
+                )
+            if body_t:
+                objects.append(
+                    {
+                        "id": "_synth.body",
+                        "type": "text",
+                        "decorative": True,
+                        "box": [text_x, text_y + 26, text_w, max(0.0, text_h - 26)],
+                        "text": body_t,
+                        "style": synthesis_cfg.get(
+                            "body_typography", "synthesis_body"
+                        ),
+                    }
+                )
+
+        return {"id": "_synthesis_band", "z": 5, "objects": objects}
+
     def build_slide_doc(self, slide: dict[str, Any]) -> dict[str, Any]:
         """Assemble a complete FrameGraph document for a single slide.
+
+        Two slide modes:
+
+        - **Pattern-composition mode** (`use: <pattern>` + `fill: {…}`)
+          — the framework's reusable-template path. Structure is
+          drawn from the bundled catalog, style from the deck's
+          stylesheet, tokens from the deck's theme, content from the
+          slide's `fill:`. The author writes ~5–15 lines per slide
+          and gets a coherent, themed result.
+
+        - **Hand-authored mode** (`visual: …`, `semantic: …`,
+          `symbols: …`) — the original surface for bespoke slides.
 
         Merge order (each layer wins over the one above):
           library $theme tokens
@@ -408,6 +984,10 @@ class FrameGraphDeckRenderer:
               ↓ $extends base slide tokens   ← SP-5a
                 ↓ this slide tokens
         """
+        # Pattern-composition path: short-circuit when `use:` is set.
+        if slide.get("use") is not None:
+            return self._build_pattern_slide_doc(slide)
+
         canvas = self.deck_config.get("canvas", {"size": [960, 540]})
         slide_num = slide.get("slide", 0)
         slide_id = slide.get("id", f"slide_{slide_num:02d}")
@@ -659,6 +1239,12 @@ class FrameGraphDeckRenderer:
         output_dir.mkdir(parents=True, exist_ok=True)
         source_dir = str(Path(yaml_source_dir).resolve()) if yaml_source_dir else ""
         out_paths: list[Path] = []
+        # Aggregate per-slide LayoutReports, populated by the planner
+        # via `build_slide_doc` for templated slides. Render is
+        # faithful and emits no reports of its own — the planner is
+        # the single decision-maker for geometry + uniform typography
+        # scale, and the only source of overflow facts.
+        self.constraint_reports: list[dict[str, Any]] = []
         for slide in self.slides_raw:
             n = slide.get("slide", 0)
             sid = slide.get("id", f"slide_{n:02d}")
@@ -671,6 +1257,23 @@ class FrameGraphDeckRenderer:
             kb = path.stat().st_size / 1024
             print(f"  slide {n:02d}  →  {path.name}  ({kb:.1f} KB)", file=sys.stderr)
             out_paths.append(path)
+
+            # One LayoutReport per templated slide.
+            report = self._layout_reports.get(sid)
+            if report is None:
+                continue
+            self.constraint_reports.append(
+                {
+                    "slide_num": n,
+                    "slide_id": sid,
+                    "slide_title": slide.get("title", ""),
+                    "scale": round(float(report.scale), 3),
+                    "shrunk": bool(report.shrunk),
+                    "fits": bool(report.fits),
+                    "overflows": list(report.overflows),
+                }
+            )
+
         # Write speaker notes if any slide declares them
         notes_path = self.render_notes(output_dir)
         if notes_path:

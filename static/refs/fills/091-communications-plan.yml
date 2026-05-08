@@ -1,0 +1,55 @@
+# Sidecar fill schema for pattern #91 — Communications Plan.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 91
+zones: {}
+example_fill:
+  audiences:
+  - Executive sponsors
+  - Department heads
+  - Frontline employees
+  - External partners
+  key_messages:
+    headers:
+    - Audience
+    - Core message
+    rows:
+    - - Execs
+      - Why we're transforming and what success looks like
+    - - Dept heads
+      - How responsibilities shift in your function
+    - - Employees
+      - What changes for your day-to-day
+    - - Partners
+      - How our integration evolves
+  channels_frequency:
+    headers:
+    - Channel
+    - Frequency
+    rows:
+    - - All-hands
+      - Monthly
+    - - Manager cascade
+      - Weekly during cutover
+    - - Email + intranet
+      - Bi-weekly
+    - - Partner portal
+      - Per release
+  owner_timing:
+    headers:
+    - Owner
+    - Timing
+    rows:
+    - - CEO + CFO
+      - Kickoff
+    - - Function leads
+      - Weeks 1-4
+    - - HR + Comms
+      - Ongoing
+    - - Partner ops
+      - Pre/post release

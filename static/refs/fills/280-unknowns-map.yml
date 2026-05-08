@@ -1,0 +1,26 @@
+# Sidecar fill schema for pattern #280 — Unknowns Map.
+#
+# 4-quadrant family member. Separates known facts, known unknowns,
+# assumptions, and open risks — used in early-phase diagnostics.
+
+pattern_id: 280
+
+zones: {}
+
+example_fill:
+  known_facts:
+    - "Current churn rate is 8.2% annually (audited)"
+    - "Top-3 competitors hold 60% combined market share"
+    - "Average sales cycle is 47 days for the target segment"
+  known_unknowns:
+    - "Buying behavior of mid-market segment outside US"
+    - "Long-term retention impact of recent pricing change"
+    - "Competitor roadmap for next 6 months"
+  assumptions:
+    - "Demand elasticity holds at current price points"
+    - "Channel partners will agree to revised margin split"
+    - "Talent market remains favorable for hiring engineers"
+  open_risks:
+    - "Regulatory change pending in EU may affect data residency"
+    - "Underestimated complexity in legacy data migration"
+    - "Stakeholder alignment on scope still emerging"

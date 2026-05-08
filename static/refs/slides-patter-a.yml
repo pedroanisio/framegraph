@@ -73,6 +73,7 @@ slide_template_patterns:
       anchor:
         h: right
         v: bottom
+    content_type: title_body
   category: generic
 - id: 4
   name: Executive Summary
@@ -131,6 +132,7 @@ slide_template_patterns:
   - role: solution_name
     size: large
     placement: *id001
+    content_type: title_body
   - role: benefits
     size: medium
     placement:
@@ -181,10 +183,14 @@ slide_template_patterns:
   - role: table
     size: large
     placement: *id001
+    content_type: table_data
+    span:
+      h: 2
   - role: highlight
     size: contextual
     placement:
       region: matrix_body
+    content_type: title_body
   category: generic
 - id: 9
   name: Feature Matrix
@@ -204,10 +210,12 @@ slide_template_patterns:
       anchor:
         h: center
         v: top
+    content_type: title_body
   - role: availability_cells
     size: equal
     placement: &id017
       region: matrix_body
+    content_type: title_body
   category: generic
 - id: 10
   name: SWOT Analysis
@@ -216,12 +224,14 @@ slide_template_patterns:
   - role: strengths
     size: equal
     placement: *id003
+    content_type: list_items
   - role: weaknesses
     size: equal
     placement: &id018
       anchor:
         h: right
         v: top
+    content_type: list_items
   - role: opportunities
     size: equal
     placement: &id025
@@ -235,6 +245,7 @@ slide_template_patterns:
       anchor:
         h: right
         v: bottom
+    content_type: list_items
   category: generic
 - id: 11
   name: Roadmap
@@ -254,6 +265,7 @@ slide_template_patterns:
         relation: 'on'
         target: timeline_axis
     shape: card
+    content_type: title_body
   - role: milestones
     size: small
     placement:
@@ -276,6 +288,7 @@ slide_template_patterns:
   - role: event_markers
     size: small
     placement: *id004
+    content_type: title_body
   - role: event_descriptions
     size: medium
     placement:
@@ -291,6 +304,7 @@ slide_template_patterns:
   - role: milestone_sequence
     size: equal
     placement: *id001
+    content_type: chart_data
   - role: status_indicators
     size: small
     placement:
@@ -304,6 +318,7 @@ slide_template_patterns:
       relative:
         relation: below
         target: milestone_sequence
+    content_type: title_body
   category: generic
 - id: 14
   name: Process Flow
@@ -340,6 +355,7 @@ slide_template_patterns:
     size: variable
     placement:
       region: swimlanes
+    content_type: title_body
   - role: workflow_nodes
     size: medium
     placement:
@@ -347,6 +363,7 @@ slide_template_patterns:
         relation: inside
         target: actors
     shape: card
+    content_type: title_body
   - role: connectors
     size: small
     placement: &id015
@@ -400,6 +417,7 @@ slide_template_patterns:
   - role: central_concept
     size: medium
     placement: *id001
+    content_type: title_body
   category: generic
 - id: 18
   name: Pyramid Diagram
@@ -408,6 +426,7 @@ slide_template_patterns:
   - role: hierarchy_layers
     size: equal
     placement: *id005
+    content_type: title_body
   - role: labels
     size: medium
     placement: &id021
@@ -433,18 +452,21 @@ slide_template_patterns:
       relative:
         relation: left_of
         target: intersection
+    content_type: title_body
   - role: circle_b
     size: large
     placement:
       relative:
         relation: right_of
         target: intersection
+    content_type: title_body
   - role: intersection
     size: medium
     placement:
       relative:
         relation: inside
         target: intersection
+    content_type: title_body
   - role: labels
     size: small
     placement:
@@ -495,6 +517,7 @@ slide_template_patterns:
     size: contextual
     placement:
       region: quadrant
+    content_type: title_body
   category: generic
 - id: 22
   name: Scorecard
@@ -540,6 +563,8 @@ slide_template_patterns:
     size: large
     placement: *id009
     content_type: chart_data
+    span:
+      h: 2
   - role: insights
     size: medium
     placement:
@@ -572,6 +597,7 @@ slide_template_patterns:
       relative:
         relation: near
         target: metric_numbers
+    content_type: title_body
   category: generic
 - id: 25
   name: Data Chart Slide
@@ -581,6 +607,8 @@ slide_template_patterns:
     size: xl
     placement: *id001
     content_type: chart_data
+    span:
+      h: 2
   - role: title
     size: medium
     placement: *id002
@@ -605,6 +633,8 @@ slide_template_patterns:
     size: large
     placement: *id001
     content_type: chart_data
+    span:
+      h: 2
   - role: category_axis
     size: full
     placement:
@@ -624,6 +654,7 @@ slide_template_patterns:
       relative:
         relation: near
         target: bar_chart
+    content_type: title_body
   category: generic
 - id: 27
   name: Line Chart Slide
@@ -633,6 +664,8 @@ slide_template_patterns:
     size: large
     placement: *id001
     content_type: chart_data
+    span:
+      h: 2
   - role: time_axis
     size: full
     placement: *id006
@@ -647,6 +680,7 @@ slide_template_patterns:
       relative:
         relation: near
         target: line_chart
+    content_type: title_body
   category: generic
 - id: 28
   name: Pie / Donut Chart Slide
@@ -659,6 +693,8 @@ slide_template_patterns:
         h: left
         v: middle
     content_type: chart_data
+    span:
+      h: 3
   - role: labels
     size: small
     placement:
@@ -694,6 +730,7 @@ slide_template_patterns:
       anchor:
         h: center
         v: middle
+    content_type: title_body
   - role: end_value
     size: medium
     placement:
@@ -709,6 +746,8 @@ slide_template_patterns:
     size: large
     placement: *id001
     content_type: chart_data
+    span:
+      h: 2
   - role: row_labels
     size: small
     placement: *id013
@@ -737,6 +776,7 @@ slide_template_patterns:
     size: small
     placement:
       region: map_overlay
+    content_type: title_body
   - role: regional_metrics
     size: medium
     placement:
@@ -756,6 +796,7 @@ slide_template_patterns:
         h: center
         v: top
     shape: card
+    content_type: title_body
   - role: child_nodes
     size: medium
     placement:
@@ -763,6 +804,7 @@ slide_template_patterns:
         h: center
         v: bottom
     shape: card
+    content_type: title_body
   - role: connectors
     size: small
     placement: *id015
@@ -776,6 +818,7 @@ slide_template_patterns:
   - role: profile_cards
     size: equal
     placement: *id016
+    content_type: title_body
   - role: photos
     size: medium
     placement:
@@ -789,6 +832,7 @@ slide_template_patterns:
       relative:
         relation: below
         target: photos
+    content_type: list_items
   - role: heading
     size: medium
     placement: *id002
@@ -801,12 +845,15 @@ slide_template_patterns:
   - role: roles
     size: equal
     placement: *id014
+    content_type: list_items
   - role: responsibilities
     size: equal
     placement: *id013
+    content_type: title_body
   - role: assignment_cells
     size: equal
     placement: *id017
+    content_type: title_body
   category: generic
 - id: 35
   name: Stakeholder Map
@@ -816,13 +863,16 @@ slide_template_patterns:
     size: variable
     placement:
       region: canvas
+    content_type: title_body
   - role: grouping_regions
     size: large
     placement:
       region: background
+    content_type: list_items
   - role: relationship_lines
     size: small
     placement: *id015
+    content_type: list_items
   category: generic
 - id: 36
   name: Customer Persona
@@ -843,12 +893,14 @@ slide_template_patterns:
         h: right
         v: bottom
     shape: card
+    content_type: title_body
   - role: quote
     size: medium
     placement:
       relative:
         relation: near
         target: persona_image
+    content_type: title_body
   category: generic
 - id: 37
   name: Customer Journey Map
@@ -873,6 +925,7 @@ slide_template_patterns:
     size: equal
     placement:
       region: row_3
+    content_type: list_items
   - role: opportunities
     size: equal
     placement:
@@ -888,17 +941,22 @@ slide_template_patterns:
   - role: actor
     size: medium
     placement: *id012
+    content_type: title_body
   - role: scenario
     size: large
     placement: *id020
+    content_type: title_body
   - role: flow_steps
     size: large
     placement: *id001
     shape: sequence
     content_type: chart_data
+    span:
+      h: 2
   - role: outcome
     size: medium
     placement: *id010
+    content_type: title_body
   category: generic
 - id: 39
   name: Case Study Slide
@@ -912,6 +970,7 @@ slide_template_patterns:
     size: medium
     placement: *id007
     shape: card
+    content_type: title_body
   - role: solution
     size: medium
     placement: &id027
@@ -919,10 +978,12 @@ slide_template_patterns:
         h: center
         v: middle
     shape: card
+    content_type: title_body
   - role: results
     size: medium
     placement: *id008
     shape: card
+    content_type: title_body
   - role: metrics
     size: large
     placement: *id006
@@ -938,10 +999,12 @@ slide_template_patterns:
       anchor:
         h: center
         v: middle
+    content_type: title_body
   - role: components
     size: medium
     placement: *id021
     shape: node
+    content_type: title_body
   - role: connectors
     size: small
     placement:
@@ -962,6 +1025,7 @@ slide_template_patterns:
   - role: central_system
     size: large
     placement: *id001
+    content_type: title_body
   - role: external_actors
     size: medium
     placement:
@@ -969,6 +1033,7 @@ slide_template_patterns:
         relation: around
         target: central_system
     shape: node
+    content_type: title_body
   - role: integrations
     size: small
     placement:
@@ -984,6 +1049,7 @@ slide_template_patterns:
         relation: around
         target: central_system
     shape: container
+    content_type: title_body
   category: generic
 - id: 42
   name: Product Screenshot Slide
@@ -999,6 +1065,7 @@ slide_template_patterns:
       relative:
         relation: around
         target: screenshot
+    content_type: title_body
   - role: explanation
     size: medium
     placement:
@@ -1048,6 +1115,7 @@ slide_template_patterns:
       anchor:
         h: left
         v: middle
+    content_type: list_items
   - role: key_activities
     size: medium
     placement:
@@ -1065,33 +1133,36 @@ slide_template_patterns:
   - role: value_propositions
     size: large
     placement: *id001
-    content_type: metric
+    content_type: list_items
   - role: customer_relationships
     size: medium
     placement:
       anchor:
         h: right
         v: top
+    content_type: list_items
   - role: channels
     size: medium
     placement:
       anchor:
         h: right
         v: bottom
+    content_type: list_items
   - role: customer_segments
     size: medium
     placement:
       anchor:
         h: right
         v: middle
+    content_type: list_items
   - role: cost_structure
     size: large
     placement: *id025
-    content_type: metric
+    content_type: list_items
   - role: revenue_streams
     size: large
     placement: *id026
-    content_type: metric
+    content_type: list_items
   category: generic
 - id: 45
   name: Pricing Table
@@ -1100,6 +1171,7 @@ slide_template_patterns:
   - role: pricing_columns
     size: equal
     placement: *id016
+    content_type: title_body
   - role: price
     size: large
     placement:
@@ -1122,6 +1194,7 @@ slide_template_patterns:
         relation: inside
         target: pricing_columns
     shape: button
+    content_type: title_body
   category: generic
 - id: 46
   name: Go-to-Market Plan
@@ -1136,6 +1209,7 @@ slide_template_patterns:
     size: medium
     placement: *id027
     shape: card
+    content_type: list_items
   - role: tactics
     size: medium
     placement: *id008
@@ -1145,6 +1219,8 @@ slide_template_patterns:
     size: full
     placement: *id006
     content_type: chart_data
+    span:
+      h: 2
   category: generic
 - id: 47
   name: Risk Matrix
@@ -1183,6 +1259,7 @@ slide_template_patterns:
     size: medium
     placement: *id028
     shape: node
+    content_type: title_body
   - role: branches
     size: small
     placement:
@@ -1198,6 +1275,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: node
+    content_type: title_body
   - role: outcomes
     size: medium
     placement: *id010
@@ -1247,6 +1325,7 @@ slide_template_patterns:
   - role: contact_info
     size: small
     placement: *id006
+    content_type: title_body
   - role: logo
     size: small
     placement:
@@ -1260,6 +1339,7 @@ slide_template_patterns:
       relative:
         relation: below
         target: thank_you_message
+    content_type: title_body
   category: generic
 - id: 51
   name: Situation Complication Resolution
@@ -1273,6 +1353,7 @@ slide_template_patterns:
         h: left
         v: top
     shape: block
+    content_type: title_body
   - role: complication
     size: equal
     placement: &id030
@@ -1280,6 +1361,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: block
+    content_type: title_body
   - role: resolution
     size: equal
     placement: &id057
@@ -1287,6 +1369,7 @@ slide_template_patterns:
         h: right
         v: bottom
     shape: block
+    content_type: title_body
   use_case: Classic executive storyline structure.
 - id: 52
   name: Pyramid Principle Message Slide
@@ -1299,6 +1382,7 @@ slide_template_patterns:
       anchor:
         h: center
         v: top
+    content_type: title_body
   - role: support_arguments
     size: equal
     placement: &id093
@@ -1348,10 +1432,12 @@ slide_template_patterns:
         h: left
         v: middle
     shape: node
+    content_type: title_body
   - role: issue_branches
     size: medium
     placement: *id030
     shape: node
+    content_type: title_body
   - role: sub_issues
     size: small
     placement: &id032
@@ -1380,6 +1466,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: node
+    content_type: title_body
   - role: validation_tests
     size: small
     placement: &id048
@@ -1387,6 +1474,7 @@ slide_template_patterns:
         h: right
         v: bottom
     shape: card
+    content_type: title_body
   use_case: Structured validation of an initial business hypothesis.
 - id: 56
   name: MECE Framework Slide
@@ -1403,6 +1491,7 @@ slide_template_patterns:
       anchor:
         h: center
         v: middle
+    content_type: list_items
   - role: category_descriptions
     size: small
     placement:
@@ -1425,10 +1514,12 @@ slide_template_patterns:
     size: medium
     placement: *id030
     shape: node
+    content_type: list_items
   - role: second_order_drivers
     size: small
     placement: *id032
     shape: node
+    content_type: list_items
   use_case: Breaks KPI or value metric into causal drivers.
 - id: 58
   name: Value Driver Bridge
@@ -1442,6 +1533,7 @@ slide_template_patterns:
         h: left
         v: middle
     shape: card
+    content_type: title_body
   - role: operational_levers
     size: medium
     placement: &id036
@@ -1457,6 +1549,7 @@ slide_template_patterns:
         h: right
         v: middle
     shape: card
+    content_type: title_body
   - role: connectors
     size: small
     placement:
@@ -1491,6 +1584,8 @@ slide_template_patterns:
     placement: *id033
     shape: table
     content_type: table_data
+    span:
+      h: 2
   use_case: Quantifies market, cost, revenue, or efficiency opportunity.
 - id: 60
   name: Market Sizing TAM SAM SOM
@@ -1503,15 +1598,18 @@ slide_template_patterns:
       anchor:
         h: center
         v: top
+    content_type: title_body
   - role: sam
     size: medium
     placement: *id034
+    content_type: title_body
   - role: som
     size: xs
     placement:
       anchor:
         h: center
         v: bottom
+    content_type: title_body
   - role: assumptions
     size: small
     placement: &id051
@@ -1594,6 +1692,7 @@ slide_template_patterns:
       anchor:
         h: right
         v: middle
+    content_type: title_body
   use_case: Shows efficiency levers and estimated savings.
 - id: 64
   name: Revenue Growth Levers
@@ -1606,6 +1705,7 @@ slide_template_patterns:
       anchor:
         h: center
         v: top
+    content_type: list_items
   - role: initiatives
     size: medium
     placement:
@@ -1613,6 +1713,7 @@ slide_template_patterns:
         relation: below
         target: growth_categories
     shape: card
+    content_type: title_body
   - role: revenue_uplift
     size: medium
     placement: &id045
@@ -1684,6 +1785,8 @@ slide_template_patterns:
     placement: *id033
     shape: table
     content_type: table_data
+    span:
+      h: 2
   use_case: Summarizes investment, benefits, payback, and risks.
 - id: 67
   name: NPV IRR Payback Slide
@@ -1710,6 +1813,8 @@ slide_template_patterns:
     placement: *id033
     shape: chart
     content_type: chart_data
+    span:
+      h: 2
   use_case: Evaluates financial attractiveness of an initiative.
 - id: 68
   name: Scenario Analysis
@@ -1719,12 +1824,15 @@ slide_template_patterns:
   - role: downside_case
     size: equal
     placement: *id035
+    content_type: title_body
   - role: base_case
     size: equal
     placement: *id036
+    content_type: title_body
   - role: upside_case
     size: equal
     placement: *id037
+    content_type: title_body
   - role: sensitivity_notes
     size: small
     placement: *id033
@@ -1759,6 +1867,7 @@ slide_template_patterns:
   - role: interpretation
     size: medium
     placement: *id041
+    content_type: title_body
   use_case: Shows how outcomes change under variable assumptions.
 - id: 70
   name: Strategic Options Assessment
@@ -1859,6 +1968,7 @@ slide_template_patterns:
         relation: inside
         target: strategic_themes
     shape: card
+    content_type: title_body
   - role: impact_tags
     size: small
     placement:
@@ -1882,9 +1992,11 @@ slide_template_patterns:
   - role: time_periods
     size: equal
     placement: *id043
+    content_type: title_body
   - role: workstreams
     size: equal
     placement: *id042
+    content_type: list_items
   - role: initiatives
     size: medium
     placement: &id088
@@ -1911,6 +2023,7 @@ slide_template_patterns:
       anchor:
         h: center
         v: middle
+    content_type: title_body
   - role: wave_objectives
     size: medium
     placement:
@@ -1944,12 +2057,15 @@ slide_template_patterns:
   - role: first_30_days
     size: equal
     placement: *id035
+    content_type: title_body
   - role: days_31_60
     size: equal
     placement: *id036
+    content_type: title_body
   - role: days_61_90
     size: equal
     placement: *id037
+    content_type: title_body
   - role: outcomes
     size: medium
     placement: *id045
@@ -1964,6 +2080,7 @@ slide_template_patterns:
   - role: workstreams
     size: equal
     placement: *id042
+    content_type: list_items
   - role: activities
     size: medium
     placement: &id064
@@ -1974,6 +2091,7 @@ slide_template_patterns:
     size: small
     placement: *id037
     shape: text
+    content_type: title_body
   - role: risks_dependencies
     size: small
     placement:
@@ -1990,14 +2108,17 @@ slide_template_patterns:
   - role: steering_committee
     size: large
     placement: *id029
+    content_type: title_body
   - role: governance_forums
     size: equal
     placement: *id034
     shape: block
+    content_type: title_body
   - role: execution_teams
     size: medium
     placement: *id033
     shape: block
+    content_type: title_body
   - role: escalation_paths
     size: small
     placement: &id103
@@ -2015,7 +2136,7 @@ slide_template_patterns:
   - role: operating_model_pillars
     size: equal
     placement: *id046
-    content_type: key_value
+    content_type: list_items
   - role: current_state_notes
     size: contextual
     placement: *id047
@@ -2028,6 +2149,7 @@ slide_template_patterns:
     size: full
     placement:
       region: integration_layer
+    content_type: title_body
   use_case: Describes how an organization should function.
 - id: 80
   name: Capability Model
@@ -2040,6 +2162,7 @@ slide_template_patterns:
       anchor:
         h: left
         v: middle
+    content_type: list_items
   - role: capabilities
     size: medium
     placement: &id081
@@ -2054,6 +2177,7 @@ slide_template_patterns:
       relative:
         relation: inside
         target: capabilities
+    content_type: title_body
   - role: legend
     size: small
     placement: &id059
@@ -2070,9 +2194,11 @@ slide_template_patterns:
   - role: dimensions
     size: equal
     placement: *id035
+    content_type: list_items
   - role: maturity_scale
     size: equal
     placement: *id030
+    content_type: title_body
   - role: current_state_marker
     size: small
     placement: &id049
@@ -2117,6 +2243,7 @@ slide_template_patterns:
     size: small
     placement: *id050
     shape: text
+    content_type: title_body
   - role: findings
     size: medium
     placement: *id046
@@ -2163,6 +2290,7 @@ slide_template_patterns:
         h: center
         v: bottom
     shape: block
+    content_type: title_body
   - role: design_principles
     size: medium
     placement: *id051
@@ -2206,9 +2334,11 @@ slide_template_patterns:
   - role: decision_categories
     size: equal
     placement: *id042
+    content_type: list_items
   - role: roles
     size: equal
     placement: *id043
+    content_type: list_items
   - role: decision_rights
     size: small
     placement: *id044
@@ -2231,6 +2361,7 @@ slide_template_patterns:
   - role: roles
     size: equal
     placement: *id043
+    content_type: list_items
   - role: raci_cells
     size: small
     placement: *id044
@@ -2273,9 +2404,11 @@ slide_template_patterns:
   - role: stakeholder_groups
     size: equal
     placement: *id042
+    content_type: list_items
   - role: change_dimensions
     size: equal
     placement: *id043
+    content_type: list_items
   - role: impact_scores
     size: equal
     placement: *id044
@@ -2307,6 +2440,7 @@ slide_template_patterns:
         relation: below
         target: adoption_curve
     shape: card
+    content_type: title_body
   - role: adoption_metrics
     size: medium
     placement: *id041
@@ -2321,6 +2455,7 @@ slide_template_patterns:
   - role: audiences
     size: equal
     placement: *id035
+    content_type: list_items
   - role: key_messages
     size: equal
     placement: &id055
@@ -2408,6 +2543,7 @@ slide_template_patterns:
     size: variable
     placement: &id121
       region: canvas
+    content_type: title_body
   - role: dependency_links
     size: small
     placement: &id106
@@ -2443,6 +2579,7 @@ slide_template_patterns:
   - role: workstreams
     size: equal
     placement: *id042
+    content_type: list_items
   - role: timeline
     size: equal
     placement: *id043
@@ -2463,6 +2600,7 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: card
+    content_type: title_body
   - role: kpis
     size: medium
     placement: *id055
@@ -2477,6 +2615,7 @@ slide_template_patterns:
     size: small
     placement: *id037
     shape: text
+    content_type: title_body
   use_case: Connects initiatives to measurable business benefits.
 - id: 97
   name: KPI Tree
@@ -2492,10 +2631,12 @@ slide_template_patterns:
     size: medium
     placement: *id034
     shape: node
+    content_type: title_body
   - role: operational_metrics
     size: small
     placement: *id057
     shape: node
+    content_type: title_body
   - role: connectors
     size: small
     placement: &id110
@@ -2513,6 +2654,7 @@ slide_template_patterns:
   - role: decision_required
     size: large
     placement: *id029
+    content_type: title_body
   - role: options_considered
     size: medium
     placement: *id034
@@ -2527,6 +2669,7 @@ slide_template_patterns:
     size: medium
     placement: *id052
     shape: card
+    content_type: title_body
   use_case: Asks leadership to approve a decision.
 - id: 99
   name: Steering Committee Update
@@ -2551,6 +2694,8 @@ slide_template_patterns:
         v: middle
     shape: table
     content_type: table_data
+    span:
+      h: 2
   - role: decisions_needed
     size: large
     placement: &id070
@@ -2564,6 +2709,8 @@ slide_template_patterns:
     placement: *id033
     shape: timeline
     content_type: chart_data
+    span:
+      h: 2
   use_case: Periodic program update for senior sponsors.
 - id: 100
   name: Executive Appendix Detail
@@ -2577,6 +2724,9 @@ slide_template_patterns:
   - role: detailed_table_or_model
     size: xl
     placement: *id030
+    content_type: table_data
+    span:
+      h: 2
   - role: assumptions
     size: small
     placement: *id059
@@ -2598,14 +2748,17 @@ slide_template_patterns:
     size: equal
     placement: *id035
     shape: block
+    content_type: title_body
   - role: so_what
     size: equal
     placement: *id036
     shape: block
+    content_type: title_body
   - role: now_what
     size: equal
     placement: *id037
     shape: block
+    content_type: title_body
   use_case: Translates analysis into executive implication and action.
 - id: 102
   name: Executive One Pager
@@ -2627,6 +2780,7 @@ slide_template_patterns:
   - role: core_analysis
     size: large
     placement: *id030
+    content_type: title_body
   - role: recommendation
     size: medium
     placement: &id105
@@ -2663,6 +2817,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Frames an issue for board-level discussion.
 - id: 104
   name: Key Questions Slide
@@ -2672,6 +2827,7 @@ slide_template_patterns:
   - role: engagement_objective
     size: large
     placement: *id029
+    content_type: title_body
   - role: key_questions
     size: medium
     placement:
@@ -2683,6 +2839,7 @@ slide_template_patterns:
   - role: expected_outputs
     size: small
     placement: *id033
+    content_type: title_body
   use_case: Defines the critical questions that guide the engagement.
 - id: 105
   name: Answer Map
@@ -2696,6 +2853,7 @@ slide_template_patterns:
   - role: answers
     size: equal
     placement: *id055
+    content_type: title_body
   - role: evidence
     size: equal
     placement: *id056
@@ -2714,14 +2872,17 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: card
+    content_type: title_body
   - role: internal_challenges
     size: medium
     placement: *id036
     shape: card
+    content_type: title_body
   - role: change_imperative
     size: medium
     placement: *id037
     shape: card
+    content_type: title_body
   - role: urgency_message
     size: full
     placement: *id033
@@ -2740,9 +2901,11 @@ slide_template_patterns:
   - role: deterioration_path
     size: large
     placement: *id030
+    content_type: title_body
   - role: risk_of_inaction
     size: large
     placement: *id057
+    content_type: title_body
   - role: evidence_points
     size: small
     placement: *id051
@@ -2783,6 +2946,7 @@ slide_template_patterns:
       anchor:
         h: center
         v: middle
+    content_type: list_items
   - role: evidence_points
     size: medium
     placement:
@@ -2799,6 +2963,7 @@ slide_template_patterns:
     size: medium
     placement: *id052
     shape: card
+    content_type: title_body
   use_case: Summarizes the evidence gathered during diagnosis.
 - id: 110
   name: Evidence Stack
@@ -2833,6 +2998,7 @@ slide_template_patterns:
   - role: dimensions
     size: equal
     placement: *id042
+    content_type: list_items
   - role: status
     size: equal
     placement: *id055
@@ -2858,14 +3024,17 @@ slide_template_patterns:
     size: large
     placement: *id031
     shape: node
+    content_type: title_body
   - role: cause_categories
     size: medium
     placement: *id030
     shape: node
+    content_type: list_items
   - role: root_causes
     size: small
     placement: *id032
     shape: node
+    content_type: title_body
   - role: evidence
     size: small
     placement: *id033
@@ -2902,6 +3071,7 @@ slide_template_patterns:
         relation: 'on'
         target: cause_branches
     shape: text
+    content_type: title_body
   use_case: Structures root causes by category.
 - id: 114
   name: Five Whys Slide
@@ -2912,6 +3082,7 @@ slide_template_patterns:
     size: medium
     placement: *id031
     shape: card
+    content_type: title_body
   - role: why_chain
     size: medium
     placement:
@@ -2919,14 +3090,17 @@ slide_template_patterns:
         h: center
         v: middle
     shape: card
+    content_type: title_body
   - role: root_cause
     size: medium
     placement: *id032
     shape: card
+    content_type: title_body
   - role: corrective_action
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Documents progressive causal questioning.
 - id: 115
   name: Constraint Analysis
@@ -2946,6 +3120,7 @@ slide_template_patterns:
     size: medium
     placement: *id041
     shape: card
+    content_type: title_body
   - role: remediation_options
     size: medium
     placement: *id033
@@ -2966,6 +3141,7 @@ slide_template_patterns:
     size: large
     placement:
       region: highlighted
+    content_type: title_body
   - role: performance_metrics
     size: small
     placement: &id076
@@ -2996,6 +3172,7 @@ slide_template_patterns:
         relation: around
         target: workflow_steps
     shape: text
+    content_type: title_body
   - role: severity_tags
     size: small
     placement:
@@ -3021,6 +3198,8 @@ slide_template_patterns:
         h: left
         v: middle
     content_type: chart_data
+    span:
+      h: 2
   - role: variant_summary
     size: large
     placement: *id041
@@ -3049,6 +3228,7 @@ slide_template_patterns:
     size: medium
     placement: *id046
     shape: card
+    content_type: list_items
   - role: examples
     size: small
     placement: *id065
@@ -3086,6 +3266,8 @@ slide_template_patterns:
     placement: *id033
     shape: timeline
     content_type: chart_data
+    span:
+      h: 2
   - role: improvement_opportunities
     size: small
     placement: *id051
@@ -3128,6 +3310,7 @@ slide_template_patterns:
   - role: practice_areas
     size: equal
     placement: *id042
+    content_type: title_body
   - role: current_practice
     size: equal
     placement: *id055
@@ -3180,6 +3363,7 @@ slide_template_patterns:
   - role: competitors
     size: equal
     placement: *id043
+    content_type: title_body
   - role: capability_scores
     size: equal
     placement: *id044
@@ -3203,6 +3387,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: block
+    content_type: list_items
   - role: participant_examples
     size: medium
     placement: &id079
@@ -3226,6 +3411,7 @@ slide_template_patterns:
         h: center
         v: top
     shape: card
+    content_type: title_body
   use_case: Summarizes market participants, economics, and power dynamics.
 - id: 126
   name: Porter Five Forces
@@ -3236,18 +3422,22 @@ slide_template_patterns:
     size: large
     placement: *id030
     shape: box
+    content_type: title_body
   - role: supplier_power
     size: medium
     placement: *id031
     shape: box
+    content_type: title_body
   - role: buyer_power
     size: medium
     placement: *id032
     shape: box
+    content_type: title_body
   - role: threat_of_substitutes
     size: medium
     placement: *id033
     shape: box
+    content_type: title_body
   - role: threat_of_new_entrants
     size: medium
     placement: *id029
@@ -3263,11 +3453,13 @@ slide_template_patterns:
     size: large
     placement: *id030
     shape: node
+    content_type: title_body
   - role: ecosystem_actors
     size: medium
     placement: &id118
       region: ecosystem_outer
     shape: node
+    content_type: title_body
   - role: relationship_types
     size: small
     placement: &id096
@@ -3323,6 +3515,7 @@ slide_template_patterns:
     size: medium
     placement: *id046
     shape: card
+    content_type: list_items
   - role: segment_size
     size: medium
     placement: &id087
@@ -3338,6 +3531,7 @@ slide_template_patterns:
         relation: inside
         target: segments
     shape: text
+    content_type: title_body
   - role: priority_level
     size: small
     placement: *id067
@@ -3352,6 +3546,7 @@ slide_template_patterns:
   - role: segments
     size: equal
     placement: *id042
+    content_type: list_items
   - role: attractiveness_criteria
     size: equal
     placement: *id043
@@ -3377,6 +3572,8 @@ slide_template_patterns:
     placement: *id030
     shape: chart
     content_type: chart_data
+    span:
+      h: 2
   - role: customer_percentile_axis
     size: full
     placement: *id033
@@ -3392,6 +3589,7 @@ slide_template_patterns:
         relation: 'on'
         target: profitability_curve
     shape: text
+    content_type: title_body
   use_case: Shows distribution of profit across customers or accounts.
 - id: 132
   name: Wallet Share Analysis
@@ -3529,6 +3727,8 @@ slide_template_patterns:
     placement: *id030
     shape: chart
     content_type: chart_data
+    span:
+      h: 2
   - role: implication
     size: medium
     placement: *id033
@@ -3557,6 +3757,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Explains margin by revenue, cost, mix, and operating drivers.
 - id: 138
   name: Spend Cube
@@ -3582,7 +3783,7 @@ slide_template_patterns:
     size: medium
     placement: *id033
     shape: card
-    content_type: metric
+    content_type: list_items
   use_case: Analyzes procurement spend by supplier, category, and business unit.
 - id: 139
   name: Procurement Savings Waterfall
@@ -3644,10 +3845,11 @@ slide_template_patterns:
   - role: cost_categories
     size: equal
     placement: *id042
-    content_type: metric
+    content_type: list_items
   - role: necessity_tiers
     size: equal
     placement: *id043
+    content_type: list_items
   - role: spend_items
     size: equal
     placement: *id044
@@ -3671,6 +3873,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: band
+    content_type: title_body
   - role: span_metrics
     size: medium
     placement: *id063
@@ -3681,6 +3884,8 @@ slide_template_patterns:
     placement: *id033
     shape: chart
     content_type: chart_data
+    span:
+      h: 2
   - role: design_implications
     size: medium
     placement: *id073
@@ -3695,6 +3900,7 @@ slide_template_patterns:
   - role: workforce_levels
     size: equal
     placement: *id078
+    content_type: title_body
   - role: headcount
     size: medium
     placement: *id079
@@ -3718,9 +3924,11 @@ slide_template_patterns:
   - role: role_families
     size: equal
     placement: *id042
+    content_type: title_body
   - role: capability_dimensions
     size: equal
     placement: *id043
+    content_type: list_items
   - role: readiness_scores
     size: equal
     placement: *id044
@@ -3740,6 +3948,7 @@ slide_template_patterns:
   - role: skills
     size: equal
     placement: *id035
+    content_type: title_body
   - role: current_level
     size: equal
     placement: *id055
@@ -3764,6 +3973,7 @@ slide_template_patterns:
   - role: technology_domains
     size: equal
     placement: *id080
+    content_type: list_items
   - role: debt_items
     size: medium
     placement: *id081
@@ -3784,6 +3994,7 @@ slide_template_patterns:
         h: right
         v: middle
     shape: card
+    content_type: title_body
   use_case: Summarizes technical debt by domain, severity, and business impact.
 - id: 147
   name: Application Portfolio Rationalization
@@ -3811,6 +4022,7 @@ slide_template_patterns:
         h: right
         v: middle
     shape: text
+    content_type: title_body
   use_case: Classifies applications for retain, retire, replace, or modernize decisions.
 - id: 148
   name: IT Cost Transparency
@@ -3821,6 +4033,7 @@ slide_template_patterns:
     size: equal
     placement: *id035
     shape: block
+    content_type: list_items
   - role: allocation_drivers
     size: medium
     placement: *id036
@@ -3845,6 +4058,7 @@ slide_template_patterns:
   - role: migration_waves
     size: equal
     placement: *id060
+    content_type: list_items
   - role: application_groups
     size: medium
     placement: &id098
@@ -3852,6 +4066,7 @@ slide_template_patterns:
         relation: inside
         target: migration_waves
     shape: card
+    content_type: title_body
   - role: dependencies
     size: small
     placement: *id082
@@ -3876,6 +4091,7 @@ slide_template_patterns:
       anchor:
         h: center
         v: top
+    content_type: list_items
   - role: digital_capabilities
     size: equal
     placement: &id101
@@ -3891,9 +4107,11 @@ slide_template_patterns:
         h: center
         v: middle
     shape: block
+    content_type: title_body
   - role: data_and_integration
     size: full
     placement: *id083
+    content_type: title_body
   - role: governance_security
     size: full
     placement:
@@ -3901,6 +4119,7 @@ slide_template_patterns:
         h: right
         v: middle
     shape: band
+    content_type: title_body
   use_case: Shows how digital capabilities, platforms, data, and channels fit together.
 - id: 151
   name: Transformation North Star
@@ -3918,7 +4137,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: card
-    content_type: metric
+    content_type: list_items
   - role: measurable_outcomes
     size: medium
     placement: *id045
@@ -3944,6 +4163,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: card
+    content_type: title_body
   - role: rationale
     size: small
     placement:
@@ -3970,9 +4190,11 @@ slide_template_patterns:
     size: full
     placement: *id029
     shape: band
+    content_type: title_body
   - role: pillars
     size: equal
     placement: *id030
+    content_type: list_items
   - role: initiatives
     size: medium
     placement:
@@ -3995,15 +4217,18 @@ slide_template_patterns:
   - role: aspiration
     size: large
     placement: *id029
+    content_type: title_body
   - role: where_to_play
     size: medium
     placement: &id084
       anchor:
         h: center
         v: top
+    content_type: title_body
   - role: how_to_win
     size: medium
     placement: *id034
+    content_type: title_body
   - role: required_capabilities
     size: medium
     placement: &id085
@@ -4014,6 +4239,7 @@ slide_template_patterns:
   - role: management_systems
     size: medium
     placement: *id033
+    content_type: list_items
   use_case: 'Frames strategy as linked choices: where to play, how to win, capabilities, systems.'
 - id: 155
   name: Strategy on a Page
@@ -4024,6 +4250,7 @@ slide_template_patterns:
     size: full
     placement: *id029
     shape: band
+    content_type: title_body
   - role: strategic_priorities
     size: medium
     placement: *id035
@@ -4033,6 +4260,7 @@ slide_template_patterns:
     size: equal
     placement: *id030
     shape: card
+    content_type: title_body
   - role: kpis
     size: medium
     placement: *id037
@@ -4041,6 +4269,7 @@ slide_template_patterns:
   - role: governance
     size: full
     placement: *id033
+    content_type: title_body
   use_case: Condenses full strategy into a single executive summary.
 - id: 156
   name: Ambition to Execution Map
@@ -4050,6 +4279,7 @@ slide_template_patterns:
   - role: ambition
     size: large
     placement: *id029
+    content_type: title_body
   - role: outcomes
     size: medium
     placement: *id084
@@ -4058,15 +4288,19 @@ slide_template_patterns:
   - role: pillars
     size: equal
     placement: *id034
+    content_type: list_items
   - role: initiatives
     size: medium
     placement: *id085
     shape: card
+    content_type: title_body
   - role: owners_metrics
     size: large
     placement: *id033
     shape: table
     content_type: table_data
+    span:
+      h: 2
   use_case: Connects high-level ambition to executable initiatives.
 - id: 157
   name: Strategic Trade-Offs
@@ -4092,6 +4326,7 @@ slide_template_patterns:
     size: large
     placement: *id029
     shape: text
+    content_type: title_body
   use_case: Makes explicit what the organization will and will not do.
 - id: 158
   name: Where to Play / How to Win
@@ -4101,13 +4336,16 @@ slide_template_patterns:
   - role: where_to_play
     size: medium
     placement: *id073
+    content_type: title_body
   - role: how_to_win
     size: medium
     placement: *id041
+    content_type: title_body
   - role: proof_points
     size: small
     placement: *id033
     shape: card
+    content_type: title_body
   - role: implication
     size: large
     placement: &id108
@@ -4128,6 +4366,7 @@ slide_template_patterns:
   - role: alignment_dimensions
     size: equal
     placement: *id043
+    content_type: list_items
   - role: coherence_scores
     size: equal
     placement: *id044
@@ -4155,7 +4394,7 @@ slide_template_patterns:
         h: center
         v: top
     shape: card
-    content_type: metric
+    content_type: list_items
   - role: initiatives
     size: medium
     placement:
@@ -4168,6 +4407,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Frames value creation across revenue, margin, capital, risk, and organization.
 - id: 161
   name: Value Creation Bridge
@@ -4204,19 +4444,24 @@ slide_template_patterns:
     size: large
     placement: *id031
     shape: node
+    content_type: title_body
   - role: financial_drivers
     size: medium
     placement: *id030
     shape: node
+    content_type: list_items
   - role: operational_drivers
     size: small
     placement: *id032
     shape: node
+    content_type: list_items
   - role: kpi_mapping
     size: large
     placement: *id033
     shape: table
     content_type: chart_data
+    span:
+      h: 2
   use_case: Connects operational drivers to shareholder value.
 - id: 163
   name: Growth Vector Map
@@ -4227,6 +4472,7 @@ slide_template_patterns:
     size: medium
     placement: *id046
     shape: card
+    content_type: title_body
   - role: expected_value
     size: medium
     placement: *id087
@@ -4236,6 +4482,7 @@ slide_template_patterns:
     size: small
     placement: *id067
     shape: text
+    content_type: title_body
   - role: priority_recommendation
     size: medium
     placement: *id041
@@ -4261,6 +4508,7 @@ slide_template_patterns:
     size: medium
     placement: *id056
     shape: card
+    content_type: title_body
   - role: launch_steps
     size: full
     placement:
@@ -4291,6 +4539,7 @@ slide_template_patterns:
   - role: shortlisted_markets
     size: large
     placement: *id037
+    content_type: list_items
   use_case: Screens countries or regions for expansion.
 - id: 166
   name: M&A Target Screening
@@ -4315,6 +4564,7 @@ slide_template_patterns:
     size: contextual
     placement:
       region: highlighted
+    content_type: title_body
   use_case: Screens acquisition targets by strategic fit, financial attractiveness, and feasibility.
 - id: 167
   name: M&A Synergy Case
@@ -4324,6 +4574,7 @@ slide_template_patterns:
   - role: synergy_categories
     size: equal
     placement: *id042
+    content_type: list_items
   - role: value_estimate
     size: equal
     placement: *id055
@@ -4343,6 +4594,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Quantifies revenue, cost, tax, and capital synergies.
 - id: 168
   name: Post Merger Integration Roadmap
@@ -4352,9 +4604,11 @@ slide_template_patterns:
   - role: integration_phases
     size: equal
     placement: *id043
+    content_type: list_items
   - role: workstreams
     size: equal
     placement: *id042
+    content_type: list_items
   - role: integration_activities
     size: medium
     placement: *id088
@@ -4391,6 +4645,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Tracks readiness for legal close, launch, or operational transition.
 - id: 170
   name: Carve-Out / Separation Plan
@@ -4400,6 +4655,7 @@ slide_template_patterns:
   - role: separation_workstreams
     size: equal
     placement: *id042
+    content_type: list_items
   - role: key_activities
     size: medium
     placement: *id089
@@ -4424,6 +4680,7 @@ slide_template_patterns:
   - role: diligence_dimensions
     size: equal
     placement: *id091
+    content_type: list_items
   - role: red_flags
     size: medium
     placement: &id115
@@ -4431,6 +4688,7 @@ slide_template_patterns:
         relation: inside
         target: diligence_dimensions
     shape: card
+    content_type: title_body
   - role: severity
     size: small
     placement: *id092
@@ -4494,6 +4752,7 @@ slide_template_patterns:
     size: medium
     placement: *id052
     shape: card
+    content_type: title_body
   use_case: States the rationale for an investment or strategic move.
 - id: 174
   name: Deal Value Levers
@@ -4503,6 +4762,7 @@ slide_template_patterns:
   - role: lever_categories
     size: equal
     placement: *id086
+    content_type: list_items
   - role: value_levers
     size: medium
     placement:
@@ -4510,7 +4770,7 @@ slide_template_patterns:
         relation: inside
         target: lever_categories
     shape: card
-    content_type: metric
+    content_type: list_items
   - role: value_range
     size: medium
     placement: *id067
@@ -4522,6 +4782,7 @@ slide_template_patterns:
       relative:
         relation: inside
         target: value_levers
+    content_type: title_body
   use_case: Identifies levers that create or protect deal value.
 - id: 175
   name: Operating Model Layers
@@ -4539,6 +4800,7 @@ slide_template_patterns:
       anchor:
         h: right
         v: middle
+    content_type: list_items
   - role: design_questions
     size: medium
     placement: *id041
@@ -4558,6 +4820,7 @@ slide_template_patterns:
   - role: processes
     size: equal
     placement: *id042
+    content_type: title_body
   - role: process_owners
     size: equal
     placement: *id055
@@ -4591,6 +4854,7 @@ slide_template_patterns:
     size: medium
     placement: *id046
     shape: card
+    content_type: title_body
   - role: service_scope
     size: medium
     placement: *id095
@@ -4600,10 +4864,12 @@ slide_template_patterns:
     size: small
     placement: *id067
     shape: text
+    content_type: title_body
   - role: recommended_model
     size: medium
     placement: *id041
     shape: card
+    content_type: title_body
   use_case: Designs centralized, decentralized, shared-service, or outsourced delivery.
 - id: 178
   name: Shared Services Model
@@ -4614,19 +4880,24 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: block
+    content_type: title_body
   - role: shared_service_center
     size: large
     placement: *id030
     shape: block
+    content_type: title_body
   - role: retained_organization
     size: medium
     placement: *id037
     shape: block
+    content_type: title_body
   - role: service_catalog
     size: large
     placement: *id033
     shape: table
     content_type: table_data
+    span:
+      h: 2
   use_case: Explains what work moves into shared services and how it operates.
 - id: 179
   name: Center of Excellence Model
@@ -4637,15 +4908,18 @@ slide_template_patterns:
     size: large
     placement: *id030
     shape: node
+    content_type: title_body
   - role: business_units
     size: medium
     placement:
       region: ring
     shape: block
+    content_type: title_body
   - role: services_offered
     size: medium
     placement: *id033
     shape: card
+    content_type: title_body
   - role: governance_links
     size: small
     placement: *id096
@@ -4661,11 +4935,13 @@ slide_template_patterns:
     size: small
     placement: *id046
     shape: card
+    content_type: title_body
   - role: tribes_or_domains
     size: equal
     placement:
       region: groupings
     shape: container
+    content_type: title_body
   - role: chapters
     size: full
     placement:
@@ -4673,14 +4949,18 @@ slide_template_patterns:
         h: right
         v: middle
     shape: band
+    content_type: title_body
   - role: portfolio_governance
     size: full
     placement: *id029
+    content_type: title_body
   - role: cadence
     size: full
     placement: *id033
     shape: timeline
     content_type: chart_data
+    span:
+      h: 2
   use_case: Shows teams, tribes, squads, chapters, and governance cadence.
 - id: 181
   name: Product Operating Model
@@ -4690,14 +4970,17 @@ slide_template_patterns:
   - role: product_domains
     size: equal
     placement: *id086
+    content_type: list_items
   - role: product_teams
     size: medium
     placement: *id081
     shape: card
+    content_type: title_body
   - role: funding_model
     size: medium
     placement: *id058
     shape: card
+    content_type: title_body
   - role: product_kpis
     size: medium
     placement: *id052
@@ -4720,6 +5003,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: block
+    content_type: title_body
   - role: enabling_capabilities
     size: medium
     placement: *id085
@@ -4728,6 +5012,7 @@ slide_template_patterns:
   - role: governance_and_standards
     size: full
     placement: *id083
+    content_type: title_body
   use_case: Defines platform teams, product teams, shared capabilities, and governance.
 - id: 183
   name: Data Operating Model
@@ -4737,6 +5022,7 @@ slide_template_patterns:
   - role: data_domains
     size: equal
     placement: *id042
+    content_type: list_items
   - role: domain_owners
     size: equal
     placement: *id055
@@ -4767,11 +5053,13 @@ slide_template_patterns:
     size: large
     placement: *id030
     shape: node
+    content_type: title_body
   - role: governance_domains
     size: equal
     placement: &id099
       region: ring
     shape: block
+    content_type: title_body
   - role: policies_controls
     size: medium
     placement: *id033
@@ -4797,6 +5085,7 @@ slide_template_patterns:
     size: equal
     placement: *id046
     shape: card
+    content_type: title_body
   - role: issue_backlog
     size: large
     placement: *id041
@@ -4807,6 +5096,8 @@ slide_template_patterns:
     placement: *id033
     shape: progress
     content_type: chart_data
+    span:
+      h: 2
   use_case: Summarizes data quality by dimension, domain, and issue severity.
 - id: 186
   name: AI Use Case Portfolio
@@ -4830,10 +5121,12 @@ slide_template_patterns:
     size: contextual
     placement: &id113
       region: highlighted
+    content_type: title_body
   - role: recommended_wave
     size: small
     placement:
       region: quadrant
+    content_type: title_body
   use_case: Prioritizes AI or analytics use cases by value, feasibility, and risk.
 - id: 187
   name: AI Value Chain
@@ -4847,16 +5140,20 @@ slide_template_patterns:
   - role: model_layer
     size: medium
     placement: *id055
+    content_type: title_body
   - role: application_layer
     size: medium
     placement: *id030
+    content_type: title_body
   - role: adoption_layer
     size: medium
     placement: *id056
+    content_type: title_body
   - role: business_value
     size: large
     placement: *id032
     shape: block
+    content_type: title_body
   use_case: Explains the end-to-end AI capability chain from data to business outcome.
 - id: 188
   name: GenAI Adoption Roadmap
@@ -4866,10 +5163,12 @@ slide_template_patterns:
   - role: adoption_waves
     size: equal
     placement: *id060
+    content_type: list_items
   - role: genai_use_cases
     size: medium
     placement: *id098
     shape: card
+    content_type: title_body
   - role: governance_milestones
     size: small
     placement:
@@ -4884,6 +5183,7 @@ slide_template_patterns:
       anchor:
         h: center
         v: bottom
+    content_type: title_body
   use_case: Plans adoption of generative AI across functions and maturity waves.
 - id: 189
   name: Responsible AI Framework
@@ -4922,6 +5222,7 @@ slide_template_patterns:
         h: center
         v: top
     shape: block
+    content_type: title_body
   - role: ai_intake_process
     size: large
     placement:
@@ -4934,6 +5235,7 @@ slide_template_patterns:
     size: small
     placement: *id051
     shape: text
+    content_type: title_body
   - role: monitoring_controls
     size: medium
     placement: *id033
@@ -4962,6 +5264,7 @@ slide_template_patterns:
   - role: automation_candidates
     size: contextual
     placement: *id100
+    content_type: title_body
   use_case: Identifies where automation can reduce cost, time, or errors.
 - id: 192
   name: Technology Capability Stack
@@ -4971,18 +5274,23 @@ slide_template_patterns:
   - role: experience_layer
     size: full
     placement: *id029
+    content_type: title_body
   - role: application_layer
     size: full
     placement: *id084
+    content_type: title_body
   - role: integration_layer
     size: full
     placement: *id034
+    content_type: title_body
   - role: data_layer
     size: full
     placement: *id085
+    content_type: title_body
   - role: infrastructure_security
     size: full
     placement: *id033
+    content_type: title_body
   use_case: Explains required technology layers for a target solution.
 - id: 193
   name: Enterprise Architecture Blueprint
@@ -4992,17 +5300,21 @@ slide_template_patterns:
   - role: business_architecture
     size: full
     placement: *id097
+    content_type: title_body
   - role: application_architecture
     size: equal
     placement: *id101
     shape: block
+    content_type: title_body
   - role: data_architecture
     size: equal
     placement: *id102
     shape: block
+    content_type: title_body
   - role: technology_architecture
     size: full
     placement: *id083
+    content_type: title_body
   - role: integration_flows
     size: small
     placement: *id103
@@ -5017,6 +5329,7 @@ slide_template_patterns:
   - role: platform_components
     size: equal
     placement: *id042
+    content_type: list_items
   - role: modernization_timeline
     size: medium
     placement: *id030
@@ -5044,17 +5357,21 @@ slide_template_patterns:
   - role: process_areas
     size: equal
     placement: *id042
+    content_type: title_body
   - role: erp_modules
     size: equal
     placement: *id030
     shape: block
+    content_type: title_body
   - role: rollout_waves
     size: equal
     placement: *id104
+    content_type: list_items
   - role: business_readiness
     size: medium
     placement: *id041
     shape: card
+    content_type: title_body
   use_case: Summarizes enterprise resource planning transformation scope and rollout.
 - id: 196
   name: Cyber Risk Heatmap
@@ -5079,6 +5396,7 @@ slide_template_patterns:
     size: contextual
     placement:
       region: highlighted
+    content_type: title_body
   - role: remediation_priorities
     size: medium
     placement: *id033
@@ -5093,6 +5411,7 @@ slide_template_patterns:
   - role: security_domains
     size: equal
     placement: *id042
+    content_type: list_items
   - role: maturity_levels
     size: full
     placement: *id030
@@ -5153,6 +5472,8 @@ slide_template_patterns:
     size: xl
     placement: *id066
     content_type: chart_data
+    span:
+      h: 2
   - role: preventive_controls
     size: medium
     placement:
@@ -5177,6 +5498,7 @@ slide_template_patterns:
   - role: control_owner
     size: small
     placement: *id067
+    content_type: title_body
   use_case: Shows preventive, detective, and corrective controls across a process.
 - id: 200
   name: Internal Audit Findings Summary
@@ -5239,6 +5561,7 @@ slide_template_patterns:
   - role: esg_workstreams
     size: equal
     placement: *id042
+    content_type: list_items
   - role: timeline
     size: equal
     placement: *id043
@@ -5295,6 +5618,7 @@ slide_template_patterns:
     size: medium
     placement: *id038
     shape: card
+    content_type: title_body
   - role: scope_breakdown
     size: large
     placement: *id030
@@ -5319,11 +5643,12 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: card
+    content_type: title_body
   - role: value_drivers
     size: equal
     placement: *id030
     shape: card
-    content_type: metric
+    content_type: list_items
   - role: business_outcomes
     size: medium
     placement: *id037
@@ -5345,6 +5670,7 @@ slide_template_patterns:
     placement:
       region: canvas
     shape: node
+    content_type: title_body
   - role: material_flows
     size: small
     placement: *id106
@@ -5357,6 +5683,7 @@ slide_template_patterns:
         relation: 'on'
         target: supply_nodes
     shape: text
+    content_type: title_body
   - role: capacity_metrics
     size: medium
     placement: *id051
@@ -5446,6 +5773,7 @@ slide_template_patterns:
   - role: maturity_dimensions
     size: equal
     placement: *id042
+    content_type: list_items
   - role: maturity_levels
     size: full
     placement: *id030
@@ -5476,6 +5804,8 @@ slide_template_patterns:
     size: large
     placement: *id107
     content_type: chart_data
+    span:
+      h: 2
   - role: plant_metrics
     size: large
     placement: *id041
@@ -5508,10 +5838,12 @@ slide_template_patterns:
     size: equal
     placement: *id109
     shape: band
+    content_type: list_items
   - role: foundational_enablers
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   - role: metrics
     size: small
     placement: *id051
@@ -5543,6 +5875,8 @@ slide_template_patterns:
     placement: *id033
     shape: table
     content_type: table_data
+    span:
+      h: 2
   use_case: Provides executive view of operational performance.
 - id: 214
   name: Performance Management Cycle
@@ -5560,6 +5894,7 @@ slide_template_patterns:
     placement:
       region: ring
     shape: text
+    content_type: title_body
   - role: kpi_inputs
     size: medium
     placement: *id073
@@ -5585,10 +5920,12 @@ slide_template_patterns:
     size: equal
     placement: *id034
     shape: card
+    content_type: title_body
   - role: team_okrs
     size: small
     placement: *id033
     shape: card
+    content_type: title_body
   - role: alignment_connectors
     size: small
     placement: *id110
@@ -5614,11 +5951,14 @@ slide_template_patterns:
     size: medium
     placement: *id040
     shape: card
+    content_type: title_body
   - role: initiative_tracking_table
     size: large
     placement: *id030
     shape: table
     content_type: table_data
+    span:
+      h: 2
   - role: corrective_actions
     size: medium
     placement: *id033
@@ -5682,6 +6022,7 @@ slide_template_patterns:
     size: small
     placement: *id037
     shape: text
+    content_type: title_body
   use_case: Manages cross-workstream dependencies.
 - id: 219
   name: Decision Log
@@ -5721,6 +6062,7 @@ slide_template_patterns:
   - role: escalated_issue
     size: xl
     placement: *id029
+    content_type: title_body
   - role: decision_options
     size: medium
     placement: *id055
@@ -5730,6 +6072,7 @@ slide_template_patterns:
     size: medium
     placement: *id056
     shape: card
+    content_type: title_body
   - role: recommendation
     size: medium
     placement: *id058
@@ -5739,6 +6082,7 @@ slide_template_patterns:
     size: medium
     placement: *id052
     shape: box
+    content_type: title_body
   use_case: Escalates unresolved issues requiring senior leadership intervention.
 - id: 221
   name: Meeting Pre-Read
@@ -5748,6 +6092,7 @@ slide_template_patterns:
   - role: meeting_purpose
     size: large
     placement: *id029
+    content_type: title_body
   - role: context
     size: medium
     placement: *id035
@@ -5766,6 +6111,7 @@ slide_template_patterns:
   - role: logistics
     size: small
     placement: *id033
+    content_type: title_body
   use_case: Prepares executives before a decision or steering meeting.
 - id: 222
   name: Workshop Design
@@ -5781,6 +6127,7 @@ slide_template_patterns:
     size: equal
     placement: *id064
     shape: card
+    content_type: title_body
   - role: participants
     size: medium
     placement:
@@ -5793,6 +6140,7 @@ slide_template_patterns:
     size: medium
     placement: *id033
     shape: card
+    content_type: title_body
   use_case: Plans a client workshop agenda, objectives, exercises, and outputs.
 - id: 223
   name: Interview Synthesis
@@ -5803,6 +6151,7 @@ slide_template_patterns:
     size: medium
     placement: *id046
     shape: card
+    content_type: title_body
   - role: representative_quotes
     size: small
     placement: *id065
@@ -5814,6 +6163,7 @@ slide_template_patterns:
       relative:
         relation: inside
         target: themes
+    content_type: title_body
   - role: implication_summary
     size: full
     placement: *id033
@@ -5855,6 +6205,7 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: card
+    content_type: title_body
   - role: evidence
     size: medium
     placement: *id055
@@ -5879,12 +6230,15 @@ slide_template_patterns:
   - role: foundational_needs
     size: full
     placement: *id083
+    content_type: title_body
   - role: performance_needs
     size: medium
     placement: *id112
+    content_type: title_body
   - role: delight_needs
     size: xs
     placement: *id097
+    content_type: title_body
   - role: evidence_notes
     size: small
     placement: *id041
@@ -5904,6 +6258,7 @@ slide_template_patterns:
     size: equal
     placement: *id030
     shape: card
+    content_type: list_items
   - role: target_clv
     size: large
     placement: *id032
@@ -5932,6 +6287,7 @@ slide_template_patterns:
     placement:
       region: highlighted
     shape: card
+    content_type: title_body
   - role: customer_emotion
     size: medium
     placement:
@@ -5940,10 +6296,13 @@ slide_template_patterns:
         v: bottom
     shape: chart
     content_type: chart_data
+    span:
+      h: 2
   - role: business_impact
     size: medium
     placement: *id041
     shape: card
+    content_type: title_body
   use_case: Identifies the few journey moments that most affect customer satisfaction or economics.
 - id: 229
   name: Customer Promise
@@ -5953,6 +6312,7 @@ slide_template_patterns:
   - role: customer_promise
     size: xl
     placement: *id030
+    content_type: title_body
   - role: proof_points
     size: equal
     placement: &id124
@@ -5960,9 +6320,11 @@ slide_template_patterns:
         relation: around
         target: customer_promise
     shape: card
+    content_type: title_body
   - role: service_standards
     size: full
     placement: *id033
+    content_type: title_body
   - role: implications
     size: medium
     placement: *id041
@@ -5993,10 +6355,12 @@ slide_template_patterns:
     size: medium
     placement: *id058
     shape: card
+    content_type: title_body
   - role: brand_personality
     size: medium
     placement: *id052
     shape: card
+    content_type: title_body
   use_case: Clarifies target audience, frame of reference, differentiation, and reasons to believe.
 - id: 231
   name: Channel Strategy Map
@@ -6006,9 +6370,11 @@ slide_template_patterns:
   - role: customer_segments
     size: equal
     placement: *id042
+    content_type: list_items
   - role: channels
     size: equal
     placement: *id043
+    content_type: list_items
   - role: channel_roles
     size: equal
     placement: *id044
@@ -6018,6 +6384,7 @@ slide_template_patterns:
     size: medium
     placement: *id041
     shape: card
+    content_type: title_body
   - role: recommendation
     size: full
     placement: *id033
@@ -6035,6 +6402,7 @@ slide_template_patterns:
       anchor:
         h: center
         v: top
+    content_type: title_body
   - role: channel_touchpoints
     size: medium
     placement:
@@ -6042,6 +6410,7 @@ slide_template_patterns:
         h: center
         v: top
     shape: block
+    content_type: title_body
   - role: backstage_processes
     size: medium
     placement:
@@ -6057,11 +6426,13 @@ slide_template_patterns:
         h: center
         v: bottom
     shape: block
+    content_type: title_body
   - role: pain_points
     size: small
     placement:
       region: highlighted
     shape: text
+    content_type: title_body
   use_case: Shows how customer interactions connect across physical, digital, and human channels.
 - id: 233
   name: Sales Funnel Health
@@ -6086,6 +6457,7 @@ slide_template_patterns:
     placement:
       region: highlighted
     shape: card
+    content_type: title_body
   - role: improvement_actions
     size: medium
     placement: *id033
@@ -6104,6 +6476,7 @@ slide_template_patterns:
   - role: sales_roles
     size: equal
     placement: *id043
+    content_type: list_items
   - role: coverage_rules
     size: equal
     placement: *id044
@@ -6177,6 +6550,8 @@ slide_template_patterns:
     placement: *id033
     shape: timeline
     content_type: chart_data
+    span:
+      h: 2
   use_case: Summarizes strategy for a strategic customer account.
 - id: 237
   name: Sales Productivity Analysis
@@ -6214,6 +6589,7 @@ slide_template_patterns:
       anchor:
         h: left
         v: middle
+    content_type: list_items
   - role: spend_return_chart
     size: xl
     placement: *id030
@@ -6253,6 +6629,7 @@ slide_template_patterns:
     size: medium
     placement: *id033
     shape: card
+    content_type: title_body
   use_case: Summarizes campaign reach, conversion, cost, revenue, and learning.
 - id: 240
   name: Product Portfolio Strategy
@@ -6307,6 +6684,7 @@ slide_template_patterns:
     size: small
     placement: *id114
     shape: text
+    content_type: title_body
   - role: financial_impact
     size: full
     placement: *id033
@@ -6326,6 +6704,7 @@ slide_template_patterns:
   - role: launch_workstreams
     size: equal
     placement: *id042
+    content_type: list_items
   - role: activities
     size: medium
     placement: *id088
@@ -6375,6 +6754,8 @@ slide_template_patterns:
     placement: *id033
     shape: chart
     content_type: chart_data
+    span:
+      h: 2
   use_case: Tracks ideas from discovery through validation, incubation, and scaling.
 - id: 244
   name: Innovation Portfolio
@@ -6387,10 +6768,12 @@ slide_template_patterns:
       anchor:
         h: center
         v: middle
+    content_type: list_items
   - role: initiatives
     size: equal
     placement: *id115
     shape: card
+    content_type: title_body
   - role: investment_allocation
     size: full
     placement: &id126
@@ -6413,9 +6796,11 @@ slide_template_patterns:
   - role: releases
     size: equal
     placement: *id043
+    content_type: title_body
   - role: feature_themes
     size: equal
     placement: *id042
+    content_type: list_items
   - role: features
     size: medium
     placement: *id088
@@ -6430,6 +6815,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Shows features and capabilities planned across product releases.
 - id: 246
   name: Product-Market Fit Assessment
@@ -6439,6 +6825,7 @@ slide_template_patterns:
   - role: fit_dimensions
     size: equal
     placement: *id042
+    content_type: list_items
   - role: evidence
     size: equal
     placement: *id055
@@ -6469,6 +6856,7 @@ slide_template_patterns:
     size: equal
     placement: *id035
     shape: card
+    content_type: title_body
   - role: experiment_design
     size: equal
     placement: *id055
@@ -6498,9 +6886,11 @@ slide_template_patterns:
   - role: teams
     size: equal
     placement: *id042
+    content_type: title_body
   - role: increments_or_sprints
     size: equal
     placement: *id043
+    content_type: title_body
   - role: features
     size: medium
     placement:
@@ -6559,6 +6949,7 @@ slide_template_patterns:
         h: center
         v: bottom
     shape: text
+    content_type: title_body
   use_case: Ranks backlog items by value, urgency, risk reduction, and effort.
 - id: 250
   name: Transformation Backlog
@@ -6577,6 +6968,7 @@ slide_template_patterns:
         relation: inside
         target: strategic_themes
     shape: card
+    content_type: title_body
   - role: value_effort_tags
     size: small
     placement: *id087
@@ -6584,6 +6976,7 @@ slide_template_patterns:
   - role: owners
     size: small
     placement: *id067
+    content_type: title_body
   - role: delivery_wave
     size: small
     placement:
@@ -6591,6 +6984,7 @@ slide_template_patterns:
         relation: inside
         target: strategic_themes
     shape: text
+    content_type: title_body
   use_case: Consolidates initiatives, owners, value, dependencies, and readiness for delivery.
 - id: 251
   name: Organizational Design Criteria
@@ -6612,6 +7006,7 @@ slide_template_patterns:
   - role: weighting
     size: small
     placement: *id092
+    content_type: title_body
   - role: implications
     size: full
     placement: *id033
@@ -6656,6 +7051,7 @@ slide_template_patterns:
     size: full
     placement: *id029
     shape: band
+    content_type: title_body
   - role: responsibilities
     size: medium
     placement: *id035
@@ -6685,9 +7081,11 @@ slide_template_patterns:
   - role: job_families
     size: equal
     placement: *id042
+    content_type: title_body
   - role: career_levels
     size: equal
     placement: *id043
+    content_type: title_body
   - role: role_examples
     size: equal
     placement: *id044
@@ -6713,6 +7111,7 @@ slide_template_patterns:
     size: equal
     placement: *id031
     shape: block
+    content_type: title_body
   - role: transition_actions
     size: equal
     placement: *id030
@@ -6728,6 +7127,8 @@ slide_template_patterns:
     placement: *id033
     shape: timeline
     content_type: chart_data
+    span:
+      h: 2
   - role: risks_mitigations
     size: medium
     placement: *id051
@@ -6742,6 +7143,7 @@ slide_template_patterns:
   - role: audiences
     size: equal
     placement: *id042
+    content_type: list_items
   - role: capabilities
     size: equal
     placement: *id043
@@ -6751,11 +7153,14 @@ slide_template_patterns:
     size: medium
     placement: *id088
     shape: card
+    content_type: title_body
   - role: timing
     size: full
     placement: *id117
     shape: timeline
     content_type: chart_data
+    span:
+      h: 2
   - role: success_metrics
     size: medium
     placement: *id041
@@ -6774,6 +7179,7 @@ slide_template_patterns:
         h: left
         v: middle
     shape: text
+    content_type: title_body
   - role: current_culture
     size: medium
     placement:
@@ -6808,6 +7214,7 @@ slide_template_patterns:
   - role: leaders
     size: equal
     placement: *id042
+    content_type: title_body
   - role: strategic_priorities
     size: equal
     placement: *id043
@@ -6852,10 +7259,12 @@ slide_template_patterns:
     size: medium
     placement: *id037
     shape: card
+    content_type: title_body
   - role: proof_points
     size: small
     placement: *id033
     shape: card
+    content_type: title_body
   use_case: Provides consistent narrative for why change is happening and what it means.
 - id: 260
   name: Change Network Map
@@ -6869,6 +7278,7 @@ slide_template_patterns:
         h: center
         v: top
     shape: node
+    content_type: title_body
   - role: change_champions
     size: medium
     placement:
@@ -6876,10 +7286,12 @@ slide_template_patterns:
         h: center
         v: middle
     shape: node
+    content_type: title_body
   - role: impacted_groups
     size: medium
     placement: *id118
     shape: node
+    content_type: title_body
   - role: influence_links
     size: small
     placement: *id096
@@ -6910,6 +7322,7 @@ slide_template_patterns:
     size: medium
     placement: *id033
     shape: card
+    content_type: title_body
   - role: feedback_loops
     size: small
     placement:
@@ -6932,9 +7345,11 @@ slide_template_patterns:
   - role: impacted_groups
     size: equal
     placement: *id042
+    content_type: list_items
   - role: adoption_dimensions
     size: equal
     placement: *id043
+    content_type: list_items
   - role: risk_scores
     size: equal
     placement: *id044
@@ -6944,6 +7359,7 @@ slide_template_patterns:
     size: small
     placement: *id041
     shape: text
+    content_type: title_body
   - role: mitigation_plan
     size: medium
     placement: *id033
@@ -6958,9 +7374,11 @@ slide_template_patterns:
   - role: learner_audiences
     size: equal
     placement: *id042
+    content_type: list_items
   - role: training_modules
     size: equal
     placement: *id043
+    content_type: list_items
   - role: delivery_format
     size: equal
     placement: *id044
@@ -6971,6 +7389,8 @@ slide_template_patterns:
     placement: *id033
     shape: timeline
     content_type: chart_data
+    span:
+      h: 2
   - role: completion_metrics
     size: medium
     placement: *id041
@@ -6985,6 +7405,7 @@ slide_template_patterns:
   - role: stakeholder_segments
     size: equal
     placement: *id035
+    content_type: list_items
   - role: resistance_drivers
     size: equal
     placement: *id055
@@ -7005,6 +7426,8 @@ slide_template_patterns:
     placement: *id033
     shape: table
     content_type: table_data
+    span:
+      h: 2
   use_case: Plans interventions for resistant or skeptical stakeholder groups.
 - id: 265
   name: Policy Impact Assessment
@@ -7014,9 +7437,11 @@ slide_template_patterns:
   - role: policy_changes
     size: equal
     placement: *id042
+    content_type: title_body
   - role: impact_dimensions
     size: equal
     placement: *id043
+    content_type: list_items
   - role: impact_assessment
     size: equal
     placement: *id044
@@ -7031,6 +7456,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Shows operational, financial, customer, risk, and technology impacts of a policy change.
 - id: 266
   name: Regulatory Change Roadmap
@@ -7060,6 +7486,7 @@ slide_template_patterns:
     size: small
     placement: *id041
     shape: text
+    content_type: title_body
   use_case: Plans response to new or changing regulation.
 - id: 267
   name: Risk Appetite Framework
@@ -7069,6 +7496,7 @@ slide_template_patterns:
   - role: risk_categories
     size: equal
     placement: *id042
+    content_type: list_items
   - role: appetite_statement
     size: equal
     placement: *id055
@@ -7098,6 +7526,7 @@ slide_template_patterns:
   - role: third_parties
     size: equal
     placement: *id042
+    content_type: title_body
   - role: criticality
     size: equal
     placement: *id055
@@ -7127,6 +7556,7 @@ slide_template_patterns:
   - role: critical_processes
     size: equal
     placement: *id035
+    content_type: title_body
   - role: recovery_time_objective
     size: equal
     placement: *id055
@@ -7157,19 +7587,24 @@ slide_template_patterns:
     size: medium
     placement: *id038
     shape: card
+    content_type: title_body
   - role: command_structure
     size: large
     placement: *id040
     shape: node
+    content_type: list_items
   - role: response_steps
     size: large
     placement: *id030
     shape: sequence
     content_type: chart_data
+    span:
+      h: 2
   - role: communications_protocol
     size: medium
     placement: *id058
     shape: card
+    content_type: title_body
   - role: escalation_rules
     size: medium
     placement: *id052
@@ -7215,6 +7650,7 @@ slide_template_patterns:
   - role: finance_workstreams
     size: equal
     placement: *id042
+    content_type: list_items
   - role: timeline
     size: equal
     placement: *id043
@@ -7249,11 +7685,13 @@ slide_template_patterns:
     size: small
     placement: *id076
     shape: text
+    content_type: title_body
   - role: bottlenecks
     size: small
     placement:
       region: highlighted
     shape: card
+    content_type: title_body
   - role: control_points
     size: small
     placement:
@@ -7293,6 +7731,7 @@ slide_template_patterns:
         h: right
         v: middle
     shape: card
+    content_type: title_body
   - role: governance_cadence
     size: full
     placement: *id033
@@ -7341,6 +7780,7 @@ slide_template_patterns:
   - role: claim
     size: xl
     placement: *id029
+    content_type: title_body
   - role: evidence_blocks
     size: equal
     placement: *id093
@@ -7351,6 +7791,8 @@ slide_template_patterns:
     placement: *id033
     shape: sequence
     content_type: chart_data
+    span:
+      h: 2
   - role: confidence_marker
     size: small
     placement: *id040
@@ -7413,6 +7855,7 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: card
+    content_type: title_body
   - role: assumptions
     size: medium
     placement: *id055
@@ -7427,6 +7870,7 @@ slide_template_patterns:
     size: medium
     placement: *id056
     shape: card
+    content_type: title_body
   - role: recommendation
     size: medium
     placement: *id037
@@ -7441,9 +7885,11 @@ slide_template_patterns:
   - role: known_facts
     size: equal
     placement: *id038
+    content_type: list_items
   - role: known_unknowns
     size: equal
     placement: *id040
+    content_type: list_items
   - role: assumptions
     size: equal
     placement: *id058
@@ -7490,12 +7936,15 @@ slide_template_patterns:
   - role: proven
     size: equal
     placement: *id035
+    content_type: title_body
   - role: plausible
     size: equal
     placement: *id036
+    content_type: title_body
   - role: unproven
     size: equal
     placement: *id037
+    content_type: title_body
   - role: validation_next_steps
     size: full
     placement: *id033
@@ -7526,6 +7975,7 @@ slide_template_patterns:
     size: large
     placement: *id030
     shape: node
+    content_type: title_body
   - role: synthesis
     size: large
     placement: *id033
@@ -7555,6 +8005,7 @@ slide_template_patterns:
     size: small
     placement: *id037
     shape: text
+    content_type: title_body
   use_case: Shows whether a proposal satisfies mandatory constraints.
 - id: 285
   name: Decision Gate Slide
@@ -7564,11 +8015,14 @@ slide_template_patterns:
   - role: gate_name
     size: large
     placement: *id029
+    content_type: title_body
   - role: gate_criteria
     size: large
     placement: *id030
     shape: table
     content_type: table_data
+    span:
+      h: 2
   - role: recommendation
     size: medium
     placement: *id058
@@ -7578,6 +8032,7 @@ slide_template_patterns:
     size: medium
     placement: *id052
     shape: card
+    content_type: title_body
   use_case: Supports go, no-go, hold, or pivot decisions.
 - id: 286
   name: Reversibility Matrix
@@ -7601,6 +8056,7 @@ slide_template_patterns:
     size: medium
     placement: *id041
     shape: card
+    content_type: title_body
   use_case: Distinguishes reversible from irreversible decisions.
 - id: 287
   name: One-Way Door / Two-Way Door
@@ -7621,6 +8077,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Frames decisions by reversibility and required governance.
 - id: 288
   name: Irreducible Trade-Off Slide
@@ -7631,10 +8088,12 @@ slide_template_patterns:
     size: medium
     placement: *id031
     shape: node
+    content_type: title_body
   - role: objective_b
     size: medium
     placement: *id032
     shape: node
+    content_type: title_body
   - role: objective_c
     size: medium
     placement:
@@ -7642,6 +8101,7 @@ slide_template_patterns:
         h: center
         v: bottom
     shape: node
+    content_type: title_body
   - role: chosen_position
     size: small
     placement:
@@ -7685,6 +8145,7 @@ slide_template_patterns:
     size: large
     placement:
       region: highlighted
+    content_type: title_body
   use_case: Shows the efficient frontier among strategic options.
 - id: 290
   name: Optionality Portfolio
@@ -7694,15 +8155,19 @@ slide_template_patterns:
   - role: commit_now
     size: equal
     placement: *id040
+    content_type: title_body
   - role: preserve_option
     size: equal
     placement: *id038
+    content_type: title_body
   - role: defer
     size: equal
     placement: *id052
+    content_type: title_body
   - role: abandon
     size: equal
     placement: *id058
+    content_type: title_body
   use_case: Separates immediate bets from options worth preserving.
 - id: 291
   name: Bet Portfolio Slide
@@ -7716,6 +8181,7 @@ slide_template_patterns:
         h: left
         v: middle
     shape: card
+    content_type: title_body
   - role: adjacent_bets
     size: equal
     placement:
@@ -7723,6 +8189,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: card
+    content_type: title_body
   - role: exploratory_bets
     size: equal
     placement:
@@ -7730,6 +8197,7 @@ slide_template_patterns:
         h: right
         v: middle
     shape: card
+    content_type: title_body
   - role: investment_allocation
     size: full
     placement: *id033
@@ -7745,6 +8213,7 @@ slide_template_patterns:
     size: medium
     placement: *id031
     shape: card
+    content_type: title_body
   - role: sequence_steps
     size: equal
     placement: *id064
@@ -7770,10 +8239,12 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: node
+    content_type: title_body
   - role: unlocked_moves
     size: medium
     placement: *id030
     shape: node
+    content_type: title_body
   - role: strategic_outcomes
     size: large
     placement: *id037
@@ -7793,6 +8264,7 @@ slide_template_patterns:
   - role: scenarios
     size: equal
     placement: *id043
+    content_type: list_items
   - role: actions
     size: equal
     placement: *id042
@@ -7806,6 +8278,7 @@ slide_template_patterns:
     size: contextual
     placement:
       region: highlighted
+    content_type: list_items
   use_case: Identifies actions valuable across most future scenarios.
 - id: 295
   name: Scenario Robustness Matrix
@@ -7819,6 +8292,7 @@ slide_template_patterns:
   - role: scenarios
     size: equal
     placement: *id043
+    content_type: list_items
   - role: robustness_scores
     size: equal
     placement: *id044
@@ -7828,6 +8302,7 @@ slide_template_patterns:
     size: medium
     placement: *id041
     shape: card
+    content_type: title_body
   use_case: Tests options against multiple future scenarios.
 - id: 296
   name: Premortem Slide
@@ -7837,10 +8312,12 @@ slide_template_patterns:
   - role: imagined_failure
     size: xl
     placement: *id029
+    content_type: title_body
   - role: failure_causes
     size: medium
     placement: *id046
     shape: card
+    content_type: title_body
   - role: leading_indicators
     size: medium
     placement: *id041
@@ -7860,6 +8337,7 @@ slide_template_patterns:
   - role: indicators
     size: equal
     placement: *id035
+    content_type: title_body
   - role: thresholds
     size: equal
     placement: *id055
@@ -7900,6 +8378,7 @@ slide_template_patterns:
   - role: governance_owner
     size: small
     placement: *id062
+    content_type: title_body
   use_case: Defines when to stop, pivot, or scale an initiative.
 - id: 299
   name: Learning Loop Slide
@@ -7915,18 +8394,22 @@ slide_template_patterns:
     size: medium
     placement: *id032
     shape: node
+    content_type: title_body
   - role: measurement
     size: medium
     placement: *id033
     shape: node
+    content_type: title_body
   - role: decision
     size: medium
     placement: *id031
     shape: node
+    content_type: title_body
   - role: learning_repository
     size: small
     placement: *id030
     shape: node
+    content_type: title_body
   use_case: Shows how pilots, metrics, feedback, and decisions create learning.
 - id: 300
   name: Experiment Result Card
@@ -7942,6 +8425,7 @@ slide_template_patterns:
     size: medium
     placement: *id040
     shape: text
+    content_type: title_body
   - role: result
     size: xl
     placement: *id030
@@ -7956,6 +8440,7 @@ slide_template_patterns:
     size: small
     placement: *id052
     shape: text
+    content_type: title_body
   use_case: Summarizes one experiment and its decision implication.
 - id: 301
   name: System Dynamics Loop
@@ -7966,6 +8451,7 @@ slide_template_patterns:
     size: medium
     placement: *id121
     shape: node
+    content_type: title_body
   - role: causal_links
     size: small
     placement: *id106
@@ -7981,6 +8467,7 @@ slide_template_patterns:
     size: small
     placement: *id122
     shape: text
+    content_type: title_body
   - role: leverage_points
     size: large
     placement: *id123
@@ -7995,14 +8482,17 @@ slide_template_patterns:
     size: medium
     placement: *id031
     shape: card
+    content_type: title_body
   - role: intermediate_effects
     size: equal
     placement: *id030
     shape: card
+    content_type: title_body
   - role: final_outcome
     size: medium
     placement: *id032
     shape: card
+    content_type: title_body
   - role: assumptions
     size: small
     placement: *id033
@@ -8018,14 +8508,17 @@ slide_template_patterns:
     size: full
     placement: *id097
     shape: band
+    content_type: title_body
   - role: systemic_causes
     size: full
     placement: *id101
     shape: band
+    content_type: title_body
   - role: mental_models
     size: full
     placement: *id102
     shape: band
+    content_type: title_body
   - role: deep_narrative
     size: full
     placement: *id083
@@ -8035,6 +8528,7 @@ slide_template_patterns:
     size: small
     placement: *id041
     shape: card
+    content_type: title_body
   use_case: Separates visible symptoms from systemic, worldview, and narrative layers.
 - id: 304
   name: Abstraction Ladder
@@ -8087,6 +8581,7 @@ slide_template_patterns:
   - role: compressed_concept
     size: xl
     placement: *id030
+    content_type: title_body
   - role: source_findings
     size: small
     placement: *id073
@@ -8101,6 +8596,7 @@ slide_template_patterns:
     size: small
     placement: *id033
     shape: text
+    content_type: list_items
   use_case: Compresses complex findings into a small set of memorable concepts.
 - id: 306
   name: Mental Model Shift
@@ -8121,6 +8617,7 @@ slide_template_patterns:
     size: medium
     placement: *id033
     shape: card
+    content_type: title_body
   - role: transition_message
     size: small
     placement: *id030
@@ -8141,6 +8638,7 @@ slide_template_patterns:
     size: medium
     placement: *id055
     shape: card
+    content_type: title_body
   - role: new_frame
     size: medium
     placement: *id056
@@ -8162,11 +8660,13 @@ slide_template_patterns:
     placement:
       region: canvas
     shape: card
+    content_type: title_body
   - role: pattern_clusters
     size: equal
     placement: &id125
       region: background
     shape: container
+    content_type: title_body
   - role: pattern_labels
     size: small
     placement:
@@ -8196,14 +8696,18 @@ slide_template_patterns:
     placement: *id030
     shape: chart
     content_type: chart_data
+    span:
+      h: 2
   - role: signals
     size: medium
     placement: *id040
     shape: card
+    content_type: title_body
   - role: noise
     size: medium
     placement: *id052
     shape: card
+    content_type: title_body
   use_case: Distinguishes meaningful signals from distractions.
 - id: 310
   name: Insight Density Slide
@@ -8240,6 +8744,7 @@ slide_template_patterns:
   - role: quality_dimensions
     size: equal
     placement: *id042
+    content_type: list_items
   - role: score
     size: equal
     placement: *id055
@@ -8270,6 +8775,7 @@ slide_template_patterns:
     size: equal
     placement: *id124
     shape: card
+    content_type: title_body
   - role: failure_modes
     size: medium
     placement: *id058
@@ -8300,6 +8806,7 @@ slide_template_patterns:
     size: medium
     placement: *id056
     shape: card
+    content_type: title_body
   - role: value_created
     size: medium
     placement: *id032
@@ -8320,14 +8827,17 @@ slide_template_patterns:
     size: large
     placement: *id031
     shape: card
+    content_type: title_body
   - role: primitives
     size: small
     placement: *id046
     shape: card
+    content_type: title_body
   - role: recomposed_solution
     size: medium
     placement: *id032
     shape: card
+    content_type: title_body
   - role: assumptions_removed
     size: full
     placement: *id033
@@ -8379,6 +8889,7 @@ slide_template_patterns:
     size: medium
     placement: *id040
     shape: card
+    content_type: title_body
   - role: consequences
     size: medium
     placement: *id056
@@ -8399,6 +8910,8 @@ slide_template_patterns:
     size: xl
     placement: *id030
     content_type: chart_data
+    span:
+      h: 2
   - role: control_points
     size: small
     placement:
@@ -8414,9 +8927,11 @@ slide_template_patterns:
         relation: near
         target: control_points
     shape: text
+    content_type: title_body
   - role: audit_trail
     size: full
     placement: *id033
+    content_type: title_body
   use_case: Shows where controls, approvals, or policies must be embedded in a system.
 - id: 318
   name: Human in the Loop Design
@@ -8438,6 +8953,7 @@ slide_template_patterns:
         relation: between
         target: automated_steps
     shape: block
+    content_type: title_body
   - role: escalation_paths
     size: small
     placement:
@@ -8461,6 +8977,7 @@ slide_template_patterns:
     size: equal
     placement: *id125
     shape: container
+    content_type: title_body
   - role: systems
     size: medium
     placement:
@@ -8468,6 +8985,7 @@ slide_template_patterns:
         relation: inside
         target: trust_zones
     shape: node
+    content_type: title_body
   - role: boundary_crossings
     size: small
     placement:
@@ -8493,6 +9011,7 @@ slide_template_patterns:
   - role: risk_tiers
     size: equal
     placement: *id042
+    content_type: list_items
   - role: required_controls
     size: equal
     placement: *id055
@@ -8522,10 +9041,12 @@ slide_template_patterns:
   - role: cadence_levels
     size: equal
     placement: *id042
+    content_type: title_body
   - role: routines
     size: medium
     placement: *id089
     shape: card
+    content_type: title_body
   - role: decision_outputs
     size: medium
     placement: *id037
@@ -8617,6 +9138,7 @@ slide_template_patterns:
     size: small
     placement: *id033
     shape: text
+    content_type: title_body
   use_case: Identifies where complexity can be removed without losing value.
 - id: 325
   name: Executive Synthesis Slide
@@ -8661,10 +9183,12 @@ slide_template_patterns:
     size: medium
     placement: *id055
     shape: card
+    content_type: title_body
   - role: inference
     size: medium
     placement: *id030
     shape: card
+    content_type: title_body
   - role: conclusion
     size: medium
     placement: *id056
@@ -8674,6 +9198,7 @@ slide_template_patterns:
     size: medium
     placement: *id037
     shape: card
+    content_type: title_body
   use_case: Used when recommendations must be traceable from raw evidence to final judgment.
 - id: 327
   name: Epistemic Status Slide
@@ -8684,6 +9209,7 @@ slide_template_patterns:
     size: full
     placement: *id072
     shape: band
+    content_type: title_body
   - role: estimated
     size: full
     placement:
@@ -8691,6 +9217,7 @@ slide_template_patterns:
         h: center
         v: top
     shape: band
+    content_type: title_body
   - role: inferred
     size: full
     placement:
@@ -8698,6 +9225,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: band
+    content_type: title_body
   - role: assumed
     size: full
     placement:
@@ -8705,10 +9233,12 @@ slide_template_patterns:
         h: center
         v: middle
     shape: band
+    content_type: title_body
   - role: speculative
     size: full
     placement: *id045
     shape: band
+    content_type: title_body
   use_case: Separates what is known, estimated, inferred, assumed, and speculative.
 - id: 328
   name: Claim Validity Matrix
@@ -8718,6 +9248,7 @@ slide_template_patterns:
   - role: claims
     size: equal
     placement: *id042
+    content_type: title_body
   - role: evidence_strength
     size: equal
     placement: *id055
@@ -8737,6 +9268,7 @@ slide_template_patterns:
     size: small
     placement: *id037
     shape: text
+    content_type: title_body
   use_case: Tests each major claim against evidence, logic, counterevidence, and action relevance.
 - id: 329
   name: Falsifiability Slide
@@ -8751,6 +9283,7 @@ slide_template_patterns:
     size: medium
     placement: *id046
     shape: card
+    content_type: title_body
   - role: disconfirming_evidence
     size: medium
     placement: *id041
@@ -8770,6 +9303,7 @@ slide_template_patterns:
   - role: actual_path
     size: full
     placement: *id119
+    content_type: title_body
   - role: counterfactual_paths
     size: equal
     placement:
@@ -8797,10 +9331,12 @@ slide_template_patterns:
   - role: causal_question
     size: xl
     placement: *id029
+    content_type: title_body
   - role: identification_method
     size: medium
     placement: *id055
     shape: card
+    content_type: title_body
   - role: required_assumptions
     size: medium
     placement: *id030
@@ -8810,9 +9346,11 @@ slide_template_patterns:
     size: medium
     placement: *id056
     shape: card
+    content_type: title_body
   - role: robustness_checks
     size: full
     placement: *id033
+    content_type: title_body
   use_case: Clarifies how causality will be inferred rather than merely correlated.
 - id: 332
   name: Confounder Map
@@ -8823,14 +9361,17 @@ slide_template_patterns:
     size: medium
     placement: *id031
     shape: node
+    content_type: title_body
   - role: outcome
     size: medium
     placement: *id032
     shape: node
+    content_type: title_body
   - role: confounders
     size: large
     placement: *id126
     shape: node
+    content_type: title_body
   - role: causal_edges
     size: small
     placement: *id106
@@ -8860,6 +9401,7 @@ slide_template_patterns:
     size: medium
     placement: *id029
     shape: text
+    content_type: title_body
   - role: assumptions
     size: small
     placement: *id033
@@ -8889,6 +9431,7 @@ slide_template_patterns:
     size: medium
     placement:
       region: highlighted
+    content_type: title_body
   use_case: Shows how conclusions change as key assumptions vary.
 - id: 335
   name: Robustness Check Grid
@@ -8898,6 +9441,7 @@ slide_template_patterns:
   - role: robustness_tests
     size: equal
     placement: *id042
+    content_type: title_body
   - role: baseline_result
     size: equal
     placement: *id055
@@ -8947,6 +9491,7 @@ slide_template_patterns:
     size: small
     placement: *id037
     shape: text
+    content_type: title_body
   use_case: Tracks risks in analytical, financial, AI, or forecasting models.
 - id: 337
   name: Forecast Error Decomposition
@@ -8983,6 +9528,7 @@ slide_template_patterns:
     size: medium
     placement: *id031
     shape: card
+    content_type: title_body
   - role: new_evidence
     size: medium
     placement: *id055
@@ -9027,6 +9573,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Compares stated confidence to historical accuracy or evidence strength.
 - id: 340
   name: Uncertainty Distribution Slide
@@ -9046,6 +9593,7 @@ slide_template_patterns:
   - role: percentile_bands
     size: medium
     placement: *id127
+    content_type: title_body
   - role: downside_threshold
     size: small
     placement: *id127
@@ -9099,6 +9647,7 @@ slide_template_patterns:
   - role: scenarios
     size: equal
     placement: *id043
+    content_type: list_items
   - role: regret_values
     size: equal
     placement: *id044
@@ -9133,6 +9682,7 @@ slide_template_patterns:
     size: medium
     placement: *id030
     shape: card
+    content_type: title_body
   - role: upside_potential
     size: medium
     placement: *id041
@@ -9143,6 +9693,8 @@ slide_template_patterns:
     placement: *id033
     shape: timeline
     content_type: chart_data
+    span:
+      h: 2
   use_case: Frames strategic flexibility as an option with value under uncertainty.
 - id: 344
   name: Value of Information Slide
@@ -9153,10 +9705,12 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: card
+    content_type: title_body
   - role: collect_more_information
     size: medium
     placement: *id036
     shape: card
+    content_type: title_body
   - role: value_of_information
     size: large
     placement: *id037
@@ -9182,6 +9736,7 @@ slide_template_patterns:
     size: large
     placement: *id064
     shape: node
+    content_type: title_body
   - role: lock_in_points
     size: small
     placement:
@@ -9210,18 +9765,22 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: card
+    content_type: title_body
   - role: future_states
     size: equal
     placement: *id030
     shape: card
+    content_type: title_body
   - role: regret_points
     size: medium
     placement: *id037
     shape: card
+    content_type: title_body
   - role: prevention_moves
     size: medium
     placement: *id033
     shape: card
+    content_type: title_body
   use_case: Shows future regrets that may result from current choices.
 - id: 347
   name: Blind Spot Inventory
@@ -9231,6 +9790,7 @@ slide_template_patterns:
   - role: blind_spots
     size: equal
     placement: *id035
+    content_type: title_body
   - role: why_missed
     size: equal
     placement: *id055
@@ -9264,6 +9824,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: card
+    content_type: title_body
   - role: response_or_revision
     size: medium
     placement: *id041
@@ -9273,6 +9834,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Captures adversarial critique of a strategy, model, or recommendation.
 - id: 349
   name: Steelman / Weakman Slide
@@ -9309,6 +9871,7 @@ slide_template_patterns:
     size: medium
     placement: *id031
     shape: card
+    content_type: title_body
   - role: adversary_response
     size: medium
     placement: *id055
@@ -9318,10 +9881,12 @@ slide_template_patterns:
     size: medium
     placement: *id056
     shape: card
+    content_type: title_body
   - role: revised_plan
     size: medium
     placement: *id032
     shape: card
+    content_type: title_body
   - role: monitoring_signals
     size: medium
     placement: *id033
@@ -9337,16 +9902,19 @@ slide_template_patterns:
     size: xl
     placement: *id107
     shape: node
+    content_type: title_body
   - role: first_order_effects
     size: medium
     placement:
       region: ring
     shape: node
+    content_type: title_body
   - role: second_order_effects
     size: medium
     placement:
       region: ring
     shape: node
+    content_type: title_body
   - role: third_order_effects
     size: medium
     placement:
@@ -9354,6 +9922,7 @@ slide_template_patterns:
         h: right
         v: middle
     shape: node
+    content_type: title_body
   - role: unintended_consequences
     size: large
     placement: *id123
@@ -9368,6 +9937,7 @@ slide_template_patterns:
     size: medium
     placement: *id128
     shape: node
+    content_type: title_body
   - role: reinforcing_links
     size: small
     placement: *id106
@@ -9382,6 +9952,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Identifies self-reinforcing risks or stabilizing loops.
 - id: 353
   name: System Leverage Points
@@ -9422,10 +9993,12 @@ slide_template_patterns:
     size: full
     placement: *id101
     shape: band
+    content_type: title_body
   - role: standards
     size: full
     placement: *id112
     shape: band
+    content_type: title_body
   - role: controls
     size: full
     placement: *id102
@@ -9435,6 +10008,7 @@ slide_template_patterns:
     size: full
     placement: *id083
     shape: band
+    content_type: title_body
   use_case: Shows how principles, policies, standards, controls, and procedures fit together.
 - id: 355
   name: Normative vs Descriptive Slide
@@ -9471,22 +10045,27 @@ slide_template_patterns:
     size: medium
     placement: *id073
     shape: card
+    content_type: title_body
   - role: principle_b
     size: medium
     placement: *id041
     shape: card
+    content_type: title_body
   - role: conflict_case
     size: large
     placement: *id030
     shape: node
+    content_type: title_body
   - role: precedence_rule
     size: medium
     placement: *id058
     shape: card
+    content_type: title_body
   - role: final_decision
     size: medium
     placement: *id052
     shape: card
+    content_type: title_body
   use_case: Resolves cases where valid principles point to different actions.
 - id: 357
   name: Boundary Conditions Slide
@@ -9497,18 +10076,22 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: card
+    content_type: title_body
   - role: does_not_apply_to
     size: medium
     placement: *id037
     shape: card
+    content_type: title_body
   - role: edge_cases
     size: medium
     placement: *id030
     shape: card
+    content_type: title_body
   - role: escalation_rule
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Defines where a recommendation, model, or policy applies and where it does not.
 - id: 358
   name: Validity Domain Slide
@@ -9518,15 +10101,18 @@ slide_template_patterns:
   - role: valid_domain
     size: large
     placement: *id030
+    content_type: title_body
   - role: invalid_domain
     size: large
     placement:
       region: background
+    content_type: title_body
   - role: uncertainty_zone
     size: full
     placement:
       region: highlighted
     shape: band
+    content_type: title_body
   - role: assumptions
     size: medium
     placement: *id041
@@ -9545,6 +10131,7 @@ slide_template_patterns:
         h: left
         v: middle
     shape: node
+    content_type: title_body
   - role: exception_case
     size: medium
     placement:
@@ -9552,6 +10139,7 @@ slide_template_patterns:
         h: center
         v: middle
     shape: node
+    content_type: title_body
   - role: critical_exception
     size: large
     placement:
@@ -9559,11 +10147,14 @@ slide_template_patterns:
         h: right
         v: middle
     shape: node
+    content_type: title_body
   - role: escalation_owner
     size: large
     placement: *id033
     shape: table
     content_type: table_data
+    span:
+      h: 2
   use_case: Shows how non-standard cases should be routed, governed, or escalated.
 - id: 360
   name: Taxonomy Reconciliation Slide
@@ -9574,10 +10165,12 @@ slide_template_patterns:
     size: large
     placement: *id035
     shape: node
+    content_type: title_body
   - role: taxonomy_b
     size: large
     placement: *id037
     shape: node
+    content_type: title_body
   - role: mapping_rules
     size: small
     placement: *id030
@@ -9587,6 +10180,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: node
+    content_type: title_body
   use_case: Aligns conflicting classifications, definitions, or category systems.
 - id: 361
   name: Semantic Drift Slide
@@ -9597,6 +10191,7 @@ slide_template_patterns:
     size: small
     placement: *id038
     shape: text
+    content_type: title_body
   - role: meaning_timeline
     size: full
     placement: *id030
@@ -9639,9 +10234,11 @@ slide_template_patterns:
   - role: validation_method
     size: full
     placement: *id033
+    content_type: title_body
   - role: owner
     size: small
     placement: *id062
+    content_type: title_body
   use_case: Separates completion criteria from truth or validation criteria.
 - id: 363
   name: Ontology Map
@@ -9652,6 +10249,7 @@ slide_template_patterns:
     size: medium
     placement: *id129
     shape: node
+    content_type: title_body
   - role: relationships
     size: small
     placement:
@@ -9683,6 +10281,7 @@ slide_template_patterns:
     size: medium
     placement: *id097
     shape: node
+    content_type: title_body
   - role: intermediate_concepts
     size: medium
     placement:
@@ -9690,10 +10289,12 @@ slide_template_patterns:
         h: center
         v: middle
     shape: node
+    content_type: title_body
   - role: concrete_instances
     size: medium
     placement: *id083
     shape: node
+    content_type: title_body
   - role: attribute_links
     size: small
     placement: *id106
@@ -9709,10 +10310,12 @@ slide_template_patterns:
     size: large
     placement: *id031
     shape: card
+    content_type: title_body
   - role: primitives
     size: small
     placement: *id055
     shape: card
+    content_type: title_body
   - role: grammar_rules
     size: equal
     placement: *id056
@@ -9722,6 +10325,7 @@ slide_template_patterns:
     size: small
     placement: *id032
     shape: card
+    content_type: title_body
   use_case: Breaks complex business objects into primitives that can be recomposed systematically.
 - id: 366
   name: Interface Contract Slide
@@ -9735,6 +10339,7 @@ slide_template_patterns:
         h: left
         v: top
     shape: text
+    content_type: title_body
   - role: consumer
     size: small
     placement:
@@ -9747,6 +10352,7 @@ slide_template_patterns:
     size: equal
     placement:
       region: matrix_body
+    content_type: title_body
   - role: service_levels
     size: equal
     placement: *id056
@@ -9756,6 +10362,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Defines expectations between teams, systems, functions, or vendors.
 - id: 367
   name: Capability Contract Slide
@@ -9765,23 +10372,29 @@ slide_template_patterns:
   - role: capability_name
     size: xl
     placement: *id029
+    content_type: title_body
   - role: inputs
     size: medium
     placement: *id035
     shape: card
+    content_type: title_body
   - role: outputs
     size: medium
     placement: *id037
     shape: card
+    content_type: title_body
   - role: policies
     size: medium
     placement: *id030
     shape: card
+    content_type: title_body
   - role: kpis_dependencies
     size: large
     placement: *id033
     shape: table
     content_type: table_data
+    span:
+      h: 2
   use_case: Specifies what a capability must provide independent of organization or technology implementation.
 - id: 368
   name: Invariant Slide
@@ -9796,14 +10409,17 @@ slide_template_patterns:
     size: medium
     placement: *id035
     shape: card
+    content_type: title_body
   - role: prohibited_variation
     size: medium
     placement: *id037
     shape: card
+    content_type: title_body
   - role: enforcement_mechanism
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Identifies what must remain true across transformation, scaling, or change.
 - id: 369
   name: Constraint Envelope Slide
@@ -9815,6 +10431,8 @@ slide_template_patterns:
     placement: *id030
     shape: chart
     content_type: chart_data
+    span:
+      h: 2
   - role: hard_constraints
     size: large
     placement:
@@ -9829,6 +10447,7 @@ slide_template_patterns:
     size: large
     placement:
       region: highlighted
+    content_type: title_body
   - role: recommended_point
     size: small
     placement:
@@ -9847,6 +10466,7 @@ slide_template_patterns:
       anchor:
         h: left
         v: middle
+    content_type: title_body
   - role: solution_options
     size: small
     placement: *id130
@@ -9856,6 +10476,7 @@ slide_template_patterns:
     size: equal
     placement: *id125
     shape: container
+    content_type: title_body
   - role: exploration_findings
     size: small
     placement: *id041
@@ -9896,6 +10517,7 @@ slide_template_patterns:
   - role: architectural_qualities
     size: equal
     placement: *id042
+    content_type: title_body
   - role: fitness_functions
     size: equal
     placement: *id055
@@ -9915,6 +10537,7 @@ slide_template_patterns:
     size: full
     placement: *id033
     shape: band
+    content_type: title_body
   use_case: Defines measurable criteria used to judge whether an architecture remains healthy.
 - id: 373
   name: Resilience Pattern Slide
@@ -9925,10 +10548,12 @@ slide_template_patterns:
     size: medium
     placement: *id031
     shape: card
+    content_type: title_body
   - role: absorption_mechanisms
     size: medium
     placement: *id055
     shape: card
+    content_type: title_body
   - role: recovery_path
     size: full
     placement: *id056
@@ -9979,6 +10604,7 @@ slide_template_patterns:
   - role: expert_judgments
     size: equal
     placement: *id035
+    content_type: title_body
   - role: evidence_basis
     size: equal
     placement: *id055

@@ -1,0 +1,53 @@
+# Sidecar fill schema for pattern #297 — Early Warning Indicators.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 297
+zones: {}
+example_fill:
+  indicators:
+    title: Off-track signals
+    body: Indicators chosen to detect drift before consequences hit.
+  thresholds:
+    headers:
+    - Indicator
+    - Threshold
+    rows:
+    - - Velocity
+      - <80% of plan for 2 sprints
+    - - Adoption
+      - <50% of pilot users by week 4
+    - - Cost run-rate
+      - '>110% of monthly budget'
+    - - NPS
+      - Drop >10 points QoQ
+  current_signal:
+    headers:
+    - Indicator
+    - Current
+    rows:
+    - - Velocity
+      - 85%
+    - - Adoption
+      - 42% (red)
+    - - Cost run-rate
+      - 104%
+    - - NPS
+      - +38 (stable)
+  response_action:
+    headers:
+    - Indicator
+    - Action
+    rows:
+    - - Velocity
+      - Watch one more sprint
+    - - Adoption
+      - Re-run onboarding
+    - - Cost run-rate
+      - Cap discretionary
+    - - NPS
+      - Continue

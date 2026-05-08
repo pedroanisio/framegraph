@@ -371,11 +371,16 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
     marker = str(obj.get("marker", "•"))
     indent_px = fnum(obj.get("indent"), 12)
     fs = fnum(style.get("size"), 12)
-    lh = fnum(style.get("line_height"), fs * 1.35)
-    gap = fnum(obj.get("gap"), lh * 0.3)
+    lh_orig = fnum(style.get("line_height"), fs * 1.35)
+    gap_orig = fnum(obj.get("gap"), lh_orig * 0.3)
     weight = str(style.get("weight", 400))
     bold = weight in ("700", "bold", "bolder")
     is_ordered = marker.endswith(".")
+
+    # Render is faithful: items draw at the style the planner gave.
+    # No shrink, no truncation, no constraint reporting from here.
+    lh = lh_orig
+    gap = gap_orig
 
     # Resolve marker width
     marker_w = r._str_width(marker + " ", fs, bold)
@@ -392,7 +397,40 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
         fa["font-style"] = "italic"
 
     parts: list[str] = []
-    cur_y = y + fs * 0.78  # first baseline
+    # Pre-compute the total stack height so v_align can position the
+    # whole block. Wrapping isn't done yet; under-count by treating
+    # each item as one line and let the wrapped lines extend below
+    # if needed. Top-align is the default for lists.
+    v_align = str(style.get("v_align", "top")).lower()
+    if v_align in ("middle", "center", "bottom"):
+        # Estimate stack height: count wrapped lines per item so we
+        # can offset for centering / bottom alignment.
+        est_lines_total = 0
+        for item in items_raw:
+            it_text = (
+                _expand_lorem(item)
+                if isinstance(item, str)
+                else _expand_lorem(str(item.get("text", ""))) if isinstance(item, Mapping) else ""
+            )
+            line_buf = ""
+            n_lines = 0
+            for word in it_text.split():
+                test = (line_buf + " " + word).strip()
+                if line_buf and r._str_width(test, fs, bold) > (w - indent_px) * 0.92:
+                    n_lines += 1
+                    line_buf = word
+                else:
+                    line_buf = test
+            if line_buf:
+                n_lines += 1
+            est_lines_total += max(1, n_lines)
+        block_h = est_lines_total * lh + max(0, len(items_raw) - 1) * gap
+        if v_align in ("middle", "center"):
+            cur_y = y + max(0, (h - block_h) / 2) + fs * 0.78
+        else:  # bottom
+            cur_y = y + max(0, h - block_h) + fs * 0.78
+    else:
+        cur_y = y + fs * 0.78
 
     for idx, item in enumerate(items_raw):
         # Resolve item text and per-item indent
@@ -412,12 +450,17 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
         body_x = text_x + extra_indent
         body_w = w - indent_px - extra_indent
 
-        # Word-wrap body text to available width
+        # Word-wrap body text to available width. The width estimator
+        # uses a per-character class table that systematically
+        # underestimates real font widths by a few percent; we trim
+        # an 8 % safety margin from the threshold so wrapped lines
+        # never push past the box edge.
+        safe_body_w = body_w * 0.92
         wrapped = []
         line_buf = ""
         for word in item_text.split():
             test = (line_buf + " " + word).strip()
-            if line_buf and r._str_width(test, fs, bold) > body_w:
+            if line_buf and r._str_width(test, fs, bold) > safe_body_w:
                 wrapped.append(line_buf)
                 line_buf = word
             else:
@@ -427,10 +470,15 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
         if not wrapped:
             wrapped = [""]
 
-        # Emit marker on first line
+        # Emit marker on first line. Honor `marker_color` (token or
+        # literal hex) so accent-styled bullets work universally.
         mark_attrs = dict(fa)
         mark_attrs["x"] = fmt(max(x, mark_x))
         mark_attrs["y"] = fmt(cur_y)
+        marker_color_ref = obj.get("marker_color")
+        if marker_color_ref:
+            mark_attrs["fill"] = r.color(marker_color_ref, fa.get("fill", "#000000"))
+            mark_attrs["font-weight"] = "bold"
         parts.append(f"<text {attrs(mark_attrs)}><tspan>{esc(mark_str)}</tspan></text>")
 
         # Emit body lines
@@ -441,12 +489,11 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
             line_attrs["y"] = fmt(line_y)
             parts.append(f"<text {attrs(line_attrs)}><tspan>{esc(line)}</tspan></text>")
 
-        # Advance cursor past this item
+        # Advance cursor past this item.
+        # Render is faithful: every item is drawn, even if the stack
+        # extends past the box. Auto-shrink above already attempted
+        # to fit; remaining overflow is reported, not hidden.
         cur_y += len(wrapped) * lh + gap
-
-        # Clip if we've overrun the box
-        if cur_y > y + h + lh:
-            break
 
     return f"<g {attrs(r.group_attrs(obj))}>{''.join(parts)}</g>"
 

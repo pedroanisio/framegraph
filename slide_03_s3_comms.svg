@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" shape-rendering="geometricPrecision" text-rendering="optimizeLegibility" role="img" aria-labelledby="svg-title svg-desc">
+<title id="svg-title">Communications Plan</title>
+<desc  id="svg-desc">Generated from FrameGraph YAML</desc>
+<defs>
+<marker id="ah-D0CEC8" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#D0CEC8"/></marker>
+<marker id="ah-002060" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#002060"/></marker>
+<marker id="ah-6B6B6B" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#6B6B6B"/></marker>
+<marker id="ah-000000" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#000000"/></marker>
+</defs>
+<g id="layer_content" data-layer="content" data-z="">
+  <g id="zone_audiences_bg" data-type="rect"><rect x="24" y="376" width="608" height="328" fill="#F5F3EF" stroke="#D0CEC8" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="zone_audiences" data-type="bullet_list"><text font-family="body" font-size="14" font-weight="400" fill="#1A1A1A" text-anchor="start" x="45.5" y="402.92"><tspan>•</tspan></text><text font-family="body" font-size="14" font-weight="400" fill="#1A1A1A" text-anchor="start" x="56" y="402.92"><tspan>Executive sponsors</tspan></text><text font-family="body" font-size="14" font-weight="400" fill="#1A1A1A" text-anchor="start" x="45.5" y="427.62"><tspan>•</tspan></text><text font-family="body" font-size="14" font-weight="400" fill="#1A1A1A" text-anchor="start" x="56" y="427.62"><tspan>Department heads</tspan></text><text font-family="body" font-size="14" font-weight="400" fill="#1A1A1A" text-anchor="start" x="45.5" y="452.32"><tspan>•</tspan></text><text font-family="body" font-size="14" font-weight="400" fill="#1A1A1A" text-anchor="start" x="56" y="452.32"><tspan>Frontline employees</tspan></text><text font-family="body" font-size="14" font-weight="400" fill="#1A1A1A" text-anchor="start" x="45.5" y="477.02"><tspan>•</tspan></text><text font-family="body" font-size="14" font-weight="400" fill="#1A1A1A" text-anchor="start" x="56" y="477.02"><tspan>External partners</tspan></text></g>
+  <g id="zone_key_messages_bg" data-type="rect"><rect x="656" y="376" width="298" height="328" fill="#F5F3EF" stroke="#D0CEC8" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="zone_key_messages" data-type="table">
+  <rect x="656" y="376" width="298" height="65.6" fill="#F0EDE6"/>
+  <text x="664" y="412.3" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="700" fill="#1A1A1A" text-anchor="start">Audience</text>
+  <text x="813" y="412.3" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="700" fill="#1A1A1A" text-anchor="start">Core message</text>
+  <text x="664" y="478.25" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Execs</text>
+  <text x="813" y="478.25" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Why we&#x27;re transforming and what success looks like</text>
+  <text x="664" y="543.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Dept heads</text>
+  <text x="813" y="543.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">How responsibilities shift in your function</text>
+  <text x="664" y="609.45" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Frontline</text>
+  <text x="813" y="609.45" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">What changes in your day-to-day work</text>
+  <text x="664" y="675.05" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Partners</text>
+  <text x="813" y="675.05" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">How the integration interface evolves</text>
+  <rect x="656" y="376" width="298" height="328" fill="none" stroke="#D0CEC8" stroke-width="0.5"/>
+  <line x1="656" y1="441.6" x2="954" y2="441.6" stroke="#D0CEC8" stroke-width="0.5"/>
+  <line x1="805" y1="376" x2="805" y2="704" stroke="#D0CEC8" stroke-width="0.5"/>
+  </g>
+  <g id="zone_channels_frequency_bg" data-type="rect"><rect x="966" y="376" width="298" height="328" fill="#F5F3EF" stroke="#D0CEC8" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="zone_channels_frequency" data-type="table">
+  <rect x="966" y="376" width="298" height="82" fill="#F0EDE6"/>
+  <text x="974" y="420.5" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="700" fill="#1A1A1A" text-anchor="start">Channel</text>
+  <text x="1123" y="420.5" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="700" fill="#1A1A1A" text-anchor="start">Frequency</text>
+  <text x="974" y="502.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">All-hands</text>
+  <text x="1123" y="502.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Monthly</text>
+  <text x="974" y="584.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Manager cascade</text>
+  <text x="1123" y="584.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Weekly during cutover</text>
+  <text x="974" y="666.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Email digest</text>
+  <text x="1123" y="666.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Bi-weekly</text>
+  <rect x="966" y="376" width="298" height="328" fill="none" stroke="#D0CEC8" stroke-width="0.5"/>
+  <line x1="966" y1="458" x2="1264" y2="458" stroke="#D0CEC8" stroke-width="0.5"/>
+  <line x1="1115" y1="376" x2="1115" y2="704" stroke="#D0CEC8" stroke-width="0.5"/>
+  </g>
+  <g id="zone_owner_timing_bg" data-type="rect"><rect x="1288" y="376" width="608" height="328" fill="#F5F3EF" stroke="#D0CEC8" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="zone_owner_timing" data-type="table">
+  <rect x="1288" y="376" width="608" height="82" fill="#F0EDE6"/>
+  <text x="1296" y="420.5" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="700" fill="#1A1A1A" text-anchor="start">Owner</text>
+  <text x="1600" y="420.5" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="700" fill="#1A1A1A" text-anchor="start">Timing</text>
+  <text x="1296" y="502.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">CEO + CFO</text>
+  <text x="1600" y="502.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Kickoff</text>
+  <text x="1296" y="584.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Function leads</text>
+  <text x="1600" y="584.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Weeks 1-4</text>
+  <text x="1296" y="666.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Change office</text>
+  <text x="1600" y="666.85" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#1A1A1A" text-anchor="start">Ongoing</text>
+  <rect x="1288" y="376" width="608" height="328" fill="none" stroke="#D0CEC8" stroke-width="0.5"/>
+  <line x1="1288" y1="458" x2="1896" y2="458" stroke="#D0CEC8" stroke-width="0.5"/>
+  <line x1="1592" y1="376" x2="1592" y2="704" stroke="#D0CEC8" stroke-width="0.5"/>
+  </g>
+</g>
+</svg>

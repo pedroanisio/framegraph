@@ -307,3 +307,203 @@ class TestDeriveDefaultSchema:
         schema_cls = derive_default_fill_schema(p)
         # The returned class is a Pydantic model; its fields are the roles.
         assert set(schema_cls.model_fields.keys()) == {"a", "b", "c"}
+
+
+# ─────────────────────────────────────────────────────────────────
+# Phase 2 — sidecar loading
+# ─────────────────────────────────────────────────────────────────
+
+
+class TestSidecarLoading:
+    """Sidecar YAML files override default per-zone fill shapes.
+
+    The sidecar mini-DSL (v1) supports only what BMC needs:
+
+    - For `list_items` zones, declare `item_kind: string | object`.
+    - When `item_kind: object`, declare `item_fields: {name: {type, required}}`.
+
+    Anything richer waits for later phases.
+    """
+
+    def test_sidecar_file_validates_with_pydantic_model(self, tmp_path) -> None:
+        """A sidecar YAML loads into a `PatternFillSidecar` Pydantic model."""
+        from framegraph.patterns import PatternFillSidecar, load_sidecar
+
+        path = tmp_path / "044-test.yml"
+        path.write_text(
+            """
+pattern_id: 44
+zones:
+  revenue_streams:
+    item_kind: object
+    item_fields:
+      label: {type: string, required: true}
+      metric: {type: string, required: true}
+example_fill:
+  revenue_streams:
+    - {label: "Subscriptions", metric: "$2.4M"}
+""",
+            encoding="utf-8",
+        )
+        sidecar = load_sidecar(path)
+        assert isinstance(sidecar, PatternFillSidecar)
+        assert sidecar.pattern_id == 44
+        assert "revenue_streams" in sidecar.zones
+
+    def test_sidecar_overrides_default_list_items_to_object_list(
+        self, tmp_path
+    ) -> None:
+        """A list_items zone with an object override accepts list[dict]."""
+        from framegraph.patterns import load_sidecar
+
+        # Use a synthetic pattern (single list_items zone) so this
+        # test doesn't depend on BMC bundled-catalog state.
+        from framegraph._patterns import SlidePattern
+
+        pattern = SlidePattern.model_validate(
+            {
+                "id": 99001,
+                "name": "Test",
+                "layout_disposition": "x",
+                "zones": [
+                    {
+                        "role": "items",
+                        "size": "medium",
+                        "placement": {"anchor": {"h": "center", "v": "middle"}},
+                        "content_type": "list_items",
+                    }
+                ],
+            }
+        )
+
+        path = tmp_path / "99001-test.yml"
+        path.write_text(
+            """
+pattern_id: 99001
+zones:
+  items:
+    item_kind: object
+    item_fields:
+      label: {type: string, required: true}
+      metric: {type: string, required: true}
+""",
+            encoding="utf-8",
+        )
+        sidecar = load_sidecar(path)
+
+        # Build the Model from pattern + sidecar; should accept
+        # list[{label, metric}] but reject plain list[str].
+        from framegraph.patterns import derive_fill_schema_with_sidecar
+
+        Model = derive_fill_schema_with_sidecar(pattern, sidecar)
+        # Object-list payload validates.
+        Model.model_validate(
+            {"items": [{"label": "A", "metric": "$1"}, {"label": "B", "metric": "$2"}]}
+        )
+        # String-list payload (default shape) is now rejected because
+        # the sidecar tightened the type.
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            Model.model_validate({"items": ["a", "b"]})
+
+    def test_sidecar_pattern_id_must_match(self, tmp_path) -> None:
+        """A sidecar declares its pattern_id; mismatch with the pattern is rejected."""
+        from framegraph.patterns import (
+            PatternFillSidecar,
+            derive_fill_schema_with_sidecar,
+        )
+        from framegraph._patterns import SlidePattern
+
+        sidecar = PatternFillSidecar.model_validate(
+            {"pattern_id": 999, "zones": {}}
+        )
+        pattern = SlidePattern.model_validate(
+            {
+                "id": 1,
+                "name": "X",
+                "layout_disposition": "x",
+                "zones": [
+                    {
+                        "role": "r",
+                        "size": "medium",
+                        "placement": {"anchor": {"h": "center", "v": "middle"}},
+                        "content_type": "title_body",
+                    }
+                ],
+            }
+        )
+        with pytest.raises(ValueError, match="pattern_id"):
+            derive_fill_schema_with_sidecar(pattern, sidecar)
+
+
+class TestBmcSidecar:
+    """The bundled BMC sidecar must round-trip its example_fill."""
+
+    def test_bmc_sidecar_file_exists(self) -> None:
+        from framegraph.patterns import BMC_SIDECAR_PATH
+
+        assert BMC_SIDECAR_PATH.exists()
+
+    def test_bmc_sidecar_validates(self) -> None:
+        from framegraph.patterns import BMC_SIDECAR_PATH, load_sidecar
+
+        sidecar = load_sidecar(BMC_SIDECAR_PATH)
+        assert sidecar.pattern_id == 44
+        assert sidecar.example_fill is not None
+        # All 9 BMC zones referenced in example_fill.
+        assert len(sidecar.example_fill) == 9
+
+    def test_bmc_example_fill_round_trips(self) -> None:
+        """The example_fill in the BMC sidecar must validate against
+        the pattern's effective fill schema (default + sidecar overrides)."""
+        from framegraph._patterns import load_pattern_catalog
+        from framegraph.patterns import (
+            BMC_SIDECAR_PATH,
+            derive_fill_schema_with_sidecar,
+            load_sidecar,
+        )
+
+        cat = load_pattern_catalog()
+        bmc = cat.get(44)
+        sidecar = load_sidecar(BMC_SIDECAR_PATH)
+        Model = derive_fill_schema_with_sidecar(bmc, sidecar)
+        # Round-trip: example_fill validates against the model.
+        Model.model_validate(sidecar.example_fill)
+
+    def test_bmc_required_role_missing_rejected(self) -> None:
+        """Removing any required BMC zone from the example fill raises."""
+        from framegraph._patterns import load_pattern_catalog
+        from framegraph.patterns import (
+            BMC_SIDECAR_PATH,
+            derive_fill_schema_with_sidecar,
+            load_sidecar,
+        )
+
+        cat = load_pattern_catalog()
+        bmc = cat.get(44)
+        sidecar = load_sidecar(BMC_SIDECAR_PATH)
+        Model = derive_fill_schema_with_sidecar(bmc, sidecar)
+
+        broken = dict(sidecar.example_fill or {})
+        del broken["value_propositions"]
+        with pytest.raises(ValidationError, match="value_propositions"):
+            Model.model_validate(broken)
+
+    def test_bmc_unknown_role_rejected(self) -> None:
+        from framegraph._patterns import load_pattern_catalog
+        from framegraph.patterns import (
+            BMC_SIDECAR_PATH,
+            derive_fill_schema_with_sidecar,
+            load_sidecar,
+        )
+
+        cat = load_pattern_catalog()
+        bmc = cat.get(44)
+        sidecar = load_sidecar(BMC_SIDECAR_PATH)
+        Model = derive_fill_schema_with_sidecar(bmc, sidecar)
+
+        bad = dict(sidecar.example_fill or {})
+        bad["rogue"] = "shouldnt be here"
+        with pytest.raises(ValidationError):
+            Model.model_validate(bad)

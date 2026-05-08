@@ -1,0 +1,59 @@
+# Sidecar fill schema for pattern #320 — Governance by Risk Tier.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 320
+zones: {}
+example_fill:
+  risk_tiers:
+  - Tier 1 — strategic / regulated
+  - Tier 2 — operational / material
+  - Tier 3 — routine / immaterial
+  required_controls:
+    headers:
+    - Tier
+    - Controls
+    rows:
+    - - Tier 1
+      - Full review + audit trail
+    - - Tier 2
+      - Peer review + log
+    - - Tier 3
+      - Self-serve + post-hoc audit
+  approval_level:
+    headers:
+    - Tier
+    - Approver
+    rows:
+    - - Tier 1
+      - Exec committee
+    - - Tier 2
+      - Function head
+    - - Tier 3
+      - Manager
+  monitoring_frequency:
+    headers:
+    - Tier
+    - Cadence
+    rows:
+    - - Tier 1
+      - Weekly
+    - - Tier 2
+      - Monthly
+    - - Tier 3
+      - Quarterly sample
+  escalation_rule:
+    headers:
+    - Tier
+    - Escalation
+    rows:
+    - - Tier 1
+      - Board within 24h on issue
+    - - Tier 2
+      - Function head + risk officer
+    - - Tier 3
+      - Manager + ops

@@ -1,0 +1,77 @@
+# Sidecar fill schema for pattern #267 — Risk Appetite Framework.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 267
+zones: {}
+example_fill:
+  risk_categories:
+  - Strategic
+  - Operational
+  - Financial
+  - Reputational
+  - Compliance
+  appetite_statement:
+    headers:
+    - Category
+    - Appetite
+    rows:
+    - - Strategic
+      - High — pursue bold growth bets
+    - - Operational
+      - Low — minimize disruption
+    - - Financial
+      - Moderate — preserve liquidity
+    - - Reputational
+      - Very low
+    - - Compliance
+      - Zero tolerance
+  tolerance_thresholds:
+    headers:
+    - Category
+    - Threshold
+    rows:
+    - - Strategic
+      - Up to 20% of capital
+    - - Operational
+      - <2 hr SLA breach / month
+    - - Financial
+      - '>90 days runway always'
+    - - Reputational
+      - No regrettable incidents
+    - - Compliance
+      - Zero material findings
+  monitoring_metrics:
+    headers:
+    - Category
+    - Metric
+    rows:
+    - - Strategic
+      - Bet portfolio mix
+    - - Operational
+      - SLA breach count
+    - - Financial
+      - Cash runway months
+    - - Reputational
+      - Brand sentiment
+    - - Compliance
+      - Audit finding rate
+  escalation_actions:
+    headers:
+    - Category
+    - Escalation
+    rows:
+    - - Strategic
+      - Board within 30 days
+    - - Operational
+      - COO same day
+    - - Financial
+      - CFO weekly review
+    - - Reputational
+      - Crisis playbook
+    - - Compliance
+      - Audit committee

@@ -1,0 +1,25 @@
+# Sidecar fill schema for pattern #290 — Optionality Portfolio.
+#
+# 4-quadrant family member. Separates immediate bets from options
+# worth preserving (commit / preserve / defer / abandon). The four
+# quadrant roles are imperative verbs, not plurals, so the
+# annotator typed them as title_body — each quadrant takes a
+# single titled summary rather than a bullet list.
+
+pattern_id: 290
+
+zones: {}
+
+example_fill:
+  commit_now:
+    title: "Commit now"
+    body: "Repricing core SKU; CSM expansion; data-store migration."
+  preserve_option:
+    title: "Preserve option"
+    body: "Adjacent-vertical partnerships; EU optionality; next-gen R&D."
+  defer:
+    title: "Defer"
+    body: "Mobile revamp; OSS release; channel program redesign."
+  abandon:
+    title: "Abandon"
+    body: "Legacy SKU; custom reporting; deprecated integration."

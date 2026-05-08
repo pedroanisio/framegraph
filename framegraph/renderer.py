@@ -72,6 +72,44 @@ _MARKER_SHAPES: dict[str, tuple[str, tuple[str, int, int, int, float]]] = {
 
 
 # ---------------------------------------------------------------------------
+# Marker shape table — UML 2.5 §11 arrowhead variants
+# ---------------------------------------------------------------------------
+#
+# Each entry maps a `kind` name to (svg_path_d, viewbox_metadata). The
+# viewbox tuple is (viewBox_attr, markerWidth, markerHeight, refX, refY).
+# Default `filled_triangle` lives in `defs_svg` directly to preserve
+# v1.x byte-identity; entries here are only emitted when the kind is
+# explicitly registered via `register_marker_kind`.
+#
+# All shapes orient along the marker's x-axis with the tip at refX,
+# matching SVG's `orient="auto-start-reverse"` convention.
+
+_MARKER_SHAPES: dict[str, tuple[str, tuple[str, int, int, int, float]]] = {
+    # Hollow triangle (UML generalization, realization)
+    "hollow_triangle": (
+        "M0,0 L10,5 L0,10 Z",
+        ("0 0 10 10", 10, 10, 10, 5),
+    ),
+    # Hollow diamond (UML aggregation)
+    "hollow_diamond": (
+        "M0,5 L6,0 L12,5 L6,10 Z",
+        ("0 0 12 10", 12, 10, 12, 5),
+    ),
+    # Filled diamond (UML composition)
+    "filled_diamond": (
+        "M0,5 L6,0 L12,5 L6,10 Z",
+        ("0 0 12 10", 12, 10, 12, 5),
+    ),
+    # Open arrow ─ V-shape, no fill (UML association navigability,
+    # dependency). Distinct from filled_triangle which is solid.
+    "open_arrow": (
+        "M0,0 L10,5 L0,10",
+        ("0 0 10 10", 10, 10, 10, 5),
+    ),
+}
+
+
+# ---------------------------------------------------------------------------
 # Renderer
 # ---------------------------------------------------------------------------
 
