@@ -61,6 +61,24 @@ metrics = [
     "fonttools>=4.50",
 ]
 
+# Required for `framegraph render --pdf` and `framegraph deck --pdf` (raster
+# backend, default). cairosvg rasterizes SVG → PNG at the requested DPI;
+# Pillow wraps PNG pages into single- or multi-page PDFs. Pixel-perfect
+# rendering at any --dpi; text is not selectable.
+pdf = [
+    "cairosvg>=2.7",
+    "Pillow>=10.0",
+]
+
+# Required for `--pdf --vector` (selectable / searchable text). weasyprint's
+# PDF backend preserves text as runs (rather than the per-glyph positioning
+# emitted by cairosvg) so pdftotext / Cmd+F / copy-paste all work.
+# pypdf merges per-slide PDFs into one multi-page deck PDF.
+pdf-vector = [
+    "weasyprint>=60.0",
+    "pypdf>=4.0",
+]
+
 # Convenience bundle
 dev = [
     "framegraph[test,metrics]",
