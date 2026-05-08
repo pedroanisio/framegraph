@@ -61,11 +61,17 @@ if TYPE_CHECKING:
 def cmd_render(args: argparse.Namespace) -> int:
     """Handle `framegraph render` — render a single document to SVG.
 
+    Phase 3 of ADR 0001: when `args.target` is set, the document is
+    coerced to a FrameSet and rendered at that target's canvas
+    dimensions via `framegraph._frameset.render_frameset`. When None,
+    the legacy single-render path runs unchanged.
+
     Args:
         args: Parsed `argparse` namespace. Required: `args.input` (YAML
             path). Optional: `args.output` (SVG path; defaults to
             `<input>.svg`), `args.strict`, `args.quiet`, `args.four_k`
-            (also write a 3840-wide PNG alongside the SVG).
+            (also write a 3840-wide PNG alongside the SVG),
+            `args.target` (Phase 3 — FrameSet target identifier).
 
     Returns:
         Process exit code: 0 on success, 1 on YAML load or render
@@ -93,17 +99,43 @@ def cmd_render(args: argparse.Namespace) -> int:
         )
         return 1
 
+    target_name = getattr(args, "target", None)
     try:
-        renderer = FrameGraphRenderer(doc)
-        renderer.yaml_source_dir = str(Path(args.input).parent.resolve())
-        svg = renderer.render_svg()
+        if target_name is not None:
+            # Phase 3: FrameSet path with explicit target. The legacy
+            # single-render path is bypassed because the canvas
+            # dimensions need to come from the FrameSet target, not
+            # from the source document's `scene.canvas`.
+            from framegraph._frameset import coerce_to_frameset, render_frameset
+
+            fs = coerce_to_frameset(doc)
+            rendered = render_frameset(fs, target_name=target_name)
+            if not rendered:
+                print(
+                    f"ERROR: no frames matched target {target_name!r}",
+                    file=sys.stderr,
+                )
+                return 1
+            # `render` is a single-document command — emit the first
+            # frame's SVG. Multi-frame FrameSets passed to `render`
+            # would silently drop everything past the first; for
+            # those, `framegraph deck --target` is the right entry.
+            svg = rendered[0].svg
+        else:
+            renderer = FrameGraphRenderer(doc)
+            renderer.yaml_source_dir = str(Path(args.input).parent.resolve())
+            svg = renderer.render_svg()
+    except KeyError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
     except Exception as e:
         print(f"ERROR rendering: {e}", file=sys.stderr)
         return 1
     out = Path(args.output) if args.output else Path(args.input).with_suffix(".svg")
     out.write_text(svg, encoding="utf-8")
     if not args.quiet:
-        print(f"wrote {out}  ({out.stat().st_size / 1024:.1f} KB)")
+        suffix = f" [target={target_name}]" if target_name else ""
+        print(f"wrote {out}  ({out.stat().st_size / 1024:.1f} KB){suffix}")
     if getattr(args, "four_k", False):
         png_out = out.with_suffix(".png")
         try:
@@ -410,20 +442,29 @@ def _write_deck_pdf(
 def cmd_deck(args: argparse.Namespace) -> int:
     """Handle `framegraph deck` — render a multi-slide deck to per-slide SVGs.
 
+    Phase 3 of ADR 0001: when `args.target` is given, every slide
+    renders at the FrameSet target's canvas (looked up via
+    `framegraph.library._resolve_frame_target_canvas`). When
+    `args.all_targets` is given, the command loops over every
+    target the FrameSet declares and writes per-target subdirectories
+    (e.g. `<out>/landscape/slide_*.svg`, `<out>/portrait/slide_*.svg`).
+    When neither flag is given, the legacy single-target path runs
+    unchanged.
+
     Args:
         args: Parsed `argparse` namespace. Required: `args.input` (deck
             YAML path). Optional: `args.output` (output directory;
             defaults to `<input_dir>/output`), `args.lib` (path to
             `lib/` token directory; defaults to the package's bundled
-            `lib/`), `args.quiet`.
+            `lib/`), `args.quiet`, `args.target`, `args.all_targets`.
 
     Returns:
-        Process exit code: 0 on success, 1 on YAML load failure.
-        Render failures for individual slides are reported via
-        `FrameGraphRenderer.warnings` rather than failing the command.
+        Process exit code: 0 on success, 1 on YAML load or
+        target-not-found failure.
 
     """
     from framegraph import FrameGraphDeckRenderer, FrameGraphLibrary
+    from framegraph.library import list_frameset_targets
 
     try:
         data = yaml.safe_load(Path(args.input).read_text(encoding="utf-8"))
@@ -436,9 +477,57 @@ def cmd_deck(args: argparse.Namespace) -> int:
     deck = FrameGraphDeckRenderer(data, library=lib)
     out_dir = Path(args.output) if args.output else Path(args.input).parent / "output"
 
-    if not args.quiet:
-        print(f"Rendering {len(deck.slides_raw)} slide(s) → {out_dir}")
-    paths = deck.render_all(out_dir, yaml_source_dir=Path(args.input).parent)
+    target_name = getattr(args, "target", None)
+    all_targets = getattr(args, "all_targets", False)
+    if target_name is not None and all_targets:
+        print(
+            "ERROR: --target and --all-targets are mutually exclusive",
+            file=sys.stderr,
+        )
+        return 1
+
+    # Phase 3 multi-target loop. When `--all-targets` is set, render
+    # the deck once per declared target into a per-target subdir.
+    if all_targets:
+        targets = list_frameset_targets(data)
+        if not targets:
+            print(
+                f"ERROR: --all-targets requires the input to declare at least one "
+                f"target; {args.input} declares none. Use a `kind: frameset` "
+                f"document with `frameset.defaults.targets:` or per-Frame "
+                f"`targets:`.",
+                file=sys.stderr,
+            )
+            return 1
+        all_paths: list[Path] = []
+        for tname in targets:
+            sub_out = out_dir / tname
+            if not args.quiet:
+                print(f"Rendering {len(deck.slides_raw)} slide(s) → {sub_out}  [target={tname}]")
+            try:
+                tpaths = deck.render_all(
+                    sub_out,
+                    yaml_source_dir=Path(args.input).parent,
+                    target_name=tname,
+                )
+            except KeyError as e:
+                print(f"ERROR: {e}", file=sys.stderr)
+                return 1
+            all_paths.extend(tpaths)
+        paths = all_paths
+    else:
+        if not args.quiet:
+            suffix = f"  [target={target_name}]" if target_name else ""
+            print(f"Rendering {len(deck.slides_raw)} slide(s) → {out_dir}{suffix}")
+        try:
+            paths = deck.render_all(
+                out_dir,
+                yaml_source_dir=Path(args.input).parent,
+                target_name=target_name,
+            )
+        except KeyError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            return 1
     if not args.quiet:
         for p in paths:
             print(f"  wrote {p.name}  ({p.stat().st_size / 1024:.1f} KB)")
@@ -1071,6 +1160,17 @@ def build_parser() -> argparse.ArgumentParser:
         default=300,
         help="Rasterization DPI for --pdf output (default: 300; ignored with --vector)",
     )
+    rp.add_argument(
+        "--target",
+        default=None,
+        help=(
+            "Phase 3 of ADR 0001 — render at the named FrameSet target's "
+            "canvas dimensions (one of `landscape`, `portrait`, `mobile`, "
+            "or whatever the document declares). When omitted, the source "
+            "document's canvas is used. Coerces the document to a FrameSet "
+            "internally; works with both legacy and `kind: frameset` YAML."
+        ),
+    )
 
     # deck
     dp = sub.add_parser(
@@ -1115,6 +1215,30 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=300,
         help="Rasterization DPI for --pdf output (default: 300; ignored with --vector)",
+    )
+    dp.add_argument(
+        "--target",
+        default=None,
+        help=(
+            "Phase 3 of ADR 0001 — render every slide at the named FrameSet "
+            "target's canvas dimensions. The target is looked up on each "
+            "slide's per-Frame `targets:` first, then the FrameSet's "
+            "`defaults.targets`. When omitted, the deck's `deck.canvas` "
+            "applies. Mutually exclusive with --all-targets."
+        ),
+    )
+    dp.add_argument(
+        "--all-targets",
+        dest="all_targets",
+        action="store_true",
+        help=(
+            "Phase 3 of ADR 0001 — render the deck once per declared target. "
+            "Outputs go to per-target subdirectories: "
+            "`<output>/landscape/`, `<output>/portrait/`, etc. The target "
+            "set is the union of `frameset.defaults.targets` and every "
+            "Frame's per-Frame `targets:`. Requires the input to declare at "
+            "least one target. Mutually exclusive with --target."
+        ),
     )
 
     # docs

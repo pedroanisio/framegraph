@@ -361,6 +361,77 @@ def build_parser() -> argparse.ArgumentParser:
 # ---------------------------------------------------------------------------
 
 
+def _resolve_frame_target_canvas(frame: Any, frameset: Any, target_name: str) -> list[float]:
+    """Look up a `FrameTarget`'s canvas by name on a Frame inside a FrameSet.
+
+    Phase 3 helper. Resolution order matches `_frameset._resolve_target`:
+    per-Frame `targets` first, then the FrameSet's
+    `defaults.targets`. Raises `KeyError` when the name is not
+    declared on either side — same contract as the renderer
+    adapter so `framegraph deck --target <name>` and
+    `render_frameset(..., target_name=<name>)` fail in the same way.
+
+    Args:
+        frame: A `framegraph._frameset.Frame` instance.
+        frameset: A `framegraph._frameset.FrameSetDocument` instance.
+        target_name: The target identifier to resolve.
+
+    Returns:
+        The matching target's `canvas` list `[width, height]`.
+
+    Raises:
+        KeyError: When neither the Frame nor the FrameSet defaults
+            declare a target with that name.
+    """
+    candidates = list(frame.targets) or list(frameset.frameset.defaults.targets)
+    for t in candidates:
+        if t.name == target_name:
+            return list(t.canvas)
+    raise KeyError(
+        f"Frame {frame.id!r} has no target named {target_name!r}; "
+        f"available: {[t.name for t in candidates]}"
+    )
+
+
+def list_frameset_targets(deck_data: dict[str, Any]) -> list[str]:
+    """Return every target name declared on a FrameSet view of `deck_data`.
+
+    Phase 3 helper for `framegraph deck --all-targets`. Coerces the
+    input to a `FrameSetDocument` and walks the FrameSet defaults
+    plus every per-Frame target, returning the unique target names
+    in declaration order.
+
+    Args:
+        deck_data: A FrameGraph YAML payload. Anything
+            `coerce_to_frameset` accepts is accepted here.
+
+    Returns:
+        Ordered, deduplicated list of target names. Empty when the
+        FrameSet declares no targets (callers can fall back to
+        single-target rendering).
+    """
+    from framegraph._frameset import coerce_to_frameset
+
+    raw_for_coerce = (
+        deck_data
+        if isinstance(deck_data, dict) and deck_data.get("dsl") == "FrameGraph"
+        else {**(deck_data if isinstance(deck_data, dict) else {}), "dsl": "FrameGraph"}
+    )
+    fs = coerce_to_frameset(raw_for_coerce)
+    seen: list[str] = []
+    seen_set: set[str] = set()
+    for t in fs.frameset.defaults.targets:
+        if t.name not in seen_set:
+            seen.append(t.name)
+            seen_set.add(t.name)
+    for f in fs.frames:
+        for t in f.targets:
+            if t.name not in seen_set:
+                seen.append(t.name)
+                seen_set.add(t.name)
+    return seen
+
+
 class FrameGraphDeckRenderer:
     """Renders a multi-page deck YAML (kind: presentation-deck) into one SVG
     per slide.
@@ -514,7 +585,12 @@ class FrameGraphDeckRenderer:
             raise KeyError(f"no pattern matching slug {ref!r}")
         raise TypeError(f"`use:` expects an int id or string slug; got {type(ref).__name__}")
 
-    def _build_pattern_slide_doc(self, slide: dict[str, Any]) -> dict[str, Any]:
+    def _build_pattern_slide_doc(
+        self,
+        slide: dict[str, Any],
+        *,
+        canvas: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Build a Document for a slide using `use: <pattern>` + `fill:`.
 
         Composition pipeline:
@@ -560,7 +636,10 @@ class FrameGraphDeckRenderer:
 
         fill = Model.model_validate(slide.get("fill") or {})
 
-        canvas = self.deck_config.get("canvas", {"size": [960, 540]})
+        # Phase 3 — `canvas` override (used by multi-target rendering).
+        # When None, fall back to the deck-level canvas.
+        if canvas is None:
+            canvas = self.deck_config.get("canvas", {"size": [960, 540]})
         size = canvas.get("size", [960, 540])
         canvas_w, canvas_h = float(size[0]), float(size[1])
 
@@ -935,7 +1014,12 @@ class FrameGraphDeckRenderer:
 
         return {"id": "_synthesis_band", "z": 5, "objects": objects}
 
-    def build_slide_doc(self, slide: dict[str, Any]) -> dict[str, Any]:
+    def build_slide_doc(
+        self,
+        slide: dict[str, Any],
+        *,
+        canvas: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Assemble a complete FrameGraph document for a single slide.
 
         Two slide modes:
@@ -955,12 +1039,22 @@ class FrameGraphDeckRenderer:
             ↓ deck.tokens
               ↓ $extends base slide tokens   ← SP-5a
                 ↓ this slide tokens
+
+        Args:
+            slide: The slide entry from `self.slides_raw`.
+            canvas: Phase 3 of ADR 0001 — optional canvas override.
+                When None (default), the deck-level
+                `self.deck_config.get("canvas", ...)` applies.
+                When given, the override wins; used by multi-target
+                rendering (`--target` flag) to render the same slide
+                at the FrameSet's target dimensions.
         """
         # Pattern-composition path: short-circuit when `use:` is set.
         if slide.get("use") is not None:
-            return self._build_pattern_slide_doc(slide)
+            return self._build_pattern_slide_doc(slide, canvas=canvas)
 
-        canvas = self.deck_config.get("canvas", {"size": [960, 540]})
+        if canvas is None:
+            canvas = self.deck_config.get("canvas", {"size": [960, 540]})
         slide_num = slide.get("slide", 0)
         slide_id = slide.get("id", f"slide_{slide_num:02d}")
 
@@ -1193,25 +1287,41 @@ class FrameGraphDeckRenderer:
         output_dir: Path,
         *,
         yaml_source_dir: str | Path | None = None,
+        target_name: str | None = None,
     ) -> list[Path]:
         """Render every slide; return the per-slide output paths.
 
-        Phase 2 of ADR 0001: the slide loop now drives off the
-        FrameSet view of `self.raw` (via `coerce_to_frameset`) so
-        the deck path participates in the same graph traversal that
-        FrameSet-native YAML uses. Per-slide enrichment continues to
-        flow through `self.build_slide_doc` so deck-merge semantics
-        (`library $theme < deck.tokens < $extends < slide.tokens`,
-        master-slide chrome, pattern composition) stay byte-identical
-        to Phase 1 output. The legacy direct iteration over
-        `self.slides_raw` is retired in favour of the FrameSet
-        spine; ordering, ids, and per-slide rendering are unchanged.
+        Phase 2 of ADR 0001: the slide loop drives off the FrameSet
+        view of `self.raw` (via `coerce_to_frameset`). Per-slide
+        enrichment continues to flow through `self.build_slide_doc`
+        so deck-merge semantics (`library $theme < deck.tokens <
+        $extends < slide.tokens`, master-slide chrome, pattern
+        composition) stay byte-identical to Phase 1 output when
+        ``target_name`` is None.
+
+        Phase 3 of ADR 0001: when ``target_name`` is given, every
+        slide renders at the FrameSet target's canvas dimensions
+        (looked up on the per-Frame `targets` first, then the
+        FrameSet's `defaults.targets`). This is the
+        `framegraph deck --target <name>` entry point;
+        `framegraph deck --all-targets` calls this once per target.
 
         Args:
             output_dir: Directory to receive `slide_<N>_<id>.svg` files.
             yaml_source_dir: Absolute directory of the deck YAML, used by
                 `<image>` objects to resolve relative `href`s. When
                 None, image paths must be absolute.
+            target_name: Optional FrameSet target identifier. When
+                None (default), every slide uses the deck-level
+                canvas — preserves Phase 1/2 byte-identical output.
+                When set, the matching `FrameTarget` is resolved
+                (per-Frame override > FrameSet defaults) and its
+                `canvas` dimensions override `deck.canvas` per slide.
+
+        Raises:
+            KeyError: When ``target_name`` is given and not declared
+                on either the slide's Frame or in the FrameSet
+                defaults.
 
         """
         # Deferred import: `framegraph.renderer` imports `framegraph.library`
@@ -1261,7 +1371,16 @@ class FrameGraphDeckRenderer:
                 continue
             n = slide.get("slide", 0)
             sid = frame.id
-            doc = self.build_slide_doc(slide)
+            # Phase 3: when `target_name` is given, look up the
+            # target on the per-Frame `targets` first, falling back
+            # to the FrameSet's `defaults.targets`. Pass the resolved
+            # canvas to `build_slide_doc` so deck-merge enrichment
+            # uses the target dimensions.
+            slide_canvas: dict[str, Any] | None = None
+            if target_name is not None:
+                target_canvas = _resolve_frame_target_canvas(frame, frameset, target_name)
+                slide_canvas = {"size": list(target_canvas), "units": "px"}
+            doc = self.build_slide_doc(slide, canvas=slide_canvas)
             renderer = FrameGraphRenderer(doc)
             renderer.yaml_source_dir = source_dir
             svg = renderer.render_svg()

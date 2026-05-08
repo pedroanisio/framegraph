@@ -28,8 +28,37 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- **ADR 0001 Phase 2** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
-  — Renderer Graph Dispatch + Deck-Merge Lift. `FrameGraphDeckRenderer.render_all`
+- **ADR 0001 Phase 3** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
+  — Multi-target rendering. Same source FrameSet renders to
+  multiple canvases (landscape, portrait, mobile, custom)
+  deterministically.
+  - `framegraph render --target <name>` renders at the named
+    target's canvas dimensions via the FrameSet path.
+  - `framegraph deck --target <name>` renders every slide at
+    the target's canvas (per-Frame `targets:` first, then
+    `frameset.defaults.targets`).
+  - `framegraph deck --all-targets` loops over every declared
+    target, writing per-target subdirectories
+    (`<output>/landscape/`, `<output>/portrait/`, …).
+  - `--target` and `--all-targets` are mutually exclusive.
+  - `framegraph.library.list_frameset_targets(data)` enumerates
+    the declared target set; `_resolve_frame_target_canvas`
+    resolves the canvas dims with per-Frame override priority.
+  - `FrameGraphDeckRenderer.render_all(out, *, target_name=…)` —
+    the same target lookup wired into the public render API for
+    non-CLI callers.
+  - `build_slide_doc(slide, *, canvas=…)` and
+    `_build_pattern_slide_doc(slide, *, canvas=…)` accept an
+    optional canvas override; defaults preserve byte-identical
+    Phase 2 output.
+  - 21 regression tests in
+    `tests/integration/test_frameset_phase3.py` cover the
+    enumerator, the canvas resolver, the render_all target_name
+    parameter, both CLI commands, the mutually-exclusive flag
+    check, and the byte-identical no-target regression lock.
+
+- **ADR 0001 Phase 2** — Renderer Graph Dispatch + Deck-Merge Lift.
+  `FrameGraphDeckRenderer.render_all`
   now drives off the FrameSet view of the deck via `coerce_to_frameset`;
   per-slide enrichment continues to flow through
   `build_slide_doc` so SVG output is byte-identical to the
