@@ -102,13 +102,25 @@ def cmd_render(args: argparse.Namespace) -> int:
         return 1
 
     target_name = getattr(args, "target", None)
+    link_base_url = getattr(args, "link_base_url", None)
+    link_template = getattr(args, "link_template", None)
+    if link_base_url is not None and link_template is not None:
+        print(
+            "ERROR: --link-base-url and --link-template are mutually exclusive",
+            file=sys.stderr,
+        )
+        return 1
     try:
-        if target_name is not None:
-            # Phase 3: FrameSet path with explicit target. The legacy
-            # single-render path is bypassed because the canvas
-            # dimensions need to come from the FrameSet target, not
-            # from the source document's `scene.canvas`.
-            from framegraph._frameset import coerce_to_frameset, render_frameset
+        if target_name is not None or link_base_url is not None or link_template is not None:
+            # Phase 3 / Phase 6: FrameSet path. Required when
+            # `--target` is set (canvas comes from the target) or
+            # when link injection is requested (the Frame is the
+            # source of `next`).
+            from framegraph._frameset import (
+                coerce_to_frameset,
+                inject_svg_navigation_links,
+                render_frameset,
+            )
 
             fs = coerce_to_frameset(doc)
             rendered = render_frameset(fs, target_name=target_name)
@@ -123,10 +135,25 @@ def cmd_render(args: argparse.Namespace) -> int:
             # would silently drop everything past the first; for
             # those, `framegraph deck --target` is the right entry.
             svg = rendered[0].svg
+            if link_base_url is not None or link_template is not None:
+                # Active target name comes from the rendered frame's
+                # resolved target (matches what the URL needs).
+                active_target = rendered[0].target_name
+                svg = inject_svg_navigation_links(
+                    svg,
+                    fs.frames[0],
+                    fs,
+                    target_name=active_target,
+                    base_url=link_base_url,
+                    file_template=link_template,
+                )
         else:
             renderer = FrameGraphRenderer(doc)
             renderer.yaml_source_dir = str(Path(args.input).parent.resolve())
             svg = renderer.render_svg()
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
     except KeyError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
@@ -487,6 +514,14 @@ def cmd_deck(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 1
+    link_base_url = getattr(args, "link_base_url", None)
+    link_template = getattr(args, "link_template", None)
+    if link_base_url is not None and link_template is not None:
+        print(
+            "ERROR: --link-base-url and --link-template are mutually exclusive",
+            file=sys.stderr,
+        )
+        return 1
 
     # Phase 3 multi-target loop. When `--all-targets` is set, render
     # the deck once per declared target into a per-target subdir.
@@ -530,6 +565,60 @@ def cmd_deck(args: argparse.Namespace) -> int:
         except KeyError as e:
             print(f"ERROR: {e}", file=sys.stderr)
             return 1
+    # Phase 6 — link injection. Wrap each per-slide SVG body in
+    # `<a href="next-url">` for click-to-advance navigation. The
+    # frame.next chain was materialised at coercion time so every
+    # slide except the last has a `next`; the last one is left
+    # un-wrapped.
+    if link_base_url is not None or link_template is not None:
+        from framegraph._frameset import (
+            coerce_to_frameset,
+            inject_svg_navigation_links,
+        )
+
+        try:
+            fs = coerce_to_frameset(data)
+        except Exception as e:
+            print(f"ERROR validating FrameSet for link injection: {e}", file=sys.stderr)
+            return 1
+        # Map frame_id → Frame for O(1) lookup. Each path's stem
+        # encodes the slide id (deck renderer convention:
+        # `slide_<index>_<id>.svg` or similar). The simplest
+        # mapping is by ordinal: frames[i] ↔ paths[i] within a
+        # single-target render. For --all-targets the loop ran
+        # once per target, so paths length is len(frames) * len(targets);
+        # we re-iterate over (target, frame) in the same order
+        # `render_all` produced.
+        targets_for_iteration: list[str]
+        if all_targets:
+            from framegraph.library import list_frameset_targets
+
+            targets_for_iteration = list(list_frameset_targets(data))
+        else:
+            targets_for_iteration = [target_name if target_name is not None else "default"]
+        i = 0
+        for active_target in targets_for_iteration:
+            for frame in fs.frames:
+                if i >= len(paths):
+                    break
+                path = paths[i]
+                try:
+                    svg_text = path.read_text(encoding="utf-8")
+                    new_svg = inject_svg_navigation_links(
+                        svg_text,
+                        frame,
+                        fs,
+                        target_name=active_target,
+                        base_url=link_base_url,
+                        file_template=link_template,
+                    )
+                    if new_svg != svg_text:
+                        path.write_text(new_svg, encoding="utf-8")
+                except ValueError as e:
+                    print(f"ERROR injecting links for {path.name}: {e}", file=sys.stderr)
+                    return 1
+                i += 1
+
     if not args.quiet:
         for p in paths:
             print(f"  wrote {p.name}  ({p.stat().st_size / 1024:.1f} KB)")
@@ -1223,6 +1312,29 @@ def build_parser() -> argparse.ArgumentParser:
             "internally; works with both legacy and `kind: frameset` YAML."
         ),
     )
+    rp.add_argument(
+        "--link-base-url",
+        dest="link_base_url",
+        default=None,
+        help=(
+            "Phase 6 of ADR 0001 — wrap the rendered SVG body in an "
+            "<a href> pointing at the Frame's `next` link. URL pattern: "
+            "<link-base-url>/<target>/<frame_id> (matches `framegraph "
+            "sitemap`). Mutually exclusive with --link-template."
+        ),
+    )
+    rp.add_argument(
+        "--link-template",
+        dest="link_template",
+        default=None,
+        help=(
+            "Phase 6 of ADR 0001 — wrap the rendered SVG body in an "
+            "<a href> pointing at the Frame's `next` link. URL is "
+            "`template.format(frame_id=…, target_name=…)`, e.g. "
+            "'slide_{frame_id}.svg' for static-export workflows. "
+            "Mutually exclusive with --link-base-url."
+        ),
+    )
 
     # deck
     dp = sub.add_parser(
@@ -1290,6 +1402,28 @@ def build_parser() -> argparse.ArgumentParser:
             "set is the union of `frameset.defaults.targets` and every "
             "Frame's per-Frame `targets:`. Requires the input to declare at "
             "least one target. Mutually exclusive with --target."
+        ),
+    )
+    dp.add_argument(
+        "--link-base-url",
+        dest="link_base_url",
+        default=None,
+        help=(
+            "Phase 6 of ADR 0001 — wrap each rendered slide's SVG body "
+            "in an <a href> pointing at the slide's `next` link. URL "
+            "pattern: <link-base-url>/<target>/<frame_id> (matches "
+            "`framegraph sitemap`). Mutually exclusive with --link-template."
+        ),
+    )
+    dp.add_argument(
+        "--link-template",
+        dest="link_template",
+        default=None,
+        help=(
+            "Phase 6 of ADR 0001 — wrap each rendered slide's SVG body "
+            "in an <a href> pointing at the slide's `next` link. URL is "
+            "`template.format(frame_id=…, target_name=…)`, e.g. "
+            "'slide_{frame_id}.svg'. Mutually exclusive with --link-base-url."
         ),
     )
 
