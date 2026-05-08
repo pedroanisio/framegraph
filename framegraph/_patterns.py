@@ -1,6 +1,6 @@
 """Slide-pattern catalog — typed vocabulary of named slide compositions.
 
-Loads and validates `static/refs/slides-patter-a.yml`, the catalog
+Loads and validates `framegraph/data/patterns/slides-patter-a.yml`, the catalog
 of 50 canonical slide-template patterns. The schema is refined
 (Phase 2): controlled vocabularies replace the loose strings the
 file used to carry.
@@ -57,10 +57,14 @@ __all__ = [
 ]
 
 
-PATTERN_CATALOG_PATH: Path = (
-    Path(__file__).resolve().parent.parent / "static" / "refs" / "slides-patter-a.yml"
-)
-"""Path to the canonical 50-pattern catalog shipped with the repo."""
+PATTERN_CATALOG_PATH: Path = Path(__file__).resolve().parent / "data" / "patterns" / "slides-patter-a.yml"
+"""Path to the canonical 50-pattern catalog shipped with the package.
+
+Lives under `framegraph/data/patterns/` so it travels with the wheel
+(declared in `pyproject.toml`'s `[tool.setuptools.package-data]`).
+The companion catalogs (`slides-patter-b.yml` … `slides-pattern-g.yml`)
+sit alongside it.
+"""
 
 
 # ─────────────────────────────────────────────────────────────────

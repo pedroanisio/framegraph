@@ -547,11 +547,12 @@ def cmd_docs(args: argparse.Namespace) -> int:
 def _find_sidecar(pattern_id: int) -> Path | None:
     """Locate a sidecar YAML for the given pattern id.
 
-    Returns the first match in `static/refs/fills/<id_zero_padded>-*.yml`,
-    or None when no sidecar exists. Pattern fills work without a
-    sidecar via the content_type-derived defaults.
+    Returns the first match in `framegraph/data/fills/<id_zero_padded>-*.yml`
+    (the package-shipped catalog), or None when no sidecar exists.
+    Pattern fills work without a sidecar via the content_type-derived
+    defaults.
     """
-    fills_dir = Path(__file__).resolve().parent.parent / "static" / "refs" / "fills"
+    fills_dir = Path(__file__).resolve().parent / "data" / "fills"
     if not fills_dir.exists():
         return None
     matches = sorted(fills_dir.glob(f"{pattern_id:03d}-*.yml"))
@@ -561,7 +562,7 @@ def _find_sidecar(pattern_id: int) -> Path | None:
 def _sidecar_slug(sidecar_path: Path) -> str:
     """Extract the catalog slug from a sidecar filename.
 
-    `static/refs/fills/010-swot-analysis.yml` → `"swot-analysis"`. Used
+    `framegraph/data/fills/010-swot-analysis.yml` → `"swot-analysis"`. Used
     by `patterns deck` to name per-pattern outputs predictably.
     """
     return sidecar_path.stem.split("-", 1)[1] if "-" in sidecar_path.stem else sidecar_path.stem
@@ -715,7 +716,7 @@ def cmd_patterns_show(args: argparse.Namespace) -> int:
 def cmd_patterns_example(args: argparse.Namespace) -> int:
     """Handle `framegraph patterns example <id>` — emit example fill.
 
-    Reads the sidecar at ``static/refs/fills/<id>-*.yml`` and writes
+    Reads the sidecar at ``framegraph/data/fills/<id>-*.yml`` and writes
     its ``example_fill`` payload as a flat ``{role: content}`` mapping
     — exactly the shape `patterns build --fill` expects. This closes
     the agent loop: discover → introspect → fetch example → render,
@@ -748,7 +749,7 @@ def cmd_patterns_example(args: argparse.Namespace) -> int:
     sidecar_path = _find_sidecar(pattern.id)
     if sidecar_path is None:
         print(
-            f"ERROR: pattern {pattern.id} has no sidecar in static/refs/fills/. "
+            f"ERROR: pattern {pattern.id} has no sidecar in framegraph/data/fills/. "
             f"Without a sidecar there is no curated example_fill to emit. "
             f"Construct a fill payload from `patterns show {pattern.id}` "
             f"and the default content_type shapes documented in "
@@ -788,7 +789,7 @@ def cmd_patterns_build(args: argparse.Namespace) -> int:
     """Handle `framegraph patterns build <id> --fill content.yml [-o out.svg]`.
 
     Renders a pattern + fill payload to SVG. Looks up a sidecar at
-    ``static/refs/fills/<id>-*.yml`` if one exists; falls back to
+    ``framegraph/data/fills/<id>-*.yml`` if one exists; falls back to
     content_type-derived defaults otherwise.
 
     Args:
@@ -1151,7 +1152,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--has-sidecar",
         dest="has_sidecar",
         action="store_true",
-        help="Only show patterns that ship a sidecar in static/refs/fills/",
+        help="Only show patterns that ship a sidecar in framegraph/data/fills/",
     )
     pl.add_argument(
         "--json",

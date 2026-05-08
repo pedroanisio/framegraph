@@ -17,7 +17,7 @@ This work is subject to the methodological caveats and commitments described in 
 
 YAML-first hybrid semantic-visual diagram DSL that renders to clean SVG.
 
-Current package version: `2.0.0.dev0`.
+Current package version: `0.1.0` (first public PyPI release).
 
 ```yaml
 dsl: FrameGraph
@@ -260,11 +260,12 @@ See `CHANGELOG.md` for full history.
 
 | Version | Status | Notes |
 |---|---|---|
-| `2.0.0.dev0` | Current | Modular renderer split is in tree; CLI, tests, and docs reflect the dev line |
-| Next 2.0 goals | In progress | `grid`/`row` layout completion, full v1.x compatibility audit, remaining rendering gaps such as `backdrop_blur` and `inner_ring` |
+| `0.1.0` | Current — first public PyPI release | Modular renderer, 375-pattern catalog, 14 UML composers, mypy-strict-clean |
+| Next minor | In progress | PowerPoint export bridge, `fonttools`-backed text metrics, sidecar coverage scale-up |
 
 ---
 
 ## License
 
-MIT metadata is declared in `pyproject.toml`. A repository `LICENSE` file has not yet been added.
+[MIT](./LICENSE). See [`docs/PUBLISHING.md`](docs/PUBLISHING.md) for the
+release-cutting procedure.

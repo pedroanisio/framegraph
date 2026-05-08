@@ -5,10 +5,11 @@ build-backend = "setuptools.build_meta"
 # ── Project metadata ──────────────────────────────────────────────────────────
 [project]
 name        = "framegraph"
-version     = "2.0.0.dev0"
-description = "YAML-first hybrid semantic-visual diagram DSL — renders to SVG"
+version     = "0.1.0"
+description = "YAML-first DSL for semantic-visual diagrams and presentations — renders to SVG / PDF"
 readme      = "README.md"
-license     = {text = "MIT"}
+license     = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 
 authors = [
@@ -18,13 +19,13 @@ authors = [
 keywords = [
     "diagram", "svg", "yaml", "presentation",
     "consulting", "visualization", "dsl",
+    "uml", "slide", "deck", "patterns",
 ]
 
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -91,6 +92,14 @@ dev = [
     "pre-commit>=3.7",
 ]
 
+# ── PyPI surface URLs ────────────────────────────────────────────────────────
+[project.urls]
+Homepage      = "https://github.com/pedroanisio/framegraph"
+Repository    = "https://github.com/pedroanisio/framegraph"
+Documentation = "https://github.com/pedroanisio/framegraph/blob/main/docs/MANUAL.md"
+Issues        = "https://github.com/pedroanisio/framegraph/issues"
+Changelog     = "https://github.com/pedroanisio/framegraph/blob/main/CHANGELOG.md"
+
 # ── CLI entry points ──────────────────────────────────────────────────────────
 [project.scripts]
 framegraph = "framegraph.cli:main"
@@ -103,7 +112,11 @@ include = ["framegraph*"]
 [tool.setuptools.package-data]
 framegraph = [
     "lib/tokens/*.yml",
+    "lib/styles/*.yml",
     "lib/symbols/**/*.yml",
+    "data/patterns/*.yml",
+    "data/fills/*.yml",
+    "data/fills/README.md",
     "py.typed",
 ]
 

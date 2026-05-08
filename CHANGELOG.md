@@ -27,12 +27,86 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
-### Planned (v2.0 line)
+### Planned
 - `grid` and `row` containers (schema already forward-compatible from `layout.kind`)
 - Full v1.x backward-compat regression report
 - `inner_box` reference syntax (`box: "$card.inner"`) for compound layouts
-- File-path image embedding to data URI at render time
 - `backdrop_blur` and `inner_ring` rendering support where the grammar already exposes them
+- PowerPoint export bridge via `python-pptx` (Tier-1 of [`docs/ANALYSIS.md`](docs/ANALYSIS.md))
+- `fonttools`-backed text-metric measurement to retire the per-character-class width tables
+- Sidecar coverage scale-up from 17 → ~100 of 375 patterns
+
+---
+
+## [0.1.0] — 2026-05-08  (first public PyPI release)
+
+First public release on PyPI. The package has been internal-only up
+to this point under the `2.0.0.dev0` placeholder; renaming to a
+clean `0.1.0` (per [PEP 440](https://peps.python.org/pep-0440/) for
+publish-readiness) for the initial PyPI cut. Subsequent releases
+follow the project's documented MAJOR/MINOR/PATCH semver contract.
+
+### Public API
+- `FrameGraphRenderer(doc).render_svg()` — render a parsed YAML
+  document to SVG.
+- `FrameGraphRenderer.from_yaml_file(path)` — load and render in
+  one step.
+- `FrameGraphLibrary(lib_path)` — discover token packs and symbol
+  packs from a `lib/` directory.
+- `FrameGraphDeckRenderer(data, library=lib).render_all(output_dir)`
+   — render a multi-slide deck YAML to per-slide SVGs (and optional
+  multi-page PDF via the `[pdf]` extra).
+
+### CLI
+- `framegraph render <doc.yml>` — single document → SVG / PDF / 4K PNG.
+- `framegraph deck <deck.yml>` — multi-slide deck → per-slide SVGs +
+  optional multi-page PDF, with `use:` + `fill:` pattern composition.
+- `framegraph patterns list / show / example / build / deck` — slide
+  catalog of 375 patterns (50 generic + 275 consulting + 50 expert);
+  17 ship a curated `example_fill` sidecar.
+- `framegraph docs -o catalog.json` — machine-readable Python API
+  catalog (modules, classes, signatures, Pydantic JSON schemas) for
+  AI-agent consumption.
+- `framegraph version`.
+
+### Diagram coverage
+- 18 first-class visual object types (`rect`, `ellipse`, `text`,
+  `bullet_list`, `line`, `polyline`, `path`, `image`, `connector`,
+  `legend`, `group`, `container`, `bar_chart`, `line_chart`, `icon`,
+  `use`, `chip_row`, `table`).
+- 16 UML primitives + 14 UML 2.5.1 composer types: class, package,
+  use-case, component, deployment, activity, state-machine,
+  sequence, communication, composite-structure, object, profile,
+  timing, interaction-overview.
+
+### Layout
+- Pure-Python four-stage Sugiyama (Eades cycle removal + longest-path
+  layering + median-heuristic crossing minimization + Brandes-Köpf
+  x-coordinate assignment).
+- Pattern layout with span- and density-aware allocation, region
+  handlers, and clamped relative placement.
+
+### Output
+- SVG (always — the rendering core, no extras needed).
+- Raster PDF and 4K PNG via the `[pdf]` extra (cairosvg + Pillow).
+- Vector PDF (selectable text) via the `[pdf-vector]` extra
+  (weasyprint + pypdf).
+
+### Quality gates
+- 1283 tests pass; 90 % coverage gate (87 % current overall).
+- Mypy strict mode: 0 errors. Ruff lint + format: clean on touched
+  surface.
+- Golden-snapshot regression suite under `python tests/run_tests.py`.
+
+### Packaging
+- Pattern catalog (`framegraph/data/patterns/*.yml`) and 17
+  curated sidecars (`framegraph/data/fills/*.yml`) ship inside the
+  wheel via `[tool.setuptools.package-data]`.
+- Seven consulting token packs (`framegraph/lib/tokens/*.yml`) and
+  the bundled default stylesheet (`framegraph/lib/styles/default.yml`).
+- `LICENSE` file (MIT) added at repo root.
+- `[project.urls]` declared so PyPI surfaces Homepage / Repository /
+  Documentation / Issues / Changelog.
 
 ---
 

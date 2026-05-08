@@ -46,11 +46,11 @@ __all__ = [
 ]
 
 
-# Path to the BMC sidecar — the Phase 2 proof.
+# Path to the BMC sidecar — the Phase 2 proof. Lives under the
+# package's `data/fills/` directory so it travels with the wheel.
 BMC_SIDECAR_PATH: Path = (
-    Path(__file__).resolve().parent.parent.parent
-    / "static"
-    / "refs"
+    Path(__file__).resolve().parent.parent
+    / "data"
     / "fills"
     / "044-business-model-canvas.yml"
 )
