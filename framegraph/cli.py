@@ -16,6 +16,8 @@ Usage
                                    [--canvas-w N] [--canvas-h N]
     framegraph patterns deck [-o output_dir/] [--ids=10,44,91]
                              [--category=consulting] [--pdf [--vector]]
+    framegraph sitemap  input.yml --base-url=URL [-o sitemap.xml]
+                                  [--target=NAME] [--quiet]
     framegraph version
 
 Agent-oriented quick reference: see `AGENTS.md` at the repo root.
@@ -1093,6 +1095,56 @@ def cmd_patterns_deck(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sitemap(args: argparse.Namespace) -> int:
+    """Handle `framegraph sitemap` — emit `sitemap.xml` from a FrameSet.
+
+    Phase 4 of ADR 0001. Loads any FrameGraph YAML (frameset, deck, or
+    legacy single-document), coerces to a `FrameSetDocument`, and walks
+    the (Frame × declared target) product to emit one `<url>` entry
+    per pair. URL pattern: ``<base_url>/<target>/<frame_id>``.
+
+    Args:
+        args: Parsed `argparse` namespace. Required: `args.input`
+            (YAML path), `args.base_url` (site root). Optional:
+            `args.output` (default: stdout), `args.target` (filter to
+            one target name), `args.quiet`.
+
+    Returns:
+        Process exit code: 0 on success, 1 on YAML load, validation,
+        or emission failure.
+    """
+    from framegraph._frameset import coerce_to_frameset, emit_sitemap
+
+    try:
+        doc = yaml.safe_load(Path(args.input).read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"ERROR loading {args.input}: {e}", file=sys.stderr)
+        return 1
+
+    try:
+        fs = coerce_to_frameset(doc)
+    except Exception as e:
+        print(f"ERROR validating FrameSet: {e}", file=sys.stderr)
+        return 1
+
+    target_filter = [args.target] if args.target else None
+    try:
+        xml = emit_sitemap(fs, args.base_url, target_filter=target_filter)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+
+    if args.output:
+        out = Path(args.output)
+        out.write_text(xml, encoding="utf-8")
+        if not args.quiet:
+            url_count = xml.count("<loc>")
+            print(f"wrote {out}  ({out.stat().st_size / 1024:.1f} KB, {url_count} URLs)")
+    else:
+        sys.stdout.write(xml)
+    return 0
+
+
 def cmd_version(_args: argparse.Namespace) -> int:
     """Handle `framegraph version` — print the package version and exit 0."""
     from framegraph import __version__
@@ -1401,6 +1453,42 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pd.add_argument("--quiet", action="store_true", help="Suppress progress output")
 
+    # sitemap (Phase 4 of ADR 0001)
+    sm = sub.add_parser(
+        "sitemap",
+        help=(
+            "Emit a sitemap.xml from a FrameSet's (Frame × target) link graph. "
+            "Walks every Frame in declaration order and emits one URL per "
+            "declared render target. Works with any input — frameset, deck, or "
+            "legacy single-document YAML — by coercing to a FrameSet first."
+        ),
+    )
+    sm.add_argument("input", help="Input FrameGraph YAML file")
+    sm.add_argument(
+        "--base-url",
+        dest="base_url",
+        required=True,
+        help=(
+            "Site root for emitted URLs (e.g. 'https://example.com' or "
+            "'https://example.com/docs'). Combined as "
+            "<base_url>/<target>/<frame_id>."
+        ),
+    )
+    sm.add_argument(
+        "-o",
+        "--output",
+        help="Output sitemap path (default: write to stdout)",
+    )
+    sm.add_argument(
+        "--target",
+        default=None,
+        help=(
+            "Optional single target name filter. When omitted, every "
+            "(Frame × declared target) pair contributes one URL."
+        ),
+    )
+    sm.add_argument("--quiet", action="store_true", help="Suppress progress output")
+
     # version
     sub.add_parser("version", help="Print version and exit")
 
@@ -1434,6 +1522,7 @@ def main(argv: list[str] | None = None) -> int:
         "render": cmd_render,
         "deck": cmd_deck,
         "docs": cmd_docs,
+        "sitemap": cmd_sitemap,
         "version": cmd_version,
     }
     return dispatch[args.command](args)

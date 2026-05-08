@@ -28,6 +28,65 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **ADR 0001 Phase 5** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
+  — Per-target adjustments. The same Frame adapts to landscape /
+  portrait / mobile / print contexts via three orthogonal knobs on
+  `FrameTarget.adjustments`, applied at projection time inside
+  `build_frame_doc`.
+  - `framegraph._frameset.FrameTargetAdjustments` — typed Pydantic
+    model (`extra="forbid"`) with three fields:
+    - `font_scale: float | None` (strictly positive multiplier;
+      `None` and `1.0` are no-ops). Walks
+      `visual.tokens.text_styles[*].size` and multiplies numeric
+      values; non-numeric `size` shapes (strings, missing, complex
+      types) pass through unchanged.
+    - `hide: list[str]` (defaults `[]`). Drops matching layer ids
+      from `visual.layers` and matching top-level object ids from
+      `layer.objects` in remaining layers. Non-matching ids are
+      silently ignored — the same `hide` list can be reused across
+      Frames where only some ids are present.
+    - `padding_delta: float | None` (signed pixel inset per axis;
+      `None` and `0` are no-ops). Shrinks `scene.canvas.size` by
+      `2 * padding_delta` on each axis. Pattern-system margins,
+      which derive from canvas size, scale proportionally. Negative
+      values expand the canvas; result is clamped at 1 px per axis.
+  - `framegraph._frameset.apply_target_adjustments(doc, adj)` —
+    mutates a projected single-doc dict in fixed order
+    (font_scale → hide → padding_delta) and returns it.
+  - `build_frame_doc` automatically applies a target's adjustments
+    when set; `target.adjustments=None` produces the byte-identical
+    Phase 1-4 projection (regression-locked).
+  - 38 regression tests in
+    `tests/integration/test_frameset_phase5.py` cover the schema
+    (extra-key rejection, `font_scale > 0`, signed
+    `padding_delta`), each knob's application semantics, the
+    no-op edge cases, declared application order, and
+    `render_frameset` integration (SVG width / height shrinks
+    when `padding_delta` is set; hidden layers' fills are absent
+    from the rendered SVG).
+
+- **ADR 0001 Phase 4** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
+  — Sitemap emission. The FrameSet's link graph **is** the sitemap.
+  - `framegraph._frameset.emit_sitemap(fs, base_url, *, target_filter=…)`
+    walks every Frame in declaration order and emits one URL per
+    declared render target. URL pattern:
+    `<base_url>/<target>/<frame_id>` with frame ids and target
+    names URL-escaped via `urllib.parse.quote`. Output validates
+    against the sitemap.org 0.9 schema
+    (`http://www.sitemaps.org/schemas/sitemap/0.9`).
+  - `framegraph._frameset.list_frameset_target_union(fs)` — union
+    of every declared target name (defaults + per-Frame), in
+    discovery order.
+  - `framegraph sitemap <input.yml> --base-url <url> [-o <path>]
+    [--target <name>]` CLI — accepts any FrameGraph YAML
+    (frameset, deck, or legacy single-doc) by coercing through
+    `coerce_to_frameset`. Writes to file with `-o` or to stdout.
+  - 34 regression tests in
+    `tests/integration/test_frameset_phase4.py` cover XML
+    structure, URL escaping (spaces, `?`, `#`, `<`, `>`, `&`),
+    deterministic ordering, target filter, base-URL validation,
+    coerced inputs (legacy + deck), and the CLI surface.
+
 - **ADR 0001 Phase 3** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
   — Multi-target rendering. Same source FrameSet renders to
   multiple canvases (landscape, portrait, mobile, custom)

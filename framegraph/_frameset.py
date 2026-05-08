@@ -51,6 +51,41 @@ CanvasDims = Annotated[list[float], Field(min_length=2, max_length=2)]
 # ─────────────────────────────────────────────────────────────────
 
 
+class FrameTargetAdjustments(BaseModel):
+    """Per-target tuning applied at projection time.
+
+    Phase 5 of ADR 0001 ships three orthogonal knobs that adapt the
+    same Frame to different viewport contexts (landscape, portrait,
+    mobile, print) without duplicating the source. They run in a
+    fixed, documented order inside `apply_target_adjustments`:
+
+    1. ``font_scale`` — multiply every ``visual.tokens.text_styles[*].size``
+       by the factor. Strictly positive. ``1.0`` is a no-op.
+    2. ``hide`` — drop matching layer ids from
+       ``visual.layers``; within remaining layers, drop matching
+       top-level object ids from ``layer.objects``. Ids that match
+       neither are silently ignored (forward-compatible with future
+       targets that hide things only present on other Frames).
+    3. ``padding_delta`` — signed pixel value added as an inset on
+       each axis of ``scene.canvas.size`` (i.e. each axis shrinks by
+       ``2 * padding_delta``). Pattern-system margins, which derive
+       from canvas size, scale proportionally. A negative value
+       expands the renderable canvas.
+
+    Attributes:
+        font_scale: Strictly positive multiplier. ``None`` is a no-op.
+        hide: Layer / top-level-object ids to drop from the projected
+            doc. Defaults to the empty list (no-op).
+        padding_delta: Signed integer pixels per axis. ``None`` and
+            ``0`` are no-ops. Negative values expand the canvas.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    font_scale: float | None = Field(default=None, gt=0)
+    hide: list[str] = Field(default_factory=list)
+    padding_delta: float | None = None
+
+
 class FrameTarget(BaseModel):
     """One render target for a `Frame`.
 
@@ -64,15 +99,16 @@ class FrameTarget(BaseModel):
             specific tag like ``a4-print``.
         canvas: ``[width, height]`` in pixels. Phase 1 keeps `units`
             implicit at "px" to match `Scene.canvas`.
-        adjustments: Free-form per-target tuning bag. Phase 1 ignores
-            this field; Phase 4 (per ADR 0001) wires per-target
-            font-scale / padding / hide-on-target overrides.
+        adjustments: Per-target tuning. ``None`` is a no-op (Phases
+            1-4 behavior preserved). Phase 5 wires font-scale, hide,
+            and padding-delta overrides via
+            `apply_target_adjustments`.
     """
 
     model_config = ConfigDict(extra="forbid")
     name: str = Field(..., min_length=1)
     canvas: CanvasDims
-    adjustments: dict[str, Any] | None = None
+    adjustments: FrameTargetAdjustments | None = None
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -844,7 +880,7 @@ def build_frame_doc(
 
     semantic = resolved.semantic or dict(_CANONICAL_EMPTY_SEMANTIC)
 
-    return {
+    doc: dict[str, Any] = {
         "dsl": "FrameGraph",
         "version": frameset.version,
         "kind": "hybrid-semantic-visual-diagram",
@@ -852,6 +888,152 @@ def build_frame_doc(
         "semantic": semantic,
         "visual": visual,
     }
+    # Phase 5 — apply per-target adjustments (font scale, hide,
+    # padding delta) after the projection is otherwise complete.
+    if target.adjustments is not None:
+        doc = apply_target_adjustments(doc, target.adjustments)
+    return doc
+
+
+# ─────────────────────────────────────────────────────────────────
+# Per-target adjustments — Phase 5 of ADR 0001
+# ─────────────────────────────────────────────────────────────────
+
+
+def _scale_text_size(value: Any, factor: float) -> Any:
+    """Multiply a single text-style ``size`` value by `factor`.
+
+    Sizes in `visual.tokens.text_styles` are typically numbers (px),
+    but the schema uses ``extra="allow"`` so they may also arrive as
+    strings (e.g. ``"14"``) or be missing. This helper preserves
+    every non-numeric shape unchanged — strings, None, and complex
+    types pass through untouched. Only `int`/`float` values scale.
+    """
+    if isinstance(value, bool):
+        # `bool` is a subclass of `int` in Python; never scale flags.
+        return value
+    if isinstance(value, (int, float)):
+        return value * factor
+    return value
+
+
+def _apply_font_scale(visual: dict[str, Any], factor: float) -> None:
+    """Walk `visual.tokens.text_styles[*]` and scale numeric ``size`` fields."""
+    tokens = visual.get("tokens")
+    if not isinstance(tokens, dict):
+        return
+    text_styles = tokens.get("text_styles")
+    if not isinstance(text_styles, dict):
+        return
+    for style_def in text_styles.values():
+        if not isinstance(style_def, dict):
+            continue
+        if "size" in style_def:
+            style_def["size"] = _scale_text_size(style_def["size"], factor)
+
+
+def _apply_hide(visual: dict[str, Any], hide_ids: list[str]) -> None:
+    """Drop matching layers and matching top-level objects in remaining layers.
+
+    Matches by `id` exactly. Order-preserving for retained items.
+    Non-matching ids are silently ignored — by design, the same
+    `hide` list may be reused across Frames where only some ids are
+    present.
+    """
+    if not hide_ids:
+        return
+    drop = set(hide_ids)
+    layers = visual.get("layers")
+    if not isinstance(layers, list):
+        return
+    kept_layers: list[Any] = []
+    for layer in layers:
+        if not isinstance(layer, dict):
+            kept_layers.append(layer)
+            continue
+        if layer.get("id") in drop:
+            continue
+        objects = layer.get("objects")
+        if isinstance(objects, list):
+            layer["objects"] = [
+                obj
+                for obj in objects
+                if not (isinstance(obj, dict) and obj.get("id") in drop)
+            ]
+        kept_layers.append(layer)
+    visual["layers"] = kept_layers
+
+
+def _apply_padding_delta(scene: dict[str, Any], delta: float) -> None:
+    """Inset `scene.canvas.size` by `2 * delta` per axis.
+
+    A positive `delta` shrinks the renderable canvas (think: page
+    margins around the content). A negative `delta` expands it.
+    Pattern-system margins, which derive from canvas size, scale
+    proportionally because a smaller canvas yields a smaller 8 %
+    safety inset and proportionally tighter gutters.
+
+    The result is clamped to a minimum of 1 px per axis to keep the
+    renderer's ``viewBox="0 0 W H"`` valid even when an aggressive
+    delta would otherwise zero out the canvas.
+    """
+    if delta == 0:
+        return
+    canvas = scene.get("canvas")
+    if not isinstance(canvas, dict):
+        return
+    size = canvas.get("size")
+    if not isinstance(size, (list, tuple)) or len(size) != 2:
+        return
+    try:
+        w = float(size[0])
+        h = float(size[1])
+    except (TypeError, ValueError):
+        return
+    new_w = max(1.0, w - 2.0 * delta)
+    new_h = max(1.0, h - 2.0 * delta)
+    canvas["size"] = [new_w, new_h]
+
+
+def apply_target_adjustments(
+    doc: dict[str, Any], adjustments: FrameTargetAdjustments
+) -> dict[str, Any]:
+    """Mutate-and-return a projected single-doc dict per `adjustments`.
+
+    Phase 5 of ADR 0001. Applies the three adjustment knobs in a
+    fixed, documented order:
+
+    1. ``font_scale`` — scales `visual.tokens.text_styles[*].size`.
+    2. ``hide`` — drops matching layers and matching top-level
+       objects within remaining layers.
+    3. ``padding_delta`` — shrinks `scene.canvas.size` by
+       ``2 * padding_delta`` on each axis.
+
+    The function mutates `doc` in place AND returns it (the
+    mutate-and-return idiom matches `build_frame_doc`'s usage). Pass
+    a deep-copied dict if you need the original preserved.
+
+    Args:
+        doc: A projected single-doc dict (output of
+            `build_frame_doc` or `project_frame_to_document`).
+        adjustments: The adjustments to apply.
+
+    Returns:
+        The mutated `doc`.
+    """
+    visual = doc.get("visual")
+    if isinstance(visual, dict):
+        if adjustments.font_scale is not None and adjustments.font_scale != 1.0:
+            _apply_font_scale(visual, adjustments.font_scale)
+        if adjustments.hide:
+            _apply_hide(visual, adjustments.hide)
+
+    if adjustments.padding_delta is not None and adjustments.padding_delta != 0:
+        scene = doc.get("scene")
+        if isinstance(scene, dict):
+            _apply_padding_delta(scene, adjustments.padding_delta)
+
+    return doc
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -1006,6 +1188,147 @@ def render_frameset(
     return rendered
 
 
+# ─────────────────────────────────────────────────────────────────
+# Sitemap emission — Phase 4 of ADR 0001
+# ─────────────────────────────────────────────────────────────────
+
+
+def _frame_target_names(frame: Frame, frameset: FrameSetDocument) -> list[str]:
+    """Names of every target a Frame can render at, in resolution order.
+
+    Mirrors `_resolve_target` precedence: per-Frame `targets:` first,
+    falling back to `frameset.defaults.targets`, falling back to a
+    synthetic ``"default"`` target. The list is order-preserving and
+    deduplicated by name.
+    """
+    seen: set[str] = set()
+    names: list[str] = []
+    candidates = list(frame.targets) or list(frameset.frameset.defaults.targets)
+    if not candidates:
+        return ["default"]
+    for t in candidates:
+        if t.name not in seen:
+            seen.add(t.name)
+            names.append(t.name)
+    return names
+
+
+def list_frameset_target_union(frameset: FrameSetDocument) -> list[str]:
+    """Union of every target name declared anywhere in the FrameSet.
+
+    Order: FrameSet defaults first (in declaration order), then any
+    additional per-Frame targets discovered while walking
+    `frameset.frames` in order. Duplicates are dropped on first sight.
+
+    Args:
+        frameset: A validated `FrameSetDocument`.
+
+    Returns:
+        Ordered list of unique target names. When neither defaults nor
+        any Frame declares a target, returns ``["default"]`` to match
+        the synthetic fallback in `_resolve_target`.
+    """
+    seen: set[str] = set()
+    names: list[str] = []
+    for t in frameset.frameset.defaults.targets:
+        if t.name not in seen:
+            seen.add(t.name)
+            names.append(t.name)
+    for frame in frameset.frames:
+        for t in frame.targets:
+            if t.name not in seen:
+                seen.add(t.name)
+                names.append(t.name)
+    if not names:
+        return ["default"]
+    return names
+
+
+def emit_sitemap(
+    frameset: FrameSetDocument,
+    base_url: str,
+    *,
+    target_filter: list[str] | None = None,
+) -> str:
+    """Emit a `sitemap.xml` for a FrameSet's link graph.
+
+    Phase 4 of ADR 0001. The link graph **is** the sitemap: every
+    Frame contributes one URL per render target it declares. URLs
+    follow the path-style pattern::
+
+        <base_url>/<target>/<frame_id>
+
+    The output is a `<urlset>` document conforming to the sitemap.org
+    0.9 schema (``http://www.sitemaps.org/schemas/sitemap/0.9``). It
+    is deterministic: Frames walk in declaration order, targets walk
+    in their per-Frame resolution order (per-Frame `targets:` first,
+    then FrameSet defaults). Frame ids and base-URL path components
+    are URL-escaped via `urllib.parse.quote` so reserved characters
+    (`?`, `#`, spaces) don't corrupt the URL.
+
+    Args:
+        frameset: A validated `FrameSetDocument`.
+        base_url: Site root, with or without a trailing slash. May
+            include a path prefix (e.g. ``https://example.com/docs``).
+            The scheme is preserved verbatim; only the path tail is
+            normalised.
+        target_filter: Optional allow-list of target names. When
+            given, only URLs whose target name matches an entry in
+            this list are emitted. When None (default), every
+            (Frame × declared target) pair contributes one URL.
+
+    Returns:
+        The sitemap as an XML string, including the
+        `<?xml version="1.0" encoding="UTF-8"?>` prolog. Suitable for
+        writing to ``sitemap.xml`` and serving from a static host.
+
+    Raises:
+        ValueError: If `base_url` is empty or has no scheme/host
+            component (i.e. is not parseable as a URL prefix).
+    """
+    import xml.etree.ElementTree as ET
+    from urllib.parse import quote, urlparse
+
+    if not base_url or not base_url.strip():
+        raise ValueError("base_url must be a non-empty URL prefix")
+    parsed = urlparse(base_url)
+    if not parsed.scheme or not parsed.netloc:
+        raise ValueError(
+            f"base_url {base_url!r} is not a valid URL prefix; "
+            "expected something like 'https://example.com' or "
+            "'https://example.com/docs'"
+        )
+
+    prefix = base_url.rstrip("/")
+    allow: set[str] | None = set(target_filter) if target_filter is not None else None
+
+    SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
+    ET.register_namespace("", SITEMAP_NS)
+    urlset = ET.Element(f"{{{SITEMAP_NS}}}urlset")
+
+    for frame in frameset.frames:
+        for target_name in _frame_target_names(frame, frameset):
+            if allow is not None and target_name not in allow:
+                continue
+            # `quote` with default safe="/" preserves path
+            # separators inside frame ids (rare but legal) while
+            # escaping spaces, '#', '?', etc. We pass empty `safe`
+            # because frame ids and target names are single path
+            # segments — any '/' inside them is data, not a separator.
+            url_path = (
+                f"{prefix}/"
+                f"{quote(target_name, safe='')}/"
+                f"{quote(frame.id, safe='')}"
+            )
+            url_el = ET.SubElement(urlset, f"{{{SITEMAP_NS}}}url")
+            loc_el = ET.SubElement(url_el, f"{{{SITEMAP_NS}}}loc")
+            loc_el.text = url_path
+
+    ET.indent(urlset, space="  ")
+    body = ET.tostring(urlset, encoding="unicode")
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + body + "\n"
+
+
 __all__ = [
     "Frame",
     "FrameLink",
@@ -1013,9 +1336,13 @@ __all__ = [
     "FrameSetDocument",
     "FrameSetMeta",
     "FrameTarget",
+    "FrameTargetAdjustments",
     "RenderedFrame",
+    "apply_target_adjustments",
     "build_frame_doc",
     "coerce_to_frameset",
+    "emit_sitemap",
+    "list_frameset_target_union",
     "project_frame_to_document",
     "render_frameset",
     "validate_frameset",
