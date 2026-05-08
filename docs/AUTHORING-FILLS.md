@@ -1,0 +1,304 @@
+---
+disclaimer:
+  notice: >-
+    No information within this document should be taken for granted.
+    Any statement or premise not backed by a real logical definition
+    or verifiable reference may be invalid, erroneous, or a hallucination.
+  generated_by: "Claude Opus 4.7 via Claude Code"
+  date: "2026-05-07"
+---
+
+# Authoring fills and sidecars
+
+This guide explains how to fill a slide-template pattern with
+content and how to author a sidecar when the default schema isn't
+expressive enough.
+
+## Concepts
+
+| | |
+|---|---|
+| **Pattern** | A named slide template in the bundled catalog (`static/refs/slides-patter-a.yml`). 375 of them, ids 1–375. Each declares zones (named regions) with size, placement, optional shape, and a `content_type`. |
+| **Fill** | The content payload an author supplies — one entry per zone, keyed by role. Validated against the pattern's *effective* fill schema. |
+| **Default fill schema** | Auto-derived from each zone's `content_type` literal. Ten content types map to ten default Pydantic shapes (see [`framegraph.patterns.fill`](../framegraph/patterns/fill.py)). |
+| **Sidecar** | A YAML file at `static/refs/fills/<id>-<slug>.yml` that overrides the default schema for specific zones of one pattern. Used when richer content shapes are needed than the defaults provide. |
+| **Effective schema** | What you actually fill against: the default schema, with any sidecar overrides applied. Computed by `derive_fill_schema_with_sidecar(pattern, sidecar)`. |
+
+## Default content shapes
+
+Per [Phase 1](ROADMAP-FILL-RENDER.md#phase-1-fill-schema-foundation-xs):
+
+| `content_type` | Default Pydantic shape |
+|---|---|
+| `title_body` | `{title: str, body: str | None}` |
+| `metric` | `{label: str, value: str, trend: str | None}` |
+| `list_items` | `list[str]` |
+| `key_value` | `dict[str, str]` |
+| `comparison` | `{left: str, right: str}` |
+| `chart_data` | `{type: str, series: list[dict]}` |
+| `table_data` | `{headers: list[str], rows: list[list[str]]}` |
+| `image` | `{src: str, alt: str | None}` |
+| `axis_label` | `{title: str, units: str | None}` |
+| `decorative` | `None` |
+
+`value` is typed as a string so authors pass formatted numbers
+("$2.4M", "+12%") without coercion. Numeric typing belongs in
+sidecars when pattern-specific.
+
+## When to author a sidecar
+
+Add a sidecar **only when**:
+
+1. **Richer content per zone** than the default offers.
+   *Example*: BMC's `revenue_streams` should be
+   `list[{label, metric}]`, not `list[str]`.
+2. **A representative example** would help agents understand the
+   pattern. The schema may match the default, but the sidecar's
+   `example_fill` shows what good content looks like.
+
+A pattern with no sidecar uses the default schema for every zone.
+
+## Filename convention
+
+```
+<id_zero_padded>-<slug>.yml
+```
+
+Examples:
+
+```
+010-swot-analysis.yml
+044-business-model-canvas.yml
+198-regulatory-compliance-matrix.yml
+```
+
+The 3-digit zero-padded id keeps `ls` sorted; the slug is the
+catalog name lowercased, spaces → hyphens, punctuation removed.
+
+## Sidecar mini-DSL (Phase 2 v1)
+
+```yaml
+pattern_id: <int>           # required, must match catalog id
+
+zones:                      # zero or more per-zone overrides
+  <role>:
+    item_kind: object | string   # for list_items zones
+    item_fields:                  # required when item_kind == object
+      <field_name>:
+        type: string              # only `string` supported in v1
+        required: true | false
+
+example_fill:               # optional but recommended
+  <role>: <fill content>
+```
+
+Phase 2 supports overriding `list_items` zones with object items
+(BMC's revenue_streams shape). Other content types accept the
+default-derived shape; richer overrides for them are deferred to
+later phases.
+
+## Worked examples
+
+### Example 1 — Simple (no overrides): SWOT Analysis (#10)
+
+[`static/refs/fills/010-swot-analysis.yml`](../static/refs/fills/010-swot-analysis.yml)
+
+SWOT has four `list_items` zones — one per quadrant. The default
+`list[str]` shape is exactly right; the sidecar exists only to
+ship a representative `example_fill`.
+
+```yaml
+pattern_id: 10
+zones: {}   # all four zones use defaults
+example_fill:
+  strengths:
+    - "Strong brand recognition in target segment"
+    - "Proprietary data moat from 5+ years of usage"
+  weaknesses:
+    - "Mobile experience lags competitors"
+  opportunities:
+    - "Adjacent vertical with similar pain point"
+  threats:
+    - "Two well-funded entrants targeting our segment"
+```
+
+**Use the CLI:**
+
+```sh
+# Author your fill in a YAML file:
+cat > swot.yml <<EOF
+strengths: ["Brand", "Team"]
+weaknesses: ["Mobile UX"]
+opportunities: ["AI"]
+threats: ["Macro"]
+EOF
+
+framegraph patterns build 10 --fill swot.yml -o swot.svg
+```
+
+### Example 2 — Medium (defaults + example_fill): Communications Plan (#91)
+
+[`static/refs/fills/091-communications-plan.yml`](../static/refs/fills/091-communications-plan.yml)
+
+This is a member of the 17-pattern comparison-table family — left
+column is `list_items` (audience labels); the next 3 columns are
+`table_data` (each headers + rows). All four zones use defaults;
+the sidecar's value is purely the example_fill that shows how
+the four zones compose into one coherent communications plan.
+
+```yaml
+pattern_id: 91
+zones: {}
+example_fill:
+  audiences:
+    - Executive sponsors
+    - Department heads
+    - Frontline employees
+    - External partners
+  key_messages:
+    headers: [Audience, Core message]
+    rows:
+      - [Execs, "Why we're transforming and what success looks like"]
+      - [Dept heads, "How responsibilities shift in your function"]
+      ...
+  channels_frequency:
+    headers: [Channel, Frequency]
+    rows:
+      - [All-hands, Monthly]
+      - [Manager cascade, "Weekly during cutover"]
+      ...
+  owner_timing:
+    headers: [Owner, Timing]
+    rows: [[CEO + CFO, Kickoff], [Function leads, "Weeks 1-4"]]
+```
+
+### Example 3 — Complex (real overrides): Business Model Canvas (#44)
+
+[`static/refs/fills/044-business-model-canvas.yml`](../static/refs/fills/044-business-model-canvas.yml)
+
+BMC has 9 `list_items` zones. Seven are short-bullet lists
+(default `list[str]`); two — `revenue_streams` and `cost_structure`
+— hold **named amounts**. The default `list[str]` would force
+authors to write "Subscriptions: $2.4M" as a single string,
+losing the structured shape. The sidecar overrides those two
+zones to `list[{label, metric}]`.
+
+```yaml
+pattern_id: 44
+
+zones:
+  revenue_streams:
+    item_kind: object
+    item_fields:
+      label:
+        type: string
+        required: true
+      metric:
+        type: string
+        required: true
+
+  cost_structure:
+    item_kind: object
+    item_fields:
+      label:
+        type: string
+        required: true
+      metric:
+        type: string
+        required: true
+
+example_fill:
+  key_partners:
+    - "Cloud infrastructure provider"
+    - "Logistics network"
+  ...
+  revenue_streams:
+    - {label: "Subscription tiers",   metric: "$12.6M"}
+    - {label: "Transaction fees",     metric: "$4.8M"}
+    - {label: "Enterprise contracts", metric: "$7.0M"}
+  cost_structure:
+    - {label: "Engineering and product", metric: "$8.4M"}
+    ...
+```
+
+**Use the CLI:**
+
+```sh
+framegraph patterns build 44 --fill bmc-content.yml -o bmc.svg
+# wrote bmc.svg  (9.0 KB)
+```
+
+The renderer will pick up the sidecar automatically (it looks for
+`fills/044-*.yml`); the fill YAML the author writes only needs the
+top-level role keys.
+
+## Validation
+
+Before committing a sidecar:
+
+```sh
+python3 scripts/validate_fills.py
+```
+
+The script:
+1. Parses every `*.yml` in `static/refs/fills/`.
+2. Resolves the corresponding pattern from the bundled catalog.
+3. Builds the effective schema.
+4. Validates the `example_fill` against the schema.
+
+Fails loudly if any sidecar is malformed or its example doesn't
+match its declared shape.
+
+## Discovering pattern shapes
+
+To see a pattern's zones and their content_types:
+
+```sh
+framegraph patterns show 44
+```
+
+Output includes the role, content_type, size, and placement of
+every zone — enough for an agent to construct a fill payload
+without reading source.
+
+To list all patterns by category:
+
+```sh
+framegraph patterns list --category=consulting
+```
+
+## Authoring guidance
+
+| Situation | Default shape works? | Sidecar needed? |
+|---|---|---|
+| List of bullet points | Yes (`list[str]`) | Maybe — only for example_fill |
+| Single number with label | Yes (`metric` default) | No |
+| List of `{label, metric}` items | No — defaults give `list[str]` | Yes (override `item_kind: object`) |
+| Comparison "before / after" | Yes (`comparison` default) | Maybe — for example_fill |
+| Heatmap / matrix table | Yes (`table_data` default) | Maybe — for example_fill |
+| Custom field types (numeric, enums) | No | Phase 7+ — sidecars don't yet support these |
+
+## What's *not* yet supported
+
+- **Numeric / enum / nested object types** in `item_fields`. v1 only
+  supports `type: string`. Phase 7+ will widen this.
+- **Optional zones**. Phase 1 treats every zone as required;
+  patterns with conditionally-rendered zones are a future concern.
+- **Cross-zone validation** (e.g. "revenue_streams entries ≤
+  cost_structure entries"). Manual today.
+- **Theming / brand tokens applied at fill time**. The renderer's
+  Tokens layer handles theming separately; sidecars are about
+  content shape, not visual style.
+
+## See also
+
+- [`docs/ROADMAP-FILL-RENDER.md`](ROADMAP-FILL-RENDER.md) — the full
+  six-phase roadmap.
+- [`framegraph/patterns/fill.py`](../framegraph/patterns/fill.py) — Phase 1
+  default-schema implementation.
+- [`framegraph/patterns/sidecar.py`](../framegraph/patterns/sidecar.py) —
+  Phase 2 sidecar loader and effective-schema builder.
+- [`framegraph/patterns/render.py`](../framegraph/patterns/render.py) —
+  Phase 4 pattern-to-SVG renderer bridge.
+- [`static/refs/fills/`](../static/refs/fills/) — the 17 shipped
+  sidecars.
