@@ -13,8 +13,12 @@ Usage
     framegraph patterns show <id>
     framegraph patterns example <id> [-o fill.yml] [--format=yaml|json]
     framegraph patterns build <id> --fill content.yml [-o out.svg]
-                                    [--theme=<name>] [--stylesheet=<name>]
+                                   [--canvas-w N] [--canvas-h N]
+    framegraph patterns deck [-o output_dir/] [--ids=10,44,91]
+                             [--category=consulting] [--pdf [--vector]]
     framegraph version
+
+Agent-oriented quick reference: see `AGENTS.md` at the repo root.
 
 The framework's primary surface is `framegraph deck`, which consumes
 deck.yml files where each slide can be a one-liner pattern reference:
@@ -25,8 +29,9 @@ deck.yml files where each slide can be a one-liner pattern reference:
 
 The deck-level `$theme:` and `stylesheet:` declarations bind every
 slide into one coherent visual identity. `patterns build` is the
-debug entry point for inspecting one pattern in isolation; in a
-real authoring workflow, use the deck pipeline.
+debug entry point for inspecting one pattern in isolation;
+`patterns deck` renders every sidecared pattern's curated example
+in one shot — useful for a smoke check or a corpus walk-through.
 
 PDF backends
 ------------
@@ -45,8 +50,12 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import yaml
+
+if TYPE_CHECKING:
+    from PIL import Image as PILImage
 
 
 def cmd_render(args: argparse.Namespace) -> int:
@@ -114,10 +123,7 @@ def cmd_render(args: argparse.Namespace) -> int:
             return 1
         if not args.quiet:
             mode = "vector" if vector else f"raster {getattr(args, 'dpi', 300)} DPI"
-            print(
-                f"wrote {pdf_out}  "
-                f"({pdf_out.stat().st_size / 1024:.1f} KB, {mode})"
-            )
+            print(f"wrote {pdf_out}  ({pdf_out.stat().st_size / 1024:.1f} KB, {mode})")
     return 0
 
 
@@ -171,9 +177,7 @@ def _svg_canvas_size(svg: str) -> tuple[float, float]:
     return 960.0, 540.0
 
 
-def _svg_to_raster_pdf_page(
-    svg: str, *, dpi: int
-) -> "PILImage.Image":  # type: ignore[name-defined]
+def _svg_to_raster_pdf_page(svg: str, *, dpi: int) -> PILImage.Image:
     """Rasterize an SVG to a Pillow image sized for a `dpi`-DPI PDF page.
 
     Why rasterize instead of svg2pdf:
@@ -390,10 +394,7 @@ def _write_deck_pdf(
         return True
 
     # Raster path
-    pages = [
-        _svg_to_raster_pdf_page(p.read_text(encoding="utf-8"), dpi=dpi)
-        for p in svg_paths
-    ]
+    pages = [_svg_to_raster_pdf_page(p.read_text(encoding="utf-8"), dpi=dpi) for p in svg_paths]
     first, rest = pages[0], pages[1:]
     first.save(
         str(out),
@@ -494,10 +495,7 @@ def cmd_deck(args: argparse.Namespace) -> int:
             fits = v.get("fits", True)
             overflows = v.get("overflows") or []
             tag = "OK" if fits else "OVERFLOW"
-            print(
-                f"   slide {slide_num:>2}  {slide_id:<28}  "
-                f"scale={scale:>4}  {tag}"
-            )
+            print(f"   slide {slide_num:>2}  {slide_id:<28}  scale={scale:>4}  {tag}")
             if slide_title:
                 print(f"        title: {slide_title}")
             for ov in overflows:
@@ -557,6 +555,52 @@ def _find_sidecar(pattern_id: int) -> Path | None:
         return None
     matches = sorted(fills_dir.glob(f"{pattern_id:03d}-*.yml"))
     return matches[0] if matches else None
+
+
+def _sidecar_slug(sidecar_path: Path) -> str:
+    """Extract the catalog slug from a sidecar filename.
+
+    `static/refs/fills/010-swot-analysis.yml` → `"swot-analysis"`. Used
+    by `patterns deck` to name per-pattern outputs predictably.
+    """
+    return sidecar_path.stem.split("-", 1)[1] if "-" in sidecar_path.stem else sidecar_path.stem
+
+
+def _build_pattern_svg(
+    pattern_id: int,
+    fill_payload: dict[str, Any],
+    *,
+    canvas_w: float = 1920.0,
+    canvas_h: float = 1080.0,
+) -> str:
+    """Validate `fill_payload` against the pattern's effective schema and render to SVG.
+
+    Used by both `patterns build` (single pattern) and `patterns deck`
+    (every sidecared pattern). Raises `KeyError` when the pattern id
+    is not in the catalog, `pydantic.ValidationError` when the fill
+    fails the effective schema, and `Exception` from the render core
+    otherwise — callers translate these into CLI exit codes.
+    """
+    from framegraph._patterns import load_pattern_catalog
+    from framegraph.patterns import (
+        compute_boxes,
+        derive_default_fill_schema,
+        derive_fill_schema_with_sidecar,
+        load_sidecar,
+        render_pattern_svg,
+    )
+
+    catalog = load_pattern_catalog()
+    pattern = catalog.get(pattern_id)
+    sidecar_path = _find_sidecar(pattern.id)
+    if sidecar_path is not None:
+        sidecar = load_sidecar(sidecar_path)
+        Model = derive_fill_schema_with_sidecar(pattern, sidecar)
+    else:
+        Model = derive_default_fill_schema(pattern)
+    fill = Model.model_validate(fill_payload)
+    layout = compute_boxes(pattern, canvas_w, canvas_h)
+    return render_pattern_svg(pattern, fill, layout, canvas_w, canvas_h)
 
 
 def cmd_patterns_list(args: argparse.Namespace) -> int:
@@ -648,7 +692,7 @@ def cmd_patterns_show(args: argparse.Namespace) -> int:
     print("Zones (role: content_type, size, placement):")
     for z in p.zones:
         place_repr: str
-        from framegraph._patterns import Anchor, RegionPlacement, RelativePlacement
+        from framegraph._patterns import Anchor, RegionPlacement
 
         if isinstance(z.placement, Anchor):
             if z.placement.fullbleed:
@@ -723,18 +767,13 @@ def cmd_patterns_example(args: argparse.Namespace) -> int:
     if fmt == "json":
         rendered = json.dumps(sidecar.example_fill, indent=2, ensure_ascii=False)
     else:
-        rendered = yaml.safe_dump(
-            sidecar.example_fill, sort_keys=False, allow_unicode=True
-        )
+        rendered = yaml.safe_dump(sidecar.example_fill, sort_keys=False, allow_unicode=True)
 
     if args.output:
         out = Path(args.output)
         out.write_text(rendered, encoding="utf-8")
         if not getattr(args, "quiet", False):
-            print(
-                f"wrote {out}  ({out.stat().st_size / 1024:.1f} KB, "
-                f"source: {sidecar_path.name})"
-            )
+            print(f"wrote {out}  ({out.stat().st_size / 1024:.1f} KB, source: {sidecar_path.name})")
     else:
         sys.stdout.write(rendered)
         if fmt == "json":
@@ -760,25 +799,6 @@ def cmd_patterns_build(args: argparse.Namespace) -> int:
     """
     from pydantic import ValidationError
 
-    from framegraph._patterns import load_pattern_catalog
-    from framegraph.patterns import (
-        compute_boxes,
-        derive_default_fill_schema,
-        derive_fill_schema_with_sidecar,
-        load_sidecar,
-        render_pattern_svg,
-    )
-
-    catalog = load_pattern_catalog()
-    try:
-        pattern = catalog.get(args.pattern_id)
-    except KeyError:
-        print(
-            f"ERROR: pattern id {args.pattern_id} not found in catalog",
-            file=sys.stderr,
-        )
-        return 1
-
     fill_path = Path(args.fill)
     if not fill_path.exists():
         print(f"ERROR: fill file not found: {fill_path}", file=sys.stderr)
@@ -789,26 +809,19 @@ def cmd_patterns_build(args: argparse.Namespace) -> int:
         print(f"ERROR: could not parse fill YAML: {exc}", file=sys.stderr)
         return 1
 
-    sidecar_path = _find_sidecar(pattern.id)
-    try:
-        if sidecar_path is not None:
-            sidecar = load_sidecar(sidecar_path)
-            Model = derive_fill_schema_with_sidecar(pattern, sidecar)
-        else:
-            Model = derive_default_fill_schema(pattern)
-        fill = Model.model_validate(payload)
-    except ValidationError as exc:
-        print(f"ERROR: fill validation failed:\n{exc}", file=sys.stderr)
-        return 1
-    except Exception as exc:
-        print(f"ERROR: could not build fill schema: {exc}", file=sys.stderr)
-        return 1
-
     canvas_w = float(args.canvas_w)
     canvas_h = float(args.canvas_h)
     try:
-        layout = compute_boxes(pattern, canvas_w, canvas_h)
-        svg = render_pattern_svg(pattern, fill, layout, canvas_w, canvas_h)
+        svg = _build_pattern_svg(args.pattern_id, payload, canvas_w=canvas_w, canvas_h=canvas_h)
+    except KeyError:
+        print(
+            f"ERROR: pattern id {args.pattern_id} not found in catalog",
+            file=sys.stderr,
+        )
+        return 1
+    except ValidationError as exc:
+        print(f"ERROR: fill validation failed:\n{exc}", file=sys.stderr)
+        return 1
     except Exception as exc:
         print(f"ERROR: render failed: {exc}", file=sys.stderr)
         return 1
@@ -825,6 +838,164 @@ def cmd_patterns_build(args: argparse.Namespace) -> int:
         sys.stdout.write(svg)
         if not svg.endswith("\n"):
             sys.stdout.write("\n")
+    return 0
+
+
+def cmd_patterns_deck(args: argparse.Namespace) -> int:
+    """Handle `framegraph patterns deck` — render every sidecared pattern's example to SVG.
+
+    For each pattern that ships a sidecar with an ``example_fill``,
+    validate that fill against the pattern's effective schema and
+    render to SVG. Per-pattern fill payloads are also persisted so
+    an agent can audit / fork them. With ``--pdf``, the SVGs are
+    assembled into a single multi-page PDF.
+
+    Output layout in ``args.output`` (default ``./patterns-deck``)::
+
+        patterns-deck/
+          svgs/<pid_padded>-<slug>.svg
+          fills/<pid_padded>-<slug>.fill.yml
+          patterns-deck.pdf      # only when --pdf is passed
+
+    Args:
+        args: Parsed namespace. Optional: ``args.output`` (output
+            directory; default ``./patterns-deck``), ``args.category``
+            (filter to one of generic / consulting / expert),
+            ``args.ids`` (comma-separated id allow-list),
+            ``args.canvas_w`` / ``args.canvas_h`` (canvas size in
+            pixels; default 1920 × 1080), ``args.pdf`` (also write
+            multi-page PDF), ``args.vector`` (use weasyprint vector
+            backend), ``args.dpi`` (raster DPI when ``--pdf``
+            without ``--vector``; default 300), ``args.quiet``.
+
+    Returns:
+        Process exit code 0 on success, 1 if no patterns match the
+        filters or if any pattern fails to validate / render.
+    """
+    from pydantic import ValidationError
+
+    from framegraph._patterns import load_pattern_catalog
+    from framegraph.patterns import load_sidecar
+
+    catalog = load_pattern_catalog()
+    rows = catalog.slide_template_patterns
+    if args.category:
+        rows = [p for p in rows if p.category == args.category]
+
+    id_filter: set[int] | None = None
+    if args.ids:
+        try:
+            id_filter = {int(s.strip()) for s in args.ids.split(",") if s.strip()}
+        except ValueError:
+            print(
+                f"ERROR: --ids expects a comma-separated list of integers, got {args.ids!r}",
+                file=sys.stderr,
+            )
+            return 1
+        rows = [p for p in rows if p.id in id_filter]
+
+    # Restrict to patterns that ship a sidecar with example_fill — that's
+    # the contract of this command. Filling a non-sidecared pattern
+    # belongs to `patterns build` with a hand-authored fill.
+    sidecared = [(p, _find_sidecar(p.id)) for p in rows]
+    sidecared = [(p, sp) for (p, sp) in sidecared if sp is not None]
+    if not sidecared:
+        print(
+            "ERROR: no sidecared patterns matched the filter. "
+            "Run `framegraph patterns list --has-sidecar` to see what's available.",
+            file=sys.stderr,
+        )
+        return 1
+
+    out_dir = Path(args.output) if args.output else Path("patterns-deck")
+    svgs_dir = out_dir / "svgs"
+    fills_dir = out_dir / "fills"
+    svgs_dir.mkdir(parents=True, exist_ok=True)
+    fills_dir.mkdir(parents=True, exist_ok=True)
+
+    canvas_w = float(args.canvas_w)
+    canvas_h = float(args.canvas_h)
+
+    if not args.quiet:
+        print(f"Rendering {len(sidecared)} pattern(s) → {out_dir}", file=sys.stderr)
+
+    svg_paths: list[Path] = []
+    for pattern, sidecar_path in sidecared:
+        slug = _sidecar_slug(sidecar_path)
+        sidecar = load_sidecar(sidecar_path)
+        if not sidecar.example_fill:
+            print(
+                f"  skip pattern {pattern.id:>4} ({pattern.name}): "
+                f"sidecar {sidecar_path.name} has no example_fill",
+                file=sys.stderr,
+            )
+            continue
+
+        # Persist the flat fill payload for audit / forking.
+        fill_out = fills_dir / f"{pattern.id:03d}-{slug}.fill.yml"
+        fill_out.write_text(
+            yaml.safe_dump(sidecar.example_fill, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+
+        try:
+            svg = _build_pattern_svg(
+                pattern.id,
+                dict(sidecar.example_fill),
+                canvas_w=canvas_w,
+                canvas_h=canvas_h,
+            )
+        except ValidationError as exc:
+            print(
+                f"ERROR: pattern {pattern.id} ({pattern.name}) example fill "
+                f"failed validation:\n{exc}",
+                file=sys.stderr,
+            )
+            return 1
+        except Exception as exc:
+            print(
+                f"ERROR: pattern {pattern.id} ({pattern.name}) render failed: {exc}",
+                file=sys.stderr,
+            )
+            return 1
+
+        svg_path = svgs_dir / f"{pattern.id:03d}-{slug}.svg"
+        svg_path.write_text(svg, encoding="utf-8")
+        svg_paths.append(svg_path)
+        if not args.quiet:
+            print(
+                f"  ✓ pattern {pattern.id:>4}  {pattern.name}  → {svg_path.name}",
+                file=sys.stderr,
+            )
+
+    if not svg_paths:
+        print(
+            "ERROR: no patterns were rendered (every match had an empty example_fill).",
+            file=sys.stderr,
+        )
+        return 1
+
+    if getattr(args, "pdf", False):
+        pdf_out = out_dir / "patterns-deck.pdf"
+        try:
+            _write_deck_pdf(
+                svg_paths,
+                pdf_out,
+                dpi=getattr(args, "dpi", 300),
+                vector=getattr(args, "vector", False),
+            )
+        except Exception as exc:
+            print(f"ERROR: writing PDF failed: {exc}", file=sys.stderr)
+            return 1
+        if not args.quiet:
+            mode = "vector" if getattr(args, "vector", False) else f"raster {args.dpi} DPI"
+            print(
+                f"wrote {pdf_out}  "
+                f"({pdf_out.stat().st_size / 1024:.1f} KB, "
+                f"{len(svg_paths)} pages, {mode})",
+                file=sys.stderr,
+            )
+
     return 0
 
 
@@ -847,7 +1018,14 @@ def build_parser() -> argparse.ArgumentParser:
     """
     p = argparse.ArgumentParser(
         prog="framegraph",
-        description="FrameGraph YAML → SVG renderer",
+        description=(
+            "FrameGraph — YAML-first presentation and diagram generator. "
+            "Render single documents (`render`), multi-slide decks (`deck`), "
+            "or curated slide-pattern examples (`patterns`). Run "
+            "`framegraph docs -o catalog.json` for a machine-readable API "
+            "catalog (LLM-agent-friendly). See AGENTS.md at the repo root "
+            "for end-to-end agent workflows."
+        ),
     )
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -879,7 +1057,7 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Use the weasyprint vector backend for --pdf output: selectable / "
             "searchable text, smaller files, no DPI needed. Requires the "
-            "[pdf-vector] extra: pip install \"framegraph[pdf-vector]\""
+            '[pdf-vector] extra: pip install "framegraph[pdf-vector]"'
         ),
     )
     rp.add_argument(
@@ -890,7 +1068,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     # deck
-    dp = sub.add_parser("deck", help="Render a multi-slide deck.yml to per-slide SVGs")
+    dp = sub.add_parser(
+        "deck",
+        help=(
+            "Render a multi-slide deck.yml to per-slide SVGs. Each slide can be "
+            "a verbose visual block OR a one-liner pattern reference "
+            "(`use: <id>` + `fill: {role: content}`) — the primary "
+            "AI-agent authoring surface."
+        ),
+    )
     dp.add_argument("input", help="Input deck YAML file")
     dp.add_argument("-o", "--output", help="Output directory (default: ./output)")
     dp.add_argument("--lib", help="Path to lib/ token directory")
@@ -929,7 +1115,12 @@ def build_parser() -> argparse.ArgumentParser:
     # docs
     docs_p = sub.add_parser(
         "docs",
-        help="Emit the machine-readable API catalog as JSON (for LLM agents)",
+        help=(
+            "Emit a machine-readable JSON catalog of the public Python API "
+            "(modules, classes, signatures, docstrings, Pydantic JSON schemas). "
+            "Designed for LLM-agent consumption — feed it into a planner or "
+            "use it to ground tool-use reasoning."
+        ),
     )
     docs_p.add_argument(
         "-o",
@@ -1020,6 +1211,67 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pb.add_argument("--quiet", action="store_true", help="Suppress progress output")
 
+    # patterns deck
+    pd = pp_sub.add_parser(
+        "deck",
+        help=(
+            "Render every sidecared pattern's example_fill into per-pattern SVGs "
+            "(plus optional multi-page PDF). End-to-end smoke check of the "
+            "patterns surface."
+        ),
+    )
+    pd.add_argument(
+        "-o",
+        "--output",
+        help="Output directory (default: ./patterns-deck)",
+    )
+    pd.add_argument(
+        "--category",
+        choices=["generic", "consulting", "expert"],
+        help="Filter patterns by catalog category",
+    )
+    pd.add_argument(
+        "--ids",
+        help="Comma-separated pattern id allow-list, e.g. --ids=10,44,91",
+    )
+    pd.add_argument(
+        "--canvas-w",
+        dest="canvas_w",
+        type=float,
+        default=1920.0,
+        help="Canvas width in pixels (default: 1920)",
+    )
+    pd.add_argument(
+        "--canvas-h",
+        dest="canvas_h",
+        type=float,
+        default=1080.0,
+        help="Canvas height in pixels (default: 1080)",
+    )
+    pd.add_argument(
+        "--pdf",
+        action="store_true",
+        help=(
+            "Also assemble a multi-page PDF (patterns-deck.pdf) from the rendered "
+            "SVGs. Default backend rasterizes at --dpi (requires the [pdf] extra)."
+        ),
+    )
+    pd.add_argument(
+        "--vector",
+        action="store_true",
+        help=(
+            "Use the weasyprint vector backend for --pdf output: selectable / "
+            "searchable text. Requires the [pdf-vector] extra."
+        ),
+    )
+    pd.add_argument(
+        "--dpi",
+        type=int,
+        default=300,
+        help="Rasterization DPI for --pdf output (default: 300; ignored with --vector)",
+    )
+    pd.add_argument("--quiet", action="store_true", help="Suppress progress output")
+
     # version
     sub.add_parser("version", help="Print version and exit")
 
@@ -1046,6 +1298,7 @@ def main(argv: list[str] | None = None) -> int:
             "show": cmd_patterns_show,
             "example": cmd_patterns_example,
             "build": cmd_patterns_build,
+            "deck": cmd_patterns_deck,
         }
         return patterns_dispatch[args.patterns_subcommand](args)
     dispatch = {

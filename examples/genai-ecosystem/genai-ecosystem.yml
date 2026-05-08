@@ -1,0 +1,264 @@
+dsl: FrameGraph
+version: 1.5
+kind: hybrid-semantic-visual-diagram
+
+# ─────────────────────────────────────────────────────────────────────────
+# The Generative AI Ecosystem
+# A bespoke single-slide hub-and-spoke diagram. Demonstrates the lower-level
+# visual surface (`visual.layers.objects`) — for slides composed from a
+# catalog pattern, see `framegraph deck` with `use:` + `fill:` instead.
+# ─────────────────────────────────────────────────────────────────────────
+
+scene:
+  id: genai_ecosystem
+  name: "The Generative AI Ecosystem"
+  description: "Hub-and-spoke view: GenAI sits at the center, mediating interacting agents and a connected ecosystem, with five canonical use-case lanes below."
+  canvas:
+    size: [1280, 720]
+    units: px
+  rendering_contract:
+    coordinate_mode: absolute
+    preserve_manual_line_breaks: true
+    text:
+      min_font_size: 9
+      overflow: shrink_to_fit
+    semantics:
+      decorative_objects_may_omit_bind: true
+
+semantic:
+  ontology:
+    node_types:
+      pillar:    {description: "Top-level pillar (Interacting Agents, Connected Ecosystem)"}
+      agent:     {description: "An actor that interacts with GenAI"}
+      hub:       {description: "The central GenAI hub"}
+      use_case:  {description: "One of the canonical GenAI use-case lanes"}
+    edge_types:
+      mediates:  {description: "GenAI mediates between two pillars or use-cases"}
+  nodes:
+    - {id: hub_genai,        type: hub}
+    - {id: pillar_agents,    type: pillar}
+    - {id: pillar_ecosystem, type: pillar}
+    - {id: uc_automate,      type: use_case}
+    - {id: uc_general,       type: use_case}
+    - {id: uc_media,         type: use_case}
+    - {id: uc_agentic,       type: use_case}
+    - {id: uc_content,       type: use_case}
+  edges:
+    - {id: e1, type: mediates, from: hub_genai, to: pillar_agents}
+    - {id: e2, type: mediates, from: hub_genai, to: pillar_ecosystem}
+    - {id: e3, type: mediates, from: hub_genai, to: uc_automate}
+    - {id: e4, type: mediates, from: hub_genai, to: uc_general}
+    - {id: e5, type: mediates, from: hub_genai, to: uc_media}
+    - {id: e6, type: mediates, from: hub_genai, to: uc_agentic}
+    - {id: e7, type: mediates, from: hub_genai, to: uc_content}
+
+visual:
+  tokens:
+    colors:
+      page_bg:      "#FFFFFF"
+      ink:          "#0F172A"
+      ink_muted:    "#475569"
+      brand:        "#2563EB"   # primary blue (hub fill, accent)
+      brand_soft:   "#EBF1FE"   # light blue (highlighted use-case)
+      panel_bg:     "#F5F7FA"   # gray-blue panel fill
+      card_bg:      "#FFFFFF"
+      card_stroke:  "#D6DBE0"   # pale gray stroke for cards
+      hub_text:     "#FFFFFF"
+      navy:         "#0F1A2B"   # solid dark for the "Content" card
+      connector:    "#C9CED5"   # dashed connector tint
+
+    fonts:
+      primary: "Helvetica, Arial, sans-serif"
+
+    text_styles:
+      title:        {font: primary, size: 32, weight: 700, color: ink,        align: left,   v_align: top}
+      panel_head:   {font: primary, size: 13, weight: 400, color: ink_muted,  align: left,   v_align: top}
+      card_label:   {font: primary, size: 13, weight: 400, color: ink,        align: center, v_align: middle, wrap: true}
+      card_label_b: {font: primary, size: 13, weight: 700, color: brand,      align: center, v_align: middle, wrap: true}
+      hub_label:    {font: primary, size: 22, weight: 700, color: hub_text,   align: center, v_align: middle}
+      uc_label:     {font: primary, size: 14, weight: 700, color: ink,        align: center, v_align: middle, wrap: true}
+      uc_label_b:   {font: primary, size: 14, weight: 700, color: brand,      align: center, v_align: middle, wrap: true}
+      uc_label_w:   {font: primary, size: 14, weight: 700, color: hub_text,   align: center, v_align: middle, wrap: true}
+
+    stroke_styles:
+      connector_dashed: {color: connector, width: 1.25, dash: [4, 4]}
+      card_thin:        {color: card_stroke, width: 1.0}
+      hub_brand:        {color: brand, width: 1.5}
+
+  layers:
+    # ── 0. Page background ────────────────────────────────────────────────
+    - id: bg
+      z: 0
+      objects:
+        - {type: rect, id: page, decorative: true, box: [0, 0, 1280, 720], fill: page_bg}
+
+    # ── 1. Connectors (drawn beneath cards so they tuck under each box) ──
+    - id: connectors
+      z: 1
+      objects:
+        # Hub ↔ left and right pillars (horizontal dashed)
+        - type: line
+          id: c_left_pillar
+          decorative: true
+          from: [460, 305]
+          to:   [560, 305]
+          stroke_style: connector_dashed
+        - type: line
+          id: c_right_pillar
+          decorative: true
+          from: [720, 305]
+          to:   [820, 305]
+          stroke_style: connector_dashed
+
+        # Hub ↔ five bottom use-case cards (downward fans)
+        - type: line
+          id: c_uc_automate
+          decorative: true
+          from: [620, 365]
+          to:   [190, 480]
+          stroke_style: connector_dashed
+        - type: line
+          id: c_uc_general
+          decorative: true
+          from: [630, 365]
+          to:   [430, 480]
+          stroke_style: connector_dashed
+        - type: line
+          id: c_uc_media
+          decorative: true
+          from: [640, 365]
+          to:   [670, 480]
+          stroke_style: connector_dashed
+        - type: line
+          id: c_uc_agentic
+          decorative: true
+          from: [650, 365]
+          to:   [910, 480]
+          stroke_style: connector_dashed
+        - type: line
+          id: c_uc_content
+          decorative: true
+          from: [660, 365]
+          to:   [1120, 480]
+          stroke_style: connector_dashed
+
+    # ── 2. Title + accent underline ──────────────────────────────────────
+    - id: title
+      z: 2
+      objects:
+        - type: text
+          id: t_title
+          decorative: true
+          text: "The Generative AI Ecosystem"
+          box: [80, 70, 900, 48]
+          style: title
+        - {type: rect, id: t_underline, decorative: true,
+           box: [80, 128, 56, 4], fill: brand, radius: 2}
+
+    # ── 3. Left pillar — Interacting Agents ──────────────────────────────
+    - id: left_pillar
+      z: 3
+      objects:
+        - {type: rect, id: lp_bg, bind: pillar_agents,
+           box: [80, 200, 380, 210], fill: panel_bg, radius: 8}
+        - type: text
+          id: lp_head
+          decorative: true
+          text: "Interacting Agents"
+          box: [100, 218, 340, 22]
+          style: panel_head
+
+        # Mini cards inside the pillar
+        - {type: rect, id: lp_humans_bg,  bind: pillar_agents,
+           box: [104, 248, 110, 42], fill: card_bg,
+           stroke: {color: card_stroke, width: 1.0}, radius: 6}
+        - {type: text, id: lp_humans_t,   decorative: true,
+           text: "Humans",  box: [104, 248, 110, 42], style: card_label}
+
+        - {type: rect, id: lp_systems_bg, bind: pillar_agents,
+           box: [222, 248, 110, 42], fill: card_bg,
+           stroke: {color: card_stroke, width: 1.0}, radius: 6}
+        - {type: text, id: lp_systems_t,  decorative: true,
+           text: "Systems", box: [222, 248, 110, 42], style: card_label}
+
+        # GenAI mini-card has the brand-colored border to echo the central hub.
+        - {type: rect, id: lp_genai_bg,   bind: pillar_agents,
+           box: [104, 308, 110, 42], fill: card_bg,
+           stroke: {color: brand, width: 1.5}, radius: 6}
+        - {type: text, id: lp_genai_t,    decorative: true,
+           text: "GenAI",  box: [104, 308, 110, 42], style: card_label_b}
+
+    # ── 4. Right pillar — Connected Ecosystem (mirror of left) ───────────
+    - id: right_pillar
+      z: 3
+      objects:
+        - {type: rect, id: rp_bg, bind: pillar_ecosystem,
+           box: [820, 200, 380, 210], fill: panel_bg, radius: 8}
+        - type: text
+          id: rp_head
+          decorative: true
+          text: "Connected Ecosystem"
+          box: [840, 218, 340, 22]
+          style: panel_head
+
+        - {type: rect, id: rp_humans_bg,  bind: pillar_ecosystem,
+           box: [844, 248, 110, 42], fill: card_bg,
+           stroke: {color: card_stroke, width: 1.0}, radius: 6}
+        - {type: text, id: rp_humans_t,   decorative: true,
+           text: "Humans",  box: [844, 248, 110, 42], style: card_label}
+
+        - {type: rect, id: rp_systems_bg, bind: pillar_ecosystem,
+           box: [962, 248, 110, 42], fill: card_bg,
+           stroke: {color: card_stroke, width: 1.0}, radius: 6}
+        - {type: text, id: rp_systems_t,  decorative: true,
+           text: "Systems", box: [962, 248, 110, 42], style: card_label}
+
+        - {type: rect, id: rp_genai_bg,   bind: pillar_ecosystem,
+           box: [844, 308, 110, 42], fill: card_bg,
+           stroke: {color: brand, width: 1.5}, radius: 6}
+        - {type: text, id: rp_genai_t,    decorative: true,
+           text: "GenAI",  box: [844, 308, 110, 42], style: card_label_b}
+
+    # ── 5. Central GenAI hub (filled blue) ──────────────────────────────
+    - id: hub
+      z: 4
+      objects:
+        - {type: rect, id: hub_bg, bind: hub_genai,
+           box: [540, 245, 180, 120], fill: brand, radius: 8}
+        - {type: text, id: hub_t,  decorative: true,
+           text: "GenAI", box: [540, 245, 180, 120], style: hub_label}
+
+    # ── 6. Bottom row — five canonical GenAI use-cases ───────────────────
+    - id: use_cases
+      z: 3
+      objects:
+        - {type: rect, id: uc1_bg, bind: uc_automate,
+           box: [80, 480, 220, 100], fill: card_bg,
+           stroke: {color: card_stroke, width: 1.0}, radius: 8}
+        - {type: text, id: uc1_t,  decorative: true,
+           text: "Automate Work",  box: [80, 480, 220, 100], style: uc_label}
+
+        - {type: rect, id: uc2_bg, bind: uc_general,
+           box: [320, 480, 220, 100], fill: card_bg,
+           stroke: {color: card_stroke, width: 1.0}, radius: 8}
+        - {type: text, id: uc2_t,  decorative: true,
+           text: "General Purpose\nAssistance", box: [320, 480, 220, 100], style: uc_label}
+
+        # "Media Creation" gets the highlighted soft-blue treatment + brand text.
+        - {type: rect, id: uc3_bg, bind: uc_media,
+           box: [560, 480, 220, 100], fill: brand_soft,
+           stroke: {color: brand, width: 1.0}, radius: 8}
+        - {type: text, id: uc3_t,  decorative: true,
+           text: "Media Creation", box: [560, 480, 220, 100], style: uc_label_b}
+
+        - {type: rect, id: uc4_bg, bind: uc_agentic,
+           box: [800, 480, 220, 100], fill: card_bg,
+           stroke: {color: card_stroke, width: 1.0}, radius: 8}
+        - {type: text, id: uc4_t,  decorative: true,
+           text: "Agentic Behavior", box: [800, 480, 220, 100], style: uc_label}
+
+        # "Content" is the dark navy filled card with white text.
+        - {type: rect, id: uc5_bg, bind: uc_content,
+           box: [1040, 480, 160, 100], fill: navy, radius: 8}
+        - {type: text, id: uc5_t,  decorative: true,
+           text: "Content", box: [1040, 480, 160, 100], style: uc_label_w}
