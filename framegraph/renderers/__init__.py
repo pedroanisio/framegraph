@@ -4,7 +4,7 @@ Each module exports a RENDERERS dict: {type_name: render_fn(r, obj) -> str}.
 FrameGraphRenderer.register(type_name, fn) adds custom types at runtime.
 """
 
-from . import charts, image, layout, lines, shapes, symbols, table, text_objects
+from . import charts, image, layout, lines, shapes, symbols, table, text_objects, uml
 
 # All built-in RENDERERS dicts in load order
-ALL_MODULES = [shapes, symbols, image, lines, text_objects, charts, layout, table]
+ALL_MODULES = [shapes, symbols, image, lines, text_objects, charts, layout, table, uml]

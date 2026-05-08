@@ -1,0 +1,365 @@
+---
+# ─────────────────────────────────────────────────────────────────────────
+# FrameGraph — UML in a Deck (demo deck)
+# ─────────────────────────────────────────────────────────────────────────
+#
+# Three-slide deck demonstrating that UML primitives — registered by the
+# UML support architecture (Phases A–E) — drop directly into deck slides
+# alongside the regular `rect` / `text` / `line` primitives.
+#
+# Slide 1: Cover.
+# Slide 2: A class diagram for FrameGraph's core abstractions, hand-laid
+#          with `uml.classifier_box` + `connector` primitives. The hand-laid
+#          coordinates here are exactly what the Phase-A composer would
+#          emit, just translated to fit the deck's content area.
+# Slide 3: A sequence diagram for the renderer pipeline, using
+#          `uml.lifeline` + `uml.activation_bar` + `connector` primitives.
+#
+# Render with:   framegraph render static/fixture/framegraph-uml-deck.yml
+# ─────────────────────────────────────────────────────────────────────────
+
+dsl: FrameGraph
+version: 1.5
+kind: presentation-deck
+
+deck:
+  canvas:
+    size: [960, 540]
+    units: px
+
+  tokens:
+    colors:
+      primary:        "#1A1A1A"
+      accent_warm:    "#9A4D2C"
+      accent_sage:    "#2A5A3A"
+      accent_slate:   "#3A4566"
+      text:           "#1A1A1A"
+      text_muted:     "#888780"
+      slide_bg:       "#FFFFFF"
+      chrome_line:    "#D0CEC8"
+      chrome_text:    "#888780"
+      panel:          "#F8F6F2"
+
+    text_styles:
+      slide_title_small: {font: primary, size: 14, weight: 700, color: text,        align: left,   line_height: 18}
+      chrome_brand:      {font: primary, size: 9,  weight: 400, color: chrome_text, align: left,   line_height: 12}
+      chrome_num:        {font: primary, size: 9,  weight: 400, color: chrome_text, align: right,  line_height: 12}
+      cover_brand:       {font: primary, size: 88, weight: 700, color: primary,     align: center, line_height: 96}
+      cover_tag:         {font: primary, size: 18, weight: 400, color: text,        align: center, line_height: 26, wrap: true}
+      cover_meta:        {font: primary, size: 11, weight: 400, color: text_muted,  align: center, line_height: 16, italic: true}
+      caption:           {font: primary, size: 11, weight: 400, color: text_muted,  align: center, line_height: 16, italic: true, wrap: true}
+
+  symbols:
+    # Slide chrome — applied to every slide via `use`. Phase color slot
+    # selects the rule-stripe color at the top of the slide.
+    chrome:
+      box: [0, 0, 960, 540]
+      slots: [slide_title, slide_num]
+      objects:
+        - {type: rect, id: bg,         box: [0,0,960,540], fill: slide_bg}
+        - {type: rect, id: top_rule,   box: [0,0,960,4],   fill: "$phase_color"}
+        - {type: text, id: title_text, box: [40,14,880,30], text: "$slide_title", style: slide_title_small}
+        - {type: line, id: title_rule, from: [40,52],  to: [920,52],  stroke: {color: chrome_line, width: 0.5}}
+        - {type: line, id: foot_rule,  from: [40,516], to: [920,516], stroke: {color: chrome_line, width: 0.5}}
+        - {type: text, id: brand,      box: [40,520,160,16], text: "framegraph  ·  UML demo deck", style: chrome_brand}
+        - {type: text, id: num,        box: [890,520,30,16], text: "$slide_num", style: chrome_num}
+
+slides:
+
+  # ─── SLIDE 01 — Cover ────────────────────────────────────────────────────
+  - slide: 1
+    id: s1_cover
+    title: "FrameGraph — UML in YAML"
+    description: "Cover slide. UML primitives are first-class deck objects."
+    notes: "Open by reading the tagline. The point is that UML diagrams are NOT separate documents — they ride inside the same DSL the rest of the deck uses."
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "",
+               slide_num: "01", params: {phase_color: primary}}
+        - id: content
+          z: 10
+          objects:
+            - {type: text, id: brand, decorative: true, text: "framegraph",
+               box: [80,180,800,100], style: cover_brand}
+            - {type: line, id: rule, decorative: true,
+               from: [400,294], to: [560,294], stroke: {color: accent_warm, width: 1.5}}
+            - {type: text, id: tag, decorative: true,
+               text: "Diagram and slide DSL with first-class\nUML 2.5.1 support across all 14 diagram kinds.",
+               box: [80,314,800,72], style: cover_tag}
+            - {type: text, id: meta, decorative: true,
+               text: "UML demo deck  ·  Phase A–E composers + renderer primitives",
+               box: [80,442,800,18], style: cover_meta}
+
+  # ─── SLIDE 02 — UML class diagram (FrameGraph core types) ────────────────
+  - slide: 2
+    id: s2_class_diagram
+    title: "FrameGraph — Core type model"
+    description: "A UML class diagram laid out directly with uml.classifier_box + connector."
+    notes: "Walk through the inheritance: Document is the abstract base, Diagram and Deck specialize it. Renderable is the contract every Document satisfies. Deck composes Slide via composition (filled diamond at the whole end)."
+    visual:
+      layers:
+
+        # Slide chrome.
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "FrameGraph — Core type model",
+               slide_num: "02", params: {phase_color: accent_sage}}
+
+        # Subtle panel that frames the diagram region. Spans from
+        # just below the chrome title rule to just above the chrome
+        # foot rule, leaving room for a caption below the diagram.
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: bg, decorative: true, box: [40,60,880,432],
+               fill: panel, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── UML edges.
+        # `from` / `to` reference object ids; the renderer resolves them
+        # via `object_index["<id>"]["ports"]["center"]`. We use explicit
+        # `side:` anchors to pin connector endpoints to specific faces
+        # of each box — this avoids lines passing through the box body
+        # and makes the routing obviously orthogonal.
+        - id: uml.edges
+          z: 10
+          objects:
+
+            # «Renderable» <|.. Document   (realization — dashed + hollow triangle)
+            # Document's top → Renderable's bottom (vertical line).
+            - {type: connector, id: r1,
+               from: {object: Document,   side: north},
+               to:   {object: Renderable, side: south},
+               stroke: {color: primary, width: 1.0, dash: [5, 4],
+                        arrow_end: true, arrow_end_kind: hollow_triangle}}
+
+            # Document <|-- Diagram        (generalization — solid + hollow triangle)
+            # Diagram's top → Document's bottom-left, orthogonal route.
+            - {type: connector, id: g1,
+               from: {object: Diagram,  side: north},
+               to:   {object: Document, side: south, offset: -60},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: hollow_triangle}}
+
+            # Document <|-- Deck           (vertical generalization)
+            - {type: connector, id: g2,
+               from: {object: Deck,     side: north},
+               to:   {object: Document, side: south},
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: hollow_triangle}}
+
+            # Deck *-- Slide               (composition — filled diamond at whole)
+            # Deck's east face → Slide's west face.
+            - {type: connector, id: a1,
+               from: {object: Deck,  side: east},
+               to:   {object: Slide, side: west},
+               stroke: {color: primary, width: 1.0,
+                        arrow_start: true, arrow_start_kind: filled_diamond}}
+
+        # ── UML classifiers.
+        # Coordinates picked to read top-to-bottom: Renderable on top
+        # (the abstract contract), Document in the middle, Diagram /
+        # Deck side-by-side below, Slide pinned to Deck via composition.
+        # Heights are 0 to let the renderer auto-size from content
+        # (avoids member-text overflow); widths are sized for the
+        # widest member signature in each box.
+        - id: uml.classifiers
+          z: 20
+          objects:
+
+            - type: uml.classifier_box
+              id: Renderable
+              box: [380, 90, 200, 82]
+              name: Renderable
+              stereotype: interface
+              operations:
+                - {name: render, abstract: true, return_type: SVG}
+
+            - type: uml.classifier_box
+              id: Document
+              box: [360, 220, 240, 101]
+              name: Document
+              abstract: true
+              attributes:
+                - {name: id,        type: UUID,     visibility: private}
+                - {name: createdAt, type: DateTime, visibility: private, readonly: true}
+              operations:
+                - {name: render, abstract: true, return_type: SVG}
+
+            - type: uml.classifier_box
+              id: Diagram
+              box: [80, 380, 220, 101]
+              name: Diagram
+              attributes:
+                - {name: scene,  type: Scene,  visibility: private}
+                - {name: visual, type: Visual, visibility: private}
+              operations:
+                - {name: render, return_type: SVG}
+
+            - type: uml.classifier_box
+              id: Deck
+              box: [370, 380, 220, 101]
+              name: Deck
+              attributes:
+                - {name: canvas, type: Canvas, visibility: private}
+                - {name: slides, type: "Slide[]", visibility: private}
+              operations:
+                - {name: render, return_type: SVG}
+
+            - type: uml.classifier_box
+              id: Slide
+              box: [660, 380, 220, 93]
+              name: Slide
+              attributes:
+                - {name: id,    type: string}
+                - {name: title, type: string, multiplicity: "0..1"}
+
+        # Caption beneath the diagram (outside the panel).
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: cap, decorative: true,
+               text: "Class diagram primitives: uml.classifier_box (stereotype, abstract, attributes, operations) and a generic connector with arrow_end_kind / arrow_start_kind for UML edge semantics.",
+               box: [60,498,840,16], style: caption}
+
+  # ─── SLIDE 03 — UML sequence diagram (renderer pipeline) ─────────────────
+  - slide: 3
+    id: s3_sequence_diagram
+    title: "FrameGraph — Render pipeline"
+    description: "A UML sequence diagram showing the renderer's call sequence."
+    notes: "The point: same DSL, different UML kind. Lifelines run vertically; messages stack by step. Sync calls use filled-triangle arrows; replies are dashed with open-arrow heads."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: ch, decorative: true, symbol: chrome, box: [0,0,960,540],
+               slide_title: "FrameGraph — Render pipeline",
+               slide_num: "03", params: {phase_color: accent_slate}}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: bg, decorative: true, box: [40,60,880,432],
+               fill: panel, stroke: {color: chrome_line, width: 0.5}, radius: 4}
+
+        # ── Lifelines (heads + dashed timelines).
+        # Four columns at x ≈ 200, 400, 600, 800. Lifelines stop at
+        # y ≈ 470 so they don't crash into the caption (y=498).
+        - id: uml.lifelines
+          z: 10
+          objects:
+
+            - {type: uml.lifeline, id: User,
+               box: [140, 76, 120, 394],
+               name: ":User", actor: true, head_height: 60}
+
+            - {type: uml.lifeline, id: Renderer,
+               box: [320, 76, 160, 394],
+               name: r, type_name: FrameGraphRenderer, head_height: 36}
+
+            - {type: uml.lifeline, id: Composer,
+               box: [520, 76, 160, 394],
+               name: c, type_name: ClassDiagramComposer, head_height: 36}
+
+            - {type: uml.lifeline, id: Sugiyama,
+               box: [720, 76, 140, 394],
+               name: s, type_name: SugiyamaLayout, head_height: 36}
+
+        # ── Activation bars on the synchronous-call lifelines.
+        # Width ~10, centered on each lifeline's x. Each bar starts
+        # when the lifeline is *entered* by a sync call and ends when
+        # the matching reply leaves.
+        - id: uml.activations
+          z: 15
+          objects:
+            - {type: uml.activation_bar, id: ab.r,
+               box: [395, 200, 10, 220]}
+            - {type: uml.activation_bar, id: ab.c,
+               box: [595, 230, 10, 150]}
+            - {type: uml.activation_bar, id: ab.s,
+               box: [785, 260, 10,  70]}
+
+        # ── Messages.
+        # Each message is a horizontal `line` with an arrow_end_kind in
+        # its stroke. The renderer's marker-id pipeline resolves the
+        # arrowhead shape; the composer uses the same encoding so
+        # hand-laid sequence diagrams are byte-identical.
+        - id: uml.messages
+          z: 20
+          objects:
+
+            # Step 1: User → Renderer  render()
+            - {type: line, id: m1,
+               from: [200, 200], to: [400, 200],
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m1.l, decorative: true,
+               text: "render()",
+               box: [220,182,160,16],
+               style: {size: 11, color: primary, align: left}}
+
+            # Step 2: Renderer → Composer  compose()
+            - {type: line, id: m2,
+               from: [400, 230], to: [600, 230],
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m2.l, decorative: true,
+               text: "compose(model)",
+               box: [420,212,160,16],
+               style: {size: 11, color: primary, align: left}}
+
+            # Step 3: Composer → Sugiyama  layout()
+            - {type: line, id: m3,
+               from: [600, 260], to: [800, 260],
+               stroke: {color: primary, width: 1.0,
+                        arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m3.l, decorative: true,
+               text: "sugiyama(nodes, edges)",
+               box: [620,242,170,16],
+               style: {size: 11, color: primary, align: left}}
+
+            # Step 4: Sugiyama → Composer  positions  (reply, dashed)
+            - {type: line, id: m4,
+               from: [800, 330], to: [600, 330],
+               stroke: {color: primary, width: 1.0, dash: [5, 4],
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m4.l, decorative: true,
+               text: "positions",
+               box: [620,312,160,16],
+               style: {size: 11, color: text_muted, align: left, italic: true}}
+
+            # Step 5: Composer → Renderer  visual  (reply, dashed)
+            - {type: line, id: m5,
+               from: [600, 380], to: [400, 380],
+               stroke: {color: primary, width: 1.0, dash: [5, 4],
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m5.l, decorative: true,
+               text: "visual",
+               box: [420,362,160,16],
+               style: {size: 11, color: text_muted, align: left, italic: true}}
+
+            # Step 6: Renderer → User  svg  (reply, dashed)
+            - {type: line, id: m6,
+               from: [400, 420], to: [200, 420],
+               stroke: {color: primary, width: 1.0, dash: [5, 4],
+                        arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m6.l, decorative: true,
+               text: "svg",
+               box: [220,402,160,16],
+               style: {size: 11, color: text_muted, align: left, italic: true}}
+
+        # Caption (outside the panel, matching slide 02).
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: cap, decorative: true,
+               text: "Sequence-diagram primitives: uml.lifeline (head box + dashed timeline), uml.activation_bar (execution specification), and the same connector + arrow_end_kind machinery used everywhere else.",
+               box: [60,498,840,16], style: caption}

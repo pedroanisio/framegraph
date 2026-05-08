@@ -1,0 +1,1008 @@
+big4_consulting_slide_template_patterns_extension_50:
+  - id: 226
+    name: Customer Needs Hierarchy
+    consulting_use: "Organizes customer needs from basic requirements to differentiating expectations."
+    layout_disposition: "Pyramid or layered hierarchy with needs grouped by importance and sophistication."
+    zones:
+      - role: foundational_needs
+        position: bottom_layer
+        size: widest
+      - role: performance_needs
+        position: middle_layer
+        size: medium
+      - role: delight_needs
+        position: top_layer
+        size: smallest
+      - role: evidence_notes
+        position: right_panel
+        size: small
+
+  - id: 227
+    name: Customer Lifetime Value Bridge
+    consulting_use: "Explains how acquisition, retention, frequency, margin, and churn affect lifetime value."
+    layout_disposition: "Bridge or driver tree linking commercial levers to customer lifetime value."
+    zones:
+      - role: baseline_clv
+        position: left
+        size: metric_card
+      - role: clv_drivers
+        position: center
+        size: connected_cards
+      - role: target_clv
+        position: right
+        size: highlighted_metric
+      - role: action_levers
+        position: bottom
+        size: list
+
+  - id: 228
+    name: Customer Experience Moments That Matter
+    consulting_use: "Identifies the few journey moments that most affect customer satisfaction or economics."
+    layout_disposition: "Journey timeline with key moments highlighted and quantified."
+    zones:
+      - role: journey_stages
+        position: horizontal_timeline
+        size: full_width
+      - role: moments_that_matter
+        position: highlighted_points
+        size: callouts
+      - role: customer_emotion
+        position: below_timeline
+        size: curve_or_icons
+      - role: business_impact
+        position: right_panel
+        size: metric_cards
+
+  - id: 229
+    name: Customer Promise
+    consulting_use: "Defines the promise the organization makes to target customers."
+    layout_disposition: "Central promise statement supported by proof points, service standards, and implications."
+    zones:
+      - role: customer_promise
+        position: center
+        size: dominant
+      - role: proof_points
+        position: surrounding_cards
+        size: equal_cards
+      - role: service_standards
+        position: bottom
+        size: horizontal_band
+      - role: implications
+        position: right_panel
+        size: list
+
+  - id: 230
+    name: Brand Positioning Framework
+    consulting_use: "Clarifies target audience, frame of reference, differentiation, and reasons to believe."
+    layout_disposition: "Structured brand positioning canvas with central positioning statement."
+    zones:
+      - role: target_audience
+        position: top_left
+        size: card
+      - role: frame_of_reference
+        position: top_right
+        size: card
+      - role: point_of_difference
+        position: center
+        size: highlighted_card
+      - role: reasons_to_believe
+        position: bottom_left
+        size: card
+      - role: brand_personality
+        position: bottom_right
+        size: card
+
+  - id: 231
+    name: Channel Strategy Map
+    consulting_use: "Maps sales, service, and marketing channels to customer segments and economics."
+    layout_disposition: "Matrix connecting segments to channels with role, cost, and performance indicators."
+    zones:
+      - role: customer_segments
+        position: left_axis
+        size: rows
+      - role: channels
+        position: top_axis
+        size: columns
+      - role: channel_roles
+        position: matrix_body
+        size: cells
+      - role: economics
+        position: right_panel
+        size: metric_cards
+      - role: recommendation
+        position: bottom
+        size: highlighted_band
+
+  - id: 232
+    name: Omnichannel Experience Blueprint
+    consulting_use: "Shows how customer interactions connect across physical, digital, and human channels."
+    layout_disposition: "Journey swimlane with channel touchpoints, backstage systems, and pain points."
+    zones:
+      - role: customer_journey
+        position: top_timeline
+        size: full_width
+      - role: channel_touchpoints
+        position: upper_swimlanes
+        size: blocks
+      - role: backstage_processes
+        position: lower_swimlanes
+        size: blocks
+      - role: enabling_systems
+        position: bottom_lane
+        size: blocks
+      - role: pain_points
+        position: callouts
+        size: labels
+
+  - id: 233
+    name: Sales Funnel Health
+    consulting_use: "Assesses funnel conversion, leakage, velocity, and pipeline quality."
+    layout_disposition: "Funnel visualization with stage metrics and leakage callouts."
+    zones:
+      - role: funnel_stages
+        position: center_vertical
+        size: decreasing_segments
+      - role: conversion_rates
+        position: right_of_stages
+        size: metric_labels
+      - role: leakage_points
+        position: highlighted_stage_edges
+        size: callouts
+      - role: improvement_actions
+        position: bottom
+        size: cards
+
+  - id: 234
+    name: Sales Coverage Model
+    consulting_use: "Defines how sales resources cover accounts, territories, and segments."
+    layout_disposition: "Coverage grid mapping customer segments to roles, channels, and service intensity."
+    zones:
+      - role: account_segments
+        position: left_axis
+        size: rows
+      - role: sales_roles
+        position: top_axis
+        size: columns
+      - role: coverage_rules
+        position: matrix_body
+        size: cells
+      - role: capacity_metrics
+        position: right_panel
+        size: metric_cards
+      - role: implications
+        position: bottom
+        size: callout
+
+  - id: 235
+    name: Account Prioritization
+    consulting_use: "Ranks accounts by attractiveness, relationship strength, and revenue potential."
+    layout_disposition: "Bubble matrix or ranked table with priority tiers."
+    zones:
+      - role: accounts
+        position: matrix_body_or_table_rows
+        size: bubbles_or_rows
+      - role: account_attractiveness_axis
+        position: vertical_axis
+        size: full_height
+      - role: ability_to_win_axis
+        position: horizontal_axis
+        size: full_width
+      - role: revenue_potential
+        position: bubble_size_or_metric_column
+        size: contextual
+      - role: priority_tiers
+        position: quadrant_labels_or_right_panel
+        size: labels
+
+  - id: 236
+    name: Key Account Plan
+    consulting_use: "Summarizes strategy for a strategic customer account."
+    layout_disposition: "One-page account plan with account context, opportunity map, stakeholders, and actions."
+    zones:
+      - role: account_snapshot
+        position: top_left
+        size: card
+      - role: opportunity_map
+        position: center
+        size: large
+      - role: stakeholder_map
+        position: right_panel
+        size: network_or_table
+      - role: action_plan
+        position: bottom
+        size: timeline_or_table
+
+  - id: 237
+    name: Sales Productivity Analysis
+    consulting_use: "Identifies how sales time, activity, tools, and processes affect productivity."
+    layout_disposition: "Productivity driver tree with benchmark metrics and improvement levers."
+    zones:
+      - role: productivity_metric
+        position: top_left
+        size: metric_card
+      - role: driver_tree
+        position: center
+        size: large
+      - role: benchmark_comparison
+        position: right_panel
+        size: chart
+      - role: improvement_levers
+        position: bottom
+        size: cards
+
+  - id: 238
+    name: Marketing Spend Effectiveness
+    consulting_use: "Shows return on marketing investment by channel, campaign, or segment."
+    layout_disposition: "Spend versus return chart with channel efficiency and reallocation recommendation."
+    zones:
+      - role: marketing_channels
+        position: left_axis_or_labels
+        size: rows
+      - role: spend_return_chart
+        position: center
+        size: dominant
+      - role: roi_metrics
+        position: right_panel
+        size: metric_cards
+      - role: reallocation_recommendation
+        position: bottom
+        size: highlighted_band
+
+  - id: 239
+    name: Campaign Performance Dashboard
+    consulting_use: "Summarizes campaign reach, conversion, cost, revenue, and learning."
+    layout_disposition: "Dashboard with metric cards, funnel chart, audience breakdown, and recommendations."
+    zones:
+      - role: campaign_kpis
+        position: top_row
+        size: metric_cards
+      - role: conversion_funnel
+        position: center_left
+        size: chart
+      - role: audience_breakdown
+        position: center_right
+        size: chart_or_table
+      - role: key_learnings
+        position: bottom
+        size: cards
+
+  - id: 240
+    name: Product Portfolio Strategy
+    consulting_use: "Evaluates products by growth, profitability, strategic fit, and lifecycle stage."
+    layout_disposition: "Portfolio matrix with product bubbles and lifecycle overlays."
+    zones:
+      - role: product_markers
+        position: matrix_body
+        size: bubbles
+      - role: market_growth_axis
+        position: vertical_axis
+        size: full_height
+      - role: profitability_axis
+        position: horizontal_axis
+        size: full_width
+      - role: lifecycle_stage
+        position: bubble_color_or_tag
+        size: contextual
+      - role: portfolio_actions
+        position: right_panel
+        size: list
+
+  - id: 241
+    name: Product Rationalization
+    consulting_use: "Identifies products to grow, maintain, simplify, or retire."
+    layout_disposition: "Decision matrix or table mapping products to performance and complexity."
+    zones:
+      - role: products
+        position: left_axis_or_matrix_body
+        size: rows_or_markers
+      - role: performance_axis
+        position: vertical_axis
+        size: full_height
+      - role: complexity_axis
+        position: horizontal_axis
+        size: full_width
+      - role: disposition
+        position: labels_or_right_column
+        size: tags
+      - role: financial_impact
+        position: bottom
+        size: metric_row
+
+  - id: 242
+    name: Product Launch Plan
+    consulting_use: "Plans launch readiness across product, marketing, sales, operations, and support."
+    layout_disposition: "Launch timeline with workstreams, gates, dependencies, and readiness status."
+    zones:
+      - role: launch_phases
+        position: top_axis
+        size: timeline_columns
+      - role: launch_workstreams
+        position: left_axis
+        size: rows
+      - role: activities
+        position: roadmap_body
+        size: bars_or_cards
+      - role: readiness_gates
+        position: timeline_overlay
+        size: markers
+      - role: open_risks
+        position: right_panel
+        size: list
+
+  - id: 243
+    name: Innovation Funnel
+    consulting_use: "Tracks ideas from discovery through validation, incubation, and scaling."
+    layout_disposition: "Funnel or pipeline with stage counts, decision gates, and portfolio balance."
+    zones:
+      - role: innovation_stages
+        position: horizontal_pipeline_or_funnel
+        size: full_width
+      - role: idea_counts
+        position: inside_stages
+        size: metrics
+      - role: decision_gates
+        position: between_stages
+        size: markers
+      - role: portfolio_balance
+        position: bottom
+        size: chart_or_table
+
+  - id: 244
+    name: Innovation Portfolio
+    consulting_use: "Balances incremental, adjacent, and transformational innovation initiatives."
+    layout_disposition: "Three-horizon or ambition matrix with initiatives plotted."
+    zones:
+      - role: innovation_horizons
+        position: columns_or_layers
+        size: grouped_sections
+      - role: initiatives
+        position: inside_sections
+        size: cards_or_bubbles
+      - role: investment_allocation
+        position: top_or_bottom
+        size: metric_row
+      - role: risk_return_profile
+        position: right_panel
+        size: chart
+
+  - id: 245
+    name: Product Roadmap By Release
+    consulting_use: "Shows features and capabilities planned across product releases."
+    layout_disposition: "Timeline with release columns and feature rows grouped by theme."
+    zones:
+      - role: releases
+        position: top_axis
+        size: columns
+      - role: feature_themes
+        position: left_axis
+        size: rows
+      - role: features
+        position: roadmap_body
+        size: cards
+      - role: dependencies
+        position: connectors
+        size: arrows
+      - role: release_goals
+        position: bottom
+        size: summary_row
+
+  - id: 246
+    name: Product-Market Fit Assessment
+    consulting_use: "Assesses evidence for market demand, usage, retention, monetization, and differentiation."
+    layout_disposition: "Scorecard with fit dimensions, evidence, gaps, and next experiments."
+    zones:
+      - role: fit_dimensions
+        position: left_axis
+        size: rows
+      - role: evidence
+        position: center_left
+        size: text_cells
+      - role: score
+        position: center
+        size: score_cells
+      - role: gaps
+        position: center_right
+        size: text_cells
+      - role: next_experiments
+        position: right_column
+        size: action_cells
+
+  - id: 247
+    name: Experiment Backlog
+    consulting_use: "Prioritizes tests for product, growth, pricing, or operations hypotheses."
+    layout_disposition: "Experiment cards or table ranked by impact, confidence, effort, and learning value."
+    zones:
+      - role: hypotheses
+        position: left_column
+        size: rows_or_cards
+      - role: experiment_design
+        position: center_left
+        size: text_cells
+      - role: impact_confidence_effort
+        position: center_right
+        size: score_cells
+      - role: priority
+        position: right_column
+        size: labels
+      - role: timeline
+        position: bottom
+        size: mini_roadmap
+
+  - id: 248
+    name: Agile Release Train Plan
+    consulting_use: "Plans delivery across teams, program increments, dependencies, and objectives."
+    layout_disposition: "Program board with teams as rows and sprints or increments as columns."
+    zones:
+      - role: teams
+        position: left_axis
+        size: rows
+      - role: increments_or_sprints
+        position: top_axis
+        size: columns
+      - role: features
+        position: board_body
+        size: cards
+      - role: dependencies
+        position: connectors
+        size: lines
+      - role: pi_objectives
+        position: bottom_or_right_panel
+        size: list
+
+  - id: 249
+    name: Backlog Prioritization
+    consulting_use: "Ranks backlog items by value, urgency, risk reduction, and effort."
+    layout_disposition: "Prioritized table or 2x2 matrix with backlog items and scoring."
+    zones:
+      - role: backlog_items
+        position: left_axis_or_matrix_body
+        size: rows_or_markers
+      - role: value_score
+        position: score_column_or_vertical_axis
+        size: numeric
+      - role: effort_score
+        position: score_column_or_horizontal_axis
+        size: numeric
+      - role: priority_order
+        position: right_column
+        size: rank_labels
+      - role: delivery_wave
+        position: bottom_or_tag
+        size: labels
+
+  - id: 250
+    name: Transformation Backlog
+    consulting_use: "Consolidates initiatives, owners, value, dependencies, and readiness for delivery."
+    layout_disposition: "Kanban-style or table backlog grouped by strategic theme and delivery wave."
+    zones:
+      - role: strategic_themes
+        position: swimlanes_or_columns
+        size: grouped_sections
+      - role: initiative_cards
+        position: inside_themes
+        size: cards
+      - role: value_effort_tags
+        position: card_header
+        size: small
+      - role: owners
+        position: card_footer
+        size: small
+      - role: delivery_wave
+        position: column_or_card_tag
+        size: label
+
+  - id: 251
+    name: Organizational Design Criteria
+    consulting_use: "Defines criteria used to evaluate organization design options."
+    layout_disposition: "Criteria cards grouped by strategic, operational, people, and control dimensions."
+    zones:
+      - role: criteria_groups
+        position: columns
+        size: equal
+      - role: design_criteria
+        position: inside_groups
+        size: cards
+      - role: weighting
+        position: card_corner
+        size: small
+      - role: implications
+        position: bottom
+        size: note_band
+
+  - id: 252
+    name: Organization Design Options
+    consulting_use: "Compares alternative organization structures."
+    layout_disposition: "Side-by-side org design options with pros, cons, risks, and recommendation."
+    zones:
+      - role: design_options
+        position: center_columns
+        size: equal_cards
+      - role: structure_visual
+        position: card_top
+        size: mini_org_chart
+      - role: pros_cons
+        position: card_body
+        size: bullet_lists
+      - role: recommendation
+        position: bottom
+        size: highlighted_band
+
+  - id: 253
+    name: Role Charter
+    consulting_use: "Defines purpose, responsibilities, decision rights, interfaces, and KPIs for a role."
+    layout_disposition: "One-page role card with structured sections."
+    zones:
+      - role: role_purpose
+        position: top
+        size: highlighted_band
+      - role: responsibilities
+        position: left_column
+        size: list
+      - role: decision_rights
+        position: center_column
+        size: list
+      - role: interfaces
+        position: right_column
+        size: list
+      - role: kpis
+        position: bottom
+        size: metric_cards
+
+  - id: 254
+    name: Job Family Architecture
+    consulting_use: "Structures roles into job families, subfamilies, levels, and career paths."
+    layout_disposition: "Hierarchical grid mapping job families to levels and role examples."
+    zones:
+      - role: job_families
+        position: left_axis
+        size: rows
+      - role: career_levels
+        position: top_axis
+        size: columns
+      - role: role_examples
+        position: matrix_body
+        size: cells
+      - role: progression_rules
+        position: right_panel
+        size: notes
+      - role: capability_requirements
+        position: bottom
+        size: cards
+
+  - id: 255
+    name: Workforce Transition Plan
+    consulting_use: "Plans workforce movements, reskilling, hiring, redeployment, and exits."
+    layout_disposition: "Transition flow from current workforce to target workforce with action categories."
+    zones:
+      - role: current_workforce
+        position: left
+        size: stacked_blocks
+      - role: transition_actions
+        position: center
+        size: flow_cards
+      - role: target_workforce
+        position: right
+        size: stacked_blocks
+      - role: timing
+        position: bottom
+        size: timeline
+      - role: risks_mitigations
+        position: side_panel
+        size: list
+
+  - id: 256
+    name: Capability Building Plan
+    consulting_use: "Plans training, coaching, communities, and enablement needed for transformation."
+    layout_disposition: "Learning journey mapped by audience, capability, intervention, and timing."
+    zones:
+      - role: audiences
+        position: left_axis
+        size: rows
+      - role: capabilities
+        position: top_axis
+        size: columns_or_bands
+      - role: interventions
+        position: roadmap_body
+        size: cards
+      - role: timing
+        position: bottom_axis
+        size: timeline
+      - role: success_metrics
+        position: right_panel
+        size: metric_cards
+
+  - id: 257
+    name: Culture Assessment
+    consulting_use: "Summarizes current and target culture attributes."
+    layout_disposition: "Radar, heatmap, or side-by-side profile of cultural dimensions."
+    zones:
+      - role: culture_dimensions
+        position: chart_axes_or_rows
+        size: labels
+      - role: current_culture
+        position: chart_or_left_column
+        size: profile
+      - role: target_culture
+        position: chart_or_right_column
+        size: profile
+      - role: priority_shifts
+        position: bottom
+        size: cards
+      - role: evidence
+        position: footer
+        size: small
+
+  - id: 258
+    name: Leadership Alignment Map
+    consulting_use: "Shows leadership agreement, concerns, and commitment across priorities."
+    layout_disposition: "Stakeholder grid with alignment scores, concerns, and required engagement."
+    zones:
+      - role: leaders
+        position: left_axis
+        size: rows
+      - role: strategic_priorities
+        position: top_axis
+        size: columns
+      - role: alignment_scores
+        position: matrix_body
+        size: cells
+      - role: concerns
+        position: right_panel
+        size: notes
+      - role: engagement_actions
+        position: bottom
+        size: list
+
+  - id: 259
+    name: Change Story
+    consulting_use: "Provides consistent narrative for why change is happening and what it means."
+    layout_disposition: "Storyline blocks covering context, ambition, changes, benefits, and call to action."
+    zones:
+      - role: why_change
+        position: left_column
+        size: card
+      - role: what_is_changing
+        position: center_left
+        size: card
+      - role: what_it_means
+        position: center_right
+        size: card
+      - role: call_to_action
+        position: right_column
+        size: highlighted_card
+      - role: proof_points
+        position: bottom
+        size: small_cards
+
+  - id: 260
+    name: Change Network Map
+    consulting_use: "Maps change champions, sponsors, influencers, and impacted groups."
+    layout_disposition: "Network diagram showing formal and informal influence paths."
+    zones:
+      - role: sponsors
+        position: top_or_center
+        size: nodes
+      - role: change_champions
+        position: middle_network
+        size: nodes
+      - role: impacted_groups
+        position: surrounding_clusters
+        size: grouped_nodes
+      - role: influence_links
+        position: connectors
+        size: lines
+      - role: engagement_gaps
+        position: side_panel
+        size: list
+
+  - id: 261
+    name: Communications Cascade
+    consulting_use: "Plans how leadership messages cascade through the organization."
+    layout_disposition: "Top-down cascade from executive sponsors to managers, champions, and employees."
+    zones:
+      - role: executive_message
+        position: top
+        size: wide_band
+      - role: management_cascade
+        position: middle
+        size: layered_blocks
+      - role: employee_touchpoints
+        position: bottom
+        size: cards
+      - role: feedback_loops
+        position: side_connectors
+        size: arrows
+      - role: timing
+        position: footer
+        size: timeline
+
+  - id: 262
+    name: Adoption Risk Heatmap
+    consulting_use: "Identifies where adoption is at risk by group, geography, process, or system."
+    layout_disposition: "Heatmap with mitigation plan on the side."
+    zones:
+      - role: impacted_groups
+        position: left_axis
+        size: rows
+      - role: adoption_dimensions
+        position: top_axis
+        size: columns
+      - role: risk_scores
+        position: matrix_body
+        size: heatmap_cells
+      - role: root_causes
+        position: right_panel
+        size: notes
+      - role: mitigation_plan
+        position: bottom
+        size: action_list
+
+  - id: 263
+    name: Training Curriculum Map
+    consulting_use: "Defines learning modules by audience and required capability."
+    layout_disposition: "Matrix of audiences versus modules with delivery format and timing."
+    zones:
+      - role: learner_audiences
+        position: left_axis
+        size: rows
+      - role: training_modules
+        position: top_axis
+        size: columns
+      - role: delivery_format
+        position: matrix_body
+        size: symbols_or_cells
+      - role: schedule
+        position: bottom
+        size: timeline
+      - role: completion_metrics
+        position: right_panel
+        size: metric_cards
+
+  - id: 264
+    name: Stakeholder Resistance Plan
+    consulting_use: "Plans interventions for resistant or skeptical stakeholder groups."
+    layout_disposition: "Stakeholder segments mapped to resistance drivers, messages, and interventions."
+    zones:
+      - role: stakeholder_segments
+        position: left_column
+        size: rows
+      - role: resistance_drivers
+        position: center_left
+        size: text_cells
+      - role: tailored_messages
+        position: center_right
+        size: text_cells
+      - role: interventions
+        position: right_column
+        size: action_cells
+      - role: owner_timing
+        position: bottom
+        size: table
+
+  - id: 265
+    name: Policy Impact Assessment
+    consulting_use: "Shows operational, financial, customer, risk, and technology impacts of a policy change."
+    layout_disposition: "Impact matrix by policy area and affected business dimension."
+    zones:
+      - role: policy_changes
+        position: left_axis
+        size: rows
+      - role: impact_dimensions
+        position: top_axis
+        size: columns
+      - role: impact_assessment
+        position: matrix_body
+        size: cells
+      - role: mitigation_actions
+        position: right_panel
+        size: list
+      - role: decision_needed
+        position: bottom
+        size: highlighted_band
+
+  - id: 266
+    name: Regulatory Change Roadmap
+    consulting_use: "Plans response to new or changing regulation."
+    layout_disposition: "Timeline from regulatory requirement to interpretation, controls, implementation, and assurance."
+    zones:
+      - role: regulatory_milestones
+        position: top_timeline
+        size: markers
+      - role: response_workstreams
+        position: left_axis
+        size: rows
+      - role: implementation_activities
+        position: roadmap_body
+        size: bars
+      - role: compliance_gates
+        position: timeline_overlay
+        size: markers
+      - role: open_interpretations
+        position: right_panel
+        size: notes
+
+  - id: 267
+    name: Risk Appetite Framework
+    consulting_use: "Defines risk appetite, tolerances, metrics, and escalation thresholds."
+    layout_disposition: "Risk categories as rows with appetite statements, thresholds, and governance actions."
+    zones:
+      - role: risk_categories
+        position: left_axis
+        size: rows
+      - role: appetite_statement
+        position: center_left
+        size: text_cells
+      - role: tolerance_thresholds
+        position: center
+        size: numeric_cells
+      - role: monitoring_metrics
+        position: center_right
+        size: metric_cells
+      - role: escalation_actions
+        position: right_column
+        size: action_cells
+
+  - id: 268
+    name: Third-Party Risk Assessment
+    consulting_use: "Assesses vendor and partner risk across criticality, exposure, controls, and resilience."
+    layout_disposition: "Vendor table or matrix with risk scoring and remediation priorities."
+    zones:
+      - role: third_parties
+        position: left_axis
+        size: rows
+      - role: criticality
+        position: center_left
+        size: score_cells
+      - role: risk_exposure
+        position: center
+        size: score_cells
+      - role: control_maturity
+        position: center_right
+        size: score_cells
+      - role: remediation_priority
+        position: right_column
+        size: labels
+
+  - id: 269
+    name: Business Continuity Plan Summary
+    consulting_use: "Summarizes continuity risks, recovery objectives, critical processes, and recovery actions."
+    layout_disposition: "Process criticality table with recovery metrics and continuity strategies."
+    zones:
+      - role: critical_processes
+        position: left_column
+        size: rows
+      - role: recovery_time_objective
+        position: center_left
+        size: metric_cells
+      - role: recovery_point_objective
+        position: center
+        size: metric_cells
+      - role: continuity_strategy
+        position: center_right
+        size: text_cells
+      - role: gaps_actions
+        position: right_column
+        size: action_cells
+
+  - id: 270
+    name: Crisis Response Playbook
+    consulting_use: "Frames roles, triggers, escalation paths, and actions during a crisis."
+    layout_disposition: "Playbook summary with event triggers, command structure, response steps, and communications."
+    zones:
+      - role: crisis_triggers
+        position: top_left
+        size: card
+      - role: command_structure
+        position: top_right
+        size: hierarchy
+      - role: response_steps
+        position: center
+        size: sequence
+      - role: communications_protocol
+        position: bottom_left
+        size: card
+      - role: escalation_rules
+        position: bottom_right
+        size: card
+
+  - id: 271
+    name: Board Risk Dashboard
+    consulting_use: "Provides board-level view of enterprise risks, trends, controls, and decisions."
+    layout_disposition: "Executive dashboard with top risks, trend indicators, mitigation status, and board asks."
+    zones:
+      - role: top_enterprise_risks
+        position: left_panel
+        size: ranked_list
+      - role: risk_trends
+        position: top_center
+        size: charts
+      - role: mitigation_status
+        position: center
+        size: status_cards
+      - role: board_decisions
+        position: right_panel
+        size: highlighted_list
+      - role: emerging_risks
+        position: bottom
+        size: cards
+
+  - id: 272
+    name: Finance Transformation Roadmap
+    consulting_use: "Plans finance function modernization across process, data, technology, and talent."
+    layout_disposition: "Multi-workstream roadmap with close, planning, reporting, controls, and operating model tracks."
+    zones:
+      - role: finance_workstreams
+        position: left_axis
+        size: rows
+      - role: timeline
+        position: top_axis
+        size: columns
+      - role: transformation_initiatives
+        position: roadmap_body
+        size: bars_or_cards
+      - role: system_milestones
+        position: timeline_overlay
+        size: markers
+      - role: value_realization
+        position: bottom
+        size: metric_row
+
+  - id: 273
+    name: Close Process Improvement
+    consulting_use: "Identifies bottlenecks and controls in financial close."
+    layout_disposition: "Close timeline with process steps, ownership, delays, and improvement actions."
+    zones:
+      - role: close_steps
+        position: horizontal_timeline
+        size: blocks
+      - role: owners
+        position: below_steps
+        size: labels
+      - role: bottlenecks
+        position: highlighted_steps
+        size: callouts
+      - role: control_points
+        position: above_steps
+        size: markers
+      - role: improvement_actions
+        position: bottom
+        size: list
+
+  - id: 274
+    name: FP&A Operating Model
+    consulting_use: "Defines planning, forecasting, business partnering, analytics, and governance for finance."
+    layout_disposition: "Operating model pillars with planning cycle and business partnership interfaces."
+    zones:
+      - role: fpa_capabilities
+        position: center_columns
+        size: equal_pillars
+      - role: planning_cycle
+        position: top_or_bottom_loop
+        size: circular_flow
+      - role: business_partner_interfaces
+        position: side_panels
+        size: cards
+      - role: governance_cadence
+        position: bottom
+        size: timeline
+
+  - id: 275
+    name: Working Capital Opportunity
+    consulting_use: "Shows cash improvement potential across receivables, payables, and inventory."
+    layout_disposition: "Cash bridge or opportunity table with levers, value, timing, and owner."
+    zones:
+      - role: baseline_working_capital
+        position: leftmost
+        size: metric_card
+      - role: receivables_levers
+        position: center_left
+        size: cards
+      - role: payables_levers
+        position: center
+        size: cards
+      - role: inventory_levers
+        position: center_right
+        size: cards
+      - role: cash_release_potential
+        position: rightmost_or_bottom
+        size: highlighted_metric

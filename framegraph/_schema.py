@@ -374,6 +374,274 @@ class TableObject(_ObjectBase):
     style: dict[str, Any] | None = None
 
 
+class UMLClassifierBoxObject(_ObjectBase):
+    """UML classifier box — three-compartment notation primitive.
+
+    Phase A.2 of the UML support architecture. The composer
+    (Phase A.3) generates instances of this from typed UML model
+    elements; authors may also instantiate it directly to hand-place
+    a classifier outside the composer's auto-layout.
+
+    `attributes` and `operations` accept the same field shapes as
+    `framegraph._uml.UMLAttribute` / `UMLOperation` — the renderer
+    is permissive on unknown extras, so feeding in raw model objects
+    via `model_dump()` works.
+    """
+
+    type: Literal["uml.classifier_box"]
+    name: str
+    stereotype: str | None = None
+    abstract: bool | None = None
+    attributes: list[dict[str, Any]] | None = None
+    operations: list[dict[str, Any]] | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLActorObject(_ObjectBase):
+    """UML Actor — stick-figure glyph with a label below.
+
+    Phase B.2 of the UML support architecture. The use-case-diagram
+    composer emits these for `UMLActor` semantic elements; authors
+    may also instantiate directly.
+    """
+
+    type: Literal["uml.actor"]
+    name: str
+    style: dict[str, Any] | None = None
+
+
+class UMLComponentBoxObject(_ObjectBase):
+    """UML Component box — rectangle with the component icon glyph.
+
+    Phase C.1 of the UML support architecture. The component-diagram
+    composer emits these for `UMLComponent` semantic elements.
+
+    `provided_interfaces` and `required_interfaces` are accepted at
+    primitive level so authors can hand-place a component without
+    needing the composer.
+    """
+
+    type: Literal["uml.component_box"]
+    name: str
+    stereotype: str | None = None
+    provided_interfaces: list[str] | None = None
+    required_interfaces: list[str] | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLLollipopObject(_ObjectBase):
+    """UML provided-interface lollipop — circle on a stem.
+
+    Phase C.1 primitive. `attach` is one of `north|south|east|west`
+    and indicates which face of the parent component the stem
+    extends from. The label sits beyond the circle.
+    """
+
+    type: Literal["uml.lollipop"]
+    name: str
+    attach: Literal["north", "south", "east", "west"] | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLSocketObject(_ObjectBase):
+    """UML required-interface socket — half-circle on a stem.
+
+    Phase C.1 primitive. `attach` selects the parent face the stem
+    extends from. The arc opens away from the parent so it can
+    visually mate with a lollipop.
+    """
+
+    type: Literal["uml.socket"]
+    name: str
+    attach: Literal["north", "south", "east", "west"] | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLNodeBoxObject(_ObjectBase):
+    """UML deployment Node — 3D-box (cuboid) with name + stereotype.
+
+    Phase C.2 of the UML support architecture. The deployment-diagram
+    composer emits these for `UMLDeploymentNode` semantic elements.
+    """
+
+    type: Literal["uml.node_box"]
+    name: str
+    kind: Literal["device", "execution_environment"] | None = None
+    stereotype: str | None = None
+    depth: float | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLArtifactBoxObject(_ObjectBase):
+    """UML Artifact — rectangle with «artifact» keyword + folded-document icon.
+
+    Phase C.2 primitive.
+    """
+
+    type: Literal["uml.artifact_box"]
+    name: str
+    stereotype: str | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLActivityNodeObject(_ObjectBase):
+    """UML activity node — initial / final / decision / fork / etc.
+
+    Phase C.3 of the UML support architecture. The activity-diagram
+    composer emits these for non-action nodes; actions use
+    `uml.action` (a rounded rectangle). The renderer dispatches
+    on `kind` to draw the appropriate glyph.
+    """
+
+    type: Literal["uml.activity_node"]
+    kind: Literal[
+        "initial",
+        "final",
+        "flow_final",
+        "decision",
+        "merge",
+        "fork",
+        "join",
+    ]
+    name: str | None = None
+    orientation: Literal["horizontal", "vertical"] | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLActionObject(_ObjectBase):
+    """UML Action — rounded rectangle with a name label.
+
+    Phase C.3 primitive.
+    """
+
+    type: Literal["uml.action"]
+    name: str
+    style: dict[str, Any] | None = None
+
+
+class UMLSwimlaneObject(_ObjectBase):
+    """UML swim-lane (ActivityPartition) — column with header band.
+
+    Phase C.3 primitive.
+    """
+
+    type: Literal["uml.swimlane"]
+    name: str
+    style: dict[str, Any] | None = None
+
+
+class UMLStateBoxObject(_ObjectBase):
+    """UML simple/composite state — rounded rectangle with optional internal-actions compartment.
+
+    Phase C.4 of the UML support architecture. The state-machine
+    composer emits these for `UMLState` semantic elements; authors
+    may instantiate directly.
+    """
+
+    type: Literal["uml.state_box"]
+    name: str
+    entry: str | None = None
+    exit: str | None = None
+    do: str | None = None
+    composite: bool | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLPseudostateObject(_ObjectBase):
+    """UML pseudostate glyph (initial / choice / history / etc.).
+
+    Phase C.4 primitive.
+    """
+
+    type: Literal["uml.pseudostate"]
+    kind: Literal[
+        "initial",
+        "final",
+        "choice",
+        "junction",
+        "fork",
+        "join",
+        "shallow_history",
+        "deep_history",
+        "entry_point",
+        "exit_point",
+        "terminate",
+    ]
+    name: str | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLLifelineObject(_ObjectBase):
+    """UML sequence-diagram lifeline — head box with dashed line below.
+
+    Phase D of the UML support architecture. The sequence-diagram
+    composer emits these for `UMLLifeline` semantic elements.
+    """
+
+    type: Literal["uml.lifeline"]
+    name: str
+    type_name: str | None = None
+    actor: bool | None = None
+    head_height: float | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLActivationBarObject(_ObjectBase):
+    """UML execution-specification activation bar — thin filled rectangle.
+
+    Phase D primitive.
+    """
+
+    type: Literal["uml.activation_bar"]
+    style: dict[str, Any] | None = None
+
+
+class UMLFragmentFrameObject(_ObjectBase):
+    """UML CombinedFragment frame — labelled rectangle with operator tag.
+
+    Phase D primitive. `dividers` is the list of absolute y-coordinates
+    where dashed inter-operand dividers should be drawn (composer
+    supplies these).
+    """
+
+    type: Literal["uml.fragment_frame"]
+    kind: Literal[
+        "alt",
+        "opt",
+        "loop",
+        "par",
+        "break",
+        "critical",
+        "neg",
+        "strict",
+        "seq",
+        "ignore",
+        "consider",
+        "assert",
+        # Interaction-overview-only operators (Phase E.3): `ref` for
+        # an interaction use, `sd` for an inline sequence fragment.
+        "ref",
+        "sd",
+    ]
+    operands: list[str] | None = None
+    dividers: list[float] | None = None
+    style: dict[str, Any] | None = None
+
+
+class UMLTimingLaneObject(_ObjectBase):
+    """UML timing-diagram lane — labelled rectangle with state ticks.
+
+    Phase E.1 primitive. The composer overlays state-change step lines
+    on top of this lane in a separate layer.
+    """
+
+    type: Literal["uml.timing_lane"]
+    name: str
+    states: list[str]
+    label_width: float | None = None
+    style: dict[str, Any] | None = None
+
+
 class _UnknownObject(_ObjectBase):
     """Fall-through for third-party `register(type_name, fn)` types.
 
@@ -404,7 +672,23 @@ KnownObject = Annotated[
     | ChipRowObject
     | BarChartObject
     | LineChartObject
-    | TableObject,
+    | TableObject
+    | UMLClassifierBoxObject
+    | UMLActorObject
+    | UMLComponentBoxObject
+    | UMLLollipopObject
+    | UMLSocketObject
+    | UMLNodeBoxObject
+    | UMLArtifactBoxObject
+    | UMLActivityNodeObject
+    | UMLActionObject
+    | UMLSwimlaneObject
+    | UMLStateBoxObject
+    | UMLPseudostateObject
+    | UMLLifelineObject
+    | UMLActivationBarObject
+    | UMLFragmentFrameObject
+    | UMLTimingLaneObject,
     Field(discriminator="type"),
 ]
 
