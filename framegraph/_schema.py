@@ -842,6 +842,50 @@ def validate_document(data: dict[str, Any]) -> Document:
     return Document.model_validate(data)
 
 
+def validate_any(data: dict[str, Any]) -> Any:
+    """Validate any FrameGraph document — dispatches by `kind:`.
+
+    Phase 1 of ADR 0001 ("Collapse `Document` and `Deck` into a
+    `FrameSet` graph") introduces `kind: frameset` alongside the
+    existing `kind: hybrid-semantic-visual-diagram` and
+    `kind: presentation-deck`. This helper centralizes the dispatch
+    so callers don't have to inspect `kind:` themselves.
+
+    Args:
+        data: A parsed YAML mapping with `dsl: FrameGraph`.
+
+    Returns:
+        Either a `Document`, `DeckDocument`, or `FrameSetDocument`,
+        depending on `data["kind"]` (or the presence of `slides:`).
+
+    Raises:
+        pydantic.ValidationError: If the input fails the matching
+            schema.
+        ValueError: If `data` is not a mapping or lacks
+            `dsl: FrameGraph`.
+    """
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"FrameGraph document root must be a mapping; got {type(data).__name__}"
+        )
+    if data.get("dsl") != "FrameGraph":
+        raise ValueError(
+            f"FrameGraph document must declare `dsl: FrameGraph`; got {data.get('dsl')!r}"
+        )
+
+    # Lazy import — `_frameset` imports types from this module only via
+    # the public surface, so a top-level import would not cause a cycle,
+    # but defer to keep import-time latency low.
+    from framegraph._frameset import validate_frameset as _vfs
+
+    kind = data.get("kind")
+    if kind == "frameset":
+        return _vfs(data)
+    if kind == "presentation-deck" or isinstance(data.get("slides"), list):
+        return validate_deck(data)
+    return validate_document(data)
+
+
 def validate_deck(data: dict[str, Any]) -> DeckDocument:
     """Validate a parsed YAML mapping as a multi-slide deck.
 
@@ -869,16 +913,17 @@ def validate_object(obj: dict[str, Any]) -> Any:
 
 
 __all__ = [
-    "Document",
-    "DeckDocument",
-    "Scene",
-    "Visual",
-    "Tokens",
-    "Semantic",
-    "Layer",
-    "SymbolDef",
     "ComponentDef",
-    "validate_document",
+    "DeckDocument",
+    "Document",
+    "Layer",
+    "Scene",
+    "Semantic",
+    "SymbolDef",
+    "Tokens",
+    "Visual",
+    "validate_any",
     "validate_deck",
+    "validate_document",
     "validate_object",
 ]

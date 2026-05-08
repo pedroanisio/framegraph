@@ -27,7 +27,30 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `framegraph._frameset` module — Phase 1 of [ADR 0001](docs/adr/0001-frameset-reframe.md)
+  ("Collapse `Document` and `Deck` into a `FrameSet` graph"). New
+  Pydantic models: `Frame`, `FrameLink`, `FrameTarget`,
+  `FrameSetDocument`. New entry points: `validate_frameset`,
+  `coerce_to_frameset`, `render_frameset`, `project_frame_to_document`.
+  `kind: frameset` is the new top-level YAML shape; old shapes
+  (`hybrid-semantic-visual-diagram`, `presentation-deck`) lift
+  into a FrameSet via the total `coerce_to_frameset` shim.
+- `framegraph._schema.validate_any` — single dispatch over the
+  three `kind:` values (frameset / presentation-deck / hybrid-…).
+- 70 regression tests across `test_frameset_schema.py`,
+  `test_frameset_coerce.py`, and `test_frameset_render_parity.py`
+  pinning byte-identical SVG parity between the legacy and FrameSet
+  paths for every single-document fixture, plus structural
+  equivalence (slide count, ids, chain-link materialization) for
+  every deck fixture.
+
 ### Planned
+- Phase 2: byte-identical render parity for coerced decks (lifts
+  `library.build_slide_doc` enrichments into the FrameSet path).
+- Phase 3: `framegraph render --target <name>` and `framegraph deck
+  --target <name>` flags for multi-target rendering.
+- Phase 4: `framegraph sitemap <frameset.yml>` emitter.
 - `grid` and `row` containers (schema already forward-compatible from `layout.kind`)
 - Full v1.x backward-compat regression report
 - `inner_box` reference syntax (`box: "$card.inner"`) for compound layouts
