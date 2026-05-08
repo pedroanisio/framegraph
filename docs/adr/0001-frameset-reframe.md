@@ -112,9 +112,9 @@ Existing models (`Document`, `DeckDocument`) and the existing CLI / library entr
 |---|---|---|---|
 | **1** | **Pydantic models, coercion shim, renderer adapter, byte-identical regression locks for single-doc YAML** | **M** | ✅ Shipped (commit `c0d1615`, 2026-05-08) |
 | **2** | **Renderer Graph Dispatch + Deck-Merge Lift — `FrameGraphDeckRenderer.render_all` iterates via FrameSet spine; `build_frame_doc` mirrors `build_slide_doc` semantics for native FrameSet YAML; byte-identical deck SVG parity locked across every deck fixture** | **M** | ✅ Shipped (commit `5aa2303`) |
-| **3** | **Multi-Target Rendering — `framegraph render --target`, `framegraph deck --target`, `framegraph deck --all-targets`; `list_frameset_targets`; `_resolve_frame_target_canvas`; per-target output directories; byte-identical no-target regression lock** | **S** | ✅ Shipped (this commit) |
-| 4 | `framegraph sitemap <frameset.yml>` emits `sitemap.xml` from the link graph | XS | Next |
-| 5 | Per-target `adjustments` (font scale, padding deltas, hide-on-target) | M | Follow-up |
+| **3** | **Multi-Target Rendering — `framegraph render --target`, `framegraph deck --target`, `framegraph deck --all-targets`; `list_frameset_targets`; `_resolve_frame_target_canvas`; per-target output directories; byte-identical no-target regression lock** | **S** | ✅ Shipped (commit `bc8b66f`) |
+| **4** | **Sitemap Emission — `emit_sitemap(fs, base_url, target_filter=…)`; `list_frameset_target_union`; `framegraph sitemap <input.yml> --base-url <url> [-o <path>] [--target <name>]`; one URL per (Frame × declared target); URL-escaping; sitemap.org 0.9 schema; works on any input via `coerce_to_frameset`** | **XS** | ✅ Shipped (this commit) |
+| 5 | Per-target `adjustments` (font scale, padding deltas, hide-on-target) | M | Next |
 | 6 | Link injection into HTML / SVG / PDF outputs (clickable navigation) | S–M | Depends on Tier B from `docs/ANALYSIS.md` |
 | 7 | Pattern-composition (`Frame.use:` + `fill:`) through the FrameSet path — requires `FrameGraphLibrary` access for theme + stylesheet resolution; today raises `NotImplementedError` | S | Follow-up |
 

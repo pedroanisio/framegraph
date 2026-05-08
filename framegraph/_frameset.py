@@ -1006,6 +1006,147 @@ def render_frameset(
     return rendered
 
 
+# ─────────────────────────────────────────────────────────────────
+# Sitemap emission — Phase 4 of ADR 0001
+# ─────────────────────────────────────────────────────────────────
+
+
+def _frame_target_names(frame: Frame, frameset: FrameSetDocument) -> list[str]:
+    """Names of every target a Frame can render at, in resolution order.
+
+    Mirrors `_resolve_target` precedence: per-Frame `targets:` first,
+    falling back to `frameset.defaults.targets`, falling back to a
+    synthetic ``"default"`` target. The list is order-preserving and
+    deduplicated by name.
+    """
+    seen: set[str] = set()
+    names: list[str] = []
+    candidates = list(frame.targets) or list(frameset.frameset.defaults.targets)
+    if not candidates:
+        return ["default"]
+    for t in candidates:
+        if t.name not in seen:
+            seen.add(t.name)
+            names.append(t.name)
+    return names
+
+
+def list_frameset_target_union(frameset: FrameSetDocument) -> list[str]:
+    """Union of every target name declared anywhere in the FrameSet.
+
+    Order: FrameSet defaults first (in declaration order), then any
+    additional per-Frame targets discovered while walking
+    `frameset.frames` in order. Duplicates are dropped on first sight.
+
+    Args:
+        frameset: A validated `FrameSetDocument`.
+
+    Returns:
+        Ordered list of unique target names. When neither defaults nor
+        any Frame declares a target, returns ``["default"]`` to match
+        the synthetic fallback in `_resolve_target`.
+    """
+    seen: set[str] = set()
+    names: list[str] = []
+    for t in frameset.frameset.defaults.targets:
+        if t.name not in seen:
+            seen.add(t.name)
+            names.append(t.name)
+    for frame in frameset.frames:
+        for t in frame.targets:
+            if t.name not in seen:
+                seen.add(t.name)
+                names.append(t.name)
+    if not names:
+        return ["default"]
+    return names
+
+
+def emit_sitemap(
+    frameset: FrameSetDocument,
+    base_url: str,
+    *,
+    target_filter: list[str] | None = None,
+) -> str:
+    """Emit a `sitemap.xml` for a FrameSet's link graph.
+
+    Phase 4 of ADR 0001. The link graph **is** the sitemap: every
+    Frame contributes one URL per render target it declares. URLs
+    follow the path-style pattern::
+
+        <base_url>/<target>/<frame_id>
+
+    The output is a `<urlset>` document conforming to the sitemap.org
+    0.9 schema (``http://www.sitemaps.org/schemas/sitemap/0.9``). It
+    is deterministic: Frames walk in declaration order, targets walk
+    in their per-Frame resolution order (per-Frame `targets:` first,
+    then FrameSet defaults). Frame ids and base-URL path components
+    are URL-escaped via `urllib.parse.quote` so reserved characters
+    (`?`, `#`, spaces) don't corrupt the URL.
+
+    Args:
+        frameset: A validated `FrameSetDocument`.
+        base_url: Site root, with or without a trailing slash. May
+            include a path prefix (e.g. ``https://example.com/docs``).
+            The scheme is preserved verbatim; only the path tail is
+            normalised.
+        target_filter: Optional allow-list of target names. When
+            given, only URLs whose target name matches an entry in
+            this list are emitted. When None (default), every
+            (Frame × declared target) pair contributes one URL.
+
+    Returns:
+        The sitemap as an XML string, including the
+        `<?xml version="1.0" encoding="UTF-8"?>` prolog. Suitable for
+        writing to ``sitemap.xml`` and serving from a static host.
+
+    Raises:
+        ValueError: If `base_url` is empty or has no scheme/host
+            component (i.e. is not parseable as a URL prefix).
+    """
+    import xml.etree.ElementTree as ET
+    from urllib.parse import quote, urlparse
+
+    if not base_url or not base_url.strip():
+        raise ValueError("base_url must be a non-empty URL prefix")
+    parsed = urlparse(base_url)
+    if not parsed.scheme or not parsed.netloc:
+        raise ValueError(
+            f"base_url {base_url!r} is not a valid URL prefix; "
+            "expected something like 'https://example.com' or "
+            "'https://example.com/docs'"
+        )
+
+    prefix = base_url.rstrip("/")
+    allow: set[str] | None = set(target_filter) if target_filter is not None else None
+
+    SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
+    ET.register_namespace("", SITEMAP_NS)
+    urlset = ET.Element(f"{{{SITEMAP_NS}}}urlset")
+
+    for frame in frameset.frames:
+        for target_name in _frame_target_names(frame, frameset):
+            if allow is not None and target_name not in allow:
+                continue
+            # `quote` with default safe="/" preserves path
+            # separators inside frame ids (rare but legal) while
+            # escaping spaces, '#', '?', etc. We pass empty `safe`
+            # because frame ids and target names are single path
+            # segments — any '/' inside them is data, not a separator.
+            url_path = (
+                f"{prefix}/"
+                f"{quote(target_name, safe='')}/"
+                f"{quote(frame.id, safe='')}"
+            )
+            url_el = ET.SubElement(urlset, f"{{{SITEMAP_NS}}}url")
+            loc_el = ET.SubElement(url_el, f"{{{SITEMAP_NS}}}loc")
+            loc_el.text = url_path
+
+    ET.indent(urlset, space="  ")
+    body = ET.tostring(urlset, encoding="unicode")
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + body + "\n"
+
+
 __all__ = [
     "Frame",
     "FrameLink",
@@ -1016,6 +1157,8 @@ __all__ = [
     "RenderedFrame",
     "build_frame_doc",
     "coerce_to_frameset",
+    "emit_sitemap",
+    "list_frameset_target_union",
     "project_frame_to_document",
     "render_frameset",
     "validate_frameset",

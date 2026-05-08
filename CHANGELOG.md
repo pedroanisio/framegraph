@@ -28,6 +28,28 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **ADR 0001 Phase 4** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
+  — Sitemap emission. The FrameSet's link graph **is** the sitemap.
+  - `framegraph._frameset.emit_sitemap(fs, base_url, *, target_filter=…)`
+    walks every Frame in declaration order and emits one URL per
+    declared render target. URL pattern:
+    `<base_url>/<target>/<frame_id>` with frame ids and target
+    names URL-escaped via `urllib.parse.quote`. Output validates
+    against the sitemap.org 0.9 schema
+    (`http://www.sitemaps.org/schemas/sitemap/0.9`).
+  - `framegraph._frameset.list_frameset_target_union(fs)` — union
+    of every declared target name (defaults + per-Frame), in
+    discovery order.
+  - `framegraph sitemap <input.yml> --base-url <url> [-o <path>]
+    [--target <name>]` CLI — accepts any FrameGraph YAML
+    (frameset, deck, or legacy single-doc) by coercing through
+    `coerce_to_frameset`. Writes to file with `-o` or to stdout.
+  - 34 regression tests in
+    `tests/integration/test_frameset_phase4.py` cover XML
+    structure, URL escaping (spaces, `?`, `#`, `<`, `>`, `&`),
+    deterministic ordering, target filter, base-URL validation,
+    coerced inputs (legacy + deck), and the CLI surface.
+
 - **ADR 0001 Phase 3** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
   — Multi-target rendering. Same source FrameSet renders to
   multiple canvases (landscape, portrait, mobile, custom)
