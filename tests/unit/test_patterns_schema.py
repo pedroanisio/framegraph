@@ -139,6 +139,93 @@ class TestPatternZone:
         )
         assert isinstance(z.placement, RelativePlacement)
 
+    # ─────────────────────────────────────────────────────────────
+    # Round 2 Phase 1 — Span field
+    # ─────────────────────────────────────────────────────────────
+
+    def test_zone_span_defaults_to_single_cell(self) -> None:
+        z = PatternZone.model_validate(
+            {
+                "role": "x",
+                "size": "medium",
+                "placement": {"anchor": {"h": "center", "v": "middle"}},
+            }
+        )
+        assert z.span.h == 1
+        assert z.span.v == 1
+
+    def test_zone_span_explicit_horizontal(self) -> None:
+        z = PatternZone.model_validate(
+            {
+                "role": "x",
+                "size": "medium",
+                "placement": {"anchor": {"h": "left", "v": "middle"}},
+                "span": {"h": 2, "v": 1},
+            }
+        )
+        assert z.span.h == 2
+        assert z.span.v == 1
+
+    def test_zone_span_h_must_be_positive(self) -> None:
+        with pytest.raises(ValidationError):
+            PatternZone.model_validate(
+                {
+                    "role": "x",
+                    "size": "medium",
+                    "placement": {"anchor": {"h": "left", "v": "middle"}},
+                    "span": {"h": 0, "v": 1},
+                }
+            )
+
+    def test_zone_span_v_must_be_positive(self) -> None:
+        with pytest.raises(ValidationError):
+            PatternZone.model_validate(
+                {
+                    "role": "x",
+                    "size": "medium",
+                    "placement": {"anchor": {"h": "left", "v": "middle"}},
+                    "span": {"h": 1, "v": 0},
+                }
+            )
+
+    def test_zone_span_does_not_affect_structural_identity(self) -> None:
+        """span is layout, not identity — patterns differing only by
+        span are still structural duplicates."""
+        zones_a = [
+            {
+                "role": "x",
+                "size": "medium",
+                "placement": {"anchor": {"h": "center", "v": "middle"}},
+            }
+        ]
+        zones_b = [
+            {
+                "role": "x",
+                "size": "medium",
+                "placement": {"anchor": {"h": "center", "v": "middle"}},
+                "span": {"h": 2, "v": 1},
+            }
+        ]
+        with pytest.raises(ValidationError, match="structurally identical"):
+            PatternCatalog.model_validate(
+                {
+                    "slide_template_patterns": [
+                        {
+                            "id": 1,
+                            "name": "A",
+                            "layout_disposition": "x",
+                            "zones": zones_a,
+                        },
+                        {
+                            "id": 2,
+                            "name": "B",
+                            "layout_disposition": "x",
+                            "zones": zones_b,
+                        },
+                    ]
+                }
+            )
+
     def test_zone_with_optional_shape(self) -> None:
         z = PatternZone.model_validate(
             {

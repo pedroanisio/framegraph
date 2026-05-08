@@ -52,6 +52,7 @@ __all__ = [
     "RelativePlacement",
     "Size",
     "SlidePattern",
+    "Span",
     "load_pattern_catalog",
 ]
 
@@ -246,6 +247,29 @@ shape an agent must supply for each slot.
 """
 
 
+class Span(BaseModel):
+    """How many grid cells a zone claims along each axis.
+
+    Round 2 Phase 1 addition. Default ``{h: 1, v: 1}`` — a single
+    cell, matching pre-Round-2 behavior. A zone with ``span: {h: 2}``
+    claims its anchor cell *plus the next cell to the right*; the
+    layout engine (Phase 2) honors this when allocating boxes.
+
+    Span is **identity-neutral** — it does not participate in the
+    pattern's structural fingerprint. Two patterns whose zones
+    differ only by ``span`` are still structural duplicates; this
+    matches how ``shape`` and ``content_type`` are treated.
+
+    Attributes:
+        h: Horizontal cells claimed. Must be ≥ 1. Default 1.
+        v: Vertical cells claimed. Must be ≥ 1. Default 1.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    h: int = Field(default=1, ge=1)
+    v: int = Field(default=1, ge=1)
+
+
 class PatternZone(BaseModel):
     """A named region in a slide-pattern composition.
 
@@ -267,6 +291,10 @@ class PatternZone(BaseModel):
             participate in structural fingerprinting). When unset,
             the zone is un-curated and downstream fill schemas
             cannot derive a contract for it automatically.
+        span: How many grid cells the zone claims along each axis.
+            Defaults to a single cell. Identity-neutral — span is
+            layout, not structure. The layout engine consumes this
+            value to size the zone's box.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -275,6 +303,7 @@ class PatternZone(BaseModel):
     placement: Annotated[Placement, Field(union_mode="left_to_right")]
     shape: _Shape | None = None
     content_type: ContentType | None = None
+    span: Span = Field(default_factory=Span)
 
     @model_validator(mode="before")
     @classmethod
