@@ -1,0 +1,68 @@
+# Sidecar fill schema for pattern #183 — Data Operating Model.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 183
+zones: {}
+example_fill:
+  data_domains:
+  - Customer
+  - Product
+  - Finance
+  - Operations
+  domain_owners:
+    headers:
+    - Domain
+    - Owner
+    rows:
+    - - Customer
+      - VP Marketing
+    - - Product
+      - VP Product
+    - - Finance
+      - Controller
+    - - Operations
+      - VP Ops
+  governance_forums:
+    headers:
+    - Domain
+    - Forum
+    rows:
+    - - Customer
+      - Marketing council
+    - - Product
+      - Product council
+    - - Finance
+      - Finance steering
+    - - Operations
+      - Ops review
+  platform_capabilities:
+    headers:
+    - Domain
+    - Platform
+    rows:
+    - - Customer
+      - CDP + analytics warehouse
+    - - Product
+      - Event pipeline + feature store
+    - - Finance
+      - ERP + planning
+    - - Operations
+      - Workflow + IoT
+  priority_use_cases:
+    headers:
+    - Domain
+    - Use case
+    rows:
+    - - Customer
+      - 360° customer view
+    - - Product
+      - Real-time experimentation
+    - - Finance
+      - Cash-flow forecasting
+    - - Operations
+      - Predictive maintenance

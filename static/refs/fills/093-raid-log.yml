@@ -1,0 +1,27 @@
+# Sidecar fill schema for pattern #93 — RAID Log.
+#
+# 4-quadrant family member (sibling of SWOT #10). RAID =
+# Risks / Assumptions / Issues / Dependencies. Each quadrant is
+# a tracked-list bullet view; default list[str] is correct.
+
+pattern_id: 93
+
+zones: {}
+
+example_fill:
+  risks:
+    - "API rate limits may throttle migration throughput"
+    - "Vendor SLA does not cover the new region"
+    - "Key engineer rolling off mid-program"
+  assumptions:
+    - "Cloud spend will not exceed approved envelope"
+    - "Compliance team will sign off within 4 weeks"
+    - "No major scope additions during cutover window"
+  issues:
+    - "Production incident #4421 still unresolved"
+    - "Test environment intermittently unavailable"
+    - "Spec ambiguity in module 7 blocking review"
+  dependencies:
+    - "Identity provider migration must complete first"
+    - "Data warehouse schema freeze required by Friday"
+    - "Legal review of partner contract gating launch"

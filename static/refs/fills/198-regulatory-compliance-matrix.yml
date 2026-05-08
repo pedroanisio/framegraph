@@ -1,0 +1,68 @@
+# Sidecar fill schema for pattern #198 — Regulatory Compliance Matrix.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 198
+zones: {}
+example_fill:
+  requirements:
+  - Article 32 — security of processing
+  - Article 33 — breach notification
+  - Article 35 — DPIA
+  - Article 44 — international transfers
+  controls:
+    headers:
+    - Requirement
+    - Control
+    rows:
+    - - Art. 32
+      - Encryption + access reviews
+    - - Art. 33
+      - 72-hr notification runbook
+    - - Art. 35
+      - DPIA template + sign-off
+    - - Art. 44
+      - SCCs + transfer impact assessments
+  owners:
+    headers:
+    - Requirement
+    - Owner
+    rows:
+    - - Art. 32
+      - CISO
+    - - Art. 33
+      - Legal + security
+    - - Art. 35
+      - Privacy office
+    - - Art. 44
+      - Privacy office
+  evidence_status:
+    headers:
+    - Requirement
+    - Evidence
+    rows:
+    - - Art. 32
+      - ISO 27001 audit
+    - - Art. 33
+      - Tabletop exercise log
+    - - Art. 35
+      - 5 DPIAs completed
+    - - Art. 44
+      - SCCs signed for all vendors
+  gaps:
+    headers:
+    - Requirement
+    - Gap
+    rows:
+    - - Art. 32
+      - Need annual penetration test
+    - - Art. 33
+      - Notification automation in progress
+    - - Art. 35
+      - Backlog of 3 DPIAs
+    - - Art. 44
+      - TIAs pending for 2 vendors

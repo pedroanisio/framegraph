@@ -1,0 +1,68 @@
+# Sidecar fill schema for pattern #219 — Decision Log.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 219
+zones: {}
+example_fill:
+  decision_items:
+  - Adopt cloud-first architecture
+  - Consolidate 3 BUs into 2
+  - Sunset legacy product line
+  - Open EU operations
+  decision_owner:
+    headers:
+    - Decision
+    - Owner
+    rows:
+    - - Cloud-first
+      - CIO
+    - - BU consolidation
+      - COO
+    - - Sunset legacy
+      - VP Product
+    - - EU expansion
+      - CEO
+  decision_date:
+    headers:
+    - Decision
+    - Date
+    rows:
+    - - Cloud-first
+      - '2026-03-04'
+    - - BU consolidation
+      - '2026-03-18'
+    - - Sunset legacy
+      - '2026-04-02'
+    - - EU expansion
+      - '2026-04-22'
+  implications:
+    headers:
+    - Decision
+    - Implication
+    rows:
+    - - Cloud-first
+      - $4M migration spend
+    - - BU consolidation
+      - 180 roles affected
+    - - Sunset legacy
+      - $8M revenue exit
+    - - EU expansion
+      - $12M opening cost
+  follow_up_actions:
+    headers:
+    - Decision
+    - Follow-up
+    rows:
+    - - Cloud-first
+      - RFP issued
+    - - BU consolidation
+      - Comms plan in build
+    - - Sunset legacy
+      - Customer-migration playbook
+    - - EU expansion
+      - Legal entity setup

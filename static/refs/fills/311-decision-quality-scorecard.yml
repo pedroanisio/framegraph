@@ -1,0 +1,69 @@
+# Sidecar fill schema for pattern #311 — Decision Quality Scorecard.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 311
+zones: {}
+example_fill:
+  quality_dimensions:
+  - Frame clarity
+  - Evidence completeness
+  - Options breadth
+  - Trade-off analysis
+  - Stakeholder alignment
+  - Reversibility
+  score:
+    headers:
+    - Dimension
+    - Score
+    rows:
+    - - Frame clarity
+      - 8/10
+    - - Evidence
+      - 6/10
+    - - Options
+      - 5/10
+    - - Trade-offs
+      - 7/10
+    - - Alignment
+      - 8/10
+    - - Reversibility
+      - 9/10
+  evidence:
+    headers:
+    - Dimension
+    - Evidence
+    rows:
+    - - Frame clarity
+      - One-page brief
+    - - Evidence
+      - Two interviews; no benchmarks
+    - - Options
+      - Two options surfaced
+    - - Trade-offs
+      - Cost-benefit captured
+    - - Alignment
+      - Cross-functional sign-off
+    - - Reversibility
+      - Pilot scope only
+  improvement_action:
+    headers:
+    - Dimension
+    - Action
+    rows:
+    - - Frame clarity
+      - Done
+    - - Evidence
+      - Run benchmark study
+    - - Options
+      - Generate two more options
+    - - Trade-offs
+      - Done
+    - - Alignment
+      - Done
+    - - Reversibility
+      - Done

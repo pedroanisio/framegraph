@@ -1,0 +1,77 @@
+# Sidecar fill schema for pattern #246 — Product-Market Fit Assessment.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 246
+zones: {}
+example_fill:
+  fit_dimensions:
+  - Market demand
+  - Usage / engagement
+  - Retention
+  - Monetization
+  - Differentiation
+  evidence:
+    headers:
+    - Dimension
+    - Evidence
+    rows:
+    - - Demand
+      - 120% MoM signup growth
+    - - Usage
+      - DAU/MAU = 0.42
+    - - Retention
+      - Cohort retention 65% at M3
+    - - Monetization
+      - ARPU $46/mo
+    - - Differentiation
+      - 5 of 7 reviewers cite UX edge
+  score:
+    headers:
+    - Dimension
+    - Score
+    rows:
+    - - Demand
+      - 9/10
+    - - Usage
+      - 8/10
+    - - Retention
+      - 7/10
+    - - Monetization
+      - 6/10
+    - - Differentiation
+      - 8/10
+  gaps:
+    headers:
+    - Dimension
+    - Gap
+    rows:
+    - - Demand
+      - Channel attribution unclear
+    - - Usage
+      - Activation drop-off in step 3
+    - - Retention
+      - Churn driver unknown
+    - - Monetization
+      - No price test yet
+    - - Differentiation
+      - Need third-party validation
+  next_experiments:
+    headers:
+    - Dimension
+    - Experiment
+    rows:
+    - - Demand
+      - Multi-touch attribution
+    - - Usage
+      - Onboarding redesign A/B
+    - - Retention
+      - Churn-driver interviews
+    - - Monetization
+      - Tiered-pricing test
+    - - Differentiation
+      - Independent benchmark

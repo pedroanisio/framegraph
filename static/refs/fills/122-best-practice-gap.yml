@@ -1,0 +1,53 @@
+# Sidecar fill schema for pattern #122 — Best Practice Gap.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 122
+zones: {}
+example_fill:
+  practice_areas:
+    title: Practice areas under review
+    body: Sales ops, demand gen, customer onboarding, renewals.
+  current_practice:
+    headers:
+    - Area
+    - Today
+    rows:
+    - - Sales ops
+      - Manual CRM hygiene
+    - - Demand gen
+      - Single-channel attribution
+    - - Onboarding
+      - Self-serve only
+    - - Renewals
+      - Reactive, last-30-days
+  leading_practice:
+    headers:
+    - Area
+    - Leading practice
+    rows:
+    - - Sales ops
+      - Automated data quality + alerts
+    - - Demand gen
+      - Multi-touch + ML attribution
+    - - Onboarding
+      - High-touch for top tier
+    - - Renewals
+      - 90-day proactive program
+  required_change:
+    headers:
+    - Area
+    - Required change
+    rows:
+    - - Sales ops
+      - Adopt CRM-automation tool
+    - - Demand gen
+      - Stand up attribution model
+    - - Onboarding
+      - Hire 2 CSMs for top tier
+    - - Renewals
+      - Build proactive playbook

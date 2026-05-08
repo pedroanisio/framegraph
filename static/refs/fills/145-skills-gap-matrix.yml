@@ -1,0 +1,53 @@
+# Sidecar fill schema for pattern #145 — Skills Gap Matrix.
+#
+# Member of the comparison-table family (17 patterns share
+# this structural skeleton: row labels + N data columns). The
+# default content_type-derived schema validates the payload shape
+# correctly; this sidecar exists to ship a representative
+# example_fill so agents see what good content looks like.
+
+pattern_id: 145
+zones: {}
+example_fill:
+  skills:
+    title: Skills under review
+    body: Data engineering, ML/AI, product analytics, change management.
+  current_level:
+    headers:
+    - Skill
+    - Current
+    rows:
+    - - Data eng.
+      - Beginner
+    - - ML/AI
+      - None
+    - - Product analytics
+      - Intermediate
+    - - Change mgmt.
+      - Beginner
+  target_level:
+    headers:
+    - Skill
+    - Target
+    rows:
+    - - Data eng.
+      - Advanced
+    - - ML/AI
+      - Intermediate
+    - - Product analytics
+      - Advanced
+    - - Change mgmt.
+      - Intermediate
+  gap_closure_plan:
+    headers:
+    - Skill
+    - Plan
+    rows:
+    - - Data eng.
+      - Hire 3 + bootcamp 5
+    - - ML/AI
+      - Hire 2 + partner with vendor
+    - - Product analytics
+      - Internal academy
+    - - Change mgmt.
+      - Coaching for 12 leads
