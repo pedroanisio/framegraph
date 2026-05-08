@@ -99,6 +99,86 @@ _V_INDEX = {"top": 0, "middle": 1, "bottom": 2}
 
 
 # ─────────────────────────────────────────────────────────────────
+# Wrap-aware string measurer — used by the planner to estimate
+# real wrapped-text height per zone before deciding geometry.
+# Mirrors the renderer's per-character-class width tables so the
+# planner's measurement matches what the renderer will draw.
+# ─────────────────────────────────────────────────────────────────
+
+_CW_NORMAL: dict[str, float] = {
+    "narrow": 0.34,
+    "normal": 0.50,
+    "wide": 0.65,
+    "space": 0.25,
+    "digit": 0.52,
+    "punct": 0.30,
+}
+_CW_BOLD: dict[str, float] = {
+    "narrow": 0.38,
+    "normal": 0.56,
+    "wide": 0.72,
+    "space": 0.28,
+    "digit": 0.58,
+    "punct": 0.34,
+}
+_NARROW_CH: set[str] = set("ijlfrт:;!|1()")
+_WIDE_CH: set[str] = set("ABCDEFGHIJKLMNOPQRSTUVWXYZmw@#%")
+_DIGIT_CH: set[str] = set("0123456789")
+_PUNCT_CH: set[str] = set(",.'\"-–—")
+
+
+def _char_em(c: str, bold: bool) -> float:
+    d = _CW_BOLD if bold else _CW_NORMAL
+    if c in (" ", "\t"):
+        return d["space"]
+    if c in _NARROW_CH:
+        return d["narrow"]
+    if c in _WIDE_CH:
+        return d["wide"]
+    if c in _DIGIT_CH:
+        return d["digit"]
+    if c in _PUNCT_CH:
+        return d["punct"]
+    return d["normal"]
+
+
+def _str_width(text: str, fs: float, bold: bool = False) -> float:
+    """Estimate rendered width of `text` in pixels at `fs` font size."""
+    return sum(_char_em(c, bold) for c in text) * fs
+
+
+def _count_wrapped_lines(text: str, fs: float, avail_w: float, bold: bool = False) -> int:
+    """Count how many wrapped lines `text` occupies at `fs` and `avail_w`.
+
+    Mirrors the renderer's word-wrapping. Used by the planner so its
+    height estimate matches what the renderer will actually draw.
+    """
+    if not text:
+        return 1
+    if avail_w <= 0:
+        return 1
+    n = 0
+    # Apply the same 8% safety margin the renderers use.
+    safe = avail_w * 0.92
+    for paragraph in str(text).split("\n"):
+        words = paragraph.split()
+        if not words:
+            n += 1
+            continue
+        line = ""
+        for word in words:
+            test = (line + " " + word).strip()
+            if line and _str_width(test, fs, bold) > safe:
+                n += 1
+                line = word
+            else:
+                line = test
+        if line:
+            n += 1
+    return max(1, n)
+
+
+# ─────────────────────────────────────────────────────────────────
 # AnchorGrid — universal NxM partition derived from used anchors
 # ─────────────────────────────────────────────────────────────────
 

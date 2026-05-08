@@ -1638,45 +1638,42 @@ slides:
             - {type: rect, id: v.bg, decorative: true, box: [40,60,880,432],
                fill: page_warm, stroke: {color: chrome_line, width: 0.5}, radius: 4}
 
-        # ── Wires connecting interface tips. The convention is a
-        # *short* segment between each socket/lollipop tip and its
-        # mating partner, drawn at the same y as the interface
-        # decoration.
-        # Layout — three rows, all left→right:
-        #   Row 1 (y=160): UserSurface ──IObserve── Core
-        #   Row 2 (y=290): Core ──IRefuse── Worker
-        #   Row 3 split: Core ──IMemory── MemoryStore (y=160 right);
-        #                Core ──IClassify── Classifier (y=290 right).
+        # ── Assembly connectors between component bodies. Y-offsets
+        # are tuned to land at the same y as each interface
+        # decoration so the wires read as "lollipop ↔ socket
+        # plugged via a wire."
         - id: uml.edges
           z: 10
           objects:
 
-            # IObserve wire — UserSurface socket-tip to Core lollipop-tip.
-            - {type: line, id: w.iobs,
-               from: [310, 175], to: [350, 175],
+            # UserSurface (east, y=195) ─── Core (west, y=195)  via IObserve
+            - {type: connector, id: w.iobs,
+               from: {object: UserSurface, side: east},
+               to:   {object: Core,        side: west, offset: -75},
                stroke: {color: primary, width: 1.0}}
 
-            # IRefuse wire — Core lollipop-tip to Worker socket-tip.
-            - {type: line, id: w.iref,
-               from: [610, 305], to: [650, 305],
+            # Core (east, y=145) ─── MemoryStore (west, y=145)  via IMemory
+            - {type: connector, id: w.imem,
+               from: {object: Core,        side: east, offset: -125},
+               to:   {object: MemoryStore, side: west},
                stroke: {color: primary, width: 1.0}}
 
-            # IMemory wire — Core socket-tip to MemoryStore lollipop-tip.
-            - {type: line, id: w.imem,
-               from: [610, 175], to: [650, 175],
+            # Core (east, y=270) ─── Worker (west, y=270)  via IRefuse
+            - {type: connector, id: w.iref,
+               from: {object: Core,   side: east},
+               to:   {object: Worker, side: west},
                stroke: {color: primary, width: 1.0}}
 
-            # IClassify wire — Core socket-tip to Classifier lollipop-tip.
-            # Routes orthogonally because the y values differ.
-            - {type: polyline, id: w.icls,
-               points: [[610, 380], [630, 380], [630, 420], [650, 420]],
+            # Core (east, y=410) ─── Classifier (west, y=410)  via IClassify
+            - {type: connector, id: w.icls,
+               from: {object: Core,       side: east, offset: 140},
+               to:   {object: Classifier, side: west},
                stroke: {color: primary, width: 1.0}}
 
-        # ── Components (rectangles with the «component» icon glyph).
-        # Three rows of equally-sized boxes:
-        #   Row 1: UserSurface (left), Core (center), MemoryStore (right)
-        #   Row 2 (below center): Core continues; Worker (right)
-        #   Row 3 (bottom-right): Classifier
+        # ── Components. Each declares its provided/required interfaces
+        # via the `provided_interfaces` / `required_interfaces` fields,
+        # which the renderer surfaces as labels in the component icon.
+        # The actual wires between components are the connectors above.
         - id: uml.classifiers
           z: 20
           objects:
@@ -1684,16 +1681,15 @@ slides:
             # UserSurface — top-left.
             - type: uml.component_box
               id: UserSurface
-              box: [60, 130, 220, 90]
+              box: [60, 150, 220, 90]
               name: UserSurface
               required_interfaces: [IObserve]
 
-            # Core — top-center. Provides IObserve (right-out) and
-            # IRefuse (right-out, lower); requires IMemory (right-in,
-            # upper) and IClassify (right-in, lower-down).
+            # Core — center. Tall box because it has 4 interfaces
+            # (2 provided + 2 required).
             - type: uml.component_box
               id: Core
-              box: [380, 130, 220, 280]
+              box: [380, 110, 220, 320]
               name: Core
               stereotype: constitutional
               provided_interfaces: [IObserve, IRefuse]
@@ -1702,7 +1698,7 @@ slides:
             # MemoryStore — top-right.
             - type: uml.component_box
               id: MemoryStore
-              box: [700, 130, 200, 90]
+              box: [700, 80, 200, 90]
               name: MemoryStore
               stereotype: encrypted
               provided_interfaces: [IMemory]
@@ -1710,49 +1706,63 @@ slides:
             # Worker — middle-right.
             - type: uml.component_box
               id: Worker
-              box: [700, 260, 200, 90]
+              box: [700, 225, 200, 90]
               name: Worker
               required_interfaces: [IRefuse]
 
             # Classifier — bottom-right.
             - type: uml.component_box
               id: Classifier
-              box: [700, 380, 200, 80]
+              box: [700, 370, 200, 80]
               name: Classifier
               stereotype: ml
               provided_interfaces: [IClassify]
 
-        # ── Interface decorations placed at the box edges.
-        # Each lollipop/socket extends 30px outward from the box's
-        # face. The wire above covers the gap (40px) between mating
-        # tips so they look "plugged together."
+        # ── Interface decorations — lollipop (provided) or socket
+        # (required) hanging off the east face of each component.
+        # The `provided_interfaces` / `required_interfaces` fields
+        # on uml.component_box are *labels only* — the renderer
+        # doesn't draw glyphs for them. We add the visible glyphs
+        # here, mirroring the composer's convention.
         - id: uml.interfaces
           z: 25
           objects:
 
-            # Row 1 — IObserve: UserSurface (east, socket) ↔ Core (west, lollipop)
-            - {type: uml.socket, id: sk.iobs,
-               box: [280, 167, 30, 16], name: IObserve, attach: east}
-            - {type: uml.lollipop, id: lp.iobs,
-               box: [350, 167, 30, 16], name: "", attach: west}
+            # UserSurface needs IObserve — socket on its east face.
+            - {type: uml.socket, id: sk.iobs.us,
+               box: [280, 187, 32, 16], name: IObserve}
 
-            # Row 1 right — IMemory: Core (east, socket) ↔ MemoryStore (west, lollipop)
-            - {type: uml.socket, id: sk.imem,
-               box: [600, 167, 30, 16], name: IMemory, attach: east}
-            - {type: uml.lollipop, id: lp.imem,
-               box: [670, 167, 30, 16], name: "", attach: west}
+            # Core provides IObserve — lollipop on Core's *west* face,
+            # facing west toward UserSurface. Renderer always draws
+            # lollipop with stem-on-left, circle-on-right; placing
+            # the box such that its right edge sits on Core's west
+            # edge puts the circle right at Core's edge.
+            - {type: uml.lollipop, id: lp.iobs.core,
+               box: [348, 187, 32, 16], name: ""}
 
-            # Row 2 — IRefuse: Core (east, lollipop) ↔ Worker (west, socket)
-            - {type: uml.lollipop, id: lp.iref,
-               box: [600, 297, 30, 16], name: IRefuse, attach: east}
-            - {type: uml.socket, id: sk.iref,
-               box: [670, 297, 30, 16], name: "", attach: west}
+            # Core requires IMemory — socket on Core's east face.
+            - {type: uml.socket, id: sk.imem.core,
+               box: [600, 137, 32, 16], name: IMemory}
 
-            # Row 3 — IClassify: Core (east, socket) ↔ Classifier (west, lollipop)
-            - {type: uml.socket, id: sk.icls,
-               box: [600, 372, 30, 16], name: IClassify, attach: east}
-            - {type: uml.lollipop, id: lp.icls,
-               box: [670, 412, 30, 16], name: "", attach: west}
+            # MemoryStore provides IMemory — lollipop on its west face.
+            - {type: uml.lollipop, id: lp.imem.ms,
+               box: [668, 137, 32, 16], name: ""}
+
+            # Core provides IRefuse — lollipop on Core's east face.
+            - {type: uml.lollipop, id: lp.iref.core,
+               box: [600, 262, 32, 16], name: IRefuse}
+
+            # Worker requires IRefuse — socket on its west face.
+            - {type: uml.socket, id: sk.iref.worker,
+               box: [668, 262, 32, 16], name: ""}
+
+            # Core requires IClassify — socket on Core's east face.
+            - {type: uml.socket, id: sk.icls.core,
+               box: [600, 402, 32, 16], name: IClassify}
+
+            # Classifier provides IClassify — lollipop on its west face.
+            - {type: uml.lollipop, id: lp.icls.cls,
+               box: [668, 402, 32, 16], name: ""}
 
         # Caption.
         - id: caption
