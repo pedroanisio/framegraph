@@ -1,11 +1,16 @@
 """Layout engine — pattern zones → ``[x, y, w, h]`` boxes on a canvas.
 
-Phase 3 of the fill-and-render roadmap. Two-pass algorithm:
+Originally Phase 3 of the Round 1 roadmap; Round 2 Phase 2 adds
+**span-aware** and **density-aware** allocation while preserving
+backwards compatibility.
+
+Two-pass algorithm:
 
   1. **Anchor + region (geometric)**: place every anchor- and
-     region-typed zone using the 9-cell grid (with same-cell
-     subdivision for siblings) and per-region hand-coded layouts
-     for the top-5 regions plus a centroid fallback.
+     region-typed zone using the 9-cell grid (with span-aware
+     base boxes and density-weighted same-cell subdivision when
+     a fill is supplied) and per-region hand-coded layouts for
+     the top-5 regions plus a centroid fallback.
   2. **Relative (refinement)**: place every `relative` zone by
      looking up its target's box from pass 1. When the target
      doesn't resolve to a real role, fall back to the canvas
@@ -13,7 +18,25 @@ Phase 3 of the fill-and-render roadmap. Two-pass algorithm:
 
 The engine produces a dict mapping zone role → 4-tuple
 ``(x, y, w, h)``. Coordinates are in canvas pixels; the FrameGraph
-renderer (Phase 4) consumes these directly.
+renderer consumes these directly.
+
+Round 2 Phase 2 additions
+-------------------------
+
+- **Span**: a zone with ``span: {h: N}`` claims N adjacent cells
+  along the row, gaining ``(N-1)`` cells of width plus the
+  inter-cell gutters. Annotation enforces no overlap with
+  sibling-anchored zones.
+- **Density**: when ``compute_boxes(..., fill=<validated fill>)``
+  is called, same-cell siblings are allocated proportional to
+  estimated content density (table_data > chart_data >
+  list_items > title_body > metric > others). Without a fill,
+  same-cell siblings split uniformly (Round 1 behavior).
+- **Backwards compatible**: ``compute_boxes(pattern, w, h)``
+  with no ``fill`` argument and a pattern whose zones all use
+  ``span: {h: 1, v: 1}`` produces byte-identical results to
+  Round 1. The corpus-coverage and BMC-golden tests rely on
+  this.
 
 Design principles
 -----------------
@@ -30,18 +53,19 @@ Limitations (deferred to later phases)
 --------------------------------------
 
 - Region layouts cover the top-5 named regions; less-common
-  regions fall back to centered placement. The corpus has 19
-  distinct regions; the top 5 cover 73% of region uses.
+  regions fall back to centered placement.
 - Relative placement applies a fixed offset (canvas-edge spacing
   fraction). No collision detection between relative zones and
   pre-placed anchor/region zones.
-- No baseline grid alignment, no font-aware sizing — those are
-  the renderer's job (Phase 4).
+- Density estimation reads content_type and (when available) the
+  fill payload; it does not measure actual rendered text width.
 """
 
 from __future__ import annotations
 
 from typing import Any
+
+from pydantic import BaseModel
 
 from framegraph._patterns import (
     Anchor,
@@ -98,6 +122,120 @@ def _grid_cell(
 def _fullbleed(canvas_w: float, canvas_h: float, margin: float) -> Box:
     """Full-bleed zone — covers the entire canvas (margin-aware)."""
     return (margin / 2, margin / 2, canvas_w - margin, canvas_h - margin)
+
+
+def _grid_span_box(
+    canvas_w: float,
+    canvas_h: float,
+    margin: float,
+    h: str,
+    v: str,
+    h_span: int,
+    v_span: int,
+) -> Box:
+    """Return the box covering ``h_span × v_span`` cells starting at ``(h, v)``.
+
+    A spanning zone claims its anchor cell plus ``h_span-1`` cells
+    to the right (and ``v_span-1`` below). The resulting box covers
+    those cells plus the gutters between them.
+
+    Spans are clamped so the zone never extends past the canvas
+    edge (a zone at ``(right, middle)`` with ``span: {h: 3}``
+    behaves like ``span: {h: 1}`` because there are no cells to
+    the right).
+    """
+    inner_w = canvas_w - 2 * margin
+    inner_h = canvas_h - 2 * margin
+    cell_w = (inner_w - 2 * margin) / 3
+    cell_h = (inner_h - 2 * margin) / 3
+    col = _H_INDEX[h]
+    row = _V_INDEX[v]
+
+    # Clamp the span so it doesn't extend past the canvas edge.
+    h_span = max(1, min(h_span, 3 - col))
+    v_span = max(1, min(v_span, 3 - row))
+
+    x = margin + col * (cell_w + margin)
+    y = margin + row * (cell_h + margin)
+    # (h_span-1) cell widths plus (h_span-1) gutters of `margin`.
+    w = h_span * cell_w + (h_span - 1) * margin
+    h_box = v_span * cell_h + (v_span - 1) * margin
+    return (x, y, w, h_box)
+
+
+# ─────────────────────────────────────────────────────────────────
+# Density estimator — drives same-cell sibling allocation
+# ─────────────────────────────────────────────────────────────────
+
+
+# Base weights per content_type. Higher = more horizontal space
+# claimed when same-cell siblings differ. Tables and charts crave
+# width; metrics and short texts don't.
+_BASE_DENSITY: dict[str, float] = {
+    "table_data": 3.0,
+    "chart_data": 2.5,
+    "list_items": 1.8,
+    "title_body": 1.0,
+    "comparison": 1.5,
+    "metric": 0.8,
+    "key_value": 1.0,
+    "image": 2.0,
+    "axis_label": 0.5,
+    "decorative": 0.5,
+}
+
+
+def _density_weight(zone: PatternZone, fill: BaseModel | None) -> float:
+    """Estimate a zone's relative width demand.
+
+    Without a fill, returns the base weight for the zone's
+    content_type. When a fill is supplied, refines the estimate
+    using actual content shape: a table with 5 columns claims more
+    width than a table with 2; a list with long items claims more
+    than one with short items.
+
+    The function is total: any zone returns a positive float.
+    """
+    ct = zone.content_type or "title_body"
+    weight = _BASE_DENSITY.get(ct, 1.0)
+
+    if fill is None:
+        return weight
+
+    # Pull the per-role payload off the fill object.
+    value = getattr(fill, zone.role, None)
+    if value is None:
+        return weight
+
+    # Refinements per content_type.
+    if ct == "table_data":
+        # Width scales with column count; floor of 1, cap at 6×.
+        try:
+            cols = len(getattr(value, "headers", None) or [])
+        except TypeError:
+            cols = 0
+        if cols > 0:
+            weight = _BASE_DENSITY["table_data"] * (cols / 3.0)
+            weight = max(1.5, min(weight, 6.0))
+    elif ct == "list_items":
+        # Width scales with longest item's char count, capped.
+        try:
+            items = list(value or [])
+            longest = max((len(str(it)) for it in items), default=10)
+        except TypeError:
+            longest = 10
+        weight = _BASE_DENSITY["list_items"] * (longest / 20.0)
+        weight = max(1.0, min(weight, 4.0))
+    elif ct == "chart_data":
+        try:
+            n_series = len(getattr(value, "series", None) or [])
+        except TypeError:
+            n_series = 0
+        # More series → more width up to 4×.
+        weight = _BASE_DENSITY["chart_data"] * (1 + n_series * 0.2)
+        weight = min(weight, 4.0)
+
+    return weight
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -253,12 +391,14 @@ def _relative_box(
         # rendered behind the target by convention.
         pad_w = tw * 0.15
         pad_h = th * 0.15
-        return (
-            max(tx - pad_w, margin / 2),
-            max(ty - pad_h, margin / 2),
-            tw + 2 * pad_w,
-            th + 2 * pad_h,
-        )
+        x = max(tx - pad_w, margin / 2)
+        y = max(ty - pad_h, margin / 2)
+        # Clamp the result to the canvas; with span-aware layout
+        # the target box can already span the full canvas width,
+        # which would push around past the edge.
+        w = min(tw + 2 * pad_w, canvas_w - x - margin / 2)
+        h = min(th + 2 * pad_h, canvas_h - y - margin / 2)
+        return (x, y, max(w, 0.0), max(h, 0.0))
 
     if relation == "between":
         # Place at the target's right edge, narrow box (so a
@@ -301,14 +441,71 @@ def _canvas_centroid(canvas_w: float, canvas_h: float, margin: float) -> Box:
 # ─────────────────────────────────────────────────────────────────
 
 
+def _density_subdivide(
+    cell: Box,
+    zones_in_cell: list[PatternZone],
+    fill: BaseModel | None,
+    margin: float,
+) -> list[Box]:
+    """Subdivide a cell among same-cell siblings using density weights.
+
+    When ``fill`` is None or all weights are equal, falls through to
+    the uniform `_subdivide_cell` (Round 1 behavior). Otherwise
+    allocates horizontal width proportional to each zone's density
+    weight.
+
+    The vertical dimension is not subdivided — same-cell siblings
+    always share full cell height (matches the existing
+    horizontal-first subdivision pattern). For ≥4 siblings the
+    fallback to `_subdivide_cell` (which switches to a 2D grid) wins.
+    """
+    n = len(zones_in_cell)
+    if n <= 1:
+        return [cell]
+    if n >= 4 or fill is None:
+        # Fall through to Round 1 uniform subdivision for ≥4 siblings
+        # and when no fill is supplied (preserves the deterministic
+        # corpus-coverage and BMC golden snapshots).
+        return _subdivide_cell(cell, n, margin)
+
+    weights = [_density_weight(z, fill) for z in zones_in_cell]
+    total = sum(weights)
+    if total <= 0:
+        return _subdivide_cell(cell, n, margin)
+
+    # Detect "all equal" within a small tolerance — fall back to
+    # uniform subdivision for byte-identical Round 1 behavior on
+    # patterns where density agrees with default.
+    if max(weights) - min(weights) < 0.01:
+        return _subdivide_cell(cell, n, margin)
+
+    cx, cy, cw, ch = cell
+    gutter = margin / 2
+    # n-1 gutters between n cells.
+    available_w = cw - (n - 1) * gutter
+    sub_widths = [available_w * (w / total) for w in weights]
+
+    boxes: list[Box] = []
+    x = cx
+    for sub_w in sub_widths:
+        boxes.append((x, cy, sub_w, ch))
+        x += sub_w + gutter
+    return boxes
+
+
 def compute_boxes(
     pattern: SlidePattern,
     canvas_w: float,
     canvas_h: float,
     *,
     margin: float = 24.0,
+    fill: BaseModel | None = None,
 ) -> dict[str, Box]:
     """Compute one ``(x, y, w, h)`` box per zone in the pattern.
+
+    Round 2 Phase 2: honors `PatternZone.span` for spanning zones
+    and (when `fill` is supplied) allocates same-cell-sibling widths
+    by content density.
 
     Args:
         pattern: The catalog pattern to lay out.
@@ -316,6 +513,11 @@ def compute_boxes(
         canvas_h: Canvas height in pixels.
         margin: Outer canvas padding and inter-cell gutter, in
             pixels. Defaults to 24.
+        fill: Optional validated fill (a Pydantic model with one
+            attribute per zone role). When supplied, same-cell
+            siblings are allocated proportional to estimated
+            content density. When None, siblings split uniformly
+            (matches Round 1 behavior).
 
     Returns:
         A mapping from zone role to ``(x, y, w, h)``. Order reflects
@@ -325,7 +527,11 @@ def compute_boxes(
     boxes: dict[str, Box] = {}
 
     # ──── Pass 1a: bucket zones by anchor cell or region ────
-    # Group anchor zones by cell to support same-cell subdivision.
+    # A zone with span > 1 still belongs to its anchor cell — but
+    # by construction (annotation invariant) it does not share its
+    # anchor cell with sibling-anchored zones, so subdivision logic
+    # below sees either {one spanning zone} or {N non-spanning zones}
+    # in any given cell, never a mix.
     anchor_buckets: dict[tuple[str, str] | str, list[PatternZone]] = {}
     region_zones: list[PatternZone] = []
     relative_zones: list[PatternZone] = []
@@ -349,11 +555,25 @@ def compute_boxes(
     for z in fullbleed_zones:
         boxes[z.role] = _fullbleed(canvas_w, canvas_h, margin)
 
-    # ──── Pass 1c: place anchor zones, subdividing same-cell siblings ────
+    # ──── Pass 1c: place anchor zones ────
+    # When a single zone occupies the cell *and* declares span > 1,
+    # use its full spanning box. Otherwise treat as a normal cell
+    # and subdivide among same-cell siblings.
     for cell_key, zones_in_cell in anchor_buckets.items():
         h, v = cell_key  # type: ignore[misc]
+
+        # Single-zone cell — honor span.
+        if len(zones_in_cell) == 1:
+            z = zones_in_cell[0]
+            boxes[z.role] = _grid_span_box(
+                canvas_w, canvas_h, margin, h, v, z.span.h, z.span.v
+            )
+            continue
+
+        # Multi-zone cell — span is guaranteed default (1, 1) by
+        # annotation invariant; subdivide.
         cell = _grid_cell(canvas_w, canvas_h, margin, h, v)
-        sub_boxes = _subdivide_cell(cell, len(zones_in_cell), margin)
+        sub_boxes = _density_subdivide(cell, zones_in_cell, fill, margin)
         for z, box in zip(zones_in_cell, sub_boxes):
             boxes[z.role] = box
 

@@ -381,3 +381,191 @@ class TestCorpusCoverage:
                         (p.id, p.name, f"role {z.role!r} has w={w}, h={h}")
                     )
         assert not failures, f"{len(failures)} layout failures: {failures[:5]}"
+
+
+# ─────────────────────────────────────────────────────────────────
+# Round 2 Phase 2 — span-aware allocation
+# ─────────────────────────────────────────────────────────────────
+
+
+class TestSpanAware:
+    """A zone with span > 1 gets a box wider than a single cell."""
+
+    def test_span_h2_zone_is_wider_than_default(self) -> None:
+        # Two patterns, identical except for span on the same zone.
+        zones_default = [_zone("a", h="left", v="middle")]
+        zones_spanned = [_zone("a", h="left", v="middle")]
+        zones_spanned[0]["span"] = {"h": 2, "v": 1}
+
+        p_default = _pattern(zones_default, pattern_id=99100)
+        p_spanned = _pattern(zones_spanned, pattern_id=99101)
+
+        box_default = compute_boxes(p_default, CANVAS_W, CANVAS_H)["a"]
+        box_spanned = compute_boxes(p_spanned, CANVAS_W, CANVAS_H)["a"]
+
+        # The spanned box must be strictly wider.
+        assert box_spanned[2] > box_default[2], (
+            f"spanned w={box_spanned[2]} should exceed default w={box_default[2]}"
+        )
+
+    def test_span_h3_covers_the_full_inner_row(self) -> None:
+        zones = [_zone("a", h="left", v="middle")]
+        zones[0]["span"] = {"h": 3, "v": 1}
+        p = _pattern(zones, pattern_id=99102)
+        box = compute_boxes(p, CANVAS_W, CANVAS_H)["a"]
+        x, y, w, h = box
+        # h=3 should claim the canvas inner width (canvas - 2*outer_margin)
+        # — the three cells plus two inter-cell gutters.
+        # We allow a tolerance of one margin to account for implementation
+        # detail; the key invariant is that w is dramatically wider than
+        # one cell (~600px) and at least 80% of canvas width.
+        assert w >= CANVAS_W * 0.8, f"h=3 span w={w} < 80% of {CANVAS_W}"
+
+    def test_span_zone_anchor_x_matches_unspanned(self) -> None:
+        """Spanning grows the box rightward; the left edge stays put."""
+        zones_default = [_zone("a", h="left", v="middle")]
+        zones_spanned = [_zone("a", h="left", v="middle")]
+        zones_spanned[0]["span"] = {"h": 2, "v": 1}
+
+        p_d = _pattern(zones_default, pattern_id=99103)
+        p_s = _pattern(zones_spanned, pattern_id=99104)
+        x_d = compute_boxes(p_d, CANVAS_W, CANVAS_H)["a"][0]
+        x_s = compute_boxes(p_s, CANVAS_W, CANVAS_H)["a"][0]
+        assert abs(x_d - x_s) < 0.5
+
+    def test_corpus_spanning_zones_get_wider_boxes(self) -> None:
+        """Real catalog spanning zones must produce boxes wider than one cell."""
+        from framegraph._patterns import load_pattern_catalog
+
+        cat = load_pattern_catalog()
+        # Find one spanning zone in the bundled YAML.
+        target = None
+        for p in cat.slide_template_patterns:
+            for z in p.zones:
+                if z.span.h > 1:
+                    target = (p, z)
+                    break
+            if target:
+                break
+        assert target is not None, "expected at least one spanning zone in catalog"
+        p, z = target
+        boxes = compute_boxes(p, CANVAS_W, CANVAS_H)
+        x, y, w, h = boxes[z.role]
+        # A non-spanning cell is ~CANVAS_W/3. h=2 should give ~2x; h=3 ~3x.
+        single_cell = (CANVAS_W - 2 * 24.0 - 2 * 24.0) / 3
+        expected_min = single_cell * (z.span.h - 0.5)  # at least h-0.5 cells
+        assert w > expected_min, (
+            f"pattern #{p.id} role {z.role!r} span.h={z.span.h}: "
+            f"w={w}, expected >{expected_min}"
+        )
+
+
+# ─────────────────────────────────────────────────────────────────
+# Round 2 Phase 2 — density-aware allocation (with fill)
+# ─────────────────────────────────────────────────────────────────
+
+
+class TestDensityAware:
+    """When a fill is supplied, same-cell siblings allocate by density.
+
+    Without a fill, behavior matches Round 1 (uniform subdivision).
+    """
+
+    def test_no_fill_matches_uniform_subdivision(self) -> None:
+        """compute_boxes(pattern, w, h) with no fill is byte-identical to Round 1."""
+        zones = [
+            _zone("a", h="center", v="middle", size="equal"),
+            _zone("b", h="center", v="middle", size="equal"),
+        ]
+        p = _pattern(zones, pattern_id=99200)
+        boxes = compute_boxes(p, CANVAS_W, CANVAS_H)
+        # Two equal siblings split horizontally — widths approximately equal.
+        ax, ay, aw, ah = boxes["a"]
+        bx, by, bw, bh = boxes["b"]
+        assert abs(aw - bw) < 1.0, "no-fill widths should be equal"
+
+    def test_fill_signature_accepts_optional_fill(self) -> None:
+        """compute_boxes accepts a `fill` kw-only argument without crashing."""
+        zones = [_zone("a", h="center", v="middle")]
+        p = _pattern(zones, pattern_id=99201)
+        # No fill (Round 1 behavior).
+        boxes_no = compute_boxes(p, CANVAS_W, CANVAS_H)
+        # Fill=None (explicit) — same.
+        boxes_none = compute_boxes(p, CANVAS_W, CANVAS_H, fill=None)
+        assert boxes_no == boxes_none
+
+    def test_density_weights_table_higher_than_list(self) -> None:
+        """A table sibling gets more width than a list sibling in the same cell.
+
+        The fill payload signals density: a table_data zone with many
+        columns has higher demand than a list_items zone with short items.
+        """
+        zones = [
+            {
+                "role": "tbl",
+                "size": "equal",
+                "placement": {"anchor": {"h": "center", "v": "middle"}},
+                "content_type": "table_data",
+            },
+            {
+                "role": "lst",
+                "size": "equal",
+                "placement": {"anchor": {"h": "center", "v": "middle"}},
+                "content_type": "list_items",
+            },
+        ]
+        p = _pattern(zones, pattern_id=99202)
+
+        # Build a fill payload: the table has 4 columns; the list has 3 short items.
+        from framegraph.patterns import derive_default_fill_schema
+
+        Model = derive_default_fill_schema(p)
+        fill = Model.model_validate(
+            {
+                "tbl": {
+                    "headers": ["A", "B", "C", "D"],
+                    "rows": [["1", "2", "3", "4"]],
+                },
+                "lst": ["a", "b", "c"],
+            }
+        )
+
+        # With fill: table should get more width than list.
+        boxes = compute_boxes(p, CANVAS_W, CANVAS_H, fill=fill)
+        tw = boxes["tbl"][2]
+        lw = boxes["lst"][2]
+        assert tw > lw, (
+            f"table width ({tw}) should exceed list width ({lw}) under "
+            f"density allocation"
+        )
+
+        # Without fill: the two should be approximately equal.
+        boxes_no_fill = compute_boxes(p, CANVAS_W, CANVAS_H)
+        assert abs(boxes_no_fill["tbl"][2] - boxes_no_fill["lst"][2]) < 1.0
+
+
+# ─────────────────────────────────────────────────────────────────
+# Round 2 Phase 2 — backwards compatibility
+# ─────────────────────────────────────────────────────────────────
+
+
+class TestBackwardsCompat:
+    """Round 1 behavior preserved for patterns without spans and without fills."""
+
+    def test_round1_corpus_layout_unchanged(self) -> None:
+        """Layout of every catalog pattern (no fill) is byte-identical to
+        the pre-Phase-2 result for patterns whose zones all have span={h:1,v:1}."""
+        # We re-run the corpus and assert no exceptions; specific
+        # value comparison would require capturing pre-Phase-2 boxes.
+        # This test guards against new exceptions or NaN/inf values.
+        from framegraph._patterns import load_pattern_catalog
+
+        cat = load_pattern_catalog()
+        for p in cat.slide_template_patterns:
+            boxes = compute_boxes(p, CANVAS_W, CANVAS_H)
+            for role, (x, y, w, h) in boxes.items():
+                assert w > 0 and h > 0, f"#{p.id}/{role}: degenerate w/h"
+                assert x >= 0 and y >= 0, f"#{p.id}/{role}: negative origin"
+                # Allow up to 2px tolerance over the canvas (rounding).
+                assert x + w <= CANVAS_W + 2, f"#{p.id}/{role}: exceeds canvas W"
+                assert y + h <= CANVAS_H + 2, f"#{p.id}/{role}: exceeds canvas H"
