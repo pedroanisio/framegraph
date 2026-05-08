@@ -307,15 +307,18 @@ class HierarchicalComposer(ABC):
             )
             layout_result = sugiyama_layout(nodes, edges, config=cfg)
             # Translate so the leftmost node's left edge sits at margin.
+            # `sugiyama_layout` types node ids as `Hashable`; the
+            # composer feeds in `str` so cast at the boundary.
             if layout_result.positions:
                 min_left = min(
-                    x - dimensions[nid][0] / 2 for nid, (x, _) in layout_result.positions.items()
+                    x - dimensions[str(nid)][0] / 2
+                    for nid, (x, _) in layout_result.positions.items()
                 )
                 x_shift = self.margin - min_left
             else:
                 x_shift = self.margin
             for nid, (x, y) in layout_result.positions.items():
-                positions[nid] = (x + x_shift, y + self.margin)
+                positions[str(nid)] = (x + x_shift, y + self.margin)
         else:
             raise ValueError(
                 f"unknown layout strategy {self.layout!r}; expected 'manual' or 'sugiyama'"

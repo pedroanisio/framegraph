@@ -150,7 +150,7 @@ class AxisLabelContent(BaseModel):
 # Map each ContentType literal to its default content type.
 # `key_value` and `list_items` use generic typing rather than a
 # wrapper model. `decorative` accepts None.
-_DEFAULT_TYPES: dict[ContentType, Any] = {  # type: ignore[valid-type]
+_DEFAULT_TYPES: dict[ContentType, Any] = {
     "title_body": TitleBodyContent,
     "metric": MetricContent,
     "list_items": list[str],

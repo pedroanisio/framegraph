@@ -410,7 +410,9 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
             it_text = (
                 _expand_lorem(item)
                 if isinstance(item, str)
-                else _expand_lorem(str(item.get("text", ""))) if isinstance(item, Mapping) else ""
+                else _expand_lorem(str(item.get("text", "")))
+                if isinstance(item, Mapping)
+                else ""
             )
             line_buf = ""
             n_lines = 0

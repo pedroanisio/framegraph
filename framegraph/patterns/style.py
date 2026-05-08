@@ -145,9 +145,7 @@ def _matches(spec: MatchSpec, features: dict[str, Any]) -> bool:
     return True
 
 
-def _resolve_typography(
-    typo: Any, text_styles: dict[str, dict[str, Any]]
-) -> Any:
+def _resolve_typography(typo: Any, text_styles: dict[str, dict[str, Any]]) -> Any:
     """Expand typography references into inline style dicts.
 
     Accepts:
@@ -199,9 +197,7 @@ def resolve_zone_style(
 
     # Expand typography references.
     if "typography" in matched:
-        matched["typography"] = _resolve_typography(
-            matched["typography"], stylesheet.text_styles
-        )
+        matched["typography"] = _resolve_typography(matched["typography"], stylesheet.text_styles)
 
     # Expand treatment reference.
     treatment_name = matched.get("treatment")
@@ -210,9 +206,7 @@ def resolve_zone_style(
         # Caller-supplied `treatment_props` field shouldn't pre-exist,
         # but if it does, the rule's overrides win.
         merged = dict(treatment_props)
-        merged.update(
-            {k: v for k, v in matched.items() if k not in {"treatment", "typography"}}
-        )
+        merged.update({k: v for k, v in matched.items() if k not in {"treatment", "typography"}})
         matched["treatment_props"] = treatment_props
         matched.update(merged)
 

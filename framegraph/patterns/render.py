@@ -684,7 +684,11 @@ def compose_document(
             objects.extend(body_emitter(zone.role, value, zone_box, {}, None))
             continue
 
-        def make_body_emit(_zone=zone, _value=value, _style=zone_style):
+        def make_body_emit(
+            _zone: Any = zone,
+            _value: Any = value,
+            _style: dict[str, Any] = zone_style,
+        ) -> Any:
             def _emit(body_box: Box) -> list[dict[str, Any]]:
                 return body_emitter(_zone.role, _value, body_box, _style, stylesheet)
 

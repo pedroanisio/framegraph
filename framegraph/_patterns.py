@@ -128,15 +128,20 @@ class Anchor(BaseModel):
         if self.fullbleed:
             return self
         if self.h is None or self.v is None:
-            raise ValueError(
-                "Anchor requires both `h` and `v` (or `fullbleed=True`)"
-            )
+            raise ValueError("Anchor requires both `h` and `v` (or `fullbleed=True`)")
         return self
 
 
 _Relation = Literal[
-    "above", "below", "left_of", "right_of",
-    "inside", "around", "between", "near", "on",
+    "above",
+    "below",
+    "left_of",
+    "right_of",
+    "inside",
+    "around",
+    "between",
+    "near",
+    "on",
 ]
 
 
@@ -213,29 +218,44 @@ def _coerce_placement(raw: Any) -> Any:
 
 
 _Shape = Literal[
-    "card", "list", "text", "metric", "icon", "connector",
-    "bar", "axis", "node", "marker", "container",
-    "sequence", "button",
+    "card",
+    "list",
+    "text",
+    "metric",
+    "icon",
+    "connector",
+    "bar",
+    "axis",
+    "node",
+    "marker",
+    "container",
+    "sequence",
+    "button",
     # Catalog B additions
-    "cell", "block", "chart", "table", "timeline",
+    "cell",
+    "block",
+    "chart",
+    "table",
+    "timeline",
     # Catalog C additions
-    "box", "band",
+    "box",
+    "band",
     # Catalog D additions
     "progress",
 ]
 
 
 ContentType = Literal[
-    "title_body",     # heading + paragraph text
-    "metric",         # large number + label + optional trend/delta
-    "list_items",     # bullet/numbered list of strings or short objects
-    "key_value",      # name:value pairs — legends, tags, status indicators
-    "comparison",     # paired before/after, pros/cons text
-    "chart_data",     # series data — chart subtype implied by shape
-    "table_data",     # 2D rows×cols of values — for table/matrix bodies
-    "image",          # raster/vector asset reference
-    "axis_label",     # axis title + range/units (label only, no series)
-    "decorative",     # background, divider, ornamental — no content
+    "title_body",  # heading + paragraph text
+    "metric",  # large number + label + optional trend/delta
+    "list_items",  # bullet/numbered list of strings or short objects
+    "key_value",  # name:value pairs — legends, tags, status indicators
+    "comparison",  # paired before/after, pros/cons text
+    "chart_data",  # series data — chart subtype implied by shape
+    "table_data",  # 2D rows×cols of values — for table/matrix bodies
+    "image",  # raster/vector asset reference
+    "axis_label",  # axis title + range/units (label only, no series)
+    "decorative",  # background, divider, ornamental — no content
 ]
 """Typed-form contract for a zone's fillable content.
 

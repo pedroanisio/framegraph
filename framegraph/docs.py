@@ -100,7 +100,7 @@ def _signature(obj: Any) -> str:
     etc.) have no callable signature; we fall back to their string
     representation so the catalog still surfaces the alias body.
     """
-    name = getattr(obj, "__name__", None)
+    name: str | None = getattr(obj, "__name__", None)
     if name is None:
         # Type aliases — render the body, e.g. ``"UMLClass | UMLInterface"``.
         return str(obj)

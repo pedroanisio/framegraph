@@ -114,7 +114,7 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
     bx, by, bw, bh = box(obj.get("box", [0, 0, 0, 0]))
     style = obj.get("style") or {}
     rows = obj.get("rows") or []
-    header = obj.get("header")
+    header: list[Any] = list(obj.get("header") or [])
     columns = obj.get("columns")
 
     # Determine column count: explicit `columns` declaration wins, else
@@ -200,9 +200,7 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
             if i < len(cells):
                 cell = _normalize_cell(cells[i])
                 cell_text = str(cell.get("text", ""))
-                max_lines = max(
-                    max_lines, _measure_lines(cell_text, font_size, col_widths[i])
-                )
+                max_lines = max(max_lines, _measure_lines(cell_text, font_size, col_widths[i]))
         return max_lines * line_h + 2 * v_pad
 
     row_h_explicit = obj.get("row_height")
@@ -213,9 +211,7 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
         uniform_h = fnum(row_h_explicit)
         body_row_heights = [uniform_h] * n_body_rows
     else:
-        body_row_heights = [
-            _row_height(row, body_size_default, body_line_h) for row in rows
-        ]
+        body_row_heights = [_row_height(row, body_size_default, body_line_h) for row in rows]
     if header_h_explicit is not None:
         header_h = fnum(header_h_explicit)
     elif has_header:
@@ -223,9 +219,7 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
     else:
         header_h = 0.0
 
-    row_h = (
-        sum(body_row_heights) / len(body_row_heights) if body_row_heights else 0.0
-    )
+    row_h = sum(body_row_heights) / len(body_row_heights) if body_row_heights else 0.0
 
     # Style defaults
     border_color = r.color(style.get("border_color", "#D0CEC8"), "#D0CEC8")

@@ -207,11 +207,11 @@ class _CompositeStructureComposer:
         for part in self.model.parts:
             if not part.ports:
                 continue
-            pb = part_boxes.get(part.id)
-            if pb is None:
+            part_box = part_boxes.get(part.id)
+            if part_box is None:
                 continue
             for j, port_id in enumerate(part.ports):
-                ppx, ppy = self._part_port_position(port_id, pb, j, len(part.ports))
+                ppx, ppy = self._part_port_position(port_id, part_box, j, len(part.ports))
                 port_box = (ppx, ppy, self.opts.port_size, self.opts.port_size)
                 port_boxes[port_id] = port_box
                 port_objs.append(

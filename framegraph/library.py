@@ -54,9 +54,7 @@ def deep_merge(base: Any, override: Any) -> Any:
     return result
 
 
-def _scale_text_styles(
-    text_styles: dict[str, Any], scale: float
-) -> dict[str, Any]:
+def _scale_text_styles(text_styles: dict[str, Any], scale: float) -> dict[str, Any]:
     """Apply a uniform scale factor to every text-style's size + line_height.
 
     Used by the deck loader to expose the layout planner's chosen
@@ -431,7 +429,7 @@ class FrameGraphDeckRenderer:
         # "default") or a path. Defaults to the bundled "default".
         self._stylesheet = self._load_stylesheet()
         # Pattern catalog — lazy-loaded on first `use:` encounter.
-        self._catalog = None
+        self._catalog: Any = None
         # Per-slide layout reports — populated by `build_slide_doc`
         # for templated slides. Keyed by slide id; carries the
         # planner's scale and overflow facts.
@@ -514,13 +512,9 @@ class FrameGraphDeckRenderer:
                 if slug == target:
                     return p
             raise KeyError(f"no pattern matching slug {ref!r}")
-        raise TypeError(
-            f"`use:` expects an int id or string slug; got {type(ref).__name__}"
-        )
+        raise TypeError(f"`use:` expects an int id or string slug; got {type(ref).__name__}")
 
-    def _build_pattern_slide_doc(
-        self, slide: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _build_pattern_slide_doc(self, slide: dict[str, Any]) -> dict[str, Any]:
         """Build a Document for a slide using `use: <pattern>` + `fill:`.
 
         Composition pipeline:
@@ -549,16 +543,9 @@ class FrameGraphDeckRenderer:
         pattern = self._resolve_pattern(slide["use"])
 
         # Sidecar auto-discovery — same convention as the CLI.
-        fills_dir = (
-            Path(__file__).resolve().parent.parent
-            / "static"
-            / "refs"
-            / "fills"
-        )
+        fills_dir = Path(__file__).resolve().parent.parent / "static" / "refs" / "fills"
         sidecar_matches = (
-            sorted(fills_dir.glob(f"{pattern.id:03d}-*.yml"))
-            if fills_dir.exists()
-            else []
+            sorted(fills_dir.glob(f"{pattern.id:03d}-*.yml")) if fills_dir.exists() else []
         )
 
         if sidecar_matches:
@@ -581,9 +568,7 @@ class FrameGraphDeckRenderer:
 
         top_reserve = 0.0
         if chrome_cfg.get("enabled"):
-            top_reserve = float(
-                (chrome_cfg.get("title_separator") or {}).get("y_offset", 56)
-            )
+            top_reserve = float((chrome_cfg.get("title_separator") or {}).get("y_offset", 56))
         bottom_reserve = 0.0
         footer_cfg = chrome_cfg.get("footer") or {}
         if footer_cfg:
@@ -610,22 +595,13 @@ class FrameGraphDeckRenderer:
         # to apply to every text style on this slide, and the
         # LayoutReport (overflow facts for the operator).
         plan = compute_layout_plan(pattern, canvas_w, content_h, fill=fill)
-        layout = {
-            role: (x, y + content_y, w, h)
-            for role, (x, y, w, h) in plan.boxes.items()
-        }
+        layout = {role: (x, y + content_y, w, h) for role, (x, y, w, h) in plan.boxes.items()}
         plan_scale = plan.scale
         plan_report = plan.report
 
-        label_overrides = (
-            slide.get("labels") if isinstance(slide.get("labels"), dict) else None
-        )
-        numbers = (
-            slide.get("numbers") if isinstance(slide.get("numbers"), dict) else None
-        )
-        titles = (
-            slide.get("titles") if isinstance(slide.get("titles"), dict) else None
-        )
+        label_overrides = slide.get("labels") if isinstance(slide.get("labels"), dict) else None
+        numbers = slide.get("numbers") if isinstance(slide.get("numbers"), dict) else None
+        titles = slide.get("titles") if isinstance(slide.get("titles"), dict) else None
 
         doc = compose_document(
             pattern,
@@ -728,9 +704,7 @@ class FrameGraphDeckRenderer:
         top_stripe = chrome_cfg.get("top_stripe") or {}
         if top_stripe:
             stripe_h = float(top_stripe.get("height", 4))
-            stripe_color = overrides.get("top_stripe_color") or top_stripe.get(
-                "color", "accent"
-            )
+            stripe_color = overrides.get("top_stripe_color") or top_stripe.get("color", "accent")
             objects.append(
                 {
                     "id": "_chrome.top_stripe",
@@ -926,9 +900,7 @@ class FrameGraphDeckRenderer:
                     "decorative": True,
                     "box": [text_x, text_y, text_w, text_h],
                     "text": synthesis_text,
-                    "style": synthesis_cfg.get(
-                        "emphasis_typography", "synthesis_em"
-                    ),
+                    "style": synthesis_cfg.get("emphasis_typography", "synthesis_em"),
                 }
             )
         elif isinstance(synthesis_text, dict):
@@ -942,9 +914,7 @@ class FrameGraphDeckRenderer:
                         "decorative": True,
                         "box": [text_x, text_y, text_w, 22],
                         "text": title_t,
-                        "style": synthesis_cfg.get(
-                            "emphasis_typography", "synthesis_em"
-                        ),
+                        "style": synthesis_cfg.get("emphasis_typography", "synthesis_em"),
                     }
                 )
             if body_t:
@@ -955,9 +925,7 @@ class FrameGraphDeckRenderer:
                         "decorative": True,
                         "box": [text_x, text_y + 26, text_w, max(0.0, text_h - 26)],
                         "text": body_t,
-                        "style": synthesis_cfg.get(
-                            "body_typography", "synthesis_body"
-                        ),
+                        "style": synthesis_cfg.get("body_typography", "synthesis_body"),
                     }
                 )
 

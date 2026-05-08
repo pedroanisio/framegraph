@@ -270,12 +270,12 @@ class _AnchorGrid:
             if not isinstance(place, Anchor) or place.fullbleed:
                 continue
             assert place.h is not None and place.v is not None
-            col = _H_INDEX[place.h]
-            row = _V_INDEX[place.v]
+            col_idx = _H_INDEX[place.h]
+            row_idx = _V_INDEX[place.v]
             cells_for_zone: list[tuple[str, str]] = []
-            for c in range(col, min(3, col + max(1, z.span.h))):
+            for c in range(col_idx, min(3, col_idx + max(1, z.span.h))):
                 used_cols.add(_inv(_H_INDEX, c))
-                for r in range(row, min(3, row + max(1, z.span.v))):
+                for r in range(row_idx, min(3, row_idx + max(1, z.span.v))):
                     used_rows.add(_inv(_V_INDEX, r))
                     cells_for_zone.append((_inv(_H_INDEX, c), _inv(_V_INDEX, r)))
             w_demand = _density_weight(z, fill)
@@ -1012,7 +1012,7 @@ def _density_subdivide(
         return _subdivide_cell(cell, n, margin)
     available_w = cw - (n - 1) * gutter
     sub_widths = [available_w * (w / total) for w in weights]
-    boxes: list[Box] = []
+    boxes = []
     x = cx
     for sub_w in sub_widths:
         boxes.append((x, cy, sub_w, ch))
@@ -1059,7 +1059,7 @@ def compute_boxes(
     # anchor cell with sibling-anchored zones, so subdivision logic
     # below sees either {one spanning zone} or {N non-spanning zones}
     # in any given cell, never a mix.
-    anchor_buckets: dict[tuple[str, str] | str, list[PatternZone]] = {}
+    anchor_buckets: dict[tuple[str, str], list[PatternZone]] = {}
     region_zones: list[PatternZone] = []
     relative_zones: list[PatternZone] = []
     fullbleed_zones: list[PatternZone] = []
@@ -1071,7 +1071,8 @@ def compute_boxes(
                 fullbleed_zones.append(z)
             else:
                 # h and v are guaranteed non-None when not fullbleed.
-                key = (place.h, place.v)  # type: ignore[arg-type]
+                assert place.h is not None and place.v is not None
+                key = (place.h, place.v)
                 anchor_buckets.setdefault(key, []).append(z)
         elif isinstance(place, RegionPlacement):
             region_zones.append(z)
@@ -1111,7 +1112,7 @@ def compute_boxes(
     # use its full spanning box. Otherwise treat as a normal cell
     # and subdivide among same-cell siblings.
     for cell_key, zones_in_cell in anchor_buckets.items():
-        h, v = cell_key  # type: ignore[misc]
+        h, v = cell_key
 
         # Single-zone cell — honor span.
         if len(zones_in_cell) == 1:
@@ -1285,15 +1286,18 @@ def compute_layout_plan(
     """
     # 1) try nominal
     boxes, demand = _solve_layout_at_scale(pattern, canvas_w, canvas_h, margin, fill, scale=1.0)
-    overflows_at = lambda boxes, demand: [
-        {
-            "role": role,
-            "required_h": round(demand[role], 1),
-            "available_h": round(box[3], 1),
-        }
-        for role, box in boxes.items()
-        if demand.get(role, 0.0) > box[3] + 0.5
-    ]
+
+    def overflows_at(boxes: dict[str, Box], demand: dict[str, float]) -> list[dict[str, Any]]:
+        return [
+            {
+                "role": role,
+                "required_h": round(demand[role], 1),
+                "available_h": round(box[3], 1),
+            }
+            for role, box in boxes.items()
+            if demand.get(role, 0.0) > box[3] + 0.5
+        ]
+
     overflows = overflows_at(boxes, demand)
     if not overflows:
         return LayoutPlan(

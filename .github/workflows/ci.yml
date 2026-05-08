@@ -76,15 +76,12 @@ jobs:
       - name: ruff format --check
         run: ruff format --check framegraph/
 
-      # Mypy is advisory until the v2.0 modular-split regression is
-      # repaired (text_svg / render_rect / eval_length are declared in
-      # the RendererContext Protocol but missing from FrameGraphRenderer).
-      # Once strict typing is wired up — see the proposal in
-      # docs/proposal-python-code-style.md — flip this job to enforcing
-      # by removing continue-on-error.
-      - name: mypy (advisory)
+      # Mypy strict mode — enforcing. The pyproject.toml [tool.mypy]
+      # section enables `strict = true` and the `pydantic.mypy` plugin;
+      # `types-PyYAML` is pulled in via the [dev] extra. The codebase
+      # is currently 0 errors under this configuration.
+      - name: mypy (strict)
         run: mypy framegraph/
-        continue-on-error: true
 
   # ── Build + publish (tag-triggered) ────────────────────────────────────────
   publish:

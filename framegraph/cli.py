@@ -312,7 +312,8 @@ def _svg_to_vector_pdf_bytes(svg: str) -> bytes:
         f"{svg_adjusted}"
         "</body></html>"
     )
-    return weasyprint.HTML(string=html).write_pdf()
+    pdf_bytes: bytes = weasyprint.HTML(string=html).write_pdf()
+    return pdf_bytes
 
 
 def _write_pdf(svg: str, out: Path, *, dpi: int = 300, vector: bool = False) -> None:
@@ -635,16 +636,18 @@ def cmd_patterns_list(args: argparse.Namespace) -> int:
         return 0
 
     if getattr(args, "as_json", False):
-        records = [
-            {
-                "id": p.id,
-                "name": p.name,
-                "category": p.category,
-                "zones": len(p.zones),
-                "sidecar": sidecar_for[p.id].name if sidecar_for[p.id] else None,
-            }
-            for p in rows
-        ]
+        records = []
+        for p in rows:
+            sc_path = sidecar_for[p.id]
+            records.append(
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "category": p.category,
+                    "zones": len(p.zones),
+                    "sidecar": sc_path.name if sc_path is not None else None,
+                }
+            )
         print(json.dumps(records, indent=2, ensure_ascii=False))
         return 0
 
@@ -897,8 +900,9 @@ def cmd_patterns_deck(args: argparse.Namespace) -> int:
     # Restrict to patterns that ship a sidecar with example_fill — that's
     # the contract of this command. Filling a non-sidecared pattern
     # belongs to `patterns build` with a hand-authored fill.
-    sidecared = [(p, _find_sidecar(p.id)) for p in rows]
-    sidecared = [(p, sp) for (p, sp) in sidecared if sp is not None]
+    sidecared: list[tuple[Any, Path]] = [
+        (p, sp) for p in rows if (sp := _find_sidecar(p.id)) is not None
+    ]
     if not sidecared:
         print(
             "ERROR: no sidecared patterns matched the filter. "
