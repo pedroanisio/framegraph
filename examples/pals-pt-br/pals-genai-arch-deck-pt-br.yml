@@ -1966,3 +1966,166 @@ slides:
             - {type: text, id: foot_t,
                text: "As definições aqui são propositalmente simples. As versões formais seguem a Lei de PALS v1.5.4 e as referências citadas no disclaimer.",
                box: [110, 968, 1700, 36], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 14  APÊNDICE — A LEI DE PALS, PARTE POR PARTE
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 14
+    id: appendix_pals_math
+    title: "Apêndice — A Lei de PALS, Parte por Parte"
+    notes: "Slide de apêndice. Desmistifica a desigualdade da Lei de PALS para um público não-matemático sem perder rigor. Cada símbolo é decomposto, depois a fórmula é traduzida em quatro passos, depois um exemplo numérico mostra a consequência operacional. A fonte é citada explicitamente — derivação formal, não estimativa empírica. Os valores numéricos do exemplo são marcados como ilustrativos."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Apêndice — A Lei de PALS, Parte por Parte",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: brand}
+            - {type: text, id: sub,
+               text: "Como ler  E[ε(M(x), x)] ≥ δ > 0  sem precisar de matemática avançada — peça por peça, com um exemplo numérico no final.",
+               box: [80, 142, 1700, 32], style: h2}
+
+        - id: hero
+          z: 2
+          objects:
+            - {type: rect, id: hero_bg, decorative: true,
+               box: [80, 196, 1760, 130], fill: brand_lift, radius: 10, shadow: small}
+            - {type: rect, id: hero_bar, decorative: true,
+               box: [80, 196, 6, 130], fill: brand}
+            - {type: text, id: hero_h,
+               text: "A fórmula em uma linha",
+               box: [110, 210, 600, 28], style: h3}
+            - {type: text, id: hero_eq,
+               text: "E[ε(M(x), x)] ≥ δ > 0",
+               box: [110, 246, 800, 56], style: eq_brand}
+            - {type: text, id: hero_def,
+               text: "Vale para qualquer modelo M e qualquer entrada realista x. É a forma original publicada na Lei de PALS v1.5.4 — abaixo, peça por peça, em linguagem comum.",
+               box: [700, 220, 1080, 100], style: body}
+
+        - id: legend
+          z: 3
+          objects:
+            # Card 1 — M (modelo)
+            - {type: rect, id: l1_bg,   decorative: true, box: [80, 346, 336, 164], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: l1_bar,  decorative: true, box: [80, 346, 5, 164],   fill: brand}
+            - {type: text, id: l1_tok,  text: "M",
+               box: [104, 360, 312, 40], style: eq_brand}
+            - {type: text, id: l1_name, text: "Modelo",
+               box: [104, 408, 312, 22], style: sm_b}
+            - {type: text, id: l1_def,
+               text: "Qualquer modelo de linguagem — atual ou futuro. A fórmula não privilegia nenhuma família: vale para todos.",
+               box: [104, 434, 312, 70], style: sm_ink}
+
+            # Card 2 — x (entrada)
+            - {type: rect, id: l2_bg,   decorative: true, box: [432, 346, 336, 164], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: l2_bar,  decorative: true, box: [432, 346, 5, 164],   fill: brand}
+            - {type: text, id: l2_tok,  text: "x",
+               box: [456, 360, 312, 40], style: eq_brand}
+            - {type: text, id: l2_name, text: "Entrada realista",
+               box: [456, 408, 312, 22], style: sm_b}
+            - {type: text, id: l2_def,
+               text: "O tipo de prompt que aparece no uso real, não um caso adversarial inventado em laboratório.",
+               box: [456, 434, 312, 70], style: sm_ink}
+
+            # Card 3 — ε (predicado de erro)
+            - {type: rect, id: l3_bg,   decorative: true, box: [784, 346, 336, 164], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: l3_bar,  decorative: true, box: [784, 346, 5, 164],   fill: brand}
+            - {type: text, id: l3_tok,  text: "ε(M(x), x)",
+               box: [808, 360, 312, 40], style: eq_brand}
+            - {type: text, id: l3_name, text: "Erro da resposta",
+               box: [808, 408, 312, 22], style: sm_b}
+            - {type: text, id: l3_def,
+               text: "Quanto a resposta M(x) erra a entrada x. Pode ser 0/1 (errou ou não) ou um número contínuo, conforme a tarefa.",
+               box: [808, 434, 312, 70], style: sm_ink}
+
+            # Card 4 — E[·] (valor esperado)
+            - {type: rect, id: l4_bg,   decorative: true, box: [1136, 346, 336, 164], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: l4_bar,  decorative: true, box: [1136, 346, 5, 164],   fill: brand}
+            - {type: text, id: l4_tok,  text: "E[·]",
+               box: [1160, 360, 312, 40], style: eq_brand}
+            - {type: text, id: l4_name, text: "Valor esperado",
+               box: [1160, 408, 312, 22], style: sm_b}
+            - {type: text, id: l4_def,
+               text: "A média de ε quando se varre todas as entradas realistas, ponderadas pela frequência com que aparecem.",
+               box: [1160, 434, 312, 70], style: sm_ink}
+
+            # Card 5 — δ (piso do erro)
+            - {type: rect, id: l5_bg,   decorative: true, box: [1488, 346, 336, 164], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: l5_bar,  decorative: true, box: [1488, 346, 5, 164],   fill: amber}
+            - {type: text, id: l5_tok,  text: "δ",
+               box: [1512, 360, 312, 40], style: eq_brand}
+            - {type: text, id: l5_name, text: "Piso do erro",
+               box: [1512, 408, 312, 22], style: sm_b}
+            - {type: text, id: l5_def,
+               text: "Um número estritamente positivo. A média do erro pode se aproximar de δ, mas nunca cai abaixo.",
+               box: [1512, 434, 312, 70], style: sm_ink}
+
+        - id: reading
+          z: 4
+          objects:
+            # Left column — Em palavras simples
+            - {type: rect, id: rd1_bg,   decorative: true, box: [80, 540, 860, 260], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: rd1_bar,  decorative: true, box: [80, 540, 5, 260],   fill: brand}
+            - {type: rect, id: rd1_pill, decorative: true, box: [104, 554, 320, 26], fill: brand, radius: 6}
+            - {type: text, id: rd1_pt,   text: "EM PALAVRAS SIMPLES",
+               box: [104, 554, 320, 26], style: tag_w}
+            - {type: text, id: rd1_l1,
+               text: "1.  Pegue um modelo qualquer e a distribuição realista de entradas que ele recebe na prática.",
+               box: [104, 596, 820, 36], style: body}
+            - {type: text, id: rd1_l2,
+               text: "2.  Calcule a média do erro nas respostas. É isso que E[ε(·)] significa.",
+               box: [104, 638, 820, 36], style: body}
+            - {type: text, id: rd1_l3,
+               text: "3.  Essa média é sempre maior ou igual a um número positivo δ.",
+               box: [104, 680, 820, 36], style: body}
+            - {type: text, id: rd1_l4,
+               text: "4.  Por isso, melhorar o modelo aproxima E[ε(·)] de δ — mas nunca de zero.",
+               box: [104, 722, 820, 36], style: body}
+
+            # Right column — O que a fórmula NÃO diz
+            - {type: rect, id: rd2_bg,   decorative: true, box: [980, 540, 860, 260], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: rd2_bar,  decorative: true, box: [980, 540, 5, 260],   fill: amber}
+            - {type: rect, id: rd2_pill, decorative: true, box: [1004, 554, 380, 26], fill: amber, radius: 6}
+            - {type: text, id: rd2_pt,   text: "O QUE A FÓRMULA NÃO DIZ",
+               box: [1004, 554, 380, 26], style: tag_w}
+            - {type: text, id: rd2_l1,
+               text: "•  Não diz qual entrada vai gerar erro — só que, em média, alguma fração dará.",
+               box: [1004, 596, 820, 36], style: body}
+            - {type: text, id: rd2_l2,
+               text: "•  Não diz qual classe de erro vai aparecer (ERR_HALLUCINATION, ERR_SEMANTIC, etc.).",
+               box: [1004, 638, 820, 36], style: body}
+            - {type: text, id: rd2_l3,
+               text: "•  Não diz o valor exato de δ — depende da tarefa, do modelo e do critério de erro.",
+               box: [1004, 680, 820, 36], style: body}
+            - {type: text, id: rd2_l4,
+               text: "•  Não impede que erros isolados sejam zero — só impede que a média seja zero.",
+               box: [1004, 722, 820, 36], style: body}
+
+        - id: example
+          z: 5
+          objects:
+            - {type: rect, id: ex_bg,   decorative: true, box: [80, 820, 1760, 120], fill: amber_soft, radius: 8, shadow: small}
+            - {type: rect, id: ex_bar,  decorative: true, box: [80, 820, 5, 120],    fill: amber}
+            - {type: rect, id: ex_pill, decorative: true, box: [104, 832, 280, 26],  fill: amber, radius: 6}
+            - {type: text, id: ex_pt,   text: "EM PRODUÇÃO (EXEMPLO ILUSTRATIVO)",
+               box: [104, 832, 380, 26], style: tag_w}
+            - {type: text, id: ex_t,
+               text: "Suponha δ = 0,1 % (uma resposta em mil é defeituosa, em média). Em um sistema com 1 milhão de chamadas/dia, isso garante pelo menos ~1.000 respostas defeituosas/dia — sem dizer quais. Trocar por um modelo melhor reduz o número, mas δ continua positivo. A única forma de impedir que esses erros cheguem ao usuário é interceptá-los entre o modelo e a saída — é o que os canais Free Form, Schema + Instance e Validador fazem.",
+               box: [104, 866, 1700, 70], style: body}
+
+        - id: footer
+          z: 6
+          objects:
+            - {type: rect, id: foot_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: foot_t,
+               text: "Fonte: Pedro Anisio de Luna e Silva (2026). Lei de PALS, versão 1.5.4. Zenodo 10.5281/zenodo.19401530. A desigualdade é uma derivação formal, não uma estimativa empírica. Os valores de δ no exemplo são ilustrativos.",
+               box: [110, 962, 1700, 50], style: bodyc}
