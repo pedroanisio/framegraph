@@ -178,11 +178,121 @@ deck:
 slides:
 
   # ═══════════════════════════════════════════════════════════════════════
+  # 0  CONTEXTO  —  Grounding
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 0
+    id: context
+    title: "GenAI Já Está no Caminho da Decisão — e Seus Erros Vão Adiante por Padrão"
+    notes: "Slide de fundamentação. Use-o para alinhar todos no mesmo ponto de partida: GenAI já está em produção tomando decisões, seus erros saem com aparência correta, e este deck responde uma única pergunta — onde, no caminho do prompt até o usuário, é possível barrar o erro? Não entre em detalhes da Lei de PALS nem da taxonomia ainda (slides próprios). Reconheça o que NÃO está no escopo (escolha de modelo, prompt engineering, treinamento) para que o público não fique esperando esses tópicos."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "GenAI Já Está no Caminho da Decisão — e Seus Erros Vão Adiante por Padrão",
+               box: [80, 72, 1760, 80], style: stitle}
+            - {type: rect, id: rule, decorative: true, box: [80, 156, 80, 4], fill: brand}
+            - {type: text, id: sub,
+               text: "Antes de discutir arquitetura, é preciso ver onde GenAI já está hoje, como suas falhas se diferenciam de bugs tradicionais e qual pergunta este deck efetivamente responde.",
+               box: [80, 178, 1760, 50], style: bodyc}
+
+        - id: column_headers
+          z: 2
+          objects:
+            - {type: text, id: lcol_h, text: "O contexto",      box: [80,  244, 860, 24], style: h3}
+            - {type: text, id: rcol_h, text: "Sobre este deck", box: [980, 244, 860, 24], style: h3}
+
+        - id: column_left
+          z: 3
+          objects:
+            # Block A — Onde GenAI atua hoje
+            - {type: rect, id: a_bg,   decorative: true, box: [80, 282, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: a_bar,  decorative: true, box: [80, 282, 5, 168],   fill: brand}
+            - {type: rect, id: a_pill, decorative: true, box: [104, 294, 240, 26], fill: brand, radius: 6}
+            - {type: text, id: a_pt,   text: "Onde GenAI atua hoje", box: [104, 294, 240, 26], style: tag_w}
+            - {type: text, id: a_t,
+               text: "GenAI deixou de ser ferramenta de rascunho. Em sistemas reais, ela aprova reembolsos, redige cláusulas de contrato, classifica pedidos, revisa código e responde clientes — diretamente. A resposta do modelo entra no fluxo da decisão sem um humano intermediário.",
+               box: [104, 332, 820, 110], style: sm_ink}
+
+            # Block B — Como GenAI falha diferente
+            - {type: rect, id: b_bg,   decorative: true, box: [80, 470, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: b_bar,  decorative: true, box: [80, 470, 5, 168],   fill: amber}
+            - {type: rect, id: b_pill, decorative: true, box: [104, 482, 300, 26], fill: amber, radius: 6}
+            - {type: text, id: b_pt,   text: "Como GenAI falha diferente", box: [104, 482, 300, 26], style: tag_w}
+            - {type: text, id: b_t,
+               text: "Bugs tradicionais quebram o sistema. Erros de GenAI passam pelo sistema com aparência correta: JSON bem formado contendo dados inventados, texto fluente que é bajulação, confiança alta sobre análise errada. O erro atravessa o sistema; não o trava.",
+               box: [104, 520, 820, 110], style: sm_ink}
+
+            # Block C — O caminho prompt → usuário
+            - {type: rect, id: c_bg,   decorative: true, box: [80, 658, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: c_bar,  decorative: true, box: [80, 658, 5, 168],   fill: purple}
+            - {type: rect, id: c_pill, decorative: true, box: [104, 670, 280, 26], fill: purple, radius: 6}
+            - {type: text, id: c_pt,   text: "O caminho prompt → usuário", box: [104, 670, 280, 26], style: tag_w}
+            - {type: text, id: c_t,
+               text: "Entre o prompt e o usuário existem pontos onde o erro ainda pode ser detectado. Este deck examina três deles — Free Form, Schema + Instance e Validador — e o que cada um pega ou deixa passar.",
+               box: [104, 708, 820, 110], style: sm_ink}
+
+        - id: column_right
+          z: 3
+          objects:
+            # Block D — Escopo
+            - {type: rect, id: d_bg,   decorative: true, box: [980, 282, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: d_bar,  decorative: true, box: [980, 282, 5, 168],   fill: brand}
+            - {type: rect, id: d_pill, decorative: true, box: [1004, 294, 140, 26], fill: brand, radius: 6}
+            - {type: text, id: d_pt,   text: "Escopo", box: [1004, 294, 140, 26], style: tag_w}
+            - {type: text, id: d_t,
+               text: "A arquitetura mínima entre o modelo e o usuário. Onde verificar, o que cada ponto cobre, o que sobra como resíduo permanente. A pergunta operativa é sempre a mesma: este canal pega esta classe de erro?",
+               box: [1004, 332, 820, 110], style: sm_ink}
+
+            # Block E — Fora do escopo
+            - {type: rect, id: e_bg,   decorative: true, box: [980, 470, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: e_bar,  decorative: true, box: [980, 470, 5, 168],   fill: muted}
+            - {type: rect, id: e_pill, decorative: true, box: [1004, 482, 200, 26], fill: muted, radius: 6}
+            - {type: text, id: e_pt,   text: "Fora do escopo", box: [1004, 482, 200, 26], style: tag_w}
+            - {type: text, id: e_t,
+               text: "Se GenAI deve ser usada. Comparações entre modelos. Prompt engineering. Treinamento ou fine-tuning. Tudo isso é assumido como decidido — a pergunta começa quando o modelo já está em produção.",
+               box: [1004, 520, 820, 110], style: sm_ink}
+
+            # Block F — Estrutura do deck
+            - {type: rect, id: f_bg,   decorative: true, box: [980, 658, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: f_bar,  decorative: true, box: [980, 658, 5, 168],   fill: teal}
+            - {type: rect, id: f_pill, decorative: true, box: [1004, 670, 220, 26], fill: teal, radius: 6}
+            - {type: text, id: f_pt,   text: "Estrutura do deck", box: [1004, 670, 220, 26], style: tag_w}
+            - {type: text, id: f_t,
+               text: "Lei de PALS (matemática) → 9 classes de erro (vocabulário) → 3 canais (arquitetura) → 3 estudos de caso (concreto) → matriz de cobertura (síntese) → glossário.",
+               box: [1004, 708, 820, 110], style: sm_ink}
+
+        - id: anchor
+          z: 4
+          objects:
+            - {type: rect, id: anc_bg, decorative: true, box: [80, 856, 1760, 110], fill: dark_grad, radius: 8, shadow: small}
+            - {type: text, id: anc_h,
+               text: "Premissa de todo o deck",
+               box: [110, 874, 1700, 26], style: anchor_w}
+            - {type: text, id: anc_t,
+               text: "O erro de GenAI não pode ser eliminado — só roteado. A arquitetura decide para onde.",
+               box: [110, 908, 1700, 44], style: anchor_wm}
+
+        - id: footer
+          z: 5
+          objects:
+            - {type: text, id: fn,
+               text: "Termos não familiares (LLM, schema, validador, RAG, predicado de erro ε) estão definidos no glossário ao final do deck.",
+               box: [80, 988, 1760, 30], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
   # 1  CAPA
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 1
     id: cover
-    title: "Arquitetura de Fluxo de Dados GenAI — Cobertura de Erros PALS"
+    title: "Arquitetura de Verificação para GenAI — Cobertura de Erros sob a Lei de PALS"
     notes: "Deixe claro o que está em jogo logo de início: erro em LLM é uma propriedade estatística, não um problema de configuração que se resolve. A arquitetura escolhe se vai expor o erro ou delimitá-lo. Nenhuma arquitetura o elimina."
     visual:
       layers:
@@ -197,7 +307,7 @@ slides:
           z: 1
           objects:
             - {type: text, id: cover_h,
-               text: "Arquitetura de Fluxo de Dados GenAI",
+               text: "Arquitetura de Verificação para GenAI",
                box: [80, 200, 1600, 100], style: cover_h}
             - {type: text, id: cover_sub,
                text: "A forma como o sistema verifica respostas decide quais erros chegam ao usuário, quais\nficam contidos e quais são bloqueados — nos canais Free Form, Schema + Instance e Validador.",
@@ -261,7 +371,7 @@ slides:
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 2
     id: pals_grounding
-    title: "O Erro de LLM Não Pode Ser Eliminado — Por Isso a Verificação É Obrigatória"
+    title: "O Erro de LLM Não Pode Ser Eliminado — Verificar Não É Opcional"
     notes: "A forma matemática é empiricamente sólida e honesta sobre seus limites. Os corolários é que a tornam aplicável à arquitetura: o Corolário 4 nomeia a classe de defeito, o Corolário 5 nomeia a armadilha."
     visual:
       layers:
@@ -275,7 +385,7 @@ slides:
           z: 1
           objects:
             - {type: text, id: stitle,
-               text: "O Erro de LLM Não Pode Ser Eliminado — Por Isso a Verificação É Obrigatória",
+               text: "O Erro de LLM Não Pode Ser Eliminado — Verificar Não É Opcional",
                box: [80, 56, 1600, 58], style: stitle}
             - {type: rect, id: rule, decorative: true,
                box: [80, 116, 56, 3], fill: brand}
@@ -341,7 +451,7 @@ slides:
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 3
     id: error_taxonomy
-    title: "As Nove Classes de Erro Pedem Estratégias de Detecção Diferentes"
+    title: "Nove Classes de Erro — Cada Uma Exige uma Detecção Diferente"
     notes: "Este slide define as nove classes de erro sobre as quais o resto do deck constrói o argumento. O ponto não é completude por completude; é que cada classe falha de um jeito diferente e, por isso, exige uma estratégia de verificação diferente."
     visual:
       layers:
@@ -355,7 +465,7 @@ slides:
           z: 1
           objects:
             - {type: text, id: stitle,
-               text: "As Nove Classes de Erro Pedem Estratégias de Detecção Diferentes",
+               text: "Nove Classes de Erro — Cada Uma Exige uma Detecção Diferente",
                box: [80, 56, 1700, 58], style: stitle}
             - {type: rect, id: rule, decorative: true,
                box: [80, 116, 56, 3], fill: brand}
@@ -442,7 +552,7 @@ slides:
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 4
     id: free_form
-    title: "Saída Free-Form Deixa Passar Todas as Nove Classes de Erro"
+    title: "Saída Free-Form — Todas as Nove Classes Chegam ao Usuário"
     notes: "O ponto crucial é que nenhuma das nove classes é detectável automaticamente aqui. Revisão humana não é uma alternativa de fallback — é a única camada disponível. E o custo de detecção é o mesmo para todas as classes."
     visual:
       layers:
@@ -458,7 +568,7 @@ slides:
           z: 1
           objects:
             - {type: text, id: stitle,
-               text: "Saída Free-Form Deixa Passar Todas as Nove Classes de Erro",
+               text: "Saída Free-Form — Todas as Nove Classes Chegam ao Usuário",
                box: [80, 56, 1600, 58], style: stitle}
             - {type: rect, id: rule, decorative: true,
                box: [80, 116, 56, 3], fill: red}
@@ -572,7 +682,7 @@ slides:
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 5
     id: schema_instance
-    title: "Schema + Instance Elimina os Erros Estruturais, mas Deixa os de Significado Expostos"
+    title: "Schema + Instance — Bloqueia Forma, Não Significado"
     notes: "Schema é o segundo nível. A máquina valida a estrutura instantaneamente. Mas estrutura correta não é a mesma coisa que verdade. A camada de significado fica — sempre — em aberto."
     visual:
       layers:
@@ -588,7 +698,7 @@ slides:
           z: 1
           objects:
             - {type: text, id: stitle,
-               text: "Schema + Instance Elimina os Erros Estruturais, mas Deixa os de Significado Expostos",
+               text: "Schema + Instance — Bloqueia Forma, Não Significado",
                box: [80, 56, 1600, 58], style: stitle}
             - {type: rect, id: rule, decorative: true,
                box: [80, 116, 56, 3], fill: amber}
@@ -674,7 +784,7 @@ slides:
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 6
     id: validator
-    title: "Validadores Ampliam a Cobertura, mas Não Garantem que a Resposta Esteja Correta"
+    title: "Validadores Ampliam a Cobertura — mas Não Provam Verdade"
     notes: "O validador é a última barreira automática desta arquitetura — schema também rejeita, mas só para regras de negócio, restrições entre campos e faixas de valores existe o validador. O resíduo (ERR_SEMANTIC, ERR_SYCOPHANCY, ERR_CALIBRATION) não é uma limitação de validador — é um limite teórico."
     visual:
       layers:
@@ -690,7 +800,7 @@ slides:
           z: 1
           objects:
             - {type: text, id: stitle,
-               text: "Validadores Ampliam a Cobertura, mas Não Garantem que a Resposta Esteja Correta",
+               text: "Validadores Ampliam a Cobertura — mas Não Provam Verdade",
                box: [80, 56, 1420, 58], style: stitle}
             - {type: rect, id: rule, decorative: true,
                box: [80, 116, 56, 3], fill: green}
@@ -813,7 +923,7 @@ slides:
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 7
     id: residual
-    title: "O Erro Residual É Permanente — Não Uma Falha Temporária de Engenharia"
+    title: "O Erro Residual É Permanente — Não Um Bug a Consertar"
     notes: "O resíduo não é uma lacuna da arquitetura atual — é uma característica permanente de qualquer implantação de modelos probabilísticos. A postura honesta é nomeá-lo, descrever o que pode reduzi-lo (mas não eliminá-lo) e reafirmar o Corolário 5: modelos mais avançados alargam o resíduo se o verificador não evoluir junto."
     visual:
       layers:
@@ -827,7 +937,7 @@ slides:
           z: 1
           objects:
             - {type: text, id: stitle,
-               text: "O Erro Residual É Permanente — Não Uma Falha Temporária de Engenharia",
+               text: "O Erro Residual É Permanente — Não Um Bug a Consertar",
                box: [80, 56, 1600, 58], style: stitle}
             - {type: rect, id: rule, decorative: true,
                box: [80, 116, 56, 3], fill: purple}
@@ -940,7 +1050,7 @@ slides:
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 8
     id: case_hallucination
-    title: "Estudo de Caso #1 — Forma Perfeita, Significado Errado"
+    title: "Estudo de Caso #1 — Forma Impecável, Significado Fabricado"
     notes: "Caso clássico que ilustra o Corolário 4: a saída tem estrutura impecável, mas os dados são fabricados. Schema valida e aceita; o validador só detectaria com consulta a uma fonte externa autoritativa. Este é o tipo de erro mais perigoso — parece confiável."
     visual:
       layers:
@@ -954,12 +1064,12 @@ slides:
           z: 1
           objects:
             - {type: text, id: stitle,
-               text: "Estudo de Caso #1 — Forma Perfeita, Significado Errado",
+               text: "Estudo de Caso #1 — Forma Impecável, Significado Fabricado",
                box: [80, 56, 1700, 58], style: stitle}
             - {type: rect, id: rule, decorative: true,
                box: [80, 116, 56, 3], fill: amber}
             - {type: text, id: sub,
-               text: "ERR_HALLUCINATION + ERR_SEMANTIC — o tipo de erro mais difícil de detectar.",
+               text: "ERR_HALLUCINATION + ERR_SEMANTIC — forma sem ancoragem na realidade.",
                box: [80, 142, 1500, 32], style: h2}
 
         - id: scenario
@@ -1014,7 +1124,7 @@ slides:
             - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 80], fill: red_wash, radius: 8, shadow: small}
             - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 80],    fill: alert}
             - {type: text, id: ann_h, text: "Por que está errado",
-               box: [110, 598, 400, 22], style: sm_b}
+               box: [110, 598, 400, 22], style: sm_alert}
             - {type: text, id: ann_t,
                text: "Maria Silva nunca foi cliente. A apólice PA-2026-9924 existe — mas pertence a João Santos. A 'seção 4.2' não existe na política de reembolso. Três fabricações, embaladas em um JSON impecável.",
                box: [110, 624, 1640, 40], style: body}
@@ -1068,7 +1178,7 @@ slides:
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 9
     id: case_reasoning
-    title: "Estudo de Caso #2 — Quando Só o Validador Detecta"
+    title: "Estudo de Caso #2 — Campos Válidos, Relação Contraditória"
     notes: "Caso onde o schema é satisfeito mas a relação entre campos está errada. Mostra exatamente o valor exclusivo do validador — regras lógicas entre campos. Sem essa camada, o erro passa silenciosamente."
     visual:
       layers:
@@ -1082,12 +1192,12 @@ slides:
           z: 1
           objects:
             - {type: text, id: stitle,
-               text: "Estudo de Caso #2 — Quando Só o Validador Detecta",
+               text: "Estudo de Caso #2 — Campos Válidos, Relação Contraditória",
                box: [80, 56, 1700, 58], style: stitle}
             - {type: rect, id: rule, decorative: true,
                box: [80, 116, 56, 3], fill: green}
             - {type: text, id: sub,
-               text: "ERR_REASONING — uma contradição lógica entre campos.",
+               text: "ERR_REASONING — só o validador captura a contradição entre campos.",
                box: [80, 142, 1500, 32], style: h2}
 
         - id: scenario
@@ -1140,7 +1250,7 @@ slides:
             - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 80], fill: red_wash, radius: 8, shadow: small}
             - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 80],    fill: alert}
             - {type: text, id: ann_h, text: "Por que está errado",
-               box: [110, 598, 400, 22], style: sm_b}
+               box: [110, 598, 400, 22], style: sm_alert}
             - {type: text, id: ann_t,
                text: "Ambas as datas têm formato ISO 8601 perfeitamente válido. Mas end_date (2026-08-15) é anterior a start_date (2026-12-01) — uma contradição lógica entre campos que o schema, sozinho, não consegue ver.",
                box: [110, 624, 1640, 40], style: body}
@@ -1194,7 +1304,7 @@ slides:
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 10
     id: case_residual
-    title: "Estudo de Caso #3 — Quando Nada Automatizado Detecta"
+    title: "Estudo de Caso #3 — Concordância Confiante com Premissa Errada"
     notes: "O resíduo da Lei de PALS em ação. Sycophancy + miscalibration: o modelo concorda confiantemente com uma premissa errada. Nem schema nem validador podem ajudar — porque a saída é texto livre e o erro está no significado, não na forma."
     visual:
       layers:
@@ -1208,12 +1318,12 @@ slides:
           z: 1
           objects:
             - {type: text, id: stitle,
-               text: "Estudo de Caso #3 — Quando Nada Automatizado Detecta",
+               text: "Estudo de Caso #3 — Concordância Confiante com Premissa Errada",
                box: [80, 56, 1700, 58], style: stitle}
             - {type: rect, id: rule, decorative: true,
                box: [80, 116, 56, 3], fill: purple}
             - {type: text, id: sub,
-               text: "ERR_SYCOPHANCY + ERR_CALIBRATION — o resíduo permanente da Lei de PALS.",
+               text: "ERR_SYCOPHANCY + ERR_CALIBRATION — resíduo permanente da Lei de PALS, fora do alcance automatizado.",
                box: [80, 142, 1500, 32], style: h2}
 
         - id: scenario
@@ -1273,7 +1383,7 @@ slides:
             - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 80], fill: red_wash, radius: 8, shadow: small}
             - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 80],    fill: alert}
             - {type: text, id: ann_h, text: "Por que está errado",
-               box: [110, 598, 400, 22], style: sm_b}
+               box: [110, 598, 400, 22], style: sm_alert}
             - {type: text, id: ann_t,
                text: "O código tem uma vulnerabilidade clássica de SQL injection — interpolação direta de req.name na query. O modelo concordou com a premissa do usuário (sycophancy) e expressou alta confiança em uma análise totalmente errada (miscalibration).",
                box: [110, 624, 1640, 40], style: body}
@@ -1327,7 +1437,7 @@ slides:
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 11
     id: coverage_map
-    title: "A Cobertura Cresce a Cada Canal, mas Correção Nunca É Garantida"
+    title: "A Cobertura Cresce a Cada Canal — Mas Verdade Nunca É Garantida"
     notes: "Este é o slide de fechamento. A matriz condensa todo o argumento. Leia coluna por coluna: cada canal só adiciona cobertura, nunca remove. As células do resíduo permanecem vermelhas em todos os canais — esse é o ponto."
     visual:
       layers:
@@ -1341,7 +1451,7 @@ slides:
           z: 1
           objects:
             - {type: text, id: stitle,
-               text: "A Cobertura Cresce a Cada Canal, mas Correção Nunca É Garantida",
+               text: "A Cobertura Cresce a Cada Canal — Mas Verdade Nunca É Garantida",
                box: [80, 56, 1600, 58], style: stitle}
             - {type: rect, id: rule, decorative: true,
                box: [80, 116, 56, 3], fill: brand}
