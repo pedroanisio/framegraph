@@ -209,7 +209,7 @@ slides:
                box: [110, 186, 800, 56], style: eq_brand}
             - {type: text, id: op_def,
                text: "For every model M and every realistic input distribution.  ε is the error predicate;  δ is a non-negligible lower bound on expected error.  The bound is statistical — it does not name the error in any specific output, only the irreducible rate across outputs.",
-               box: [700, 152, 1080, 110], style: body}
+               box: [700, 152, 1120, 100], style: body}
 
         - id: corollaries
           z: 3
@@ -401,7 +401,7 @@ slides:
                box: [80, 136, 1760, 2], fill: stroke}
             - {type: text, id: desc_t,
                text: "No structural contract. All nine error classes are exposed. None are automatically detectable. Human review is the only available verification layer at this channel — it is not a fallback strategy, it is the sole mechanism.",
-               box: [80, 154, 1640, 80], style: h2}
+               box: [80, 154, 1760, 62], style: h2}
 
         - id: error_grid
           z: 3
@@ -417,7 +417,7 @@ slides:
                text: "ERR_HALLUCINATION", box: [104, 272, 186, 28], style: tag_w}
             - {type: text, id: e1_def,
                text: "Fabricated factual claims. Asserted with apparent confidence. Schema-valid output that simply does not correspond to any ground truth.",
-               box: [104, 308, 478, 116], style: sm_ink}
+               box: [104, 308, 510, 96], style: sm_ink}
 
             # ERR_OMISSION
             - {type: rect, id: e2_bg, decorative: true,
@@ -430,7 +430,7 @@ slides:
                text: "ERR_OMISSION", box: [670, 272, 140, 28], style: tag_w}
             - {type: text, id: e2_def,
                text: "Required content silently absent. No signal emitted. Downstream consumer receives a structurally complete but factually incomplete response.",
-               box: [670, 308, 478, 116], style: sm_ink}
+               box: [670, 308, 510, 96], style: sm_ink}
 
             # ERR_SCHEMA
             - {type: rect, id: e3_bg, decorative: true,
@@ -443,7 +443,7 @@ slides:
                text: "ERR_SCHEMA", box: [1236, 272, 124, 28], style: tag_w}
             - {type: text, id: e3_def,
                text: "Output does not conform to any declared structural contract. Field names, types, or cardinality are wrong. Most trivially eliminated by moving to the structured channel.",
-               box: [1236, 308, 478, 116], style: sm_ink}
+               box: [1236, 308, 510, 96], style: sm_ink}
 
             # ERR_TRUNCATION
             - {type: rect, id: e4_bg, decorative: true,
@@ -456,7 +456,7 @@ slides:
                text: "ERR_TRUNCATION", box: [104, 454, 158, 28], style: tag_w}
             - {type: text, id: e4_def,
                text: "Output cut short without any signal. No error code. No continuation prompt. The downstream consumer cannot distinguish a complete response from a truncated one.",
-               box: [104, 490, 478, 116], style: sm_ink}
+               box: [104, 490, 510, 96], style: sm_ink}
 
             # ERR_SYCOPHANCY
             - {type: rect, id: e5_bg, decorative: true,
@@ -469,7 +469,7 @@ slides:
                text: "ERR_SYCOPHANCY", box: [670, 454, 160, 28], style: tag_w}
             - {type: text, id: e5_def,
                text: "Output shaped by perceived user preference rather than truth. The model optimizes for approval. Not detectable by schema, logic, or range checks — ever.",
-               box: [670, 490, 478, 116], style: sm_ink}
+               box: [670, 490, 510, 96], style: sm_ink}
 
             # ERR_INSTRUCTION
             - {type: rect, id: e6_bg, decorative: true,
@@ -482,7 +482,7 @@ slides:
                text: "ERR_INSTRUCTION", box: [1236, 454, 162, 28], style: tag_w}
             - {type: text, id: e6_def,
                text: "Explicit prompt constraints violated. The model produced something it was told not to, or failed to produce something it was told to produce.",
-               box: [1236, 490, 478, 116], style: sm_ink}
+               box: [1236, 490, 510, 96], style: sm_ink}
 
             # ERR_CALIBRATION
             - {type: rect, id: e7_bg, decorative: true,
@@ -495,7 +495,7 @@ slides:
                text: "ERR_CALIBRATION", box: [104, 636, 172, 28], style: tag_w}
             - {type: text, id: e7_def,
                text: "Expressed confidence misaligned with actual reliability. The model says it is certain; it is not. ε not computable in general for this class.",
-               box: [104, 672, 478, 116], style: sm_ink}
+               box: [104, 672, 510, 96], style: sm_ink}
 
             # ERR_REASONING
             - {type: rect, id: e8_bg, decorative: true,
@@ -508,7 +508,7 @@ slides:
                text: "ERR_REASONING", box: [670, 636, 162, 28], style: tag_w}
             - {type: text, id: e8_def,
                text: "Correct facts, invalid composition. The logical steps do not support the conclusion. Partially catchable only when cross-field constraints are explicitly declared.",
-               box: [670, 672, 478, 116], style: sm_ink}
+               box: [670, 672, 510, 96], style: sm_ink}
 
             # ERR_SEMANTIC
             - {type: rect, id: e9_bg, decorative: true,
@@ -521,7 +521,7 @@ slides:
                text: "ERR_SEMANTIC", box: [1236, 636, 148, 28], style: tag_w}
             - {type: text, id: e9_def,
                text: "Correct surface form, wrong meaning. The output is schema-valid and logically consistent but fails to represent the intended referent. Resistant to full automation.",
-               box: [1236, 672, 478, 116], style: sm_ink}
+               box: [1236, 672, 510, 96], style: sm_ink}
 
         - id: verdict
           z: 4
@@ -532,7 +532,7 @@ slides:
                box: [80, 816, 1760, 4], fill: dark}
             - {type: text, id: v_t,
                text: "Human review is not a fallback — it is the only verification layer. All nine error classes carry the same detection cost. No error class is cheaper to detect on the free form channel than any other.",
-               box: [110, 836, 1640, 60], style: h2}
+               box: [110, 844, 1710, 40], style: h2}
 
   # ═══════════════════════════════════════════════════════════════════════
   # 5  STRUCTURED CHANNEL — SCHEMA + INSTANCE
@@ -741,7 +741,7 @@ slides:
                box: [80, 136, 1760, 2], fill: stroke}
             - {type: text, id: def_t,
                text: "The Validator is the only node in this architecture capable of programmatically rejecting GenAI output. By encoding domain rules, cross-field constraints, and value-range checks, it extends coverage into classes that schema alone cannot reach. It produces auditable output — not provably correct output.",
-               box: [80, 154, 1680, 60], style: body}
+               box: [80, 154, 1760, 52], style: body}
 
         - id: coverage_table
           z: 3
