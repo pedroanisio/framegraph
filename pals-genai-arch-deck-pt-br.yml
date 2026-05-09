@@ -240,7 +240,7 @@ slides:
             - {type: rect, id: ch3b, decorative: true,
                box: [1320, 580, 5, 80], fill: green}
             - {type: text, id: ch3t,
-               text: "Validador  —  a única barreira automática do\nsistema, mas não garante que esteja correto",
+               text: "Validador  —  a última barreira automática do\nsistema, mas não garante que esteja correto",
                box: [1340, 580, 510, 80], style: bodyc}
 
         - id: footer
@@ -288,7 +288,7 @@ slides:
                text: "E[ε(M(x), x)] ≥ δ > 0",
                box: [110, 186, 800, 56], style: eq_brand}
             - {type: text, id: op_def,
-               text: "Vale para qualquer modelo M e qualquer entrada realista. ε é o predicado de erro; δ é o piso mínimo desse erro — sempre maior que zero. É uma propriedade estatística: não diz onde o erro vai aparecer, só garante que ele existe e não some.",
+               text: "Vale para qualquer modelo M e qualquer entrada realista. ε é o predicado de erro; δ é o piso desse erro — sempre maior que zero. É uma propriedade estatística: não diz onde o erro vai aparecer, só garante que ele existe e não desaparece.",
                box: [700, 152, 1080, 110], style: body}
 
         - id: corollaries
@@ -329,18 +329,6 @@ slides:
             - {type: text, id: c5_b,
                text: "Trocar por um modelo mais avançado sem melhorar o verificador é uma regressão de arquitetura. Modelos melhores produzem erros mais convincentes — justamente nas classes mais difíceis de detectar: ERR_SEMANTIC, ERR_SYCOPHANCY, ERR_CALIBRATION. A lacuna de verificação só aumenta se o verificador não evoluir junto.",
                box: [1024, 398, 790, 130], style: body}
-
-        - id: close
-          z: 4
-          objects:
-            - {type: rect, id: close_bg, decorative: true,
-               box: [80, 590, 1760, 140], fill: panel_lift, radius: 12, shadow: small}
-            - {type: text, id: close_h,
-               text: "Consequência prática para o design",
-               box: [110, 614, 600, 28], style: h3}
-            - {type: text, id: close_t,
-               text: "Se o erro esperado nunca chega a zero, aceitar a saída em silêncio deixa de ser um comportamento neutro. Vira uma escolha de design — a escolha de empurrar adiante um erro conhecido sem nenhuma checagem.",
-               box: [110, 650, 1600, 44], style: body}
 
   # ═══════════════════════════════════════════════════════════════════════
   # 3  TAXONOMIA DE ERRO
@@ -399,7 +387,7 @@ slides:
             - {type: rect, id: r2, decorative: true, box: [80, 356, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r2b, decorative: true, box: [80, 356, 4, 64], fill: brand}
             - {type: text, id: r2l, text: "ERR_OMISSION", box: [96, 364, 220, 20], style: sm_b}
-            - {type: text, id: r2d, text: "Informação obrigatória que simplesmente não aparece na resposta.", box: [320, 364, 560, 36], style: body}
+            - {type: text, id: r2d, text: "Informação obrigatória que não aparece na resposta.", box: [320, 364, 560, 36], style: body}
 
             - {type: rect, id: r3, decorative: true, box: [80, 434, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r3b, decorative: true, box: [80, 434, 4, 64], fill: brand}
@@ -424,7 +412,7 @@ slides:
             - {type: rect, id: r7, decorative: true, box: [1000, 356, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r7b, decorative: true, box: [1000, 356, 4, 64], fill: brand}
             - {type: text, id: r7l, text: "ERR_CALIBRATION", box: [1016, 364, 220, 20], style: sm_b}
-            - {type: text, id: r7d, text: "O modelo expressa confiança que não condiz com sua real precisão.", box: [1240, 364, 560, 36], style: body}
+            - {type: text, id: r7d, text: "O modelo expressa confiança que não condiz com sua precisão real.", box: [1240, 364, 560, 36], style: body}
 
             - {type: rect, id: r8, decorative: true, box: [1000, 434, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r8b, decorative: true, box: [1000, 434, 4, 64], fill: brand}
@@ -473,7 +461,7 @@ slides:
           z: 2
           objects:
             - {type: text, id: intro,
-               text: "Sem nenhuma verificação automática, as nove classes caem todas no colo da revisão humana. O custo de detecção é o mesmo para qualquer uma delas.",
+               text: "Sem nenhuma verificação automática, as nove classes caem todas no colo da revisão humana. Quatro exemplos abaixo; as cinco restantes seguem o mesmo padrão (ver matriz no slide 11).",
                box: [80, 138, 1500, 44], style: h2}
 
             # Row 1: HALLUCINATION
@@ -611,7 +599,7 @@ slides:
             - {type: rect, id: cov_top, decorative: true,
                box: [80, 210, 760, 56], fill: dark_bar, radius: 8}
             - {type: text, id: cov_h,
-               text: "Eliminado pela validação de schema",
+               text: "Coberto pela validação de schema (estrutura eliminada, conteúdo apenas parcial)",
                box: [104, 210, 720, 56], style: ctr_w}
 
             - {type: rect, id: cv_r1, decorative: true, box: [104, 294, 710, 130], fill: panel, radius: 8, shadow: small}
@@ -648,15 +636,15 @@ slides:
                box: [924, 210, 900, 56], style: ctr_w}
 
             - {type: text, id: exp_intro,
-               text: "Seis classes precisam de compreensão de significado. Schema valida forma, não sentido.",
+               text: "Cinco classes ficam totalmente expostas no schema — HALLUCINATION, SYCOPHANCY, CALIBRATION, REASONING, SEMANTIC. OMISSION fica reduzida (campos obrigatórios), mas omissão de domínio escapa. Schema valida forma, não sentido. Os exemplos abaixo ilustram três delas.",
                box: [924, 294, 890, 66], style: body}
 
             - {type: rect, id: exp_r1, decorative: true, box: [924, 378, 890, 130], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: exp_r1b, decorative: true, box: [924, 378, 5, 130], fill: red}
-            - {type: rect, id: exp_r1_pill, decorative: true, box: [940, 394, 162, 26], fill: dark, radius: 6}
-            - {type: text, id: exp_r1_pt, text: "ERR_OMISSION", box: [940, 394, 162, 26], style: tag_w}
+            - {type: rect, id: exp_r1b, decorative: true, box: [924, 378, 5, 130], fill: amber}
+            - {type: rect, id: exp_r1_pill, decorative: true, box: [940, 394, 220, 26], fill: dark, radius: 6}
+            - {type: text, id: exp_r1_pt, text: "ERR_OMISSION (parcial)", box: [940, 394, 220, 26], style: tag_w}
             - {type: text, id: exp_r1_t,
-               text: "Um campo pode estar presente com a forma correta, mas vazio de significado ou incompleto no conteúdo. A relevância do que está ali continua em aberto.",
+               text: "Campos obrigatórios são detectados pelo schema. Mas omissão de domínio — campo presente, com forma correta e vazio de significado — escapa para o validador.",
                box: [940, 430, 860, 66], style: sm_ink}
 
             - {type: rect, id: exp_r2, decorative: true, box: [924, 528, 890, 130], fill: panel, radius: 8, shadow: small}
@@ -681,7 +669,7 @@ slides:
   - slide: 6
     id: validator
     title: "Validadores Ampliam a Cobertura, mas Não Garantem que a Resposta Esteja Correta"
-    notes: "O validador é o único componente desta arquitetura capaz de rejeitar respostas de IA generativa de forma automática. Vale enfatizar 'automática' — revisão humana também rejeita, mas o validador é a única barreira automática. O resíduo (ERR_SEMANTIC, ERR_SYCOPHANCY, ERR_CALIBRATION) não é uma limitação de validador — é um limite teórico."
+    notes: "O validador é a última barreira automática desta arquitetura — schema também rejeita, mas só para regras de negócio, restrições entre campos e faixas de valores existe o validador. O resíduo (ERR_SEMANTIC, ERR_SYCOPHANCY, ERR_CALIBRATION) não é uma limitação de validador — é um limite teórico."
     visual:
       layers:
         - id: bg
@@ -705,7 +693,7 @@ slides:
             - {type: rect, id: status_pill_s, decorative: true,
                box: [1540, 58, 300, 44], stroke: dark, stroke_width: 1, fill: none, radius: 22}
             - {type: text, id: status_t,
-               text: "Única barreira automática",
+               text: "Última barreira automática",
                box: [1540, 58, 300, 44], style: lbl_b}
 
         - id: definition
@@ -714,7 +702,7 @@ slides:
             - {type: rect, id: def_rule, decorative: true,
                box: [80, 136, 1760, 2], fill: stroke}
             - {type: text, id: def_t,
-               text: "O Validador é o único componente desta arquitetura capaz de rejeitar respostas de IA generativa automaticamente. Codificando regras de negócio, restrições entre campos e faixas de valores, ele cobre classes de erro que o schema sozinho não alcança. O resultado é uma saída auditável — não uma saída comprovadamente correta.",
+               text: "O Validador é a última barreira automática desta arquitetura: codifica regras de negócio, restrições entre campos e faixas de valores que o schema sozinho não alcança. Schema também rejeita automaticamente, mas só sobre estrutura — o validador é a única camada automática para semântica de domínio. O resultado é uma saída auditável — não uma saída comprovadamente correta.",
                box: [80, 154, 1680, 60], style: body}
 
         - id: coverage_table
@@ -735,7 +723,7 @@ slides:
             - {type: text, id: cv1_pt,
                text: "ERR_INSTRUCTION", box: [120, 356, 162, 26], style: tag_w}
             - {type: text, id: cv1_t,
-               text: "Totalmente coberto quando as restrições do prompt são transformadas em regras do validador. Respostas que descumprem essas regras são rejeitadas automaticamente.",
+               text: "Coberto para restrições mecanizáveis (formato, faixas, presença). Instruções de tom, estilo ou intenção continuam fora de alcance — caem no resíduo de SYCOPHANCY/SEMANTIC.",
                box: [120, 390, 680, 44], style: sm_ink}
 
             - {type: rect, id: cv2, decorative: true, box: [104, 452, 710, 100], fill: panel, radius: 8, shadow: small}
@@ -784,7 +772,7 @@ slides:
                box: [924, 258, 900, 64], style: ctr_w}
 
             - {type: text, id: res_intro,
-               text: "Estas três classes resistem à automação completa, por mais sofisticado que seja o validador. O predicado de erro ε não é computável no caso geral para nenhuma delas. Não é uma lacuna de engenharia — é um limite teórico.",
+               text: "Para SEMANTIC e SYCOPHANCY, ε não é decidível no caso geral por motivos teóricos. Para CALIBRATION, ε é mensurável em conjuntos de teste — mas o validador só vê o texto final, não a distribuição que o gerou. O resultado prático é o mesmo: nenhuma das três é detectável na fronteira de saída.",
                box: [924, 342, 890, 90], style: body}
 
             - {type: rect, id: rr1, decorative: true, box: [924, 448, 890, 130], fill: panel, radius: 8, shadow: small}
@@ -872,7 +860,7 @@ slides:
             - {type: text, id: rs2_pt,
                text: "ERR_CALIBRATION", box: [710, 212, 172, 28], style: tag_w}
             - {type: text, id: rs2_def,
-               text: "A confiança que o modelo expressa não condiz com sua real precisão.",
+               text: "A confiança que o modelo expressa não condiz com sua precisão real.",
                box: [710, 250, 510, 44], style: body}
             - {type: text, id: rs2_req,
                text: "O que reduz (mas não elimina) isso:",
@@ -1184,7 +1172,7 @@ slides:
             - {type: text, id: v3_v,    text: "REJEITA — regra entre campos viola",
                box: [1324, 778, 514, 24], style: sm_b}
             - {type: text, id: v3_t,
-               text: "A regra cross-field 'end_date >= start_date' detecta a contradição imediatamente. A resposta é rejeitada antes de chegar ao usuário.",
+               text: "Duas regras codificam o prompt: end_date >= start_date (inversão) E end_date == start_date + 6 meses (duração). A primeira sozinha já rejeita esta saída; a segunda captura toda a restrição.",
                box: [1324, 806, 514, 110], style: sm_ink}
 
         - id: takeaway
@@ -1497,7 +1485,7 @@ slides:
             - {type: rect, id: r8_sc, decorative: true, box: [840, 652, 340, 52], fill: red_s, radius: 4}
             - {type: text, id: r8_sct, text: "Exposto", box: [840, 652, 340, 52], style: ctr_m}
             - {type: rect, id: r8_va, decorative: true, box: [1200, 652, 340, 52], fill: amber_s, radius: 4}
-            - {type: text, id: r8_vat, text: "Parcial (regras entre campos)", box: [1200, 652, 340, 52], style: ctr_m}
+            - {type: text, id: r8_vat, text: "Coberto p/ regras mecanizáveis", box: [1200, 652, 340, 52], style: ctr_m}
             - {type: text, id: r8_mech,
                text: "Regras de restrição entre campos; checagens de consistência lógica",
                box: [1560, 652, 280, 52], style: sm}
@@ -1540,7 +1528,7 @@ slides:
                text: "A validação por schema reduz os erros possíveis à camada de significado.",
                box: [120, 894, 1660, 32], style: anchor_m}
             - {type: text, id: anc_l2,
-               text: "O Validador é a única barreira automática do sistema.",
+               text: "O Validador é a última barreira automática do sistema.",
                box: [120, 928, 1660, 32], style: anchor_m}
             - {type: rect, id: anc_rule, decorative: true,
                box: [120, 962, 800, 1.5], fill: brand}
@@ -1677,7 +1665,7 @@ slides:
             - {type: rect, id: g11_pill, decorative: true, box: [1004, 394, 220, 24], fill: purple, radius: 6}
             - {type: text, id: g11_pt,   text: "RAG", box: [1004, 394, 220, 24], style: tag_w}
             - {type: text, id: g11_def,
-               text: "Retrieval-Augmented Generation. O modelo é forçado a consultar uma fonte externa antes de responder — reduz, mas não elimina, alucinações.",
+               text: "Retrieval-Augmented Generation. O modelo recebe trechos recuperados de uma fonte externa como contexto antes de responder. Reduz alucinações quando os trechos são usados — mas pode ignorá-los ou contradizê-los.",
                box: [1004, 422, 820, 46], style: sm_ink}
 
             # 12 — Token (technical)
@@ -1704,7 +1692,7 @@ slides:
             - {type: rect, id: g14_pill, decorative: true, box: [1004, 676, 220, 24], fill: purple, radius: 6}
             - {type: text, id: g14_pt,   text: "Predicado de erro (ε)", box: [1004, 676, 220, 24], style: tag_w}
             - {type: text, id: g14_def,
-               text: "Função que indica se a resposta está errada. δ é o piso mínimo do valor esperado de ε — a parcela de erro que nunca desaparece.",
+               text: "Função que indica se a resposta está errada. δ é o piso do valor esperado de ε — a parcela de erro que nunca desaparece.",
                box: [1004, 704, 820, 46], style: sm_ink}
 
             # 15 — Red-teaming (technical)
@@ -1722,7 +1710,7 @@ slides:
             - {type: rect, id: g16_pill, decorative: true, box: [1004, 864, 220, 24], fill: purple, radius: 6}
             - {type: text, id: g16_pt,   text: "Ancoragem referencial", box: [1004, 864, 220, 24], style: tag_w}
             - {type: text, id: g16_def,
-               text: "Garantia de que um nome ou referência na resposta corresponde à entidade correta no mundo real.",
+               text: "Propriedade de que um nome ou referência na resposta corresponda à entidade correta no mundo real. É a propriedade que falha em ERR_SEMANTIC.",
                box: [1004, 892, 820, 46], style: sm_ink}
 
         - id: footer
