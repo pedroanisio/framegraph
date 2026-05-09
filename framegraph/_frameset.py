@@ -32,6 +32,7 @@ Design notes
 
 from __future__ import annotations
 
+import re
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -1189,6 +1190,183 @@ def render_frameset(
 
 
 # ─────────────────────────────────────────────────────────────────
+# Link injection — Phase 6 of ADR 0001
+# ─────────────────────────────────────────────────────────────────
+
+
+def _compute_frame_url(
+    frame_id: str,
+    target_name: str,
+    *,
+    base_url: str | None = None,
+    file_template: str | None = None,
+) -> str:
+    """Compute a navigation URL for a (Frame, target) pair.
+
+    Phase 6 of ADR 0001. Two URL strategies:
+
+    1. ``file_template`` — Python ``str.format`` template using
+       ``{frame_id}`` and ``{target_name}``. Useful for static-export
+       workflows where every Frame is a sibling SVG file
+       (``"slide_{frame_id}.svg"``). Other unknown placeholders are
+       left untouched.
+    2. ``base_url`` — sitemap-style absolute URL of the form
+       ``<base_url>/<target_name>/<frame_id>``, matching the URL
+       pattern emitted by `emit_sitemap` (Phase 4). Frame ids and
+       target names are URL-escaped.
+
+    Exactly one of the two must be supplied. Both ``None`` raises
+    ``ValueError``; both set raises ``ValueError``.
+
+    Args:
+        frame_id: The destination Frame id.
+        target_name: The active target name.
+        base_url: Sitemap-style URL prefix.
+        file_template: Python ``str.format`` template.
+
+    Returns:
+        The computed URL.
+
+    Raises:
+        ValueError: If neither or both of the URL inputs are supplied.
+    """
+    if base_url is None and file_template is None:
+        raise ValueError(
+            "_compute_frame_url requires exactly one of `base_url` or `file_template`"
+        )
+    if base_url is not None and file_template is not None:
+        raise ValueError(
+            "_compute_frame_url accepts at most one of `base_url` or `file_template`; "
+            "both were given"
+        )
+
+    if file_template is not None:
+        return file_template.format(frame_id=frame_id, target_name=target_name)
+
+    # `base_url` path — sitemap-compatible URL pattern.
+    from urllib.parse import quote, urlparse
+
+    assert base_url is not None  # narrowing for type-checker
+    if not base_url.strip():
+        raise ValueError("base_url must be a non-empty URL prefix")
+    parsed = urlparse(base_url)
+    if not parsed.scheme or not parsed.netloc:
+        raise ValueError(
+            f"base_url {base_url!r} is not a valid URL prefix; "
+            "expected something like 'https://example.com' or "
+            "'https://example.com/docs'"
+        )
+    prefix = base_url.rstrip("/")
+    return f"{prefix}/{quote(target_name, safe='')}/{quote(frame_id, safe='')}"
+
+
+_SVG_BODY_SPLIT_RE = re.compile(r"(?P<head>.*?</desc>\s*(?:<defs>.*?</defs>\s*)?)(?P<body>.*)</svg>", re.DOTALL)
+
+
+def inject_svg_navigation_links(
+    svg: str,
+    frame: Frame,
+    frameset: FrameSetDocument,
+    *,
+    target_name: str,
+    base_url: str | None = None,
+    file_template: str | None = None,
+) -> str:
+    """Wrap a rendered SVG's body in ``<a href="...">`` for click-to-advance.
+
+    Phase 6 of ADR 0001. The simplest deck-navigation contract:
+    when a Frame has a `next` link, the entire rendered scene
+    becomes a single clickable region pointing at the next Frame.
+    Click anywhere → advance. Survives SVG → PDF (vector) and
+    SVG → HTML embed equally because the SVG2 ``<a>`` element is
+    natively supported by browsers, weasyprint, and modern PDF
+    viewers.
+
+    The wrapper goes around all *visible* content — between the
+    document's ``<defs>`` block (or ``<desc>`` if no defs) and
+    ``</svg>``. The ``<title>`` and ``<desc>`` accessibility tags
+    stay outside the link so screen readers still pick up the
+    Frame's name first.
+
+    URL resolution mirrors `_compute_frame_url`:
+
+    - When ``file_template`` is given, the URL is
+      ``file_template.format(frame_id=…, target_name=…)``.
+    - When ``base_url`` is given, the URL follows the Phase 4
+      sitemap pattern: ``<base_url>/<target_name>/<frame_id>``.
+
+    Returns the SVG unchanged when:
+
+    - both ``base_url`` and ``file_template`` are ``None``,
+    - ``frame.next`` is ``None`` (no navigation target), OR
+    - the SVG body cannot be located (defensive — the renderer's
+      output schema is stable but we never crash a render on a
+      cosmetic feature).
+
+    Args:
+        svg: The rendered SVG document, with ``<?xml ?>`` prolog.
+        frame: The Frame whose ``next`` link to render as ``<a>``.
+        frameset: The parent FrameSet — used to validate that
+            ``frame.next`` resolves to a known Frame id (it should
+            already, by `validate_frameset`'s contract).
+        target_name: The active target — used in the URL.
+        base_url: Optional sitemap-style URL prefix.
+        file_template: Optional ``str.format`` template.
+
+    Returns:
+        The SVG, possibly with the body wrapped in ``<a href="...">``.
+
+    Raises:
+        ValueError: If both ``base_url`` and ``file_template`` are
+            supplied.
+    """
+    if base_url is not None and file_template is not None:
+        raise ValueError(
+            "inject_svg_navigation_links accepts at most one of "
+            "`base_url` or `file_template`; both were given"
+        )
+    if base_url is None and file_template is None:
+        return svg
+    if frame.next is None:
+        return svg
+    if frame.next not in {f.id for f in frameset.frames}:
+        # Defensive: validate_frameset already enforces this, but
+        # be tolerant when called on a hand-built frame object.
+        return svg
+
+    url = _compute_frame_url(
+        frame.next,
+        target_name,
+        base_url=base_url,
+        file_template=file_template,
+    )
+
+    match = _SVG_BODY_SPLIT_RE.search(svg)
+    if match is None:
+        return svg
+    body = match.group("body")
+    # Build aria-label from the target Frame's title when present;
+    # falls back to the frame id.
+    target_frame = next((f for f in frameset.frames if f.id == frame.next), None)
+    label = target_frame.title if target_frame and target_frame.title else frame.next
+    # Escape `&`, `<`, `>`, `"` in the URL and aria-label so the
+    # injected attribute values are well-formed XML.
+    from xml.sax.saxutils import quoteattr
+
+    href_attr = quoteattr(url)
+    label_attr = quoteattr(f"Next: {label}")
+    head_end = match.start("body")
+    body_end = match.end("body")
+    return (
+        svg[:head_end]
+        + f"<a href={href_attr} aria-label={label_attr}>"
+        + body
+        + "</a>"
+        + svg[body_end:]
+    )
+
+
+# ─────────────────────────────────────────────────────────────────
 # Sitemap emission — Phase 4 of ADR 0001
 # ─────────────────────────────────────────────────────────────────
 
@@ -1342,6 +1520,7 @@ __all__ = [
     "build_frame_doc",
     "coerce_to_frameset",
     "emit_sitemap",
+    "inject_svg_navigation_links",
     "list_frameset_target_union",
     "project_frame_to_document",
     "render_frameset",
