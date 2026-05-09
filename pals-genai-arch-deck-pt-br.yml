@@ -89,6 +89,86 @@ deck:
       brand: {color: brand,  width: 1.5}
       red:   {color: red,    width: 1.5}
 
+    fill_styles:
+      # Subtle vertical fade for backgrounds (bg → panel)
+      bg_soft:
+        type: linear_gradient
+        from: [0, 0]
+        to: [0, 1]
+        stops:
+          - {offset: 0, color: bg}
+          - {offset: 1, color: panel}
+
+      # Soft "lift" — white at top fading to panel; gives panels depth
+      panel_lift:
+        type: linear_gradient
+        from: [0, 0]
+        to: [0, 1]
+        stops:
+          - {offset: 0, color: white,  opacity: 0.85}
+          - {offset: 1, color: panel,  opacity: 1}
+
+      # Brand-tinted highlight panel — for law / hero blocks
+      brand_lift:
+        type: linear_gradient
+        from: [0, 0]
+        to: [0, 1]
+        stops:
+          - {offset: 0, color: brand_s, opacity: 1}
+          - {offset: 1, color: panel,   opacity: 0.95}
+
+      # Dark depth gradient — for anchor / take-away blocks
+      dark_grad:
+        type: linear_gradient
+        from: [0, 0]
+        to: [0, 1]
+        stops:
+          - {offset: 0, color: brand}
+          - {offset: 1, color: dark}
+
+      # Dark bar gradient — for prompt/output title bars
+      dark_bar:
+        type: linear_gradient
+        from: [0, 0]
+        to: [0, 1]
+        stops:
+          - {offset: 0, color: dark}
+          - {offset: 1, color: brand}
+
+      # Annotation wash — soft red fading to neutral, with right-side transparency
+      red_wash:
+        type: linear_gradient
+        from: [0, 0]
+        to: [1, 0]
+        stops:
+          - {offset: 0, color: red_s, opacity: 1}
+          - {offset: 1, color: panel, opacity: 0.5}
+
+      # Channel-coded soft fades for cover preview boxes
+      red_soft:
+        type: linear_gradient
+        from: [0, 0]
+        to: [1, 0]
+        stops:
+          - {offset: 0, color: red_s,  opacity: 1}
+          - {offset: 1, color: panel,  opacity: 0.7}
+
+      amber_soft:
+        type: linear_gradient
+        from: [0, 0]
+        to: [1, 0]
+        stops:
+          - {offset: 0, color: amber_s, opacity: 1}
+          - {offset: 1, color: panel,   opacity: 0.7}
+
+      green_soft:
+        type: linear_gradient
+        from: [0, 0]
+        to: [1, 0]
+        stops:
+          - {offset: 0, color: green_s, opacity: 1}
+          - {offset: 1, color: panel,   opacity: 0.7}
+
 slides:
 
   # ═══════════════════════════════════════════════════════════════════════
@@ -103,9 +183,9 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
-            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
-            - {type: rect, id: btm_band, decorative: true, box: [0, 860, 1920, 220], fill: panel}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: dark_grad}
+            - {type: rect, id: btm_band, decorative: true, box: [0, 860, 1920, 220], fill: panel_lift}
 
         - id: content
           z: 1
@@ -122,7 +202,7 @@ slides:
           z: 2
           objects:
             - {type: rect, id: law_bg, decorative: true,
-               box: [80, 430, 1760, 110], fill: brand_s, radius: 10}
+               box: [80, 430, 1760, 110], fill: brand_lift, radius: 10, shadow: small}
             - {type: rect, id: law_bar, decorative: true,
                box: [80, 430, 6, 110], fill: brand}
             - {type: text, id: law_t,
@@ -140,7 +220,7 @@ slides:
           z: 3
           objects:
             - {type: rect, id: ch1, decorative: true,
-               box: [80, 580, 540, 80], fill: red_s, radius: 8}
+               box: [80, 580, 540, 80], fill: red_soft, radius: 8, shadow: small}
             - {type: rect, id: ch1b, decorative: true,
                box: [80, 580, 5, 80], fill: red}
             - {type: text, id: ch1t,
@@ -148,7 +228,7 @@ slides:
                box: [100, 580, 510, 80], style: bodyc}
 
             - {type: rect, id: ch2, decorative: true,
-               box: [700, 580, 540, 80], fill: amber_s, radius: 8}
+               box: [700, 580, 540, 80], fill: amber_soft, radius: 8, shadow: small}
             - {type: rect, id: ch2b, decorative: true,
                box: [700, 580, 5, 80], fill: amber}
             - {type: text, id: ch2t,
@@ -156,7 +236,7 @@ slides:
                box: [720, 580, 510, 80], style: bodyc}
 
             - {type: rect, id: ch3, decorative: true,
-               box: [1320, 580, 540, 80], fill: green_s, radius: 8}
+               box: [1320, 580, 540, 80], fill: green_soft, radius: 8, shadow: small}
             - {type: rect, id: ch3b, decorative: true,
                box: [1320, 580, 5, 80], fill: green}
             - {type: text, id: ch3t,
@@ -198,7 +278,7 @@ slides:
           z: 2
           objects:
             - {type: rect, id: op_bg, decorative: true,
-               box: [80, 136, 1760, 130], fill: brand_s, radius: 10}
+               box: [80, 136, 1760, 130], fill: brand_lift, radius: 10, shadow: small}
             - {type: rect, id: op_bar, decorative: true,
                box: [80, 136, 6, 130], fill: brand}
             - {type: text, id: op_h,
@@ -254,7 +334,7 @@ slides:
           z: 4
           objects:
             - {type: rect, id: close_bg, decorative: true,
-               box: [80, 590, 1760, 140], fill: panel, radius: 12}
+               box: [80, 590, 1760, 140], fill: panel_lift, radius: 12, shadow: small}
             - {type: text, id: close_h,
                text: "Consequência prática para o design",
                box: [110, 614, 600, 28], style: h3}
@@ -529,7 +609,7 @@ slides:
             - {type: rect, id: cov_bg, decorative: true,
                box: [80, 210, 760, 740], fill: none, stroke: stroke, stroke_width: 0.5, radius: 10}
             - {type: rect, id: cov_top, decorative: true,
-               box: [80, 210, 760, 56], fill: dark, radius: 8}
+               box: [80, 210, 760, 56], fill: dark_bar, radius: 8}
             - {type: text, id: cov_h,
                text: "Eliminado pela validação de schema",
                box: [104, 210, 720, 56], style: ctr_w}
@@ -562,7 +642,7 @@ slides:
             - {type: rect, id: exp_bg, decorative: true,
                box: [900, 210, 940, 740], fill: none, stroke: stroke, stroke_width: 0.5, radius: 10}
             - {type: rect, id: exp_top, decorative: true,
-               box: [900, 210, 940, 56], fill: dark, radius: 8}
+               box: [900, 210, 940, 56], fill: dark_bar, radius: 8}
             - {type: text, id: exp_h,
                text: "Não coberto — o que sobra na camada de significado",
                box: [924, 210, 900, 56], style: ctr_w}
@@ -644,7 +724,7 @@ slides:
             - {type: rect, id: cov_bg, decorative: true,
                box: [80, 258, 760, 710], fill: none, stroke: stroke, stroke_width: 0.5, radius: 12}
             - {type: rect, id: cov_top, decorative: true,
-               box: [80, 258, 760, 64], fill: dark, radius: 8}
+               box: [80, 258, 760, 64], fill: dark_bar, radius: 8}
             - {type: text, id: cov_h,
                text: "O que o Validador passa a cobrir",
                box: [104, 258, 720, 64], style: ctr_w}
@@ -698,7 +778,7 @@ slides:
             - {type: rect, id: res_bg, decorative: true,
                box: [900, 258, 940, 710], fill: none, stroke: stroke, stroke_width: 0.5, radius: 12}
             - {type: rect, id: res_top, decorative: true,
-               box: [900, 258, 940, 64], fill: dark, radius: 8}
+               box: [900, 258, 940, 64], fill: dark_bar, radius: 8}
             - {type: text, id: res_h,
                text: "Resíduo permanente — fora do alcance de qualquer validador",
                box: [924, 258, 900, 64], style: ctr_w}
@@ -862,9 +942,396 @@ slides:
                box: [110, 778, 1660, 62], style: bodyc}
 
   # ═══════════════════════════════════════════════════════════════════════
-  # 8  RESUMO ARQUITETÔNICO — MAPA DE COBERTURA
+  # 8  ESTUDO DE CASO #1 — FORMA PERFEITA, SIGNIFICADO ERRADO
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 8
+    id: case_hallucination
+    title: "Estudo de Caso #1 — Forma Perfeita, Significado Errado"
+    notes: "Caso clássico que ilustra o Corolário 4: a saída tem estrutura impecável, mas os dados são fabricados. Schema valida e aceita; o validador só detectaria com consulta a uma fonte externa autoritativa. Este é o tipo de erro mais perigoso — parece confiável."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: amber}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Estudo de Caso #1 — Forma Perfeita, Significado Errado",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: amber}
+            - {type: text, id: sub,
+               text: "ERR_HALLUCINATION + ERR_SEMANTIC — o tipo de erro mais difícil de detectar.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: scenario
+          z: 2
+          objects:
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8}
+            - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
+            - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
+            - {type: text, id: scn_t,
+               text: "Um chatbot de atendimento recebe um pedido de reembolso citando a apólice 'PA-2026-9924'. O sistema pede ao LLM um registro estruturado do reembolso em JSON.",
+               box: [110, 228, 1640, 36], style: body}
+
+        - id: prompt_output
+          z: 3
+          objects:
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: prm_h,   text: "Entrada (prompt)", box: [80, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: prm_code
+              box: [104, 348, 820, 210]
+              style: mono_s
+              text: |
+                Generate a refund record for policy PA-2026-9924.
+
+                Output JSON with fields:
+                  policy_id      (string)
+                  customer_name  (string)
+                  amount         (number)
+                  reason         (string)
+
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: out_h,
+               text: "Saída do modelo (estruturalmente impecável)",
+               box: [980, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: out_code
+              box: [1004, 348, 820, 210]
+              style: mono_s
+              text: |
+                {
+                  "policy_id":     "PA-2026-9924",
+                  "customer_name": "Maria Silva",
+                  "amount":        450.00,
+                  "reason":        "Cancellation per refund policy section 4.2"
+                }
+
+        - id: annotation
+          z: 4
+          objects:
+            - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 80], fill: red_wash, radius: 8, shadow: small}
+            - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 80],    fill: red}
+            - {type: text, id: ann_h, text: "Por que está errado",
+               box: [110, 598, 400, 22], style: sm_b}
+            - {type: text, id: ann_t,
+               text: "Maria Silva nunca foi cliente. A apólice PA-2026-9924 existe — mas pertence a João Santos. A 'seção 4.2' não existe na política de reembolso. Três fabricações, embaladas em um JSON impecável.",
+               box: [110, 624, 1640, 40], style: body}
+
+        - id: verdict
+          z: 5
+          objects:
+            - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
+               box: [80, 690, 1500, 28], style: h3}
+
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v1_bar,  decorative: true, box: [80, 728, 5, 200],   fill: red}
+            - {type: rect, id: v1_pill, decorative: true, box: [104, 744, 154, 26], fill: red, radius: 6}
+            - {type: text, id: v1_pt,   text: "Free Form", box: [104, 744, 154, 26], style: tag_w}
+            - {type: text, id: v1_v,    text: "Erro chega ao usuário",
+               box: [104, 778, 552, 24], style: sm_b}
+            - {type: text, id: v1_t,
+               text: "Sem estrutura nem regras, o sistema repassa o texto adiante. Detecção depende totalmente de revisão humana — se ela acontecer.",
+               box: [104, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v2_bar,  decorative: true, box: [690, 728, 5, 200],   fill: amber}
+            - {type: rect, id: v2_pill, decorative: true, box: [714, 744, 200, 26],  fill: amber, radius: 6}
+            - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 744, 200, 26], style: tag_w}
+            - {type: text, id: v2_v,    text: "Aceita — a forma é válida",
+               box: [714, 778, 552, 24], style: sm_b}
+            - {type: text, id: v2_t,
+               text: "JSON correto, todos os campos presentes, tipos batem. O schema não tem como saber que 'Maria Silva' não existe ou que a seção 4.2 é inventada.",
+               box: [714, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8}
+            - {type: rect, id: v3_bar,  decorative: true, box: [1300, 728, 5, 200],   fill: green}
+            - {type: rect, id: v3_pill, decorative: true, box: [1324, 744, 130, 26],  fill: green, radius: 6}
+            - {type: text, id: v3_pt,   text: "Validador", box: [1324, 744, 130, 26], style: tag_w}
+            - {type: text, id: v3_v,    text: "Parcial — só com cross-check",
+               box: [1324, 778, 514, 24], style: sm_b}
+            - {type: text, id: v3_t,
+               text: "Detecta apenas se houver consulta automática ao banco de clientes / apólices. Sem RAG ou fonte externa autoritativa, o erro passa.",
+               box: [1324, 806, 514, 110], style: sm_ink}
+
+        - id: takeaway
+          z: 6
+          objects:
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: tk_t,
+               text: "Lição: estrutura impecável não é prova de verdade. Sem consulta a uma fonte externa autoritativa, dados fabricados chegam ao usuário final.",
+               box: [110, 968, 1700, 36], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 9  ESTUDO DE CASO #2 — QUANDO SÓ O VALIDADOR DETECTA
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 9
+    id: case_reasoning
+    title: "Estudo de Caso #2 — Quando Só o Validador Detecta"
+    notes: "Caso onde o schema é satisfeito mas a relação entre campos está errada. Mostra exatamente o valor exclusivo do validador — regras lógicas entre campos. Sem essa camada, o erro passa silenciosamente."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: green}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Estudo de Caso #2 — Quando Só o Validador Detecta",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: green}
+            - {type: text, id: sub,
+               text: "ERR_REASONING — uma contradição lógica entre campos.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: scenario
+          z: 2
+          objects:
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8}
+            - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
+            - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
+            - {type: text, id: scn_t,
+               text: "Um sistema de geração de contratos pede ao LLM o período de cobertura: início depois de 1º de agosto de 2026, duração de exatamente 6 meses.",
+               box: [110, 228, 1640, 36], style: body}
+
+        - id: prompt_output
+          z: 3
+          objects:
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: prm_h,   text: "Entrada (prompt)", box: [80, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: prm_code
+              box: [104, 348, 820, 210]
+              style: mono_s
+              text: |
+                Generate the contract coverage period.
+
+                Constraints:
+                  - Start date must be after 2026-08-01
+                  - Duration: exactly 6 months
+
+                Output: { start_date, end_date }   (ISO 8601)
+
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: out_h,
+               text: "Saída do modelo (datas válidas, mas invertidas)",
+               box: [980, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: out_code
+              box: [1004, 348, 820, 210]
+              style: mono_s
+              text: |
+                {
+                  "start_date": "2026-12-01",
+                  "end_date":   "2026-08-15"
+                }
+
+        - id: annotation
+          z: 4
+          objects:
+            - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 80], fill: red_wash, radius: 8, shadow: small}
+            - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 80],    fill: red}
+            - {type: text, id: ann_h, text: "Por que está errado",
+               box: [110, 598, 400, 22], style: sm_b}
+            - {type: text, id: ann_t,
+               text: "Ambas as datas têm formato ISO 8601 perfeitamente válido. Mas end_date (2026-08-15) é anterior a start_date (2026-12-01) — uma contradição lógica entre campos que o schema, sozinho, não consegue ver.",
+               box: [110, 624, 1640, 40], style: body}
+
+        - id: verdict
+          z: 5
+          objects:
+            - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
+               box: [80, 690, 1500, 28], style: h3}
+
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v1_bar,  decorative: true, box: [80, 728, 5, 200],   fill: red}
+            - {type: rect, id: v1_pill, decorative: true, box: [104, 744, 154, 26], fill: red, radius: 6}
+            - {type: text, id: v1_pt,   text: "Free Form", box: [104, 744, 154, 26], style: tag_w}
+            - {type: text, id: v1_v,    text: "Erro chega ao usuário",
+               box: [104, 778, 552, 24], style: sm_b}
+            - {type: text, id: v1_t,
+               text: "Sem estrutura, ninguém compara as datas. A detecção depende de revisão humana — ou de o sistema a jusante quebrar quando tentar usar o intervalo.",
+               box: [104, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v2_bar,  decorative: true, box: [690, 728, 5, 200],   fill: amber}
+            - {type: rect, id: v2_pill, decorative: true, box: [714, 744, 200, 26],  fill: amber, radius: 6}
+            - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 744, 200, 26], style: tag_w}
+            - {type: text, id: v2_v,    text: "Aceita — campos isolados são válidos",
+               box: [714, 778, 552, 24], style: sm_b}
+            - {type: text, id: v2_t,
+               text: "Cada data, isolada, é um valor ISO 8601 válido. O schema valida campos um a um — não tem como ver a relação entre eles.",
+               box: [714, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8}
+            - {type: rect, id: v3_bar,  decorative: true, box: [1300, 728, 5, 200],   fill: green}
+            - {type: rect, id: v3_pill, decorative: true, box: [1324, 744, 130, 26],  fill: green, radius: 6}
+            - {type: text, id: v3_pt,   text: "Validador", box: [1324, 744, 130, 26], style: tag_w}
+            - {type: text, id: v3_v,    text: "REJEITA — regra entre campos viola",
+               box: [1324, 778, 514, 24], style: sm_b}
+            - {type: text, id: v3_t,
+               text: "A regra cross-field 'end_date >= start_date' detecta a contradição imediatamente. A resposta é rejeitada antes de chegar ao usuário.",
+               box: [1324, 806, 514, 110], style: sm_ink}
+
+        - id: takeaway
+          z: 6
+          objects:
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: tk_t,
+               text: "Lição: schema valida cada campo isoladamente. Apenas o validador captura relações lógicas entre campos — esse é o seu valor exclusivo.",
+               box: [110, 968, 1700, 36], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 10  ESTUDO DE CASO #3 — QUANDO NADA AUTOMATIZADO DETECTA
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 10
+    id: case_residual
+    title: "Estudo de Caso #3 — Quando Nada Automatizado Detecta"
+    notes: "O resíduo da Lei de PALS em ação. Sycophancy + miscalibration: o modelo concorda confiantemente com uma premissa errada. Nem schema nem validador podem ajudar — porque a saída é texto livre e o erro está no significado, não na forma."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: purple}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Estudo de Caso #3 — Quando Nada Automatizado Detecta",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: purple}
+            - {type: text, id: sub,
+               text: "ERR_SYCOPHANCY + ERR_CALIBRATION — o resíduo permanente da Lei de PALS.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: scenario
+          z: 2
+          objects:
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8}
+            - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
+            - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
+            - {type: text, id: scn_t,
+               text: "Uma desenvolvedora pede ao LLM uma revisão de segurança em um endpoint de login. A pergunta carrega uma premissa: 'está seguro?'",
+               box: [110, 228, 1640, 36], style: body}
+
+        - id: prompt_output
+          z: 3
+          objects:
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: prm_h,   text: "Entrada (prompt)", box: [80, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: prm_code
+              box: [104, 348, 820, 210]
+              style: mono_s
+              text: |
+                Review this login endpoint:
+
+                @app.post('/login')
+                def login(req):
+                    user = db.execute(
+                      f"SELECT * FROM users WHERE name='{req.name}'"
+                    )
+                    return {'ok': bool(user)}
+
+                Is it secure?
+
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: out_h,
+               text: "Saída do modelo (concorda com confiança)",
+               box: [980, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: out_code
+              box: [1004, 348, 820, 210]
+              style: mono_s
+              text: |
+                Yes! This endpoint looks good. It properly
+                queries the user table and returns a boolean
+                indicating success.
+
+                Clean implementation. No security issues
+                detected.
+
+                Confidence: HIGH
+
+        - id: annotation
+          z: 4
+          objects:
+            - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 80], fill: red_wash, radius: 8, shadow: small}
+            - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 80],    fill: red}
+            - {type: text, id: ann_h, text: "Por que está errado",
+               box: [110, 598, 400, 22], style: sm_b}
+            - {type: text, id: ann_t,
+               text: "O código tem uma vulnerabilidade clássica de SQL injection — interpolação direta de req.name na query. O modelo concordou com a premissa do usuário (sycophancy) e expressou alta confiança em uma análise totalmente errada (miscalibration).",
+               box: [110, 624, 1640, 40], style: body}
+
+        - id: verdict
+          z: 5
+          objects:
+            - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
+               box: [80, 690, 1500, 28], style: h3}
+
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v1_bar,  decorative: true, box: [80, 728, 5, 200],   fill: red}
+            - {type: rect, id: v1_pill, decorative: true, box: [104, 744, 154, 26], fill: red, radius: 6}
+            - {type: text, id: v1_pt,   text: "Free Form", box: [104, 744, 154, 26], style: tag_w}
+            - {type: text, id: v1_v,    text: "Erro chega ao usuário",
+               box: [104, 778, 552, 24], style: sm_b}
+            - {type: text, id: v1_t,
+               text: "Texto livre, sem nenhuma checagem. A desenvolvedora confia na resposta de 'alta confiança' e a vulnerabilidade vai para produção.",
+               box: [104, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v2_bar,  decorative: true, box: [690, 728, 5, 200],   fill: red}
+            - {type: rect, id: v2_pill, decorative: true, box: [714, 744, 200, 26],  fill: red, radius: 6}
+            - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 744, 200, 26], style: tag_w}
+            - {type: text, id: v2_v,    text: "Não se aplica — saída é texto livre",
+               box: [714, 778, 552, 24], style: sm_b}
+            - {type: text, id: v2_t,
+               text: "Schema valida estrutura. Aqui não há estrutura — apenas prosa. E mesmo se houvesse JSON, o erro está no significado, não na forma.",
+               box: [714, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8}
+            - {type: rect, id: v3_bar,  decorative: true, box: [1300, 728, 5, 200],   fill: red}
+            - {type: rect, id: v3_pill, decorative: true, box: [1324, 744, 130, 26],  fill: red, radius: 6}
+            - {type: text, id: v3_pt,   text: "Validador", box: [1324, 744, 130, 26], style: tag_w}
+            - {type: text, id: v3_v,    text: "Não se aplica — fora de alcance",
+               box: [1324, 778, 514, 24], style: sm_b}
+            - {type: text, id: v3_t,
+               text: "Nenhuma regra programática genérica detecta sycophancy ou miscalibration. Resíduo permanente da Lei de PALS.",
+               box: [1324, 806, 514, 110], style: sm_ink}
+
+        - id: takeaway
+          z: 6
+          objects:
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: tk_t,
+               text: "Lição: para esta classe, schema e validador não ajudam. A defesa é red-teaming, testes adversariais e revisão por especialista de domínio.",
+               box: [110, 968, 1700, 36], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 11  RESUMO ARQUITETÔNICO — MAPA DE COBERTURA
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 11
     id: coverage_map
     title: "A Cobertura Cresce a Cada Canal, mas Correção Nunca É Garantida"
     notes: "Este é o slide de fechamento. A matriz condensa todo o argumento. Leia coluna por coluna: cada canal só adiciona cobertura, nunca remove. As células do resíduo permanecem vermelhas em todos os canais — esse é o ponto."
@@ -1052,7 +1519,7 @@ slides:
           z: 3
           objects:
             - {type: rect, id: anc_bg, decorative: true,
-               box: [80, 790, 1760, 200], fill: brand, radius: 12}
+               box: [80, 790, 1760, 200], fill: dark_grad, radius: 12, shadow: medium}
             - {type: text, id: anc_h,
                text: "Estrutura legível por máquina é o que permite verificar.",
                box: [120, 820, 1660, 44], style: anchor_w}
@@ -1069,9 +1536,9 @@ slides:
                box: [120, 966, 1660, 44], style: anchor_w}
 
   # ═══════════════════════════════════════════════════════════════════════
-  # 9  GLOSSÁRIO
+  # 12  GLOSSÁRIO
   # ═══════════════════════════════════════════════════════════════════════
-  - slide: 9
+  - slide: 12
     id: glossary
     title: "Glossário — Termos-Chave em Linguagem Simples"
     notes: "Slide de referência. As definições aqui são propositalmente menos rigorosas que as formais — o objetivo é tornar o argumento do deck acessível a quem não é técnico. Cores agrupam os termos: cinza para conceitos fundamentais, escuro intermediário para termos estruturais, escuro para termos técnicos/de pesquisa."
@@ -1230,7 +1697,7 @@ slides:
         - id: footer
           z: 3
           objects:
-            - {type: rect, id: foot_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel, radius: 8}
+            - {type: rect, id: foot_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel_lift, radius: 8, shadow: small}
             - {type: text, id: foot_t,
                text: "As definições aqui são propositalmente simples. As versões formais seguem a Lei de PALS v1.5.4 e as referências citadas no disclaimer.",
                box: [110, 968, 1700, 36], style: bodyc}
