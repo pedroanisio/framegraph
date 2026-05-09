@@ -1,0 +1,158 @@
+dsl: FrameGraph
+version: 1.5
+kind: feature-demo
+
+# ─────────────────────────────────────────────────────────────────────────
+# Shadow & Border Capability Demo
+#
+# Shows the renderer's shadow / glow / outer_ring decoration schema
+# wired across every primary geometry renderer it touches:
+#
+#   • shadow / glow on rect, ellipse, path, line, polyline, image,
+#     connector, component, chip_row
+#   • outer_ring (halo border) on rect, ellipse, image, component
+#   • Custom inline shadow params (dx/dy/blur/color/opacity) overriding
+#     the small / medium / large presets
+#   • Stroke-only borders alongside outer_ring for layered emphasis
+# ─────────────────────────────────────────────────────────────────────────
+
+scene:
+  id: shadow_border_demo
+  name: "Shadow & Border"
+  description: "Showcase of shadow/glow filters and outer_ring borders across every rect-shaped renderer."
+  canvas:
+    size: [1080, 600]
+    units: px
+
+visual:
+  tokens:
+    colors:
+      page_bg:    "#F5F7FA"
+      ink:        "#0F172A"
+      muted:      "#64748B"
+      card:       "#FFFFFF"
+      brand:      "#2563EB"
+      accent:     "#F59E0B"
+      good:       "#10B981"
+      warn:       "#EF4444"
+
+    text_styles:
+      title:   {font: primary, size: 28, weight: 700, color: ink,   align: left,   v_align: top}
+      caption: {font: primary, size: 11, weight: 400, color: muted, align: center, v_align: middle, wrap: true}
+      label:   {font: primary, size: 13, weight: 600, color: ink,   align: center, v_align: middle}
+
+    stroke_styles:
+      card_thin: {color: muted, width: 1.0}
+
+  component_defs:
+    card_demo:
+      fill: card
+      stroke_style: card_thin
+      geometry: {radius: 10}
+      text_style: label
+      slots: [label]
+      internal_layout:
+        label:
+          box_offset: [0, 0, "100%", "100%"]
+          style: label
+      variants:
+        brand: {fill: card, stroke_style: card_thin}
+
+  layers:
+    - id: bg
+      objects:
+        - {type: rect, id: page_bg, decorative: true, box: [0, 0, 1080, 600], fill: page_bg}
+
+    - id: title
+      objects:
+        - {type: text, id: title_text, decorative: true, box: [40, 28, 1000, 40],
+           content: "Shadow & Border", style: title}
+
+    # ── Row 1: shadow presets on rect ────────────────────────────────────
+    - id: shadow_rects
+      objects:
+        - {type: rect, id: sr_small,  box: [40,  100, 200, 100], radius: 8, fill: card, shadow: small}
+        - {type: text, id: cap_small, decorative: true, box: [40,  205, 200, 18],
+           content: "shadow: small", style: caption}
+
+        - {type: rect, id: sr_med,    box: [270, 100, 200, 100], radius: 8, fill: card, shadow: medium}
+        - {type: text, id: cap_med,   decorative: true, box: [270, 205, 200, 18],
+           content: "shadow: medium", style: caption}
+
+        - {type: rect, id: sr_large,  box: [500, 100, 200, 100], radius: 8, fill: card, shadow: large}
+        - {type: text, id: cap_large, decorative: true, box: [500, 205, 200, 18],
+           content: "shadow: large", style: caption}
+
+        - type: rect
+          id: sr_inline
+          box: [730, 100, 200, 100]
+          radius: 8
+          fill: card
+          shadow: {preset: medium, dx: 6, dy: 8, blur: 6, color: "#2563EB", opacity: 0.35}
+        - {type: text, id: cap_inline, decorative: true, box: [730, 205, 200, 18],
+           content: "shadow: inline brand-tinted", style: caption}
+
+    # ── Row 2: outer_ring borders ────────────────────────────────────────
+    - id: ring_demos
+      objects:
+        - {type: rect, id: ring_a,  box: [40,  260, 200, 100], radius: 8, fill: card,
+           outer_ring: {color: brand, width: 1.5, gap: 4}}
+        - {type: text, id: cap_ra, decorative: true, box: [40, 365, 200, 18],
+           content: "outer_ring: solid brand", style: caption}
+
+        - {type: rect, id: ring_b,  box: [270, 260, 200, 100], radius: 8, fill: card,
+           outer_ring: {color: accent, width: 2,   gap: 6, dash: [6, 4]}}
+        - {type: text, id: cap_rb, decorative: true, box: [270, 365, 200, 18],
+           content: "outer_ring: dashed accent", style: caption}
+
+        - {type: ellipse, id: ring_c, box: [500, 260, 200, 100], fill: card,
+           outer_ring: {color: good, width: 2, offset: 5, opacity: 0.6}}
+        - {type: text, id: cap_rc, decorative: true, box: [500, 365, 200, 18],
+           content: "ellipse outer_ring (offset)", style: caption}
+
+        - {type: rect, id: ring_d, box: [730, 260, 200, 100], radius: 50, fill: card,
+           shadow: medium,
+           outer_ring: {color: warn, width: 3, gap: 3}}
+        - {type: text, id: cap_rd, decorative: true, box: [730, 365, 200, 18],
+           content: "shadow + outer_ring composed", style: caption}
+
+    # ── Row 3: shadow/glow on non-rect renderers ─────────────────────────
+    - id: cross_renderer_demo
+      objects:
+        # Image with shadow + outer_ring (uses placeholder so example renders standalone).
+        - {type: image, id: img_demo, box: [40, 410, 200, 130],
+           placeholder: true, label: "Image", radius: 8,
+           shadow: medium,
+           outer_ring: {color: muted, width: 1, gap: 3}}
+        - {type: text, id: cap_img, decorative: true, box: [40, 545, 200, 18],
+           content: "image: shadow + outer_ring", style: caption}
+
+        # Component with shadow.
+        - type: component
+          id: comp_demo
+          component: card_demo
+          box: [270, 410, 200, 130]
+          variant: brand
+          label: "Component"
+          shadow: large
+        - {type: text, id: cap_comp, decorative: true, box: [270, 545, 200, 18],
+           content: "component: shadow", style: caption}
+
+        # Path with glow + shadow (glow wins per renderer rule).
+        - type: path
+          id: path_demo
+          d: "M 510 460 Q 590 410 670 460 T 700 540"
+          stroke: {color: brand, width: 4, linecap: round}
+          fill: none
+          glow: {preset: medium, color: "#2563EB"}
+        - {type: text, id: cap_path, decorative: true, box: [500, 545, 200, 18],
+           content: "path: glow", style: caption}
+
+        # Line with shadow.
+        - {type: line, id: line_demo, from: [740, 470], to: [920, 470],
+           stroke: {color: ink, width: 3}, shadow: small}
+        - {type: line, id: line_demo2, from: [740, 510], to: [920, 510],
+           stroke: {color: ink, width: 3}, shadow: medium}
+        - {type: text, id: cap_line, decorative: true, box: [730, 545, 200, 18],
+           content: "line: shadow small / medium", style: caption}
+

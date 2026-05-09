@@ -1518,6 +1518,8 @@ class FrameGraphRenderer:
         # Lines/polylines carry stroke only (`fill="none"`), so fill_opacity
         # is intentionally suppressed here even when present on the object.
         op_extra = self.opacity_attrs(obj, has_fill=False)
+        # Shadow / glow available on lines for "highlighted edge" effects.
+        fx_extra = self.effect_filter_attrs(obj)
         if len(points) == 2 and not force_poly:
             p1, p2 = points
             geom: dict[str, Any] = {
@@ -1529,10 +1531,12 @@ class FrameGraphRenderer:
             }
             geom.update(self.stroke_attrs(st, arrows=True))
             geom.update(op_extra)
+            geom.update(fx_extra)
             svg = f"<line {attrs(geom)}/>"
         else:
             geom = {"points": pts_attr(points), "fill": "none"}
             geom.update(self.stroke_attrs(st, arrows=True))
             geom.update(op_extra)
+            geom.update(fx_extra)
             svg = f"<polyline {attrs(geom)}/>"
         return f"<g {attrs(self.group_attrs(obj))}>{svg}</g>"

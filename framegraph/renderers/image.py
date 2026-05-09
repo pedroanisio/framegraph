@@ -3,6 +3,10 @@
 Reads an image from disk relative to the rendering YAML (when the
 caller has set `r.yaml_source_dir`) and emits an SVG `<image>` with
 the file inlined as a `data:` URI base-64 payload.
+
+Honours the same shadow / glow / outer_ring decoration schema used
+by `rect`, so images can take part in the same visual language as
+the rest of the slide surface.
 """
 
 from __future__ import annotations
@@ -18,6 +22,7 @@ from framegraph._helpers import (
     fnum,
 )
 from framegraph._types import RendererContext
+from framegraph.renderers.shapes import outer_ring_rect_svg
 
 
 def render_image(r: RendererContext, obj: Mapping[str, Any]) -> str:
@@ -79,7 +84,7 @@ def render_image(r: RendererContext, obj: Mapping[str, Any]) -> str:
             b64 = base64.b64encode(p.read_bytes()).decode("ascii")
             href = f"data:{mime};base64,{b64}"
 
-    a = {
+    a: dict[str, Any] = {
         "x": fmt(x),
         "y": fmt(y),
         "width": fmt(w),
@@ -87,7 +92,20 @@ def render_image(r: RendererContext, obj: Mapping[str, Any]) -> str:
         "href": href,
         "preserveAspectRatio": preserve_ratio,
     }
-    return f"<g {attrs(r.group_attrs(obj))}><image {attrs(a)}/></g>"
+    # Shadow / glow attach to the <image> tag; outer_ring is a sibling
+    # rect emitted before so the image overpaints the ring's interior.
+    a.update(r.effect_filter_attrs(obj))
+    radius = fnum(obj.get("radius"), 0)
+    ring_svg = outer_ring_rect_svg(
+        r, obj.get("outer_ring") or {}, x=x, y=y, w=w, h=h, radius=radius
+    )
+    if ring_svg is None:
+        return f"<g {attrs(r.group_attrs(obj))}><image {attrs(a)}/></g>"
+    return (
+        f"<g {attrs(r.group_attrs(obj))}>"
+        f"{ring_svg}"
+        f"<image {attrs(a)}/></g>"
+    )
 
 
 RENDERERS = {

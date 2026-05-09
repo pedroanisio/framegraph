@@ -348,3 +348,269 @@ def test_well_formed_xml_with_all_primitives_active() -> None:
     assert "fg-fx-sh_" in svg
     assert "fg-fx-gl_" in svg
     assert 'stroke-width="0.75"' in svg
+
+
+# ── Shadow / glow coverage across renderers ─────────────────────────
+
+
+def _doc_with_object(obj: dict) -> dict:
+    return {"visual": {"layers": [{"id": "L", "objects": [obj]}]}}
+
+
+def test_shadow_on_path_attaches_filter_to_path_element() -> None:
+    """Path renderer must honour `shadow:` in addition to rect/ellipse."""
+    svg = _render(
+        _doc_with_object(
+            {"type": "path", "id": "p1", "d": "M0 0 L 50 50", "shadow": "small"}
+        )
+    )
+    assert "<filter " in svg
+    # The path element itself carries the filter wiring.
+    assert 'filter="url(#fg-fx-sh_' in svg
+    assert "<path " in svg
+
+
+def test_shadow_on_image_attaches_filter_to_image_element() -> None:
+    svg = _render(
+        _doc_with_object(
+            {
+                "type": "image",
+                "id": "img1",
+                "box": [0, 0, 100, 80],
+                "href": "https://example.com/x.png",
+                "shadow": "medium",
+            }
+        )
+    )
+    assert "<image " in svg
+    assert 'filter="url(#fg-fx-sh_' in svg
+
+
+def test_shadow_on_line_attaches_filter() -> None:
+    """Lines support shadow for highlighted-edge effects."""
+    svg = _render(
+        _doc_with_object(
+            {
+                "type": "line",
+                "id": "edge",
+                "from": [0, 0],
+                "to": [100, 100],
+                "stroke": "#000",
+                "shadow": "small",
+            }
+        )
+    )
+    assert "<line " in svg
+    assert 'filter="url(#fg-fx-sh_' in svg
+
+
+def test_shadow_on_polyline_attaches_filter() -> None:
+    svg = _render(
+        _doc_with_object(
+            {
+                "type": "polyline",
+                "id": "poly",
+                "points": [[0, 0], [10, 10], [20, 0]],
+                "stroke": "#000",
+                "shadow": "small",
+            }
+        )
+    )
+    assert "<polyline " in svg
+    assert 'filter="url(#fg-fx-sh_' in svg
+
+
+def test_shadow_on_connector_attaches_filter_to_path() -> None:
+    doc = {
+        "visual": {
+            "layers": [
+                {
+                    "id": "L",
+                    "objects": [
+                        {"type": "rect", "id": "a", "box": [0, 0, 20, 20]},
+                        {"type": "rect", "id": "b", "box": [80, 0, 20, 20]},
+                        {
+                            "type": "connector",
+                            "id": "c",
+                            "from": "a",
+                            "to": "b",
+                            "stroke": {"color": "#000"},
+                            "shadow": "small",
+                        },
+                    ],
+                }
+            ]
+        }
+    }
+    svg = _render(doc)
+    # The connector emits a <path>; the filter rides on it.
+    assert 'filter="url(#fg-fx-sh_' in svg
+
+
+def test_shadow_on_component_primary_rect() -> None:
+    doc = {
+        "visual": {
+            "component_defs": {
+                "card": {
+                    "fill": "#fff",
+                    "geometry": {"radius": 8},
+                }
+            },
+            "layers": [
+                {
+                    "id": "L",
+                    "objects": [
+                        {
+                            "type": "component",
+                            "id": "c1",
+                            "component": "card",
+                            "box": [0, 0, 100, 60],
+                            "shadow": "medium",
+                        }
+                    ],
+                }
+            ],
+        }
+    }
+    svg = _render(doc)
+    assert "<filter " in svg
+    assert 'filter="url(#fg-fx-sh_' in svg
+
+
+def test_glow_on_image_attaches_filter() -> None:
+    """Glow must compose the same way shadow does on non-rect renderers."""
+    svg = _render(
+        _doc_with_object(
+            {
+                "type": "image",
+                "id": "img",
+                "box": [0, 0, 50, 50],
+                "href": "https://example.com/x.png",
+                "glow": "small",
+            }
+        )
+    )
+    assert 'filter="url(#fg-fx-gl_' in svg
+
+
+# ── Outer ring border coverage ──────────────────────────────────────
+
+
+def test_outer_ring_on_image_emits_concentric_rect_before_image() -> None:
+    """Image must accept the same `outer_ring` schema as rect."""
+    svg = _render(
+        _doc_with_object(
+            {
+                "type": "image",
+                "id": "img",
+                "box": [10, 10, 100, 80],
+                "href": "https://example.com/x.png",
+                "radius": 6,
+                "outer_ring": {"color": "#FF0000", "width": 2, "gap": 4},
+            }
+        )
+    )
+    # Ring rect appears before the <image> tag in document order so the
+    # image overpaints the ring's interior.
+    ring_pos = svg.find("<rect ")
+    image_pos = svg.find("<image ")
+    assert ring_pos != -1 and image_pos != -1 and ring_pos < image_pos
+    # Ring is expanded by gap + width/2 = 5px on every side.
+    assert 'x="5"' in svg and 'y="5"' in svg
+    assert 'stroke="#FF0000"' in svg
+
+
+def test_outer_ring_on_component_emits_concentric_rect_before_main() -> None:
+    doc = {
+        "visual": {
+            "component_defs": {"card": {"fill": "#fff"}},
+            "layers": [
+                {
+                    "id": "L",
+                    "objects": [
+                        {
+                            "type": "component",
+                            "id": "c1",
+                            "component": "card",
+                            "box": [10, 10, 100, 60],
+                            "outer_ring": {"color": "#00AA00", "width": 1.5, "gap": 3},
+                        }
+                    ],
+                }
+            ],
+        }
+    }
+    svg = _render(doc)
+    # Two <rect> elements: the outer ring and the primary geometry.
+    assert svg.count("<rect ") >= 2
+    assert 'stroke="#00AA00"' in svg
+
+
+def test_outer_ring_dash_string_passed_through() -> None:
+    """Dash arrays accept either a sequence or a raw SVG-formatted string."""
+    svg = _render(
+        _doc_with_object(
+            {
+                "type": "rect",
+                "id": "r",
+                "box": [0, 0, 50, 50],
+                "outer_ring": {"color": "#000", "width": 1, "dash": "4 2 1 2"},
+            }
+        )
+    )
+    assert 'stroke-dasharray="4 2 1 2"' in svg
+
+
+def test_outer_ring_offset_synonym_works_on_image() -> None:
+    """`offset` (ellipse-style) is accepted on rect-shaped renderers too."""
+    svg = _render(
+        _doc_with_object(
+            {
+                "type": "image",
+                "id": "img",
+                "box": [10, 10, 50, 50],
+                "href": "https://example.com/x.png",
+                "outer_ring": {"color": "#000", "width": 2, "offset": 6},
+            }
+        )
+    )
+    # offset 6 + width/2 = 7 → ring origin shifts by 7 from box origin.
+    assert 'x="3"' in svg and 'y="3"' in svg
+
+
+def test_outer_ring_absent_on_image_keeps_byte_identity() -> None:
+    """Without outer_ring, image markup contains no extra rect."""
+    svg = _render(
+        _doc_with_object(
+            {
+                "type": "image",
+                "id": "img",
+                "box": [0, 0, 50, 50],
+                "href": "https://example.com/x.png",
+            }
+        )
+    )
+    assert "<rect " not in svg
+    assert "<image " in svg
+
+
+def test_shadow_and_outer_ring_on_image_compose() -> None:
+    """Filter wires onto <image>; ring is drawn unfiltered as a sibling."""
+    svg = _render(
+        _doc_with_object(
+            {
+                "type": "image",
+                "id": "img",
+                "box": [10, 10, 80, 80],
+                "href": "https://example.com/x.png",
+                "shadow": "small",
+                "outer_ring": {"color": "#000", "width": 1, "gap": 2},
+            }
+        )
+    )
+    # Filter on image
+    assert 'filter="url(#fg-fx-sh_' in svg
+    # Ring is a separate <rect> — should NOT also carry filter (avoids
+    # double-shadow on the composite).
+    rect_segment = svg[svg.find("<rect "): svg.find("/>", svg.find("<rect "))]
+    assert "filter=" not in rect_segment

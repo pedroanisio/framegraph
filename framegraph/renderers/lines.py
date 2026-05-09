@@ -42,6 +42,7 @@ def render_path(r: RendererContext, obj: Mapping[str, Any]) -> str:
     a: dict[str, Any] = {"d": obj.get("d", ""), "fill": r.fill_value(obj.get("fill"), "none")}
     a.update(r.stroke_attrs(st, arrows=True))
     a.update(r.opacity_attrs(obj))
+    a.update(r.effect_filter_attrs(obj))
     return f"<g {attrs(r.group_attrs(obj))}><path {attrs(a)}/></g>"
 
 
@@ -88,6 +89,10 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
     a.update(r.stroke_attrs(st, arrows=True))
     # Connectors carry stroke only; skip fill_opacity emission.
     a.update(r.opacity_attrs(obj, has_fill=False))
+    # Shadow / glow on connectors is uncommon but enables effects like
+    # "highlighted critical path"; emitted here so it's available on
+    # parity with rect/ellipse.
+    a.update(r.effect_filter_attrs(obj))
     out = [f"<g {attrs(r.group_attrs(obj))}>", f"<path {attrs(a)}/>"]
     label = obj.get("label")
     if isinstance(label, Mapping):

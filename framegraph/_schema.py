@@ -271,6 +271,36 @@ class ComponentDef(BaseModel):
 # `class`) is allowed on every object via `extra="allow"`.
 
 
+class OuterRing(BaseModel):
+    """Halo border emitted as a concentric stroke around a rect/ellipse.
+
+    Drawn before the primary geometry so the inner fill paints over the
+    ring's interior — leaving only the ring band visible. Honoured by
+    every rect-shaped renderer (`rect`, `image`, `component`) and by
+    `ellipse` (which uses `offset` instead of `gap`, accepted as a
+    synonym).
+    """
+
+    model_config = ConfigDict(extra="allow")
+    color: Color | None = None
+    width: float | None = None
+    # rect convention; `offset` is accepted as a synonym for ellipses.
+    gap: float | None = None
+    offset: float | None = None
+    dash: list[float] | str | None = None
+    opacity: float | None = None
+
+
+# `shadow` / `glow` accept three forms at the YAML surface:
+#   - a preset name string ("small" | "medium" | "large")
+#   - a mapping with optional `preset` plus dx/dy/blur/color/opacity overrides
+#   - the literal "none" / false to disable
+# Declared as a permissive alias so the schema documents the contract
+# without rejecting any of the legitimate input shapes.
+ShadowSpec = str | dict[str, Any] | bool | None
+GlowSpec = str | dict[str, Any] | bool | None
+
+
 class _ObjectBase(BaseModel):
     model_config = ConfigDict(extra="allow")
     id: str | None = None
@@ -285,6 +315,13 @@ class _ObjectBase(BaseModel):
     opacity: float | None = None
     fill_opacity: float | None = None
     stroke_opacity: float | None = None
+    # Visual decoration available on every renderer that paints primary
+    # geometry. `shadow` / `glow` resolve to <filter> defs (mutually
+    # exclusive — glow wins when both are set). `outer_ring` is a
+    # concentric border used for halo / status-ring effects.
+    shadow: ShadowSpec = None
+    glow: GlowSpec = None
+    outer_ring: OuterRing | dict[str, Any] | None = None
 
 
 class RectObject(_ObjectBase):

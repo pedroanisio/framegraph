@@ -24,6 +24,7 @@ from framegraph._helpers import (
     pt,
 )
 from framegraph._types import RendererContext
+from framegraph.renderers.shapes import outer_ring_rect_svg
 from framegraph.renderers.text_objects import text_svg as _text_svg_raw
 
 
@@ -359,6 +360,13 @@ def render_component(r: RendererContext, obj: Mapping[str, Any]) -> str:
     elif isinstance(comp.get("stroke"), Mapping):
         st = r.stroke_style(inline=comp["stroke"])
     out = [f"<g {attrs(r.group_attrs(obj, {'data-component': comp_name}))}>"]
+    # Outer ring (halo) is drawn first so the component's primary rect
+    # paints over the ring's interior, leaving only the ring band visible.
+    ring_svg = outer_ring_rect_svg(
+        r, obj.get("outer_ring") or {}, x=x, y=y, w=w, h=h, radius=radius
+    )
+    if ring_svg is not None:
+        out.append(ring_svg)
     ra: dict[str, Any] = {
         "x": fmt(x),
         "y": fmt(y),
@@ -370,6 +378,9 @@ def render_component(r: RendererContext, obj: Mapping[str, Any]) -> str:
         ra.update({"rx": fmt(radius), "ry": fmt(radius)})
     ra.update(r.stroke_attrs(st))
     ra.update(r.opacity_attrs(obj))
+    # Shadow / glow attaches to the primary rect only — outer_ring trim
+    # is intentionally unfiltered to avoid double-shadow on composites.
+    ra.update(r.effect_filter_attrs(obj))
     out.append(f"<rect {attrs(ra)}/>")
     internal = comp.get("internal_layout", {}) or {}
     for slot in comp.get("slots", list(internal.keys())) or []:
@@ -426,6 +437,9 @@ def render_chip_row(r: RendererContext, obj: Mapping[str, Any]) -> str:
         }
         ra.update(r.stroke_attrs(st))
         ra.update(r.opacity_attrs(obj))
+        # Shadow / glow rides on each chip rect (not the outer <g>),
+        # so the chips have crisp individual edges.
+        ra.update(r.effect_filter_attrs(obj))
         out.append(f"<rect {attrs(ra)}/>")
         out.append(_text_svg_helper(r, label, (cursor, y, width, height), ts))
         cursor += width + gap
