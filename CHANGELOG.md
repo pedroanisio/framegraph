@@ -28,6 +28,43 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **ADR 0001 Phase 6** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
+  — Link injection. The same FrameSet that emits a sitemap (Phase 4)
+  now wires its `frame.next` chain into the rendered SVG as
+  click-anywhere-to-advance navigation. The SVG2 `<a>` element
+  works in browsers, weasyprint (PDF vector), and embedded HTML
+  — one injection point covers all three output formats.
+  - `framegraph._frameset.inject_svg_navigation_links(svg, frame,
+    frameset, *, target_name, base_url=None, file_template=None)`
+    wraps the rendered SVG body in `<a href="...">` per
+    `frame.next`. The `<title>` and `<desc>` accessibility tags
+    stay outside the link so screen-readers pick up the Frame's
+    name first. Returns the SVG unchanged when `frame.next` is
+    `None` or both URL inputs are `None` (byte-identical
+    regression-locked). `aria-label="Next: <title-or-id>"` is
+    added for keyboard / assistive-tech navigation.
+  - `framegraph._frameset._compute_frame_url(frame_id, target_name,
+    *, base_url, file_template)` resolves the destination URL via
+    one of two strategies:
+    - `base_url` — sitemap-style `<base_url>/<target_name>/<frame_id>`,
+      URL-escaped, matching Phase 4's `emit_sitemap` output.
+    - `file_template` — Python `str.format` template using
+      `{frame_id}` and `{target_name}`, e.g. `"slide_{frame_id}.svg"`
+      for relative file links in a static export.
+  - CLI: `framegraph render --link-base-url <url>` /
+    `--link-template <template>` and `framegraph deck
+    --link-base-url <url>` / `--link-template <template>`. Deck
+    post-processes every per-slide SVG (works with `--target` and
+    `--all-targets`). `--link-base-url` and `--link-template` are
+    mutually exclusive.
+  - 33 regression tests in
+    `tests/integration/test_frameset_phase6.py` cover URL
+    computation (both strategies, escaping, validation), the
+    injection contract (no-op when not wired, well-formed XML
+    output, accessibility-tag placement), CLI integration on both
+    `render` and `deck`, and coerced inputs (legacy single-doc +
+    deck shape).
+
 - **ADR 0001 Phase 5** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
   — Per-target adjustments. The same Frame adapts to landscape /
   portrait / mobile / print contexts via three orthogonal knobs on
