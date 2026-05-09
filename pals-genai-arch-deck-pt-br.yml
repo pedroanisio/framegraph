@@ -1518,22 +1518,35 @@ slides:
         - id: anchor_block
           z: 3
           objects:
+            # Editorial take-away panel: replaces the prior heavy dark
+            # slab with a soft brand-lifted card so the conclusion still
+            # anchors the slide without dominating it. Visual punctuation
+            # comes from a brand left bar + tag pill instead of inverse
+            # contrast.
             - {type: rect, id: anc_bg, decorative: true,
-               box: [80, 790, 1760, 200], fill: dark_grad, radius: 12, shadow: medium}
+               box: [80, 790, 1760, 200], fill: brand_lift, radius: 12,
+               shadow: medium,
+               outer_ring: {color: stroke, width: 1, gap: 0}}
+            - {type: rect, id: anc_accent, decorative: true,
+               box: [80, 790, 8, 200], fill: brand}
+            - {type: rect, id: anc_tag, decorative: true,
+               box: [120, 808, 130, 26], fill: brand, radius: 4}
+            - {type: text, id: anc_tag_t,
+               text: "CONCLUSÃO", box: [120, 808, 130, 26], style: tag_w}
             - {type: text, id: anc_h,
                text: "Estrutura legível por máquina é o que permite verificar.",
-               box: [120, 820, 1660, 44], style: anchor_w}
+               box: [120, 850, 1660, 44], style: anchor}
             - {type: text, id: anc_l1,
                text: "A validação por schema reduz os erros possíveis à camada de significado.",
-               box: [120, 866, 1660, 44], style: anchor_wm}
+               box: [120, 894, 1660, 32], style: anchor_m}
             - {type: text, id: anc_l2,
                text: "O Validador é a única barreira automática do sistema.",
-               box: [120, 912, 1660, 44], style: anchor_wm}
+               box: [120, 928, 1660, 32], style: anchor_m}
             - {type: rect, id: anc_rule, decorative: true,
-               box: [120, 960, 800, 2], fill: white}
+               box: [120, 962, 800, 1.5], fill: brand}
             - {type: text, id: anc_final,
                text: "Nada nesta arquitetura garante que a resposta esteja correta.",
-               box: [120, 966, 1660, 44], style: anchor_w}
+               box: [120, 970, 1660, 32], style: anchor}
 
   # ═══════════════════════════════════════════════════════════════════════
   # 12  GLOSSÁRIO
@@ -1565,134 +1578,152 @@ slides:
         - id: column_left
           z: 2
           objects:
-            # 1 — LLM
-            - {type: rect, id: g1_bg,   decorative: true, box: [80, 196, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g1_bar,  decorative: true, box: [80, 196, 5, 100],   fill: brand}
-            - {type: rect, id: g1_pill, decorative: true, box: [104, 208, 220, 26], fill: brand, radius: 6}
-            - {type: text, id: g1_pt,   text: "LLM", box: [104, 208, 220, 26], style: tag_w}
+            # 1 — LLM (foundation)
+            - {type: rect, id: g1_bg,   decorative: true, box: [80, 196, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g1_bar,  decorative: true, box: [80, 196, 5, 88],   fill: brand}
+            - {type: rect, id: g1_pill, decorative: true, box: [104, 206, 220, 24], fill: brand, radius: 6}
+            - {type: text, id: g1_pt,   text: "LLM", box: [104, 206, 220, 24], style: tag_w}
             - {type: text, id: g1_def,
                text: "Modelo de linguagem treinado em grande volume de texto. Gera respostas estatisticamente prováveis a partir de uma entrada — sem entender o que diz no sentido humano.",
-               box: [104, 240, 820, 50], style: sm_ink}
+               box: [104, 234, 820, 46], style: sm_ink}
 
-            # 2 — GenAI
-            - {type: rect, id: g2_bg,   decorative: true, box: [80, 302, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g2_bar,  decorative: true, box: [80, 302, 5, 100],   fill: brand}
-            - {type: rect, id: g2_pill, decorative: true, box: [104, 314, 220, 26], fill: brand, radius: 6}
-            - {type: text, id: g2_pt,   text: "GenAI", box: [104, 314, 220, 26], style: tag_w}
+            # 2 — GenAI (foundation)
+            - {type: rect, id: g2_bg,   decorative: true, box: [80, 290, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g2_bar,  decorative: true, box: [80, 290, 5, 88],   fill: brand}
+            - {type: rect, id: g2_pill, decorative: true, box: [104, 300, 220, 24], fill: brand, radius: 6}
+            - {type: text, id: g2_pt,   text: "GenAI", box: [104, 300, 220, 24], style: tag_w}
             - {type: text, id: g2_def,
                text: "Inteligência Artificial Generativa. Sistemas que produzem conteúdo novo (texto, imagem, código) em vez de apenas classificar ou prever.",
-               box: [104, 346, 820, 50], style: sm_ink}
+               box: [104, 328, 820, 46], style: sm_ink}
 
-            # 3 — Prompt
-            - {type: rect, id: g3_bg,   decorative: true, box: [80, 408, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g3_bar,  decorative: true, box: [80, 408, 5, 100],   fill: brand}
-            - {type: rect, id: g3_pill, decorative: true, box: [104, 420, 220, 26], fill: brand, radius: 6}
-            - {type: text, id: g3_pt,   text: "Prompt", box: [104, 420, 220, 26], style: tag_w}
+            # 3 — Prompt (foundation)
+            - {type: rect, id: g3_bg,   decorative: true, box: [80, 384, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g3_bar,  decorative: true, box: [80, 384, 5, 88],   fill: brand}
+            - {type: rect, id: g3_pill, decorative: true, box: [104, 394, 220, 24], fill: brand, radius: 6}
+            - {type: text, id: g3_pt,   text: "Prompt", box: [104, 394, 220, 24], style: tag_w}
             - {type: text, id: g3_def,
                text: "A entrada em linguagem natural enviada ao modelo. Define a tarefa, o contexto e quaisquer restrições para a resposta.",
-               box: [104, 452, 820, 50], style: sm_ink}
+               box: [104, 422, 820, 46], style: sm_ink}
 
-            # 4 — Schema
-            - {type: rect, id: g4_bg,   decorative: true, box: [80, 514, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g4_bar,  decorative: true, box: [80, 514, 5, 100],   fill: amber}
-            - {type: rect, id: g4_pill, decorative: true, box: [104, 526, 220, 26], fill: amber, radius: 6}
-            - {type: text, id: g4_pt,   text: "Schema", box: [104, 526, 220, 26], style: tag_w}
+            # 4 — Canal (structural)  [NEW]
+            - {type: rect, id: g4_bg,   decorative: true, box: [80, 478, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g4_bar,  decorative: true, box: [80, 478, 5, 88],   fill: amber}
+            - {type: rect, id: g4_pill, decorative: true, box: [104, 488, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g4_pt,   text: "Canal", box: [104, 488, 220, 24], style: tag_w}
             - {type: text, id: g4_def,
-               text: "Contrato formal que descreve a estrutura esperada da resposta: campos, tipos e valores permitidos.",
-               box: [104, 558, 820, 50], style: sm_ink}
+               text: "Cada um dos três caminhos pelos quais a saída de uma IA generativa pode ser tratada — Free Form, Schema + Instance, Validador. Define quais classes de erro são detectáveis.",
+               box: [104, 516, 820, 46], style: sm_ink}
 
-            # 5 — Instance
-            - {type: rect, id: g5_bg,   decorative: true, box: [80, 620, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g5_bar,  decorative: true, box: [80, 620, 5, 100],   fill: amber}
-            - {type: rect, id: g5_pill, decorative: true, box: [104, 632, 220, 26], fill: amber, radius: 6}
-            - {type: text, id: g5_pt,   text: "Instance", box: [104, 632, 220, 26], style: tag_w}
+            # 5 — Schema (structural)
+            - {type: rect, id: g5_bg,   decorative: true, box: [80, 572, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g5_bar,  decorative: true, box: [80, 572, 5, 88],   fill: amber}
+            - {type: rect, id: g5_pill, decorative: true, box: [104, 582, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g5_pt,   text: "Schema", box: [104, 582, 220, 24], style: tag_w}
             - {type: text, id: g5_def,
-               text: "Uma resposta concreta gerada pelo modelo. Pode estar ou não em conformidade com o schema.",
-               box: [104, 664, 820, 50], style: sm_ink}
+               text: "Contrato formal que descreve a estrutura esperada da resposta: campos, tipos e valores permitidos.",
+               box: [104, 610, 820, 46], style: sm_ink}
 
-            # 6 — Validador
-            - {type: rect, id: g6_bg,   decorative: true, box: [80, 726, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g6_bar,  decorative: true, box: [80, 726, 5, 100],   fill: amber}
-            - {type: rect, id: g6_pill, decorative: true, box: [104, 738, 220, 26], fill: amber, radius: 6}
-            - {type: text, id: g6_pt,   text: "Validador", box: [104, 738, 220, 26], style: tag_w}
+            # 6 — Instance (structural)
+            - {type: rect, id: g6_bg,   decorative: true, box: [80, 666, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g6_bar,  decorative: true, box: [80, 666, 5, 88],   fill: amber}
+            - {type: rect, id: g6_pill, decorative: true, box: [104, 676, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g6_pt,   text: "Instance", box: [104, 676, 220, 24], style: tag_w}
             - {type: text, id: g6_def,
-               text: "Componente que aplica regras de negócio à resposta (restrições entre campos, faixas, completude) e a aceita ou rejeita automaticamente.",
-               box: [104, 770, 820, 50], style: sm_ink}
+               text: "Uma resposta concreta gerada pelo modelo. Pode estar ou não em conformidade com o schema.",
+               box: [104, 704, 820, 46], style: sm_ink}
 
-            # 7 — Free Form
-            - {type: rect, id: g7_bg,   decorative: true, box: [80, 832, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g7_bar,  decorative: true, box: [80, 832, 5, 100],   fill: amber}
-            - {type: rect, id: g7_pill, decorative: true, box: [104, 844, 220, 26], fill: amber, radius: 6}
-            - {type: text, id: g7_pt,   text: "Free Form", box: [104, 844, 220, 26], style: tag_w}
+            # 7 — Validador (structural)
+            - {type: rect, id: g7_bg,   decorative: true, box: [80, 760, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g7_bar,  decorative: true, box: [80, 760, 5, 88],   fill: amber}
+            - {type: rect, id: g7_pill, decorative: true, box: [104, 770, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g7_pt,   text: "Validador", box: [104, 770, 220, 24], style: tag_w}
             - {type: text, id: g7_def,
-               text: "Saída sem nenhuma estrutura imposta. Toda detecção de erro depende de revisão humana.",
-               box: [104, 876, 820, 50], style: sm_ink}
+               text: "Componente que aplica regras de negócio à resposta (restrições entre campos, faixas, completude) e a aceita ou rejeita automaticamente.",
+               box: [104, 798, 820, 46], style: sm_ink}
+
+            # 8 — Exposto (structural)  [NEW]
+            - {type: rect, id: g8_bg,   decorative: true, box: [80, 854, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g8_bar,  decorative: true, box: [80, 854, 5, 88],   fill: amber}
+            - {type: rect, id: g8_pill, decorative: true, box: [104, 864, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g8_pt,   text: "Exposto", box: [104, 864, 220, 24], style: tag_w}
+            - {type: text, id: g8_def,
+               text: "Classe de erro que o canal não detecta — chega ao usuário final. Oposto de 'coberto' (detectado e bloqueado) ou 'reduzido' (detectado parcialmente).",
+               box: [104, 892, 820, 46], style: sm_ink}
 
         - id: column_right
           z: 2
           objects:
-            # 8 — Enum
-            - {type: rect, id: g8_bg,   decorative: true, box: [980, 196, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g8_bar,  decorative: true, box: [980, 196, 5, 100],   fill: amber}
-            - {type: rect, id: g8_pill, decorative: true, box: [1004, 208, 220, 26], fill: amber, radius: 6}
-            - {type: text, id: g8_pt,   text: "Enum", box: [1004, 208, 220, 26], style: tag_w}
-            - {type: text, id: g8_def,
-               text: "Lista finita de valores permitidos para um campo. Permite rejeitar qualquer valor fora do conjunto declarado.",
-               box: [1004, 240, 820, 50], style: sm_ink}
-
-            # 9 — RAG
-            - {type: rect, id: g9_bg,   decorative: true, box: [980, 302, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g9_bar,  decorative: true, box: [980, 302, 5, 100],   fill: purple}
-            - {type: rect, id: g9_pill, decorative: true, box: [1004, 314, 220, 26], fill: purple, radius: 6}
-            - {type: text, id: g9_pt,   text: "RAG", box: [1004, 314, 220, 26], style: tag_w}
+            # 9 — Free Form (structural)
+            - {type: rect, id: g9_bg,   decorative: true, box: [980, 196, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g9_bar,  decorative: true, box: [980, 196, 5, 88],   fill: amber}
+            - {type: rect, id: g9_pill, decorative: true, box: [1004, 206, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g9_pt,   text: "Free Form", box: [1004, 206, 220, 24], style: tag_w}
             - {type: text, id: g9_def,
-               text: "Retrieval-Augmented Generation. O modelo é forçado a consultar uma fonte externa antes de responder — reduz, mas não elimina, alucinações.",
-               box: [1004, 346, 820, 50], style: sm_ink}
+               text: "Saída sem nenhuma estrutura imposta. Toda detecção de erro depende de revisão humana.",
+               box: [1004, 234, 820, 46], style: sm_ink}
 
-            # 10 — Token
-            - {type: rect, id: g10_bg,   decorative: true, box: [980, 408, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g10_bar,  decorative: true, box: [980, 408, 5, 100],   fill: purple}
-            - {type: rect, id: g10_pill, decorative: true, box: [1004, 420, 220, 26], fill: purple, radius: 6}
-            - {type: text, id: g10_pt,   text: "Token", box: [1004, 420, 220, 26], style: tag_w}
+            # 10 — Enum (structural)
+            - {type: rect, id: g10_bg,   decorative: true, box: [980, 290, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g10_bar,  decorative: true, box: [980, 290, 5, 88],   fill: amber}
+            - {type: rect, id: g10_pill, decorative: true, box: [1004, 300, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g10_pt,   text: "Enum", box: [1004, 300, 220, 24], style: tag_w}
             - {type: text, id: g10_def,
-               text: "Unidade básica de texto que o modelo manipula (palavra, parte de palavra ou caractere). A resposta é gerada token a token.",
-               box: [1004, 452, 820, 50], style: sm_ink}
+               text: "Lista finita de valores permitidos para um campo. Permite rejeitar qualquer valor fora do conjunto declarado.",
+               box: [1004, 328, 820, 46], style: sm_ink}
 
-            # 11 — Calibração
-            - {type: rect, id: g11_bg,   decorative: true, box: [980, 514, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g11_bar,  decorative: true, box: [980, 514, 5, 100],   fill: purple}
-            - {type: rect, id: g11_pill, decorative: true, box: [1004, 526, 220, 26], fill: purple, radius: 6}
-            - {type: text, id: g11_pt,   text: "Calibração", box: [1004, 526, 220, 26], style: tag_w}
+            # 11 — RAG (technical)
+            - {type: rect, id: g11_bg,   decorative: true, box: [980, 384, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g11_bar,  decorative: true, box: [980, 384, 5, 88],   fill: purple}
+            - {type: rect, id: g11_pill, decorative: true, box: [1004, 394, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g11_pt,   text: "RAG", box: [1004, 394, 220, 24], style: tag_w}
             - {type: text, id: g11_def,
-               text: "Alinhamento entre a confiança que o modelo expressa e sua precisão real. Calibração ruim significa que 'alta confiança' não garante acerto.",
-               box: [1004, 558, 820, 50], style: sm_ink}
+               text: "Retrieval-Augmented Generation. O modelo é forçado a consultar uma fonte externa antes de responder — reduz, mas não elimina, alucinações.",
+               box: [1004, 422, 820, 46], style: sm_ink}
 
-            # 12 — Predicado de erro (ε)
-            - {type: rect, id: g12_bg,   decorative: true, box: [980, 620, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g12_bar,  decorative: true, box: [980, 620, 5, 100],   fill: purple}
-            - {type: rect, id: g12_pill, decorative: true, box: [1004, 632, 220, 26], fill: purple, radius: 6}
-            - {type: text, id: g12_pt,   text: "Predicado de erro (ε)", box: [1004, 632, 220, 26], style: tag_w}
+            # 12 — Token (technical)
+            - {type: rect, id: g12_bg,   decorative: true, box: [980, 478, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g12_bar,  decorative: true, box: [980, 478, 5, 88],   fill: purple}
+            - {type: rect, id: g12_pill, decorative: true, box: [1004, 488, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g12_pt,   text: "Token", box: [1004, 488, 220, 24], style: tag_w}
             - {type: text, id: g12_def,
-               text: "Função que indica se a resposta está errada. δ é o piso mínimo do valor esperado de ε — a parcela de erro que nunca desaparece.",
-               box: [1004, 664, 820, 50], style: sm_ink}
+               text: "Unidade básica de texto que o modelo manipula (palavra, parte de palavra ou caractere). A resposta é gerada token a token.",
+               box: [1004, 516, 820, 46], style: sm_ink}
 
-            # 13 — Red-teaming
-            - {type: rect, id: g13_bg,   decorative: true, box: [980, 726, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g13_bar,  decorative: true, box: [980, 726, 5, 100],   fill: purple}
-            - {type: rect, id: g13_pill, decorative: true, box: [1004, 738, 220, 26], fill: purple, radius: 6}
-            - {type: text, id: g13_pt,   text: "Red-teaming", box: [1004, 738, 220, 26], style: tag_w}
+            # 13 — Calibração (technical)
+            - {type: rect, id: g13_bg,   decorative: true, box: [980, 572, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g13_bar,  decorative: true, box: [980, 572, 5, 88],   fill: purple}
+            - {type: rect, id: g13_pill, decorative: true, box: [1004, 582, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g13_pt,   text: "Calibração", box: [1004, 582, 220, 24], style: tag_w}
             - {type: text, id: g13_def,
-               text: "Teste deliberado do sistema com prompts projetados para induzir falhas. Forma de auditoria adversarial.",
-               box: [1004, 770, 820, 50], style: sm_ink}
+               text: "Alinhamento entre a confiança que o modelo expressa e sua precisão real. Calibração ruim significa que 'alta confiança' não garante acerto.",
+               box: [1004, 610, 820, 46], style: sm_ink}
 
-            # 14 — Ancoragem referencial
-            - {type: rect, id: g14_bg,   decorative: true, box: [980, 832, 860, 100], fill: panel, radius: 8, shadow: small}
-            - {type: rect, id: g14_bar,  decorative: true, box: [980, 832, 5, 100],   fill: purple}
-            - {type: rect, id: g14_pill, decorative: true, box: [1004, 844, 220, 26], fill: purple, radius: 6}
-            - {type: text, id: g14_pt,   text: "Ancoragem referencial", box: [1004, 844, 220, 26], style: tag_w}
+            # 14 — Predicado de erro (ε) (technical)
+            - {type: rect, id: g14_bg,   decorative: true, box: [980, 666, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g14_bar,  decorative: true, box: [980, 666, 5, 88],   fill: purple}
+            - {type: rect, id: g14_pill, decorative: true, box: [1004, 676, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g14_pt,   text: "Predicado de erro (ε)", box: [1004, 676, 220, 24], style: tag_w}
             - {type: text, id: g14_def,
+               text: "Função que indica se a resposta está errada. δ é o piso mínimo do valor esperado de ε — a parcela de erro que nunca desaparece.",
+               box: [1004, 704, 820, 46], style: sm_ink}
+
+            # 15 — Red-teaming (technical)
+            - {type: rect, id: g15_bg,   decorative: true, box: [980, 760, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g15_bar,  decorative: true, box: [980, 760, 5, 88],   fill: purple}
+            - {type: rect, id: g15_pill, decorative: true, box: [1004, 770, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g15_pt,   text: "Red-teaming", box: [1004, 770, 220, 24], style: tag_w}
+            - {type: text, id: g15_def,
+               text: "Teste deliberado do sistema com prompts projetados para induzir falhas. Forma de auditoria adversarial.",
+               box: [1004, 798, 820, 46], style: sm_ink}
+
+            # 16 — Ancoragem referencial (technical)
+            - {type: rect, id: g16_bg,   decorative: true, box: [980, 854, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g16_bar,  decorative: true, box: [980, 854, 5, 88],   fill: purple}
+            - {type: rect, id: g16_pill, decorative: true, box: [1004, 864, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g16_pt,   text: "Ancoragem referencial", box: [1004, 864, 220, 24], style: tag_w}
+            - {type: text, id: g16_def,
                text: "Garantia de que um nome ou referência na resposta corresponde à entidade correta no mundo real.",
-               box: [1004, 876, 820, 50], style: sm_ink}
+               box: [1004, 892, 820, 46], style: sm_ink}
 
         - id: footer
           z: 3
