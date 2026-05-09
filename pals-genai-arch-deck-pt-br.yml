@@ -1,0 +1,1236 @@
+---
+disclaimer:
+  notice: >-
+    Nenhuma informação neste documento deve ser tomada como verdade absoluta.
+    Qualquer afirmação ou premissa que não tenha respaldo em uma definição
+    lógica clara ou em uma referência verificável pode estar incorreta, ser
+    equivocada ou uma alucinação. Citação da Lei de PALS: Pedro Anisio de
+    Luna e Silva (2026), Zenodo 10.5281/zenodo.19401530. As nove definições
+    de classes de erro vêm da Lei de PALS v1.5.4. As afirmações sobre
+    arquitetura são derivações analíticas, não medições empíricas.
+  generated_by: "Claude Sonnet 4.6"
+
+dsl: FrameGraph
+version: 1.5
+kind: presentation-deck
+
+deck:
+  canvas:
+    size: [1920, 1080]
+    units: px
+
+  component_defs:
+    chip:
+      fill: brand_s
+      text_style: tag_bc
+      geometry:
+        radius: 6
+
+  tokens:
+    colors:
+      bg:        "#FAFAFA"
+      ink:       "#1A1A1A"
+      muted:     "#666666"
+      brand:     "#2D2D2D"
+      brand_s:   "#E8E8E8"
+      panel:     "#F5F5F5"
+      stroke:    "#CCCCCC"
+      teal:      "#4A4A4A"
+      teal_s:    "#E0E0E0"
+      amber:     "#555555"
+      amber_s:   "#EBEBEB"
+      red:       "#404040"
+      red_s:     "#F0F0F0"
+      purple:    "#505050"
+      purple_s:  "#EFEFEF"
+      dark:      "#1A1A1A"
+      white:     "#FFFFFF"
+      green:     "#3A3A3A"
+      green_s:   "#E5E5E5"
+      orange:    "#474747"
+
+    fonts:
+      sans: "'DejaVu Sans', 'Liberation Sans', Helvetica Neue, Helvetica, Arial, sans-serif"
+      mono: "'DejaVu Sans Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace"
+
+    text_styles:
+      cover_h:  {font: sans, size: 56, weight: 700, color: ink,   align: left,   v_align: top}
+      cover_s:  {font: sans, size: 19, weight: 400, color: muted, align: left,   v_align: top, wrap: true}
+      stitle:   {font: sans, size: 36, weight: 700, color: ink,   align: left,   v_align: top}
+      h2:       {font: sans, size: 22, weight: 700, color: ink,   align: left,   v_align: top}
+      h3:       {font: sans, size: 17, weight: 700, color: ink,   align: left,   v_align: top}
+      body:     {font: sans, size: 16, weight: 400, color: ink,   align: left,   v_align: top, wrap: true}
+      bodyc:    {font: sans, size: 16, weight: 400, color: muted, align: left,   v_align: top, wrap: true}
+      sm:       {font: sans, size: 14, weight: 400, color: muted, align: left,   v_align: top, wrap: true}
+      sm_ink:   {font: sans, size: 14, weight: 400, color: ink,   align: left,   v_align: top, wrap: true}
+      sm_b:     {font: sans, size: 14, weight: 700, color: ink,   align: left,   v_align: top}
+      ctr:      {font: sans, size: 15, weight: 400, color: ink,   align: center, v_align: middle, wrap: true}
+      ctr_b:    {font: sans, size: 14, weight: 700, color: brand, align: center, v_align: middle, wrap: true}
+      ctr_w:    {font: sans, size: 14, weight: 700, color: white, align: center, v_align: middle, wrap: true}
+      ctr_m:    {font: sans, size: 14, weight: 400, color: ink,   align: center, v_align: middle, wrap: true}
+      mono_s:   {font: mono, size: 12, weight: 400, color: brand, align: left,   v_align: top, wrap: true}
+      kpi:      {font: sans, size: 38, weight: 700, color: brand, align: center, v_align: middle}
+      kpi_l:    {font: sans, size: 12, weight: 400, color: muted, align: center, v_align: top}
+      lbl_w:    {font: sans, size: 14, weight: 700, color: white, align: center, v_align: middle}
+      lbl_b:    {font: sans, size: 14, weight: 700, color: brand, align: center, v_align: middle}
+      tag_w:    {font: mono, size: 12, weight: 700, color: white, align: center, v_align: middle}
+      tag_b:    {font: mono, size: 12, weight: 700, color: brand, align: left,   v_align: middle}
+      tag_bc:   {font: mono, size: 12, weight: 700, color: brand, align: center, v_align: middle}
+      tag_r:    {font: mono, size: 12, weight: 700, color: red,   align: left,   v_align: middle}
+      anchor:   {font: sans, size: 18, weight: 700, color: ink,   align: left,   v_align: top, wrap: true}
+      anchor_m: {font: sans, size: 18, weight: 400, color: muted, align: left,   v_align: top, wrap: true}
+      anchor_w:  {font: sans, size: 18, weight: 700, color: white, align: left, v_align: top, wrap: true}
+      anchor_wm: {font: sans, size: 18, weight: 400, color: white, align: left, v_align: top, wrap: true}
+      eq_brand: {font: mono, size: 28, weight: 700, color: brand, align: left, v_align: middle}
+
+    stroke_styles:
+      thin:  {color: stroke, width: 0.75}
+      dash:  {color: stroke, width: 1.0, dash: [4, 3]}
+      brand: {color: brand,  width: 1.5}
+      red:   {color: red,    width: 1.5}
+
+slides:
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 1  CAPA
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 1
+    id: cover
+    title: "Arquitetura de Fluxo de Dados GenAI — Cobertura de Erros PALS"
+    notes: "Deixe claro o que está em jogo logo de início: erro em LLM é uma propriedade estatística, não um problema de configuração que se resolve. A arquitetura escolhe se vai expor o erro ou delimitá-lo. Nenhuma arquitetura o elimina."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+            - {type: rect, id: btm_band, decorative: true, box: [0, 860, 1920, 220], fill: panel}
+
+        - id: content
+          z: 1
+          objects:
+            - {type: text, id: cover_h,
+               text: "Arquitetura de Fluxo de Dados GenAI",
+               box: [80, 200, 1600, 100], style: cover_h}
+            - {type: text, id: cover_sub,
+               text: "A forma como o sistema verifica respostas decide quais erros chegam ao usuário, quais\nficam contidos e quais são bloqueados — nos canais Free Form, Schema + Instance e Validador.",
+               box: [80, 320, 1400, 80], style: cover_s}
+            - {type: rect, id: rule, decorative: true, box: [80, 300, 80, 4], fill: brand}
+
+        - id: law_block
+          z: 2
+          objects:
+            - {type: rect, id: law_bg, decorative: true,
+               box: [80, 430, 1760, 110], fill: brand_s, radius: 10}
+            - {type: rect, id: law_bar, decorative: true,
+               box: [80, 430, 6, 110], fill: brand}
+            - {type: text, id: law_t,
+               text: "Lei de PALS (v1.5.4) — Pedro Anisio de Luna e Silva, 2026  ·  Zenodo 10.5281/zenodo.19401530",
+               box: [110, 442, 1500, 28], style: h3}
+            - type: text
+              id: law_eq
+              box: [110, 476, 1500, 44]
+              style: body
+              spans:
+                - {text: "E[ε(M(x), x)] ≥ δ > 0", weight: 700, color: brand}
+                - {text: "   para todo modelo M e toda entrada realista — o erro nunca chega a zero", weight: 400, color: ink}
+
+        - id: channels_preview
+          z: 3
+          objects:
+            - {type: rect, id: ch1, decorative: true,
+               box: [80, 580, 540, 80], fill: red_s, radius: 8}
+            - {type: rect, id: ch1b, decorative: true,
+               box: [80, 580, 5, 80], fill: red}
+            - {type: text, id: ch1t,
+               text: "Free Form  —  todas as 9 classes de erro chegam\nao usuário, sem nenhuma detecção automática",
+               box: [100, 580, 510, 80], style: bodyc}
+
+            - {type: rect, id: ch2, decorative: true,
+               box: [700, 580, 540, 80], fill: amber_s, radius: 8}
+            - {type: rect, id: ch2b, decorative: true,
+               box: [700, 580, 5, 80], fill: amber}
+            - {type: text, id: ch2t,
+               text: "Estruturado (Schema + Instance)  —  os erros\nficam contidos na camada de significado",
+               box: [720, 580, 510, 80], style: bodyc}
+
+            - {type: rect, id: ch3, decorative: true,
+               box: [1320, 580, 540, 80], fill: green_s, radius: 8}
+            - {type: rect, id: ch3b, decorative: true,
+               box: [1320, 580, 5, 80], fill: green}
+            - {type: text, id: ch3t,
+               text: "Validador  —  a única barreira automática do\nsistema, mas não garante que esteja correto",
+               box: [1340, 580, 510, 80], style: bodyc}
+
+        - id: footer
+          z: 4
+          objects:
+            - {type: text, id: fn,
+               text: "As nove classes de erro: ERR_HALLUCINATION · ERR_OMISSION · ERR_SCHEMA · ERR_TRUNCATION · ERR_SYCOPHANCY · ERR_INSTRUCTION · ERR_CALIBRATION · ERR_REASONING · ERR_SEMANTIC",
+               box: [80, 918, 1760, 40], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 2  LEI DE PALS — ERRO IRREDUTÍVEL
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 2
+    id: pals_grounding
+    title: "O Erro de LLM Não Pode Ser Eliminado — Por Isso a Verificação É Obrigatória"
+    notes: "A forma matemática é empiricamente sólida e honesta sobre seus limites. Os corolários é que a tornam aplicável à arquitetura: o Corolário 4 nomeia a classe de defeito, o Corolário 5 nomeia a armadilha."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "O Erro de LLM Não Pode Ser Eliminado — Por Isso a Verificação É Obrigatória",
+               box: [80, 56, 1600, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: brand}
+
+        - id: operative
+          z: 2
+          objects:
+            - {type: rect, id: op_bg, decorative: true,
+               box: [80, 136, 1760, 130], fill: brand_s, radius: 10}
+            - {type: rect, id: op_bar, decorative: true,
+               box: [80, 136, 6, 130], fill: brand}
+            - {type: text, id: op_h,
+               text: "Forma matemática",
+               box: [110, 150, 600, 32], style: h3}
+            - {type: text, id: op_eq,
+               text: "E[ε(M(x), x)] ≥ δ > 0",
+               box: [110, 186, 800, 56], style: eq_brand}
+            - {type: text, id: op_def,
+               text: "Vale para qualquer modelo M e qualquer entrada realista. ε é o predicado de erro; δ é o piso mínimo desse erro — sempre maior que zero. É uma propriedade estatística: não diz onde o erro vai aparecer, só garante que ele existe e não some.",
+               box: [700, 152, 1080, 110], style: body}
+
+        - id: corollaries
+          z: 3
+          objects:
+            - {type: text, id: cor_h,
+               text: "Corolários com consequências para a arquitetura",
+               box: [80, 294, 900, 36], style: h2}
+
+            # Corollary 4
+            - {type: rect, id: c4_bg, decorative: true,
+               box: [80, 342, 840, 200], fill: panel, radius: 10}
+            - {type: rect, id: c4_bar, decorative: true,
+               box: [80, 342, 6, 200], fill: brand}
+            - {type: rect, id: c4_pill, decorative: true,
+               box: [104, 356, 150, 28], fill: brand, radius: 14}
+            - {type: text, id: c4_pillt,
+               text: "Corolário 4", box: [104, 356, 150, 28], style: lbl_w}
+            - {type: text, id: c4_ht,
+               text: "Aceitar a saída sem verificar = defeito de arquitetura",
+               box: [278, 356, 620, 28], style: h3}
+            - {type: text, id: c4_b,
+               text: "Qualquer sistema que repassa a resposta de uma IA generativa adiante sem nenhum ponto de verificação declarado está, na prática, incorporando os erros do modelo de forma silenciosa. Não verificar não é uma escolha neutra de design — é uma classe específica de defeito de arquitetura. Esse corolário é a consequência mais direta da fórmula acima.",
+               box: [104, 398, 790, 130], style: body}
+
+            # Corollary 5
+            - {type: rect, id: c5_bg, decorative: true,
+               box: [1000, 342, 840, 200], fill: panel, radius: 10}
+            - {type: rect, id: c5_bar, decorative: true,
+               box: [1000, 342, 6, 200], fill: amber}
+            - {type: rect, id: c5_pill, decorative: true,
+               box: [1024, 356, 150, 28], fill: amber, radius: 14}
+            - {type: text, id: c5_pillt,
+               text: "Corolário 5", box: [1024, 356, 150, 28], style: lbl_w}
+            - {type: text, id: c5_ht,
+               text: "Modelos mais avançados deslocam o problema da verificação",
+               box: [1198, 356, 620, 28], style: h3}
+            - {type: text, id: c5_b,
+               text: "Trocar por um modelo mais avançado sem melhorar o verificador é uma regressão de arquitetura. Modelos melhores produzem erros mais convincentes — justamente nas classes mais difíceis de detectar: ERR_SEMANTIC, ERR_SYCOPHANCY, ERR_CALIBRATION. A lacuna de verificação só aumenta se o verificador não evoluir junto.",
+               box: [1024, 398, 790, 130], style: body}
+
+        - id: close
+          z: 4
+          objects:
+            - {type: rect, id: close_bg, decorative: true,
+               box: [80, 590, 1760, 140], fill: panel, radius: 12}
+            - {type: text, id: close_h,
+               text: "Consequência prática para o design",
+               box: [110, 614, 600, 28], style: h3}
+            - {type: text, id: close_t,
+               text: "Se o erro esperado nunca chega a zero, aceitar a saída em silêncio deixa de ser um comportamento neutro. Vira uma escolha de design — a escolha de empurrar adiante um erro conhecido sem nenhuma checagem.",
+               box: [110, 650, 1600, 44], style: body}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 3  TAXONOMIA DE ERRO
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 3
+    id: error_taxonomy
+    title: "As Nove Classes de Erro Pedem Estratégias de Detecção Diferentes"
+    notes: "Este slide define as nove classes de erro sobre as quais o resto do deck constrói o argumento. O ponto não é completude por completude; é que cada classe falha de um jeito diferente e, por isso, exige uma estratégia de verificação diferente."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill, decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080], fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "As Nove Classes de Erro Pedem Estratégias de Detecção Diferentes",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: brand}
+            - {type: text, id: sub,
+               text: "Uma só taxonomia, nove modos de falha distintos. Nenhum verificador único cobre todos da mesma forma.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: chips
+          z: 2
+          objects:
+            - type: chip_row
+              id: err_chips
+              origin: [80, 208]
+              gap: 20
+              height: 36
+              items:
+                - {text: "ERR_HALLUCINATION", width: 176}
+                - {text: "ERR_OMISSION",      width: 176}
+                - {text: "ERR_SCHEMA",        width: 176}
+                - {text: "ERR_TRUNCATION",    width: 176}
+                - {text: "ERR_SYCOPHANCY",    width: 176}
+                - {text: "ERR_INSTRUCTION",   width: 176}
+                - {text: "ERR_CALIBRATION",   width: 176}
+                - {text: "ERR_REASONING",     width: 176}
+                - {text: "ERR_SEMANTIC",      width: 176}
+
+        - id: table
+          z: 3
+          objects:
+            - {type: rect, id: r1, decorative: true, box: [80, 278, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r1b, decorative: true, box: [80, 278, 4, 64], fill: brand}
+            - {type: text, id: r1l, text: "ERR_HALLUCINATION", box: [96, 286, 220, 20], style: sm_b}
+            - {type: text, id: r1d, text: "Afirmações fabricadas, apresentadas com convicção como se fossem fatos.", box: [320, 286, 560, 36], style: body}
+
+            - {type: rect, id: r2, decorative: true, box: [80, 356, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r2b, decorative: true, box: [80, 356, 4, 64], fill: brand}
+            - {type: text, id: r2l, text: "ERR_OMISSION", box: [96, 364, 220, 20], style: sm_b}
+            - {type: text, id: r2d, text: "Informação obrigatória que simplesmente não aparece na resposta.", box: [320, 364, 560, 36], style: body}
+
+            - {type: rect, id: r3, decorative: true, box: [80, 434, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r3b, decorative: true, box: [80, 434, 4, 64], fill: brand}
+            - {type: text, id: r3l, text: "ERR_SCHEMA", box: [96, 442, 220, 20], style: sm_b}
+            - {type: text, id: r3d, text: "A resposta não respeita o formato exigido.", box: [320, 442, 560, 36], style: body}
+
+            - {type: rect, id: r4, decorative: true, box: [80, 512, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r4b, decorative: true, box: [80, 512, 4, 64], fill: brand}
+            - {type: text, id: r4l, text: "ERR_TRUNCATION", box: [96, 520, 220, 20], style: sm_b}
+            - {type: text, id: r4d, text: "A resposta é interrompida no meio, sem aviso.", box: [320, 520, 560, 36], style: body}
+
+            - {type: rect, id: r5, decorative: true, box: [80, 590, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r5b, decorative: true, box: [80, 590, 4, 64], fill: brand}
+            - {type: text, id: r5l, text: "ERR_SYCOPHANCY", box: [96, 598, 220, 20], style: sm_b}
+            - {type: text, id: r5d, text: "A resposta busca agradar em vez de dizer a verdade.", box: [320, 598, 560, 36], style: body}
+
+            - {type: rect, id: r6, decorative: true, box: [1000, 278, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r6b, decorative: true, box: [1000, 278, 4, 64], fill: brand}
+            - {type: text, id: r6l, text: "ERR_INSTRUCTION", box: [1016, 286, 220, 20], style: sm_b}
+            - {type: text, id: r6d, text: "Instruções claras dadas no prompt são ignoradas.", box: [1240, 286, 560, 36], style: body}
+
+            - {type: rect, id: r7, decorative: true, box: [1000, 356, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r7b, decorative: true, box: [1000, 356, 4, 64], fill: brand}
+            - {type: text, id: r7l, text: "ERR_CALIBRATION", box: [1016, 364, 220, 20], style: sm_b}
+            - {type: text, id: r7d, text: "O modelo expressa confiança que não condiz com sua real precisão.", box: [1240, 364, 560, 36], style: body}
+
+            - {type: rect, id: r8, decorative: true, box: [1000, 434, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r8b, decorative: true, box: [1000, 434, 4, 64], fill: brand}
+            - {type: text, id: r8l, text: "ERR_REASONING", box: [1016, 442, 220, 20], style: sm_b}
+            - {type: text, id: r8d, text: "Os fatos podem estar certos, mas a lógica que os conecta está errada.", box: [1240, 442, 560, 36], style: body}
+
+            - {type: rect, id: r9, decorative: true, box: [1000, 512, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r9b, decorative: true, box: [1000, 512, 4, 64], fill: brand}
+            - {type: text, id: r9l, text: "ERR_SEMANTIC", box: [1016, 520, 220, 20], style: sm_b}
+            - {type: text, id: r9d, text: "A forma da resposta está correta, mas o significado está errado.", box: [1240, 520, 560, 36], style: body}
+
+        - id: takeaway
+          z: 4
+          objects:
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 690, 1760, 110], fill: panel, radius: 10}
+            - {type: text, id: tk_h, text: "Consequência prática para o design", box: [110, 718, 500, 28], style: h3}
+            - {type: text, id: tk_t, text: "Cada classe de erro pede um tipo específico de verificação. Checagem de estrutura não pega problema de significado; checagem de significado não substitui a de estrutura.", box: [110, 754, 1600, 32], style: h2}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 4  CANAL FREE FORM
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 4
+    id: free_form
+    title: "Saída Free-Form Deixa Passar Todas as Nove Classes de Erro"
+    notes: "O ponto crucial é que nenhuma das nove classes é detectável automaticamente aqui. Revisão humana não é uma alternativa de fallback — é a única camada disponível. E o custo de detecção é o mesmo para todas as classes."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: red}
+            - {type: rect, id: channel_band, decorative: true,
+               box: [0, 0, 1920, 8], fill: red}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Saída Free-Form Deixa Passar Todas as Nove Classes de Erro",
+               box: [80, 56, 1600, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: red}
+
+        - id: grid
+          z: 2
+          objects:
+            - {type: text, id: intro,
+               text: "Sem nenhuma verificação automática, as nove classes caem todas no colo da revisão humana. O custo de detecção é o mesmo para qualquer uma delas.",
+               box: [80, 138, 1500, 44], style: h2}
+
+            # Row 1: HALLUCINATION
+            - {type: rect, id: ff_r1, decorative: true, box: [80, 216, 840, 152], fill: panel, radius: 10}
+            - {type: rect, id: ff_r1b, decorative: true, box: [80, 216, 4, 152], fill: red}
+            - {type: rect, id: ff_r1_pill, decorative: true, box: [104, 232, 192, 28], fill: red, radius: 6}
+            - {type: text, id: ff_r1_pt, text: "ERR_HALLUCINATION", box: [104, 232, 192, 28], style: tag_w}
+            - {type: text, id: ff_r1_t,
+               text: "Afirmações falsas. Sem fontes externas para conferir, só uma pessoa lendo a resposta consegue identificar.",
+               box: [104, 268, 800, 88], style: body}
+
+            # Row 2: OMISSION
+            - {type: rect, id: ff_r2, decorative: true, box: [1000, 216, 840, 152], fill: panel, radius: 10}
+            - {type: rect, id: ff_r2b, decorative: true, box: [1000, 216, 4, 152], fill: red}
+            - {type: rect, id: ff_r2_pill, decorative: true, box: [1024, 232, 162, 28], fill: red, radius: 6}
+            - {type: text, id: ff_r2_pt, text: "ERR_OMISSION", box: [1024, 232, 162, 28], style: tag_w}
+            - {type: text, id: ff_r2_t,
+               text: "Falta conteúdo obrigatório. Como não há lista do que é exigido nem schema para checar, nada é detectado automaticamente.",
+               box: [1024, 268, 800, 88], style: body}
+
+            # Row 3: SCHEMA
+            - {type: rect, id: ff_r3, decorative: true, box: [80, 392, 840, 152], fill: panel, radius: 10}
+            - {type: rect, id: ff_r3b, decorative: true, box: [80, 392, 4, 152], fill: red}
+            - {type: rect, id: ff_r3_pill, decorative: true, box: [104, 408, 134, 28], fill: red, radius: 6}
+            - {type: text, id: ff_r3_pt, text: "ERR_SCHEMA", box: [104, 408, 134, 28], style: tag_w}
+            - {type: text, id: ff_r3_t,
+               text: "A resposta não segue nenhuma estrutura formal. Sem schema, não há validação possível. Conferir estrutura na mão é caro e sujeito a erros.",
+               box: [104, 444, 800, 88], style: body}
+
+            # Row 4: TRUNCATION
+            - {type: rect, id: ff_r4, decorative: true, box: [1000, 392, 840, 152], fill: panel, radius: 10}
+            - {type: rect, id: ff_r4b, decorative: true, box: [1000, 392, 4, 152], fill: red}
+            - {type: rect, id: ff_r4_pill, decorative: true, box: [1024, 408, 182, 28], fill: red, radius: 6}
+            - {type: text, id: ff_r4_pt, text: "ERR_TRUNCATION", box: [1024, 408, 182, 28], style: tag_w}
+            - {type: text, id: ff_r4_t,
+               text: "A resposta é cortada no meio, sem aviso. Sem tamanho mínimo nem contagem de campos definidos, o corte só aparece quando alguém lê.",
+               box: [1024, 444, 800, 88], style: body}
+
+            # Bottom intro: semantic layer
+            - {type: rect, id: left_intro, decorative: true,
+               box: [80, 588, 760, 324], fill: none, stroke: stroke, stroke_width: 0.5, radius: 10}
+            - {type: text, id: left_h, text: "Estrutura", box: [104, 604, 720, 28], style: h2}
+
+            - {type: rect, id: left_l1, decorative: true,
+               box: [104, 664, 710, 72], fill: panel, radius: 8}
+            - {type: rect, id: left_l1r, decorative: true,
+               box: [104, 664, 5, 72], fill: dark}
+            - {type: text, id: left_l1a,
+               text: "ERR_SCHEMA", box: [120, 668, 560, 24], style: h2}
+            - {type: text, id: left_l1b,
+               text: "A própria estrutura está errada", box: [120, 696, 560, 22], style: body}
+
+            - {type: rect, id: left_l2, decorative: true,
+               box: [104, 752, 710, 72], fill: panel, radius: 8}
+            - {type: rect, id: left_l2r, decorative: true,
+               box: [104, 752, 5, 72], fill: dark}
+            - {type: text, id: left_l2a,
+               text: "ERR_TRUNCATION", box: [120, 756, 560, 24], style: h2}
+            - {type: text, id: left_l2b,
+               text: "A estrutura está incompleta", box: [120, 784, 560, 22], style: body}
+
+            - {type: rect, id: right_intro, decorative: true,
+               box: [1000, 588, 760, 324], fill: none, stroke: stroke, stroke_width: 0.5, radius: 10}
+            - {type: text, id: right_h, text: "Semântica", box: [1024, 604, 720, 28], style: h2}
+
+            - {type: rect, id: right_l3, decorative: true,
+               box: [1024, 664, 710, 72], fill: panel, radius: 8}
+            - {type: rect, id: right_l3r, decorative: true,
+               box: [1024, 664, 5, 72], fill: dark}
+            - {type: text, id: right_l3a,
+               text: "ERR_SEMANTIC", box: [1040, 668, 560, 24], style: h2}
+            - {type: text, id: right_l3b,
+               text: "O significado está fora do alcance do schema", box: [1040, 696, 560, 22], style: body}
+
+            - {type: rect, id: right_l4, decorative: true,
+               box: [1024, 752, 710, 72], fill: panel, radius: 8}
+            - {type: rect, id: right_l4r, decorative: true,
+               box: [1024, 752, 5, 72], fill: dark}
+            - {type: text, id: right_l4a,
+               text: "ERR_SYCOPHANCY", box: [1040, 756, 560, 24], style: h2}
+            - {type: text, id: right_l4b,
+               text: "A intenção está fora do alcance do schema", box: [1040, 784, 560, 22], style: body}
+
+            - {type: text, id: right_takeaway,
+               text: "Verdade, lógica, significado, intenção.",
+               box: [1000, 940, 660, 32], style: h2}
+            - {type: text, id: right_takeaway_s,
+               text: "Uma resposta válida ainda pode estar errada.",
+               box: [1000, 976, 660, 24], style: bodyc}
+
+        - id: verdict
+          z: 3
+          objects:
+            - {type: rect, id: v_bg, decorative: true,
+               box: [80, 980, 1760, 50], fill: panel, radius: 8}
+            - {type: text, id: v_t,
+               text: "Em resumo: usar schema reduz os erros possíveis à camada de significado. Garante que a forma está certa — não que o conteúdo é verdadeiro.",
+               box: [120, 995, 1680, 32], style: h2}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 5  CANAL SCHEMA + INSTANCE
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 5
+    id: schema_instance
+    title: "Schema + Instance Elimina os Erros Estruturais, mas Deixa os de Significado Expostos"
+    notes: "Schema é o segundo nível. A máquina valida a estrutura instantaneamente. Mas estrutura correta não é a mesma coisa que verdade. A camada de significado fica — sempre — em aberto."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: amber}
+            - {type: rect, id: channel_band, decorative: true,
+               box: [0, 0, 1920, 8], fill: amber}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Schema + Instance Elimina os Erros Estruturais, mas Deixa os de Significado Expostos",
+               box: [80, 56, 1600, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: amber}
+            - {type: text, id: sub,
+               text: "A máquina garante a forma; a verdade continua dependendo de quem é capaz de avaliá-la — pessoa, especialista ou fonte externa.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: table
+          z: 2
+          objects:
+            # LEFT: covered
+            - {type: rect, id: cov_bg, decorative: true,
+               box: [80, 210, 760, 740], fill: none, stroke: stroke, stroke_width: 0.5, radius: 10}
+            - {type: rect, id: cov_top, decorative: true,
+               box: [80, 210, 760, 56], fill: dark, radius: 8}
+            - {type: text, id: cov_h,
+               text: "Eliminado pela validação de schema",
+               box: [104, 210, 720, 56], style: ctr_w}
+
+            - {type: rect, id: cv_r1, decorative: true, box: [104, 294, 710, 130], fill: panel, radius: 8}
+            - {type: rect, id: cv_r1b, decorative: true, box: [104, 294, 5, 130], fill: green}
+            - {type: rect, id: cv_r1_pill, decorative: true, box: [120, 310, 134, 26], fill: green, radius: 6}
+            - {type: text, id: cv_r1_pt, text: "ERR_SCHEMA", box: [120, 310, 134, 26], style: tag_w}
+            - {type: text, id: cv_r1_t,
+               text: "Toda resposta que não passa pela validação de schema é rejeitada. Nenhuma saída com estrutura inválida consegue passar.",
+               box: [120, 346, 680, 66], style: sm_ink}
+
+            - {type: rect, id: cv_r2, decorative: true, box: [104, 444, 710, 130], fill: panel, radius: 8}
+            - {type: rect, id: cv_r2b, decorative: true, box: [104, 444, 5, 130], fill: amber}
+            - {type: rect, id: cv_r2_pill, decorative: true, box: [120, 460, 182, 26], fill: amber, radius: 6}
+            - {type: text, id: cv_r2_pt, text: "ERR_TRUNCATION", box: [120, 460, 182, 26], style: tag_w}
+            - {type: text, id: cv_r2_t,
+               text: "Os campos obrigatórios definidos no schema são checados. Se a resposta foi cortada e algum desses campos sumiu, a falha é detectada.",
+               box: [120, 496, 680, 66], style: sm_ink}
+
+            - {type: rect, id: cv_r3, decorative: true, box: [104, 594, 710, 130], fill: panel, radius: 8}
+            - {type: rect, id: cv_r3b, decorative: true, box: [104, 594, 5, 130], fill: amber}
+            - {type: rect, id: cv_r3_pill, decorative: true, box: [120, 610, 162, 26], fill: amber, radius: 6}
+            - {type: text, id: cv_r3_pt, text: "ERR_HALLUCINATION (parcial)", box: [120, 610, 162, 26], style: tag_w}
+            - {type: text, id: cv_r3_t,
+               text: "Listas de valores permitidos (enum) e faixas numéricas pegam alucinações óbvias. Já a detecção no nível do significado continua fora de alcance.",
+               box: [120, 646, 680, 66], style: sm_ink}
+
+            # RIGHT: exposed
+            - {type: rect, id: exp_bg, decorative: true,
+               box: [900, 210, 940, 740], fill: none, stroke: stroke, stroke_width: 0.5, radius: 10}
+            - {type: rect, id: exp_top, decorative: true,
+               box: [900, 210, 940, 56], fill: dark, radius: 8}
+            - {type: text, id: exp_h,
+               text: "Não coberto — o que sobra na camada de significado",
+               box: [924, 210, 900, 56], style: ctr_w}
+
+            - {type: text, id: exp_intro,
+               text: "Seis classes precisam de compreensão de significado. Schema valida forma, não sentido.",
+               box: [924, 294, 890, 66], style: body}
+
+            - {type: rect, id: exp_r1, decorative: true, box: [924, 378, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: exp_r1b, decorative: true, box: [924, 378, 5, 130], fill: red}
+            - {type: rect, id: exp_r1_pill, decorative: true, box: [940, 394, 162, 26], fill: dark, radius: 6}
+            - {type: text, id: exp_r1_pt, text: "ERR_OMISSION", box: [940, 394, 162, 26], style: tag_w}
+            - {type: text, id: exp_r1_t,
+               text: "Um campo pode estar presente com a forma correta, mas vazio de significado ou incompleto no conteúdo. A relevância do que está ali continua em aberto.",
+               box: [940, 430, 860, 66], style: sm_ink}
+
+            - {type: rect, id: exp_r2, decorative: true, box: [924, 528, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: exp_r2b, decorative: true, box: [924, 528, 5, 130], fill: red}
+            - {type: rect, id: exp_r2_pill, decorative: true, box: [940, 544, 160, 26], fill: dark, radius: 6}
+            - {type: text, id: exp_r2_pt, text: "ERR_SYCOPHANCY", box: [940, 544, 160, 26], style: tag_w}
+            - {type: text, id: exp_r2_t,
+               text: "Uma resposta estruturalmente válida pode ter sido fabricada só para agradar. A busca por aprovação fica invisível para o schema.",
+               box: [940, 580, 860, 66], style: sm_ink}
+
+            - {type: rect, id: exp_r3, decorative: true, box: [924, 678, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: exp_r3b, decorative: true, box: [924, 678, 5, 130], fill: red}
+            - {type: rect, id: exp_r3_pill, decorative: true, box: [940, 694, 148, 26], fill: dark, radius: 6}
+            - {type: text, id: exp_r3_pt, text: "ERR_SEMANTIC", box: [940, 694, 148, 26], style: tag_w}
+            - {type: text, id: exp_r3_t,
+               text: "Significado fica fora do alcance do schema. Uma resposta com estrutura impecável pode estar apontando para a entidade errada no mundo real.",
+               box: [940, 730, 860, 66], style: sm_ink}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 6  VALIDADOR — O LIMITE DE VERIFICAÇÃO
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 6
+    id: validator
+    title: "Validadores Ampliam a Cobertura, mas Não Garantem que a Resposta Esteja Correta"
+    notes: "O validador é o único componente desta arquitetura capaz de rejeitar respostas de IA generativa de forma automática. Vale enfatizar 'automática' — revisão humana também rejeita, mas o validador é a única barreira automática. O resíduo (ERR_SEMANTIC, ERR_SYCOPHANCY, ERR_CALIBRATION) não é uma limitação de validador — é um limite teórico."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: green}
+            - {type: rect, id: channel_band, decorative: true,
+               box: [0, 0, 1920, 8], fill: green}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Validadores Ampliam a Cobertura, mas Não Garantem que a Resposta Esteja Correta",
+               box: [80, 56, 1420, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: green}
+            - {type: rect, id: status_pill, decorative: true,
+               box: [1540, 58, 300, 44], fill: bg, radius: 22}
+            - {type: rect, id: status_pill_s, decorative: true,
+               box: [1540, 58, 300, 44], stroke: dark, stroke_width: 1, fill: none, radius: 22}
+            - {type: text, id: status_t,
+               text: "Única barreira automática",
+               box: [1540, 58, 300, 44], style: lbl_b}
+
+        - id: definition
+          z: 2
+          objects:
+            - {type: rect, id: def_rule, decorative: true,
+               box: [80, 136, 1760, 2], fill: stroke}
+            - {type: text, id: def_t,
+               text: "O Validador é o único componente desta arquitetura capaz de rejeitar respostas de IA generativa automaticamente. Codificando regras de negócio, restrições entre campos e faixas de valores, ele cobre classes de erro que o schema sozinho não alcança. O resultado é uma saída auditável — não uma saída comprovadamente correta.",
+               box: [80, 154, 1680, 60], style: body}
+
+        - id: coverage_table
+          z: 3
+          objects:
+            # LEFT: what validator covers
+            - {type: rect, id: cov_bg, decorative: true,
+               box: [80, 258, 760, 710], fill: none, stroke: stroke, stroke_width: 0.5, radius: 12}
+            - {type: rect, id: cov_top, decorative: true,
+               box: [80, 258, 760, 64], fill: dark, radius: 8}
+            - {type: text, id: cov_h,
+               text: "O que o Validador passa a cobrir",
+               box: [104, 258, 720, 64], style: ctr_w}
+
+            - {type: rect, id: cv1, decorative: true, box: [104, 342, 710, 100], fill: panel, radius: 8}
+            - {type: rect, id: cv1b, decorative: true, box: [104, 342, 5, 100], fill: green}
+            - {type: rect, id: cv1_pill, decorative: true, box: [120, 356, 162, 26], fill: green, radius: 6}
+            - {type: text, id: cv1_pt,
+               text: "ERR_INSTRUCTION", box: [120, 356, 162, 26], style: tag_w}
+            - {type: text, id: cv1_t,
+               text: "Totalmente coberto quando as restrições do prompt são transformadas em regras do validador. Respostas que descumprem essas regras são rejeitadas automaticamente.",
+               box: [120, 390, 680, 44], style: sm_ink}
+
+            - {type: rect, id: cv2, decorative: true, box: [104, 452, 710, 100], fill: panel, radius: 8}
+            - {type: rect, id: cv2b, decorative: true, box: [104, 452, 5, 100], fill: green}
+            - {type: rect, id: cv2_pill, decorative: true, box: [120, 466, 186, 26], fill: green, radius: 6}
+            - {type: text, id: cv2_pt,
+               text: "ERR_HALLUCINATION (parcial)", box: [120, 466, 186, 26], style: tag_w}
+            - {type: text, id: cv2_t,
+               text: "Listas de valores permitidos e faixas numéricas pegam alucinações óbvias. O validador rejeita respostas com campos fora dos valores aceitos. Mas o núcleo do problema — o significado — segue fora de alcance.",
+               box: [120, 500, 680, 44], style: sm_ink}
+
+            - {type: rect, id: cv3, decorative: true, box: [104, 562, 710, 100], fill: panel, radius: 8}
+            - {type: rect, id: cv3b, decorative: true, box: [104, 562, 5, 100], fill: green}
+            - {type: rect, id: cv3_pill, decorative: true, box: [120, 576, 162, 26], fill: green, radius: 6}
+            - {type: text, id: cv3_pt,
+               text: "ERR_REASONING (parcial)", box: [120, 576, 162, 26], style: tag_w}
+            - {type: text, id: cv3_t,
+               text: "Regras de consistência entre campos pegam contradições óbvias: uma data inicial posterior à final, um total que não bate com a soma das partes.",
+               box: [120, 610, 680, 44], style: sm_ink}
+
+            - {type: rect, id: cv4, decorative: true, box: [104, 672, 710, 100], fill: panel, radius: 8}
+            - {type: rect, id: cv4b, decorative: true, box: [104, 672, 5, 100], fill: green}
+            - {type: rect, id: cv4_pill, decorative: true, box: [120, 686, 140, 26], fill: green, radius: 6}
+            - {type: text, id: cv4_pt,
+               text: "ERR_OMISSION", box: [120, 686, 140, 26], style: tag_w}
+            - {type: text, id: cv4_t,
+               text: "Regras de completude que vão além dos campos obrigatórios do schema. O validador exige uma completude de domínio que o schema sozinho não consegue expressar.",
+               box: [120, 720, 680, 44], style: sm_ink}
+
+            - {type: rect, id: cv5, decorative: true, box: [104, 782, 710, 100], fill: panel, radius: 8}
+            - {type: rect, id: cv5b, decorative: true, box: [104, 782, 5, 100], fill: green}
+            - {type: rect, id: cv5_pill, decorative: true, box: [120, 796, 124, 26], fill: green, radius: 6}
+            - {type: text, id: cv5_pt,
+               text: "ERR_SCHEMA", box: [120, 796, 124, 26], style: tag_w}
+            - {type: text, id: cv5_t,
+               text: "A estrutura é reconfirmada no momento da validação, mesmo se o schema não for aplicado mais à frente no fluxo. A palavra final sobre a forma é do validador.",
+               box: [120, 830, 680, 44], style: sm_ink}
+
+            # RIGHT: permanent residual
+            - {type: rect, id: res_bg, decorative: true,
+               box: [900, 258, 940, 710], fill: none, stroke: stroke, stroke_width: 0.5, radius: 12}
+            - {type: rect, id: res_top, decorative: true,
+               box: [900, 258, 940, 64], fill: dark, radius: 8}
+            - {type: text, id: res_h,
+               text: "Resíduo permanente — fora do alcance de qualquer validador",
+               box: [924, 258, 900, 64], style: ctr_w}
+
+            - {type: text, id: res_intro,
+               text: "Estas três classes resistem à automação completa, por mais sofisticado que seja o validador. O predicado de erro ε não é computável no caso geral para nenhuma delas. Não é uma lacuna de engenharia — é um limite teórico.",
+               box: [924, 342, 890, 90], style: body}
+
+            - {type: rect, id: rr1, decorative: true, box: [924, 448, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: rr1b, decorative: true, box: [924, 448, 5, 130], fill: red}
+            - {type: rect, id: rr1_pill, decorative: true, box: [940, 462, 148, 26], fill: dark, radius: 6}
+            - {type: text, id: rr1_pt,
+               text: "ERR_SEMANTIC", box: [940, 462, 148, 26], style: tag_w}
+            - {type: text, id: rr1_t,
+               text: "O validador consegue confirmar que um campo contém um texto que segue um padrão. Não consegue confirmar que esse texto se refere à coisa certa no mundo real. Significado não é decidível só a partir da estrutura.",
+               box: [940, 496, 860, 70], style: sm_ink}
+
+            - {type: rect, id: rr2, decorative: true, box: [924, 590, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: rr2b, decorative: true, box: [924, 590, 5, 130], fill: red}
+            - {type: rect, id: rr2_pill, decorative: true, box: [940, 604, 160, 26], fill: dark, radius: 6}
+            - {type: text, id: rr2_pt,
+               text: "ERR_SYCOPHANCY", box: [940, 604, 160, 26], style: tag_w}
+            - {type: text, id: rr2_t,
+               text: "O validador não tem acesso ao objetivo que guiou a geração da resposta. Não consegue distinguir uma resposta que busca agradar de uma que busca a verdade. A detecção exige testes adversariais ou revisão por especialista.",
+               box: [940, 638, 860, 70], style: sm_ink}
+
+            - {type: rect, id: rr3, decorative: true, box: [924, 732, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: rr3b, decorative: true, box: [924, 732, 5, 130], fill: red}
+            - {type: rect, id: rr3_pill, decorative: true, box: [940, 746, 172, 26], fill: dark, radius: 6}
+            - {type: text, id: rr3_pt,
+               text: "ERR_CALIBRATION", box: [940, 746, 172, 26], style: tag_w}
+            - {type: text, id: rr3_t,
+               text: "A confiança é uma propriedade da distribuição interna do modelo. O validador só vê o texto final, não a distribuição que o gerou. Confiança mal calibrada fica invisível na fronteira de saída.",
+               box: [940, 780, 860, 70], style: sm_ink}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 7  EXPOSIÇÃO RESIDUAL
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 7
+    id: residual
+    title: "O Erro Residual É Permanente — Não Uma Falha Temporária de Engenharia"
+    notes: "O resíduo não é uma lacuna da arquitetura atual — é uma característica permanente de qualquer implantação de modelos probabilísticos. A postura honesta é nomeá-lo, descrever o que pode reduzi-lo (mas não eliminá-lo) e reafirmar o Corolário 5: modelos mais avançados alargam o resíduo se o verificador não evoluir junto."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: purple}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "O Erro Residual É Permanente — Não Uma Falha Temporária de Engenharia",
+               box: [80, 56, 1600, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: purple}
+
+        - id: residual_classes
+          z: 2
+          objects:
+            - {type: text, id: res_h,
+               text: "Três classes que schema e validador, sozinhos, não conseguem cobrir",
+               box: [80, 138, 1400, 36], style: h2}
+
+            # ERR_SYCOPHANCY
+            - {type: rect, id: rs1, decorative: true,
+               box: [80, 196, 546, 260], fill: panel, radius: 12}
+            - {type: rect, id: rs1b, decorative: true, box: [80, 196, 6, 260], fill: purple}
+            - {type: rect, id: rs1_pill, decorative: true,
+               box: [104, 212, 160, 28], fill: purple, radius: 6}
+            - {type: text, id: rs1_pt,
+               text: "ERR_SYCOPHANCY", box: [104, 212, 160, 28], style: tag_w}
+            - {type: text, id: rs1_def,
+               text: "Resposta moldada pelo que o modelo acha que o usuário quer ouvir, em vez da verdade.",
+               box: [104, 250, 510, 44], style: body}
+            - {type: text, id: rs1_req,
+               text: "O que reduz (mas não elimina) isso:",
+               box: [104, 304, 510, 22], style: sm_b}
+            - {type: text, id: rs1_r,
+               text: "Testes de consistência adversariais (a mesma pergunta feita de várias formas diferentes); benchmarks de calibração comparando as respostas do modelo com dados verdadeiros em corpus de teste; red-teaming com prompts contrastivos para revelar comportamento de concordância.",
+               box: [104, 330, 510, 110], style: sm_ink}
+
+            # ERR_CALIBRATION
+            - {type: rect, id: rs2, decorative: true,
+               box: [686, 196, 546, 260], fill: panel, radius: 12}
+            - {type: rect, id: rs2b, decorative: true, box: [686, 196, 6, 260], fill: purple}
+            - {type: rect, id: rs2_pill, decorative: true,
+               box: [710, 212, 172, 28], fill: purple, radius: 6}
+            - {type: text, id: rs2_pt,
+               text: "ERR_CALIBRATION", box: [710, 212, 172, 28], style: tag_w}
+            - {type: text, id: rs2_def,
+               text: "A confiança que o modelo expressa não condiz com sua real precisão.",
+               box: [710, 250, 510, 44], style: body}
+            - {type: text, id: rs2_req,
+               text: "O que reduz (mas não elimina) isso:",
+               box: [710, 304, 510, 22], style: sm_b}
+            - {type: text, id: rs2_r,
+               text: "Experimentos de calibração de temperatura em conjuntos de teste; escalonamento de Platt ou regressão isotônica sobre os scores de confiança; revisão humana das respostas que o modelo marcou como alta confiança.",
+               box: [710, 330, 510, 110], style: sm_ink}
+
+            # Referential grounding failure
+            - {type: rect, id: rs3, decorative: true,
+               box: [1292, 196, 546, 260], fill: panel, radius: 12}
+            - {type: rect, id: rs3b, decorative: true, box: [1292, 196, 6, 260], fill: purple}
+            - {type: rect, id: rs3_pill, decorative: true,
+               box: [1316, 212, 148, 28], fill: purple, radius: 6}
+            - {type: text, id: rs3_pt,
+               text: "ERR_SEMANTIC", box: [1316, 212, 148, 28], style: tag_w}
+            - {type: text, id: rs3_def,
+               text: "Forma correta, significado errado. Falha de ancoragem referencial.",
+               box: [1316, 250, 510, 44], style: body}
+            - {type: text, id: rs3_req,
+               text: "O que reduz (mas não elimina) isso:",
+               box: [1316, 304, 510, 22], style: sm_b}
+            - {type: text, id: rs3_r,
+               text: "Consulta a fontes externas autoritativas; RAG com corpora verificados; revisão por especialista de domínio quando a referência é crítica. Nenhuma dessas opções é totalmente automatizada no caso geral.",
+               box: [1316, 330, 510, 110], style: sm_ink}
+
+        - id: corollaries_block
+          z: 3
+          objects:
+            - {type: rect, id: cor_bg, decorative: true,
+               box: [80, 490, 1760, 240], fill: none, stroke: stroke, stroke_width: 0.5, radius: 12}
+            - {type: text, id: cor_h,
+               text: "Implicações para a arquitetura (Lei de PALS, Corolários 4 e 5)",
+               box: [104, 508, 1400, 36], style: h2}
+
+            - {type: rect, id: c4, decorative: true,
+               box: [104, 558, 840, 150], fill: panel, radius: 8}
+            - {type: rect, id: c4b, decorative: true, box: [104, 558, 5, 150], fill: red}
+            - {type: rect, id: c4_pill, decorative: true,
+               box: [120, 572, 150, 26], fill: red, radius: 6}
+            - {type: text, id: c4_pt,
+               text: "Corolário 4", box: [120, 572, 150, 26], style: tag_w}
+            - {type: text, id: c4_t,
+               text: "Aceitar em silêncio, em qualquer canal, é um defeito de arquitetura. Qualquer sistema que repassa adiante respostas de IA generativa sem uma camada explícita de verificação para as classes residuais não está sendo neutro — está adotando o erro residual como se fosse correto.",
+               box: [120, 606, 806, 90], style: body}
+
+            - {type: rect, id: c5, decorative: true,
+               box: [1000, 558, 840, 150], fill: panel, radius: 8}
+            - {type: rect, id: c5b, decorative: true, box: [1000, 558, 5, 150], fill: amber}
+            - {type: rect, id: c5_pill, decorative: true,
+               box: [1016, 572, 150, 26], fill: amber, radius: 6}
+            - {type: text, id: c5_pt,
+               text: "Corolário 5", box: [1016, 572, 150, 26], style: tag_w}
+            - {type: text, id: c5_t,
+               text: "Subir para um modelo mais avançado sem evoluir o verificador é uma regressão de arquitetura. Modelos melhores produzem respostas mais plausíveis exatamente nas classes mais difíceis de detectar. O resíduo aumenta se o verificador não acompanhar.",
+               box: [1016, 606, 806, 90], style: body}
+
+        - id: note
+          z: 4
+          objects:
+            - {type: rect, id: note_bg, decorative: true,
+               box: [80, 764, 1760, 90], fill: none, stroke: stroke, stroke_width: 0.5, radius: 8}
+            - {type: rect, id: note_rule, decorative: true,
+               box: [80, 764, 1760, 4], fill: dark}
+            - {type: text, id: note_t,
+               text: "O resíduo não é uma lacuna a ser fechada. É uma característica permanente que precisa ser nomeada com honestidade, mitigada com sinceridade e roteada por revisão humana sempre que estar correto importar.",
+               box: [110, 778, 1660, 62], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 8  RESUMO ARQUITETÔNICO — MAPA DE COBERTURA
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 8
+    id: coverage_map
+    title: "A Cobertura Cresce a Cada Canal, mas Correção Nunca É Garantida"
+    notes: "Este é o slide de fechamento. A matriz condensa todo o argumento. Leia coluna por coluna: cada canal só adiciona cobertura, nunca remove. As células do resíduo permanecem vermelhas em todos os canais — esse é o ponto."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "A Cobertura Cresce a Cada Canal, mas Correção Nunca É Garantida",
+               box: [80, 56, 1600, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: brand}
+
+        - id: matrix
+          z: 2
+          objects:
+            # ── column headers ────────────────────────────────────────────
+            - {type: text, id: ch_class,
+               text: "Classe de erro", box: [80, 148, 380, 36], style: h3}
+
+            - {type: rect, id: ch_ff, decorative: true, box: [480, 140, 340, 44], fill: red, radius: 6}
+            - {type: text, id: ch_fft,
+               text: "Free Form", box: [480, 140, 340, 44], style: lbl_w}
+
+            - {type: rect, id: ch_sc, decorative: true, box: [840, 140, 340, 44], fill: amber, radius: 6}
+            - {type: text, id: ch_sct,
+               text: "Schema + Instance", box: [840, 140, 340, 44], style: lbl_w}
+
+            - {type: rect, id: ch_va, decorative: true, box: [1200, 140, 340, 44], fill: green, radius: 6}
+            - {type: text, id: ch_vat,
+               text: "Validador", box: [1200, 140, 340, 44], style: lbl_w}
+
+            - {type: text, id: ch_mech,
+               text: "Como detectar", box: [1560, 148, 280, 36], style: h3}
+
+            # ── divider ───────────────────────────────────────────────────
+            - {type: rect, id: divider, decorative: true, box: [80, 192, 1760, 2], fill: stroke}
+
+            # Legend
+            - {type: rect, id: leg_exposed, decorative: true,
+               box: [80, 196, 120, 28], fill: red_s, radius: 4}
+            - {type: text, id: leg_exp_t,
+               text: "Exposto", box: [80, 196, 120, 28], style: ctr_m}
+            - {type: rect, id: leg_reduced, decorative: true,
+               box: [212, 196, 120, 28], fill: amber_s, radius: 4}
+            - {type: text, id: leg_red_t,
+               text: "Reduzido", box: [212, 196, 120, 28], style: ctr_m}
+            - {type: rect, id: leg_covered, decorative: true,
+               box: [344, 196, 120, 28], fill: green_s, radius: 4}
+            - {type: text, id: leg_cov_t,
+               text: "Coberto", box: [344, 196, 120, 28], style: ctr_m}
+
+            # ── zebra row bands (odd rows) ────────────────────────────────
+            - {type: rect, id: zebra_1, decorative: true, box: [80, 228, 1760, 60], fill: panel, radius: 8}
+            - {type: rect, id: zebra_3, decorative: true, box: [80, 348, 1760, 60], fill: panel, radius: 8}
+            - {type: rect, id: zebra_5, decorative: true, box: [80, 468, 1760, 60], fill: panel, radius: 8}
+            - {type: rect, id: zebra_7, decorative: true, box: [80, 588, 1760, 60], fill: panel, radius: 8}
+            - {type: rect, id: zebra_9, decorative: true, box: [80, 708, 1760, 60], fill: panel, radius: 8}
+
+            # ── Row 1: ERR_HALLUCINATION ──────────────────────────────────
+            - {type: text, id: r1_lt,
+               text: "ERR_HALLUCINATION", box: [100, 232, 340, 52], style: body}
+            - {type: rect, id: r1_ff, decorative: true, box: [480, 232, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r1_fft, text: "Exposto", box: [480, 232, 340, 52], style: ctr_m}
+            - {type: rect, id: r1_sc, decorative: true, box: [840, 232, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r1_sct, text: "Exposto", box: [840, 232, 340, 52], style: ctr_m}
+            - {type: rect, id: r1_va, decorative: true, box: [1200, 232, 340, 52], fill: amber_s, radius: 4}
+            - {type: text, id: r1_vat, text: "Parcial (enum / faixa de valores)", box: [1200, 232, 340, 52], style: ctr_m}
+            - {type: text, id: r1_mech,
+               text: "Consulta a fonte externa; testes adversariais",
+               box: [1560, 232, 280, 52], style: sm}
+
+            # ── Row 2: ERR_OMISSION ────────────────────────────────────────
+            - {type: text, id: r2_lt,
+               text: "ERR_OMISSION", box: [100, 292, 340, 52], style: body}
+            - {type: rect, id: r2_ff, decorative: true, box: [480, 292, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r2_fft, text: "Exposto", box: [480, 292, 340, 52], style: ctr_m}
+            - {type: rect, id: r2_sc, decorative: true, box: [840, 292, 340, 52], fill: amber_s, radius: 4}
+            - {type: text, id: r2_sct, text: "Reduzido (campos obrigatórios)", box: [840, 292, 340, 52], style: ctr_m}
+            - {type: rect, id: r2_va, decorative: true, box: [1200, 292, 340, 52], fill: green_s, radius: 4}
+            - {type: text, id: r2_vat, text: "Coberto (regras de completude)", box: [1200, 292, 340, 52], style: ctr_m}
+            - {type: text, id: r2_mech,
+               text: "Campos obrigatórios declarados; regras de completude do domínio",
+               box: [1560, 292, 280, 52], style: sm}
+
+            # ── Row 3: ERR_SCHEMA ──────────────────────────────────────────
+            - {type: text, id: r3_lt,
+               text: "ERR_SCHEMA", box: [100, 352, 340, 52], style: body}
+            - {type: rect, id: r3_ff, decorative: true, box: [480, 352, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r3_fft, text: "Exposto", box: [480, 352, 340, 52], style: ctr_m}
+            - {type: rect, id: r3_sc, decorative: true, box: [840, 352, 340, 52], fill: green_s, radius: 4}
+            - {type: text, id: r3_sct, text: "Eliminado (por construção)", box: [840, 352, 340, 52], style: ctr_m}
+            - {type: rect, id: r3_va, decorative: true, box: [1200, 352, 340, 52], fill: green_s, radius: 4}
+            - {type: text, id: r3_vat, text: "Coberto (reconfirmado)", box: [1200, 352, 340, 52], style: ctr_m}
+            - {type: text, id: r3_mech,
+               text: "Validação de schema; checagem de tipos",
+               box: [1560, 352, 280, 52], style: sm}
+
+            # ── Row 4: ERR_TRUNCATION ─────────────────────────────────
+            - {type: text, id: r4_lt,
+               text: "ERR_TRUNCATION", box: [100, 412, 340, 52], style: body}
+            - {type: rect, id: r4_ff, decorative: true, box: [480, 412, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r4_fft, text: "Exposto", box: [480, 412, 340, 52], style: ctr_m}
+            - {type: rect, id: r4_sc, decorative: true, box: [840, 412, 340, 52], fill: amber_s, radius: 4}
+            - {type: text, id: r4_sct, text: "Reduzido (campos obrigatórios)", box: [840, 412, 340, 52], style: ctr_m}
+            - {type: rect, id: r4_va, decorative: true, box: [1200, 412, 340, 52], fill: green_s, radius: 4}
+            - {type: text, id: r4_vat, text: "Coberto (regras de tamanho / contagem)", box: [1200, 412, 340, 52], style: ctr_m}
+            - {type: text, id: r4_mech,
+               text: "Restrições de tamanho mínimo; asserções de contagem",
+               box: [1560, 412, 280, 52], style: sm}
+
+            # ── Row 5: ERR_SYCOPHANCY ─────────────────────────────────
+            - {type: text, id: r5_lt,
+               text: "ERR_SYCOPHANCY", box: [100, 472, 340, 52], style: body}
+            - {type: rect, id: r5_ff, decorative: true, box: [480, 472, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r5_fft, text: "Exposto", box: [480, 472, 340, 52], style: ctr_m}
+            - {type: rect, id: r5_sc, decorative: true, box: [840, 472, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r5_sct, text: "Exposto", box: [840, 472, 340, 52], style: ctr_m}
+            - {type: rect, id: r5_va, decorative: true, box: [1200, 472, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r5_vat, text: "Exposto — resíduo permanente", box: [1200, 472, 340, 52], style: ctr_m}
+            - {type: text, id: r5_mech,
+               text: "Testes de consistência adversariais; benchmarks de calibração",
+               box: [1560, 472, 280, 52], style: sm}
+
+            # ── Row 6: ERR_INSTRUCTION ────────────────────────────────
+            - {type: text, id: r6_lt,
+               text: "ERR_INSTRUCTION", box: [100, 532, 340, 52], style: body}
+            - {type: rect, id: r6_ff, decorative: true, box: [480, 532, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r6_fft, text: "Exposto", box: [480, 532, 340, 52], style: ctr_m}
+            - {type: rect, id: r6_sc, decorative: true, box: [840, 532, 340, 52], fill: amber_s, radius: 4}
+            - {type: text, id: r6_sct, text: "Parcial (restrições no schema)", box: [840, 532, 340, 52], style: ctr_m}
+            - {type: rect, id: r6_va, decorative: true, box: [1200, 532, 340, 52], fill: green_s, radius: 4}
+            - {type: text, id: r6_vat, text: "Coberto (restrições viram regras)", box: [1200, 532, 340, 52], style: ctr_m}
+            - {type: text, id: r6_mech,
+               text: "Regras de restrição explícitas; rejeição pelo validador",
+               box: [1560, 532, 280, 52], style: sm}
+
+            # ── Row 7: ERR_CALIBRATION ────────────────────────────────
+            - {type: text, id: r7_lt,
+               text: "ERR_CALIBRATION", box: [100, 592, 340, 52], style: body}
+            - {type: rect, id: r7_ff, decorative: true, box: [480, 592, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r7_fft, text: "Exposto", box: [480, 592, 340, 52], style: ctr_m}
+            - {type: rect, id: r7_sc, decorative: true, box: [840, 592, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r7_sct, text: "Exposto", box: [840, 592, 340, 52], style: ctr_m}
+            - {type: rect, id: r7_va, decorative: true, box: [1200, 592, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r7_vat, text: "Exposto — resíduo permanente", box: [1200, 592, 340, 52], style: ctr_m}
+            - {type: text, id: r7_mech,
+               text: "Escalonamento de Platt; benchmarks de calibração em conjunto de teste",
+               box: [1560, 592, 280, 52], style: sm}
+
+            # ── Row 8: ERR_REASONING ──────────────────────────────────
+            - {type: text, id: r8_lt,
+               text: "ERR_REASONING", box: [100, 652, 340, 52], style: body}
+            - {type: rect, id: r8_ff, decorative: true, box: [480, 652, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r8_fft, text: "Exposto", box: [480, 652, 340, 52], style: ctr_m}
+            - {type: rect, id: r8_sc, decorative: true, box: [840, 652, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r8_sct, text: "Exposto", box: [840, 652, 340, 52], style: ctr_m}
+            - {type: rect, id: r8_va, decorative: true, box: [1200, 652, 340, 52], fill: amber_s, radius: 4}
+            - {type: text, id: r8_vat, text: "Parcial (regras entre campos)", box: [1200, 652, 340, 52], style: ctr_m}
+            - {type: text, id: r8_mech,
+               text: "Regras de restrição entre campos; checagens de consistência lógica",
+               box: [1560, 652, 280, 52], style: sm}
+
+            # ── Row 9: ERR_SEMANTIC ───────────────────────────────────
+            - {type: text, id: r9_lt,
+               text: "ERR_SEMANTIC", box: [100, 712, 340, 52], style: body}
+            - {type: rect, id: r9_ff, decorative: true, box: [480, 712, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r9_fft, text: "Exposto", box: [480, 712, 340, 52], style: ctr_m}
+            - {type: rect, id: r9_sc, decorative: true, box: [840, 712, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r9_sct, text: "Exposto", box: [840, 712, 340, 52], style: ctr_m}
+            - {type: rect, id: r9_va, decorative: true, box: [1200, 712, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r9_vat, text: "Exposto — resíduo permanente", box: [1200, 712, 340, 52], style: ctr_m}
+            - {type: text, id: r9_mech,
+               text: "Consulta a fonte externa; revisão por especialista de domínio; RAG",
+               box: [1560, 712, 280, 52], style: sm}
+
+        - id: anchor_block
+          z: 3
+          objects:
+            - {type: rect, id: anc_bg, decorative: true,
+               box: [80, 790, 1760, 200], fill: brand, radius: 12}
+            - {type: text, id: anc_h,
+               text: "Estrutura legível por máquina é o que permite verificar.",
+               box: [120, 820, 1660, 44], style: anchor_w}
+            - {type: text, id: anc_l1,
+               text: "A validação por schema reduz os erros possíveis à camada de significado.",
+               box: [120, 866, 1660, 44], style: anchor_wm}
+            - {type: text, id: anc_l2,
+               text: "O Validador é a única barreira automática do sistema.",
+               box: [120, 912, 1660, 44], style: anchor_wm}
+            - {type: rect, id: anc_rule, decorative: true,
+               box: [120, 960, 800, 2], fill: white}
+            - {type: text, id: anc_final,
+               text: "Nada nesta arquitetura garante que a resposta esteja correta.",
+               box: [120, 966, 1660, 44], style: anchor_w}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 9  GLOSSÁRIO
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 9
+    id: glossary
+    title: "Glossário — Termos-Chave em Linguagem Simples"
+    notes: "Slide de referência. As definições aqui são propositalmente menos rigorosas que as formais — o objetivo é tornar o argumento do deck acessível a quem não é técnico. Cores agrupam os termos: cinza para conceitos fundamentais, escuro intermediário para termos estruturais, escuro para termos técnicos/de pesquisa."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Glossário — Termos-Chave em Linguagem Simples",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: brand}
+            - {type: text, id: sub,
+               text: "Os termos abaixo aparecem ao longo do deck. As definições priorizam clareza sobre rigor formal.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: column_left
+          z: 2
+          objects:
+            # 1 — LLM
+            - {type: rect, id: g1_bg,   decorative: true, box: [80, 196, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g1_bar,  decorative: true, box: [80, 196, 5, 100],   fill: brand}
+            - {type: rect, id: g1_pill, decorative: true, box: [104, 208, 220, 26], fill: brand, radius: 6}
+            - {type: text, id: g1_pt,   text: "LLM", box: [104, 208, 220, 26], style: tag_w}
+            - {type: text, id: g1_def,
+               text: "Modelo de linguagem treinado em grande volume de texto. Gera respostas estatisticamente prováveis a partir de uma entrada — sem entender o que diz no sentido humano.",
+               box: [104, 240, 820, 50], style: sm_ink}
+
+            # 2 — GenAI
+            - {type: rect, id: g2_bg,   decorative: true, box: [80, 302, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g2_bar,  decorative: true, box: [80, 302, 5, 100],   fill: brand}
+            - {type: rect, id: g2_pill, decorative: true, box: [104, 314, 220, 26], fill: brand, radius: 6}
+            - {type: text, id: g2_pt,   text: "GenAI", box: [104, 314, 220, 26], style: tag_w}
+            - {type: text, id: g2_def,
+               text: "Inteligência Artificial Generativa. Sistemas que produzem conteúdo novo (texto, imagem, código) em vez de apenas classificar ou prever.",
+               box: [104, 346, 820, 50], style: sm_ink}
+
+            # 3 — Prompt
+            - {type: rect, id: g3_bg,   decorative: true, box: [80, 408, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g3_bar,  decorative: true, box: [80, 408, 5, 100],   fill: brand}
+            - {type: rect, id: g3_pill, decorative: true, box: [104, 420, 220, 26], fill: brand, radius: 6}
+            - {type: text, id: g3_pt,   text: "Prompt", box: [104, 420, 220, 26], style: tag_w}
+            - {type: text, id: g3_def,
+               text: "A entrada em linguagem natural enviada ao modelo. Define a tarefa, o contexto e quaisquer restrições para a resposta.",
+               box: [104, 452, 820, 50], style: sm_ink}
+
+            # 4 — Schema
+            - {type: rect, id: g4_bg,   decorative: true, box: [80, 514, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g4_bar,  decorative: true, box: [80, 514, 5, 100],   fill: amber}
+            - {type: rect, id: g4_pill, decorative: true, box: [104, 526, 220, 26], fill: amber, radius: 6}
+            - {type: text, id: g4_pt,   text: "Schema", box: [104, 526, 220, 26], style: tag_w}
+            - {type: text, id: g4_def,
+               text: "Contrato formal que descreve a estrutura esperada da resposta: campos, tipos e valores permitidos.",
+               box: [104, 558, 820, 50], style: sm_ink}
+
+            # 5 — Instance
+            - {type: rect, id: g5_bg,   decorative: true, box: [80, 620, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g5_bar,  decorative: true, box: [80, 620, 5, 100],   fill: amber}
+            - {type: rect, id: g5_pill, decorative: true, box: [104, 632, 220, 26], fill: amber, radius: 6}
+            - {type: text, id: g5_pt,   text: "Instance", box: [104, 632, 220, 26], style: tag_w}
+            - {type: text, id: g5_def,
+               text: "Uma resposta concreta gerada pelo modelo. Pode estar ou não em conformidade com o schema.",
+               box: [104, 664, 820, 50], style: sm_ink}
+
+            # 6 — Validador
+            - {type: rect, id: g6_bg,   decorative: true, box: [80, 726, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g6_bar,  decorative: true, box: [80, 726, 5, 100],   fill: amber}
+            - {type: rect, id: g6_pill, decorative: true, box: [104, 738, 220, 26], fill: amber, radius: 6}
+            - {type: text, id: g6_pt,   text: "Validador", box: [104, 738, 220, 26], style: tag_w}
+            - {type: text, id: g6_def,
+               text: "Componente que aplica regras de negócio à resposta (restrições entre campos, faixas, completude) e a aceita ou rejeita automaticamente.",
+               box: [104, 770, 820, 50], style: sm_ink}
+
+            # 7 — Free Form
+            - {type: rect, id: g7_bg,   decorative: true, box: [80, 832, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g7_bar,  decorative: true, box: [80, 832, 5, 100],   fill: amber}
+            - {type: rect, id: g7_pill, decorative: true, box: [104, 844, 220, 26], fill: amber, radius: 6}
+            - {type: text, id: g7_pt,   text: "Free Form", box: [104, 844, 220, 26], style: tag_w}
+            - {type: text, id: g7_def,
+               text: "Saída sem nenhuma estrutura imposta. Toda detecção de erro depende de revisão humana.",
+               box: [104, 876, 820, 50], style: sm_ink}
+
+        - id: column_right
+          z: 2
+          objects:
+            # 8 — Enum
+            - {type: rect, id: g8_bg,   decorative: true, box: [980, 196, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g8_bar,  decorative: true, box: [980, 196, 5, 100],   fill: amber}
+            - {type: rect, id: g8_pill, decorative: true, box: [1004, 208, 220, 26], fill: amber, radius: 6}
+            - {type: text, id: g8_pt,   text: "Enum", box: [1004, 208, 220, 26], style: tag_w}
+            - {type: text, id: g8_def,
+               text: "Lista finita de valores permitidos para um campo. Permite rejeitar qualquer valor fora do conjunto declarado.",
+               box: [1004, 240, 820, 50], style: sm_ink}
+
+            # 9 — RAG
+            - {type: rect, id: g9_bg,   decorative: true, box: [980, 302, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g9_bar,  decorative: true, box: [980, 302, 5, 100],   fill: purple}
+            - {type: rect, id: g9_pill, decorative: true, box: [1004, 314, 220, 26], fill: purple, radius: 6}
+            - {type: text, id: g9_pt,   text: "RAG", box: [1004, 314, 220, 26], style: tag_w}
+            - {type: text, id: g9_def,
+               text: "Retrieval-Augmented Generation. O modelo é forçado a consultar uma fonte externa antes de responder — reduz, mas não elimina, alucinações.",
+               box: [1004, 346, 820, 50], style: sm_ink}
+
+            # 10 — Token
+            - {type: rect, id: g10_bg,   decorative: true, box: [980, 408, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g10_bar,  decorative: true, box: [980, 408, 5, 100],   fill: purple}
+            - {type: rect, id: g10_pill, decorative: true, box: [1004, 420, 220, 26], fill: purple, radius: 6}
+            - {type: text, id: g10_pt,   text: "Token", box: [1004, 420, 220, 26], style: tag_w}
+            - {type: text, id: g10_def,
+               text: "Unidade básica de texto que o modelo manipula (palavra, parte de palavra ou caractere). A resposta é gerada token a token.",
+               box: [1004, 452, 820, 50], style: sm_ink}
+
+            # 11 — Calibração
+            - {type: rect, id: g11_bg,   decorative: true, box: [980, 514, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g11_bar,  decorative: true, box: [980, 514, 5, 100],   fill: purple}
+            - {type: rect, id: g11_pill, decorative: true, box: [1004, 526, 220, 26], fill: purple, radius: 6}
+            - {type: text, id: g11_pt,   text: "Calibração", box: [1004, 526, 220, 26], style: tag_w}
+            - {type: text, id: g11_def,
+               text: "Alinhamento entre a confiança que o modelo expressa e sua precisão real. Calibração ruim significa que 'alta confiança' não garante acerto.",
+               box: [1004, 558, 820, 50], style: sm_ink}
+
+            # 12 — Predicado de erro (ε)
+            - {type: rect, id: g12_bg,   decorative: true, box: [980, 620, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g12_bar,  decorative: true, box: [980, 620, 5, 100],   fill: purple}
+            - {type: rect, id: g12_pill, decorative: true, box: [1004, 632, 220, 26], fill: purple, radius: 6}
+            - {type: text, id: g12_pt,   text: "Predicado de erro (ε)", box: [1004, 632, 220, 26], style: tag_w}
+            - {type: text, id: g12_def,
+               text: "Função que indica se a resposta está errada. δ é o piso mínimo do valor esperado de ε — a parcela de erro que nunca desaparece.",
+               box: [1004, 664, 820, 50], style: sm_ink}
+
+            # 13 — Red-teaming
+            - {type: rect, id: g13_bg,   decorative: true, box: [980, 726, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g13_bar,  decorative: true, box: [980, 726, 5, 100],   fill: purple}
+            - {type: rect, id: g13_pill, decorative: true, box: [1004, 738, 220, 26], fill: purple, radius: 6}
+            - {type: text, id: g13_pt,   text: "Red-teaming", box: [1004, 738, 220, 26], style: tag_w}
+            - {type: text, id: g13_def,
+               text: "Teste deliberado do sistema com prompts projetados para induzir falhas. Forma de auditoria adversarial.",
+               box: [1004, 770, 820, 50], style: sm_ink}
+
+            # 14 — Ancoragem referencial
+            - {type: rect, id: g14_bg,   decorative: true, box: [980, 832, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g14_bar,  decorative: true, box: [980, 832, 5, 100],   fill: purple}
+            - {type: rect, id: g14_pill, decorative: true, box: [1004, 844, 220, 26], fill: purple, radius: 6}
+            - {type: text, id: g14_pt,   text: "Ancoragem referencial", box: [1004, 844, 220, 26], style: tag_w}
+            - {type: text, id: g14_def,
+               text: "Garantia de que um nome ou referência na resposta corresponde à entidade correta no mundo real.",
+               box: [1004, 876, 820, 50], style: sm_ink}
+
+        - id: footer
+          z: 3
+          objects:
+            - {type: rect, id: foot_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel, radius: 8}
+            - {type: text, id: foot_t,
+               text: "As definições aqui são propositalmente simples. As versões formais seguem a Lei de PALS v1.5.4 e as referências citadas no disclaimer.",
+               box: [110, 968, 1700, 36], style: bodyc}
