@@ -1,0 +1,44 @@
+---
+id: ref-0001
+type: news_article
+title: "A.I. 'Hallucinations' Created Errors in Court Filing, Top Law Firm Says"
+authors:
+  - { name: "Santul Nerkar", url: "https://www.nytimes.com/by/santul-nerkar" }
+publisher: "The New York Times"
+section: "New York"
+published: "2026-04-21T22:39:41Z"
+modified:  "2026-04-22T12:10:28Z"
+url: "https://www.nytimes.com/2026/04/21/nyregion/sullivan-cromwell-ai-hallucination.html"
+language: "en"
+content_tier: "metered"
+opinion: false
+description: >-
+  Sullivan & Cromwell apologized for submitting a court document
+  that had fake citations created by artificial intelligence.
+tags:
+  - "Legal Profession"
+  - "Artificial Intelligence"
+  - "Rumors and Misinformation"
+  - "Sullivan & Cromwell"
+  - "Dietderich, Andrew G"
+  - "Suits and Litigation (Civil)"
+  - "Courts and the Judiciary"
+  - "United States"
+local_snapshot:
+  path: "refs-0001.html"
+  captured: "2026-05-09"
+relevance:
+  classes: [ERR_HALLUCINATION, ERR_SEMANTIC]
+  note: >-
+    Real-world incident illustrating fabricated citations produced by an LLM
+    reaching a high-stakes legal deliverable without a verification layer —
+    matches the residual-error / unchecked-output failure mode discussed in
+    the deck (PALS's Law).
+verification:
+  primary_source: "publisher_url"
+  archive: null
+  doi: null
+  notes: >-
+    Metadata extracted from the saved HTML's <meta> tags
+    (article:published_time, article:modified_time, byl, article:section,
+    article:tag, og:url). Body text not re-verified against the live URL.
