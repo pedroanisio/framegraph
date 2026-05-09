@@ -247,33 +247,79 @@ class FrameGraphRenderer:
     def _build_gradients(self) -> None:
         """Convert fill_styles entries into SVG gradient `<defs>` strings.
 
-        Gradient coordinates use objectBoundingBox so they scale with each shape.
+        Default coordinate space is `objectBoundingBox` so gradients scale
+        with each shape; override with `gradient_units: userSpaceOnUse`
+        when canvas-space gradients are required.
+
+        Per-stop transparency is emitted via SVG `stop-opacity`; gradient
+        roots may declare `opacity` (applied to every stop that does not
+        override it), `spread_method` (`pad`|`reflect`|`repeat`), and
+        `gradient_transform` (raw SVG transform string).
         """
         for name, fs in self.fill_styles.items():
-            gtype = str(fs.get("type", ""))
-            gid = sid("grad_" + name)
-            stops_svg = "".join(
-                f'<stop offset="{fmt(s.get("offset", 0))}"'
-                f' stop-color="{self.color(s.get("color"), "#000000")}"/>'
-                for s in (fs.get("stops") or [])
+            self._register_gradient(name, fs)
+
+    def _register_gradient(self, name: str, fs: Mapping[str, Any]) -> str:
+        """Build a single gradient `<defs>` entry and return its SVG id.
+
+        Idempotent: re-registering the same `name` returns the existing id
+        without re-appending. Inline gradients call this with a synthetic
+        name to register on first use from `fill_value()`.
+        """
+        gid = sid("grad_" + name)
+        # Idempotency: skip if a def for this id already exists.
+        if any(f'id="{gid}"' in g for g in self.gradient_defs):
+            return gid
+
+        gtype = str(fs.get("type", ""))
+        # Per-gradient default opacity (applies to stops that don't set their own).
+        root_opacity = fs.get("opacity")
+        stops_svg_parts: list[str] = []
+        for s in fs.get("stops") or []:
+            offset = fmt(s.get("offset", 0))
+            stop_color = self.color(s.get("color"), "#000000")
+            # Per-stop opacity wins; falls back to gradient root opacity; else opaque.
+            stop_op = s.get("opacity")
+            if stop_op is None:
+                stop_op = root_opacity
+            op_attr = f' stop-opacity="{fmt(stop_op)}"' if stop_op is not None else ""
+            stops_svg_parts.append(
+                f'<stop offset="{offset}"'
+                f' stop-color="{stop_color}"{op_attr}/>'
             )
-            if gtype == "linear_gradient":
-                p1 = fs.get("from", [0, 0])
-                p2 = fs.get("to", [0, 1])
-                self.gradient_defs.append(
-                    f'<linearGradient id="{gid}"'
-                    f' x1="{fmt(fnum(p1[0]))}" y1="{fmt(fnum(p1[1]))}"'
-                    f' x2="{fmt(fnum(p2[0]))}" y2="{fmt(fnum(p2[1]))}"'
-                    f' gradientUnits="objectBoundingBox">{stops_svg}</linearGradient>'
-                )
-            elif gtype == "radial_gradient":
-                c = fs.get("center", [0.5, 0.5])
-                r = fnum(fs.get("radius"), 0.5)
-                self.gradient_defs.append(
-                    f'<radialGradient id="{gid}"'
-                    f' cx="{fmt(fnum(c[0]))}" cy="{fmt(fnum(c[1]))}" r="{fmt(r)}"'
-                    f' gradientUnits="objectBoundingBox">{stops_svg}</radialGradient>'
-                )
+        stops_svg = "".join(stops_svg_parts)
+
+        # Optional shared attributes: spread method, coordinate space, transform.
+        units = str(fs.get("gradient_units", "objectBoundingBox"))
+        spread = fs.get("spread_method")
+        spread_attr = f' spreadMethod="{esc(spread)}"' if spread else ""
+        gtrans = fs.get("gradient_transform")
+        gtrans_attr = f' gradientTransform="{esc(gtrans)}"' if gtrans else ""
+
+        if gtype == "linear_gradient":
+            p1 = fs.get("from", [0, 0])
+            p2 = fs.get("to", [0, 1])
+            self.gradient_defs.append(
+                f'<linearGradient id="{gid}"'
+                f' x1="{fmt(fnum(p1[0]))}" y1="{fmt(fnum(p1[1]))}"'
+                f' x2="{fmt(fnum(p2[0]))}" y2="{fmt(fnum(p2[1]))}"'
+                f' gradientUnits="{esc(units)}"{spread_attr}{gtrans_attr}>{stops_svg}</linearGradient>'
+            )
+        elif gtype == "radial_gradient":
+            c = fs.get("center", [0.5, 0.5])
+            r = fnum(fs.get("radius"), 0.5)
+            # Optional focal point for off-centre highlight: defaults to centre.
+            focal = fs.get("focal")
+            focal_attr = ""
+            if isinstance(focal, Sequence) and not isinstance(focal, (str, bytes)) and len(focal) >= 2:
+                focal_attr = f' fx="{fmt(fnum(focal[0]))}" fy="{fmt(fnum(focal[1]))}"'
+            self.gradient_defs.append(
+                f'<radialGradient id="{gid}"'
+                f' cx="{fmt(fnum(c[0]))}" cy="{fmt(fnum(c[1]))}" r="{fmt(r)}"'
+                f'{focal_attr}'
+                f' gradientUnits="{esc(units)}"{spread_attr}{gtrans_attr}>{stops_svg}</radialGradient>'
+            )
+        return gid
 
     # ── v3: fill resolution (color token OR gradient IdRef) ────────────
     def fill_value(self, v: Any, default: str = "none") -> str:
@@ -281,9 +327,21 @@ class FrameGraphRenderer:
 
         - None / "none"  → default
         - fill_styles key → url(#grad_name)
+        - inline gradient mapping (`{type: linear_gradient|radial_gradient, ...}`)
+          → registered on demand and returned as `url(#grad_inline_N)`
         - color token / literal → hex string
         """
         if v is None:
+            return default
+        # Inline gradient: register a synthetic fill_style on first sight.
+        if isinstance(v, Mapping):
+            gtype = v.get("type")
+            if gtype in ("linear_gradient", "radial_gradient"):
+                inline_name = "inline_" + str(len(self.fill_styles))
+                # Persist so deterministic reuse + defs_svg picks it up.
+                self.fill_styles[inline_name] = dict(v)
+                gid = self._register_gradient(inline_name, v)
+                return f"url(#{gid})"
             return default
         s = str(v)
         if s == "none":
@@ -477,8 +535,32 @@ class FrameGraphRenderer:
             return d["punct"]
         return d["normal"]
 
-    def _str_width(self, text: str, fs: float, bold: bool) -> float:
-        """Estimate rendered width of text in pixels."""
+    def _str_width(
+        self,
+        text: str,
+        fs: float,
+        bold: bool,
+        font: str | None = None,
+    ) -> float:
+        """Estimate rendered width of text in pixels.
+
+        When ``font`` is a resolved CSS font-family chain and both
+        ``fontTools`` and ``fc-match`` are available on the system, the
+        width is computed from the actual per-glyph advances of the file
+        fontconfig resolves for that chain — the same file the rasterizer
+        (cairosvg via Pango) will draw with. This eliminates the wrap-vs-
+        render mismatch that the per-class fallback table introduces when
+        the installed font is wider than Helvetica.
+
+        When ``font`` is ``None`` or real metrics are unavailable, falls
+        back to the per-character-class estimator (legacy behavior).
+        """
+        if font:
+            from framegraph._font_metrics import measure_text
+
+            real = measure_text(text, font, fs, bold)
+            if real is not None:
+                return real
         return sum(self._char_em(c, bold) for c in text) * fs
 
     def sorted_layers(self) -> list[Mapping[str, Any]]:
@@ -742,7 +824,42 @@ class FrameGraphRenderer:
         st.setdefault("dash", None)
         st.setdefault("arrow_start", False)
         st.setdefault("arrow_end", False)
+        # `opacity` (alias `stroke_opacity`) lets stroke styles declare
+        # transparency without forcing rgba colour literals; it is left
+        # absent (rather than defaulted to 1.0) so stroke_attrs can omit
+        # the SVG attribute entirely when no opacity was requested.
+        if "stroke_opacity" in st and "opacity" not in st:
+            st["opacity"] = st["stroke_opacity"]
         return st
+
+    def opacity_attrs(
+        self,
+        obj: Mapping[str, Any],
+        *,
+        has_fill: bool = True,
+        has_stroke: bool = True,
+    ) -> dict[str, Any]:
+        """Build per-shape `fill-opacity` / `stroke-opacity` SVG attrs.
+
+        Object-level `opacity` is emitted by `group_attrs()` on the
+        wrapping `<g>`. This helper handles the channel-specific values
+        that compose with it: callers merge the result into the geometry
+        attribute dict (rect, ellipse, path, line, polyline).
+
+        Channels are dropped when the geometry has no paint in that
+        channel (e.g., `<line>` has no fill, so `has_fill=False` skips
+        any `fill-opacity` even when the object declared one).
+        """
+        out: dict[str, Any] = {}
+        if has_fill:
+            fop = obj.get("fill_opacity")
+            if fop is not None:
+                out["fill-opacity"] = fmt(fop)
+        if has_stroke:
+            sop = obj.get("stroke_opacity")
+            if sop is not None:
+                out["stroke-opacity"] = fmt(sop)
+        return out
 
     def rect_stroke(self, obj: Mapping[str, Any]) -> dict[str, Any] | None:
         """Resolve the stroke for a `rect`/`ellipse`-style object.
@@ -886,6 +1003,10 @@ class FrameGraphRenderer:
             "stroke-linecap": st.get("linecap", "butt"),
             "stroke-linejoin": st.get("linejoin", "round"),
         }
+        # Stroke opacity: emit only when explicitly requested (no implicit 1.0).
+        st_op = st.get("opacity")
+        if st_op is not None:
+            a["stroke-opacity"] = fmt(st_op)
         dash = st.get("dash")
         if dash:
             if isinstance(dash, Sequence) and not isinstance(dash, str):
@@ -1394,6 +1515,9 @@ class FrameGraphRenderer:
             style_name or obj.get("stroke_style"),
             obj.get("stroke") if isinstance(obj.get("stroke"), Mapping) else None,
         ) or self.stroke_style("direct_flow")
+        # Lines/polylines carry stroke only (`fill="none"`), so fill_opacity
+        # is intentionally suppressed here even when present on the object.
+        op_extra = self.opacity_attrs(obj, has_fill=False)
         if len(points) == 2 and not force_poly:
             p1, p2 = points
             geom: dict[str, Any] = {
@@ -1404,9 +1528,11 @@ class FrameGraphRenderer:
                 "fill": "none",
             }
             geom.update(self.stroke_attrs(st, arrows=True))
+            geom.update(op_extra)
             svg = f"<line {attrs(geom)}/>"
         else:
             geom = {"points": pts_attr(points), "fill": "none"}
             geom.update(self.stroke_attrs(st, arrows=True))
+            geom.update(op_extra)
             svg = f"<polyline {attrs(geom)}/>"
         return f"<g {attrs(self.group_attrs(obj))}>{svg}</g>"

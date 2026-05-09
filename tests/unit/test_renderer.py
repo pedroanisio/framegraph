@@ -722,3 +722,288 @@ def test_eval_length_none_returns_zero() -> None:
 
     r = FrameGraphRenderer({})
     assert eval_length(r, None, total=100.0) == 0.0
+
+
+# ── gradients & transparency ──────────────────────────────────────────
+
+
+def test_gradient_stop_opacity_emitted_when_present() -> None:
+    """Per-stop opacity rides on each <stop> as `stop-opacity`."""
+    r = FrameGraphRenderer(
+        {
+            "visual": {
+                "tokens": {
+                    "fill_styles": {
+                        "fade": {
+                            "type": "linear_gradient",
+                            "stops": [
+                                {"offset": 0, "color": "#000", "opacity": 0.2},
+                                {"offset": 1, "color": "#fff"},
+                            ],
+                        }
+                    }
+                }
+            }
+        }
+    )
+    g = "".join(r.gradient_defs)
+    assert 'stop-opacity="0.2"' in g
+    # Stop without opacity gets no attribute (preserves byte-identity for opaque stops).
+    assert g.count("stop-opacity") == 1
+
+
+def test_gradient_root_opacity_applies_to_all_stops_without_override() -> None:
+    r = FrameGraphRenderer(
+        {
+            "visual": {
+                "tokens": {
+                    "fill_styles": {
+                        "soft": {
+                            "type": "linear_gradient",
+                            "opacity": 0.5,
+                            "stops": [
+                                {"offset": 0, "color": "#000"},
+                                {"offset": 0.5, "color": "#888", "opacity": 0.9},
+                                {"offset": 1, "color": "#fff"},
+                            ],
+                        }
+                    }
+                }
+            }
+        }
+    )
+    g = "".join(r.gradient_defs)
+    # Two stops inherit 0.5; the middle stop overrides to 0.9.
+    assert g.count('stop-opacity="0.5"') == 2
+    assert 'stop-opacity="0.9"' in g
+
+
+def test_gradient_user_space_units_and_spread_method_emitted() -> None:
+    r = FrameGraphRenderer(
+        {
+            "visual": {
+                "tokens": {
+                    "fill_styles": {
+                        "stripe": {
+                            "type": "linear_gradient",
+                            "from": [0, 0],
+                            "to": [20, 0],
+                            "gradient_units": "userSpaceOnUse",
+                            "spread_method": "repeat",
+                            "stops": [
+                                {"offset": 0, "color": "#000"},
+                                {"offset": 1, "color": "#fff"},
+                            ],
+                        }
+                    }
+                }
+            }
+        }
+    )
+    g = "".join(r.gradient_defs)
+    assert 'gradientUnits="userSpaceOnUse"' in g
+    assert 'spreadMethod="repeat"' in g
+
+
+def test_gradient_transform_emitted() -> None:
+    r = FrameGraphRenderer(
+        {
+            "visual": {
+                "tokens": {
+                    "fill_styles": {
+                        "tilt": {
+                            "type": "linear_gradient",
+                            "gradient_transform": "rotate(45)",
+                            "stops": [{"offset": 0, "color": "#000"}],
+                        }
+                    }
+                }
+            }
+        }
+    )
+    assert any('gradientTransform="rotate(45)"' in g for g in r.gradient_defs)
+
+
+def test_radial_gradient_focal_point_emitted() -> None:
+    r = FrameGraphRenderer(
+        {
+            "visual": {
+                "tokens": {
+                    "fill_styles": {
+                        "halo": {
+                            "type": "radial_gradient",
+                            "center": [0.5, 0.5],
+                            "radius": 0.6,
+                            "focal": [0.3, 0.3],
+                            "stops": [{"offset": 0, "color": "#fff"}],
+                        }
+                    }
+                }
+            }
+        }
+    )
+    g = "".join(r.gradient_defs)
+    assert 'fx="0.3"' in g and 'fy="0.3"' in g
+
+
+def test_fill_value_inline_gradient_mapping_registers_and_returns_url() -> None:
+    """Authors may pass an inline gradient mapping as the `fill` of an object."""
+    r = FrameGraphRenderer({})
+    assert not r.gradient_defs
+    spec = {
+        "type": "linear_gradient",
+        "from": [0, 0],
+        "to": [1, 0],
+        "stops": [
+            {"offset": 0, "color": "#FF0000", "opacity": 0.5},
+            {"offset": 1, "color": "#0000FF"},
+        ],
+    }
+    paint = r.fill_value(spec)
+    assert paint.startswith("url(#")
+    # Idempotent reuse: a second call with the same dict registers another
+    # gradient (caller-driven naming) but still produces a valid url() and
+    # the resulting <defs> list is non-empty.
+    assert any("linearGradient" in g for g in r.gradient_defs)
+    assert any('stop-opacity="0.5"' in g for g in r.gradient_defs)
+
+
+def test_fill_value_inline_gradient_appears_in_defs_svg() -> None:
+    r = FrameGraphRenderer({})
+    r.fill_value(
+        {
+            "type": "linear_gradient",
+            "stops": [
+                {"offset": 0, "color": "#000"},
+                {"offset": 1, "color": "#fff"},
+            ],
+        }
+    )
+    defs = r.defs_svg()
+    assert "<linearGradient" in defs
+
+
+def test_stroke_attrs_emits_stroke_opacity_when_in_style() -> None:
+    r = FrameGraphRenderer({})
+    a = r.stroke_attrs({"color": "#000", "width": 2, "opacity": 0.4})
+    assert a.get("stroke-opacity") == "0.4"
+
+
+def test_stroke_attrs_omits_stroke_opacity_when_absent() -> None:
+    """Default-opaque strokes must not gain a redundant attribute."""
+    r = FrameGraphRenderer({})
+    a = r.stroke_attrs({"color": "#000", "width": 2})
+    assert "stroke-opacity" not in a
+
+
+def test_stroke_style_alias_stroke_opacity_to_opacity() -> None:
+    r = FrameGraphRenderer(
+        {"visual": {"tokens": {"stroke_styles": {"soft": {"color": "#000", "stroke_opacity": 0.3}}}}}
+    )
+    s = r.stroke_style("soft")
+    assert s is not None and s.get("opacity") == 0.3
+
+
+def test_opacity_attrs_returns_fill_and_stroke_opacity() -> None:
+    r = FrameGraphRenderer({})
+    a = r.opacity_attrs({"fill_opacity": 0.6, "stroke_opacity": 0.7})
+    assert a == {"fill-opacity": "0.6", "stroke-opacity": "0.7"}
+
+
+def test_opacity_attrs_skips_fill_when_geometry_is_stroke_only() -> None:
+    r = FrameGraphRenderer({})
+    a = r.opacity_attrs(
+        {"fill_opacity": 0.6, "stroke_opacity": 0.7}, has_fill=False
+    )
+    assert a == {"stroke-opacity": "0.7"}
+
+
+def test_opacity_attrs_returns_empty_when_no_channel_opacity_set() -> None:
+    r = FrameGraphRenderer({})
+    assert r.opacity_attrs({"id": "plain"}) == {}
+
+
+def test_render_rect_emits_fill_and_stroke_opacity() -> None:
+    """Rect renderer must pipe per-channel transparency to the SVG primitive."""
+    doc = {
+        "visual": {
+            "layers": [
+                {
+                    "id": "L1",
+                    "objects": [
+                        {
+                            "type": "rect",
+                            "id": "translucent",
+                            "box": [0, 0, 50, 30],
+                            "fill": "#FF0000",
+                            "stroke": "#0000FF",
+                            "fill_opacity": 0.4,
+                            "stroke_opacity": 0.6,
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+    svg = FrameGraphRenderer(doc).render_svg()
+    assert 'fill-opacity="0.4"' in svg
+    assert 'stroke-opacity="0.6"' in svg
+
+
+def test_render_line_drops_fill_opacity_but_keeps_stroke_opacity() -> None:
+    """Lines have no fill, so fill_opacity is intentionally suppressed."""
+    doc = {
+        "visual": {
+            "layers": [
+                {
+                    "id": "L1",
+                    "objects": [
+                        {
+                            "type": "line",
+                            "id": "edge",
+                            "from": [0, 0],
+                            "to": [10, 10],
+                            "stroke": "#000",
+                            "fill_opacity": 0.4,
+                            "stroke_opacity": 0.5,
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+    svg = FrameGraphRenderer(doc).render_svg()
+    assert 'stroke-opacity="0.5"' in svg
+    assert "fill-opacity" not in svg
+
+
+def test_render_rect_with_inline_gradient_fill_emits_url_paint() -> None:
+    doc = {
+        "visual": {
+            "layers": [
+                {
+                    "id": "L1",
+                    "objects": [
+                        {
+                            "type": "rect",
+                            "id": "g_rect",
+                            "box": [0, 0, 100, 50],
+                            "fill": {
+                                "type": "linear_gradient",
+                                "from": [0, 0],
+                                "to": [1, 0],
+                                "stops": [
+                                    {"offset": 0, "color": "#000"},
+                                    {"offset": 1, "color": "#fff", "opacity": 0.5},
+                                ],
+                            },
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+    svg = FrameGraphRenderer(doc).render_svg()
+    assert 'fill="url(#grad_inline_0)"' in svg
+    assert "<linearGradient" in svg
+    assert 'stop-opacity="0.5"' in svg

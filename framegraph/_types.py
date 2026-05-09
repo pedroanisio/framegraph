@@ -67,6 +67,13 @@ class RendererContext(Protocol):
         *,
         arrows: bool = ...,
     ) -> dict[str, Any]: ...
+    def opacity_attrs(
+        self,
+        obj: Mapping[str, Any],
+        *,
+        has_fill: bool = ...,
+        has_stroke: bool = ...,
+    ) -> dict[str, Any]: ...
     def group_attrs(
         self,
         obj: Mapping[str, Any],

@@ -369,6 +369,7 @@ def render_component(r: RendererContext, obj: Mapping[str, Any]) -> str:
     if radius:
         ra.update({"rx": fmt(radius), "ry": fmt(radius)})
     ra.update(r.stroke_attrs(st))
+    ra.update(r.opacity_attrs(obj))
     out.append(f"<rect {attrs(ra)}/>")
     internal = comp.get("internal_layout", {}) or {}
     for slot in comp.get("slots", list(internal.keys())) or []:
@@ -424,6 +425,7 @@ def render_chip_row(r: RendererContext, obj: Mapping[str, Any]) -> str:
             "ry": fmt(radius),
         }
         ra.update(r.stroke_attrs(st))
+        ra.update(r.opacity_attrs(obj))
         out.append(f"<rect {attrs(ra)}/>")
         out.append(_text_svg_helper(r, label, (cursor, y, width, height), ts))
         cursor += width + gap

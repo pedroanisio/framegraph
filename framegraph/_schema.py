@@ -186,6 +186,11 @@ class StrokeStyle(BaseModel):
     arrow_end: bool | None = None
     linecap: str | None = None
     linejoin: str | None = None
+    # Channel transparency for the stroke. Either field accepted;
+    # `opacity` here means stroke-opacity (group-level opacity is
+    # carried on the object base). Range: 0.0 (transparent) – 1.0.
+    opacity: float | None = None
+    stroke_opacity: float | None = None
 
 
 class Tokens(BaseModel):
@@ -274,7 +279,12 @@ class _ObjectBase(BaseModel):
     box: Box | None = None
     rotation: Any = None  # accepts number or [deg, cx, cy] list
     ports: dict[str, Point] | None = None
+    # `opacity` applies to the wrapping <g>; channel-specific opacity
+    # composes with it on the inner geometry without forcing rgba colour
+    # literals. All three are optional and default to "fully opaque".
     opacity: float | None = None
+    fill_opacity: float | None = None
+    stroke_opacity: float | None = None
 
 
 class RectObject(_ObjectBase):

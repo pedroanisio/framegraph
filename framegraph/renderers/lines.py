@@ -39,8 +39,9 @@ def render_polyline(r: RendererContext, obj: Mapping[str, Any]) -> str:
 def render_path(r: RendererContext, obj: Mapping[str, Any]) -> str:
     """Render a raw SVG `path` object — the `d` attribute is taken verbatim."""
     st = r.stroke_style(obj.get("stroke_style"), obj.get("stroke"))
-    a = {"d": obj.get("d", ""), "fill": r.fill_value(obj.get("fill"), "none")}
+    a: dict[str, Any] = {"d": obj.get("d", ""), "fill": r.fill_value(obj.get("fill"), "none")}
     a.update(r.stroke_attrs(st, arrows=True))
+    a.update(r.opacity_attrs(obj))
     return f"<g {attrs(r.group_attrs(obj))}><path {attrs(a)}/></g>"
 
 
@@ -85,6 +86,8 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
     )
     a: dict[str, Any] = {"d": d, "fill": "none"}
     a.update(r.stroke_attrs(st, arrows=True))
+    # Connectors carry stroke only; skip fill_opacity emission.
+    a.update(r.opacity_attrs(obj, has_fill=False))
     out = [f"<g {attrs(r.group_attrs(obj))}>", f"<path {attrs(a)}/>"]
     label = obj.get("label")
     if isinstance(label, Mapping):

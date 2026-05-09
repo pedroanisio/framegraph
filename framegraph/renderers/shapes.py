@@ -45,6 +45,8 @@ def render_rect(r: RendererContext, obj: Mapping[str, Any]) -> str:
     if radius:
         a.update({"rx": fmt(radius), "ry": fmt(radius)})
     a.update(r.stroke_attrs(r.rect_stroke(obj)))
+    # Per-channel transparency (composes with group-level `opacity` on <g>).
+    a.update(r.opacity_attrs(obj))
     # ── HD effect filter (shadow / glow) — attached to the primary
     # geometry only; outer_ring trim is intentionally unfiltered to
     # avoid double-shadow on composite shapes.
@@ -121,6 +123,7 @@ def render_ellipse(r: RendererContext, obj: Mapping[str, Any]) -> str:
         "fill": r.fill_value(obj.get("fill"), "none"),  # v3: fill_value
     }
     a.update(r.stroke_attrs(r.rect_stroke(obj)))
+    a.update(r.opacity_attrs(obj))
     a.update(r.effect_filter_attrs(obj))
 
     out = [f"<g {attrs(r.group_attrs(obj))}>"]
