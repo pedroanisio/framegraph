@@ -20,6 +20,13 @@ FIXTURE_DIR = Path(__file__).resolve().parents[1] / "fixtures"
 STANDALONE_FIXTURES = sorted(p for p in FIXTURE_DIR.glob("*.yml") if ".deck." not in p.name)
 DECK_FIXTURES = sorted(FIXTURE_DIR.glob("*.deck.yml"))
 LIB_DIR = Path(__file__).resolve().parents[2] / "framegraph" / "lib"
+SIDECAR_FIXTURE = (
+    Path(__file__).resolve().parents[2]
+    / "framegraph"
+    / "data"
+    / "fills"
+    / "044-business-model-canvas.yml"
+)
 
 
 # ── render subcommand ────────────────────────────────────────────────
@@ -181,6 +188,64 @@ def test_cli_deck_missing_input_returns_nonzero(
     )
     assert rc == 1
     assert "ERROR" in capsys.readouterr().err
+
+
+# ── validate subcommand ─────────────────────────────────────────────
+
+
+def test_cli_validate_standalone_fixture_succeeds(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`validate` accepts a regular FrameGraph document fixture."""
+    rc = cli_main(["validate", str(STANDALONE_FIXTURES[0])])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "VALID:" in out
+    assert "framegraph" in out
+
+
+def test_cli_validate_deck_fixture_succeeds(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`validate` accepts a FrameGraph deck fixture."""
+    rc = cli_main(["validate", str(DECK_FIXTURES[0])])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "VALID:" in out
+    assert "framegraph" in out
+
+
+def test_cli_validate_sidecar_fixture_succeeds(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`validate` accepts a pattern sidecar fixture."""
+    rc = cli_main(["validate", str(SIDECAR_FIXTURE)])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "VALID:" in out
+    assert "pattern-sidecar" in out
+
+
+def test_cli_validate_invalid_yaml_returns_nonzero(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Malformed YAML fails before schema validation runs."""
+    bad = tmp_path / "broken.yml"
+    bad.write_text("key: : :\n  - [unclosed", encoding="utf-8")
+    rc = cli_main(["validate", str(bad)])
+    assert rc == 1
+    assert "ERROR" in capsys.readouterr().err
+
+
+def test_cli_validate_unknown_shape_returns_nonzero(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Auto-detect rejects YAML that does not match any supported family."""
+    bad = tmp_path / "random.yml"
+    bad.write_text("foo: bar\nbaz: 1\n", encoding="utf-8")
+    rc = cli_main(["validate", str(bad)])
+    assert rc == 1
+    assert "could not infer YAML kind" in capsys.readouterr().err
 
 
 # ── version subcommand ──────────────────────────────────────────────

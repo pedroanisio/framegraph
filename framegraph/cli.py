@@ -7,6 +7,7 @@ Usage
                                     [--4k] [--pdf [--vector] [--dpi N]]
     framegraph deck     deck.yml    [-o output_dir/] [--quiet]
                                     [--4k] [--pdf [--vector] [--dpi N]]
+    framegraph validate input.yml [--kind auto|framegraph|pattern-sidecar|pattern-catalog]
     framegraph docs     [-o catalog.json]
     framegraph patterns list [--category=generic|consulting|expert]
                              [--has-sidecar] [--json]
@@ -58,6 +59,84 @@ import yaml
 
 if TYPE_CHECKING:
     from PIL import Image as PILImage
+
+
+def _detect_validation_kind(data: Any) -> str | None:
+    """Infer which schema family a YAML payload most likely belongs to."""
+    if not isinstance(data, dict):
+        return None
+    if data.get("dsl") == "FrameGraph":
+        return "framegraph"
+    if "slide_template_patterns" in data:
+        return "pattern-catalog"
+    if "pattern_id" in data and ("zones" in data or "example_fill" in data):
+        return "pattern-sidecar"
+    return None
+
+
+def cmd_validate(args: argparse.Namespace) -> int:
+    """Handle `framegraph validate` — schema-check a YAML file without rendering.
+
+    Auto-detects the project's supported YAML families:
+
+    - FrameGraph documents / decks / framesets (`dsl: FrameGraph`)
+    - pattern sidecars (`pattern_id`, `zones`, optional `example_fill`)
+    - pattern catalogs (`slide_template_patterns`)
+
+    Returns 0 on success and 1 on parse/validation failure.
+    """
+    from pydantic import ValidationError
+
+    try:
+        data = yaml.safe_load(Path(args.input).read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"ERROR loading {args.input}: {e}", file=sys.stderr)
+        return 1
+
+    kind = args.kind
+    if kind == "auto":
+        kind = _detect_validation_kind(data)
+        if kind is None:
+            print(
+                "ERROR: could not infer YAML kind. Expected one of: "
+                "`dsl: FrameGraph`, `slide_template_patterns`, or "
+                "`pattern_id` + `zones`/`example_fill`.",
+                file=sys.stderr,
+            )
+            return 1
+
+    try:
+        if kind == "framegraph":
+            from framegraph._schema import validate_any
+
+            model = validate_any(data)
+            label = model.__class__.__name__
+        elif kind == "pattern-sidecar":
+            from framegraph.patterns.sidecar import load_sidecar
+
+            model = load_sidecar(args.input)
+            label = model.__class__.__name__
+        elif kind == "pattern-catalog":
+            from framegraph._patterns import load_pattern_catalog
+
+            model = load_pattern_catalog(args.input)
+            label = model.__class__.__name__
+        else:
+            print(f"ERROR: unsupported validation kind {kind!r}", file=sys.stderr)
+            return 1
+    except ValidationError as exc:
+        print(f"ERROR: validation failed:\n{exc}", file=sys.stderr)
+        return 1
+    except (ValueError, KeyError, TypeError, NotImplementedError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:
+        print(f"ERROR validating: {exc}", file=sys.stderr)
+        return 1
+
+    if not args.quiet:
+        print(f"VALID: {args.input}  [{kind} → {label}]")
+    return 0
 
 
 def cmd_render(args: argparse.Namespace) -> int:
@@ -1428,6 +1507,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     # docs
+    vp = sub.add_parser(
+        "validate",
+        help=(
+            "Validate a YAML file against FrameGraph schemas without rendering. "
+            "Auto-detects FrameGraph documents/decks/framesets, pattern sidecars, "
+            "and pattern catalogs."
+        ),
+    )
+    vp.add_argument("input", help="Input YAML file")
+    vp.add_argument(
+        "--kind",
+        choices=["auto", "framegraph", "pattern-sidecar", "pattern-catalog"],
+        default="auto",
+        help="Validation schema family (default: auto-detect)",
+    )
+    vp.add_argument("--quiet", action="store_true", help="Suppress success output")
+
+    # docs
     docs_p = sub.add_parser(
         "docs",
         help=(
@@ -1655,6 +1752,7 @@ def main(argv: list[str] | None = None) -> int:
     dispatch = {
         "render": cmd_render,
         "deck": cmd_deck,
+        "validate": cmd_validate,
         "docs": cmd_docs,
         "sitemap": cmd_sitemap,
         "version": cmd_version,
