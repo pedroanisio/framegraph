@@ -184,7 +184,7 @@ slides:
           z: 0
           objects:
             - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
-            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: dark_grad}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
             - {type: rect, id: btm_band, decorative: true, box: [0, 860, 1920, 220], fill: panel_lift}
 
         - id: content
@@ -262,7 +262,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
 
         - id: header
@@ -300,7 +300,7 @@ slides:
 
             # Corollary 4
             - {type: rect, id: c4_bg, decorative: true,
-               box: [80, 342, 840, 200], fill: panel, radius: 10}
+               box: [80, 342, 840, 200], fill: panel, radius: 10, shadow: small}
             - {type: rect, id: c4_bar, decorative: true,
                box: [80, 342, 6, 200], fill: brand}
             - {type: rect, id: c4_pill, decorative: true,
@@ -316,7 +316,7 @@ slides:
 
             # Corollary 5
             - {type: rect, id: c5_bg, decorative: true,
-               box: [1000, 342, 840, 200], fill: panel, radius: 10}
+               box: [1000, 342, 840, 200], fill: panel, radius: 10, shadow: small}
             - {type: rect, id: c5_bar, decorative: true,
                box: [1000, 342, 6, 200], fill: amber}
             - {type: rect, id: c5_pill, decorative: true,
@@ -354,7 +354,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill, decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill, decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080], fill: brand}
 
         - id: header
@@ -391,47 +391,47 @@ slides:
         - id: table
           z: 3
           objects:
-            - {type: rect, id: r1, decorative: true, box: [80, 278, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r1, decorative: true, box: [80, 278, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r1b, decorative: true, box: [80, 278, 4, 64], fill: brand}
             - {type: text, id: r1l, text: "ERR_HALLUCINATION", box: [96, 286, 220, 20], style: sm_b}
             - {type: text, id: r1d, text: "Afirmações fabricadas, apresentadas com convicção como se fossem fatos.", box: [320, 286, 560, 36], style: body}
 
-            - {type: rect, id: r2, decorative: true, box: [80, 356, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r2, decorative: true, box: [80, 356, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r2b, decorative: true, box: [80, 356, 4, 64], fill: brand}
             - {type: text, id: r2l, text: "ERR_OMISSION", box: [96, 364, 220, 20], style: sm_b}
             - {type: text, id: r2d, text: "Informação obrigatória que simplesmente não aparece na resposta.", box: [320, 364, 560, 36], style: body}
 
-            - {type: rect, id: r3, decorative: true, box: [80, 434, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r3, decorative: true, box: [80, 434, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r3b, decorative: true, box: [80, 434, 4, 64], fill: brand}
             - {type: text, id: r3l, text: "ERR_SCHEMA", box: [96, 442, 220, 20], style: sm_b}
             - {type: text, id: r3d, text: "A resposta não respeita o formato exigido.", box: [320, 442, 560, 36], style: body}
 
-            - {type: rect, id: r4, decorative: true, box: [80, 512, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r4, decorative: true, box: [80, 512, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r4b, decorative: true, box: [80, 512, 4, 64], fill: brand}
             - {type: text, id: r4l, text: "ERR_TRUNCATION", box: [96, 520, 220, 20], style: sm_b}
             - {type: text, id: r4d, text: "A resposta é interrompida no meio, sem aviso.", box: [320, 520, 560, 36], style: body}
 
-            - {type: rect, id: r5, decorative: true, box: [80, 590, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r5, decorative: true, box: [80, 590, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r5b, decorative: true, box: [80, 590, 4, 64], fill: brand}
             - {type: text, id: r5l, text: "ERR_SYCOPHANCY", box: [96, 598, 220, 20], style: sm_b}
             - {type: text, id: r5d, text: "A resposta busca agradar em vez de dizer a verdade.", box: [320, 598, 560, 36], style: body}
 
-            - {type: rect, id: r6, decorative: true, box: [1000, 278, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r6, decorative: true, box: [1000, 278, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r6b, decorative: true, box: [1000, 278, 4, 64], fill: brand}
             - {type: text, id: r6l, text: "ERR_INSTRUCTION", box: [1016, 286, 220, 20], style: sm_b}
             - {type: text, id: r6d, text: "Instruções claras dadas no prompt são ignoradas.", box: [1240, 286, 560, 36], style: body}
 
-            - {type: rect, id: r7, decorative: true, box: [1000, 356, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r7, decorative: true, box: [1000, 356, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r7b, decorative: true, box: [1000, 356, 4, 64], fill: brand}
             - {type: text, id: r7l, text: "ERR_CALIBRATION", box: [1016, 364, 220, 20], style: sm_b}
             - {type: text, id: r7d, text: "O modelo expressa confiança que não condiz com sua real precisão.", box: [1240, 364, 560, 36], style: body}
 
-            - {type: rect, id: r8, decorative: true, box: [1000, 434, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r8, decorative: true, box: [1000, 434, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r8b, decorative: true, box: [1000, 434, 4, 64], fill: brand}
             - {type: text, id: r8l, text: "ERR_REASONING", box: [1016, 442, 220, 20], style: sm_b}
             - {type: text, id: r8d, text: "Os fatos podem estar certos, mas a lógica que os conecta está errada.", box: [1240, 442, 560, 36], style: body}
 
-            - {type: rect, id: r9, decorative: true, box: [1000, 512, 840, 64], fill: panel, radius: 8}
+            - {type: rect, id: r9, decorative: true, box: [1000, 512, 840, 64], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: r9b, decorative: true, box: [1000, 512, 4, 64], fill: brand}
             - {type: text, id: r9l, text: "ERR_SEMANTIC", box: [1016, 520, 220, 20], style: sm_b}
             - {type: text, id: r9d, text: "A forma da resposta está correta, mas o significado está errado.", box: [1240, 520, 560, 36], style: body}
@@ -439,7 +439,7 @@ slides:
         - id: takeaway
           z: 4
           objects:
-            - {type: rect, id: tk_bg, decorative: true, box: [80, 690, 1760, 110], fill: panel, radius: 10}
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 690, 1760, 110], fill: panel_lift, radius: 10, shadow: small}
             - {type: text, id: tk_h, text: "Consequência prática para o design", box: [110, 718, 500, 28], style: h3}
             - {type: text, id: tk_t, text: "Cada classe de erro pede um tipo específico de verificação. Checagem de estrutura não pega problema de significado; checagem de significado não substitui a de estrutura.", box: [110, 754, 1600, 32], style: h2}
 
@@ -455,7 +455,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: red}
             - {type: rect, id: channel_band, decorative: true,
                box: [0, 0, 1920, 8], fill: red}
@@ -477,7 +477,7 @@ slides:
                box: [80, 138, 1500, 44], style: h2}
 
             # Row 1: HALLUCINATION
-            - {type: rect, id: ff_r1, decorative: true, box: [80, 216, 840, 152], fill: panel, radius: 10}
+            - {type: rect, id: ff_r1, decorative: true, box: [80, 216, 840, 152], fill: panel, radius: 10, shadow: small}
             - {type: rect, id: ff_r1b, decorative: true, box: [80, 216, 4, 152], fill: red}
             - {type: rect, id: ff_r1_pill, decorative: true, box: [104, 232, 192, 28], fill: red, radius: 6}
             - {type: text, id: ff_r1_pt, text: "ERR_HALLUCINATION", box: [104, 232, 192, 28], style: tag_w}
@@ -486,7 +486,7 @@ slides:
                box: [104, 268, 800, 88], style: body}
 
             # Row 2: OMISSION
-            - {type: rect, id: ff_r2, decorative: true, box: [1000, 216, 840, 152], fill: panel, radius: 10}
+            - {type: rect, id: ff_r2, decorative: true, box: [1000, 216, 840, 152], fill: panel, radius: 10, shadow: small}
             - {type: rect, id: ff_r2b, decorative: true, box: [1000, 216, 4, 152], fill: red}
             - {type: rect, id: ff_r2_pill, decorative: true, box: [1024, 232, 162, 28], fill: red, radius: 6}
             - {type: text, id: ff_r2_pt, text: "ERR_OMISSION", box: [1024, 232, 162, 28], style: tag_w}
@@ -495,7 +495,7 @@ slides:
                box: [1024, 268, 800, 88], style: body}
 
             # Row 3: SCHEMA
-            - {type: rect, id: ff_r3, decorative: true, box: [80, 392, 840, 152], fill: panel, radius: 10}
+            - {type: rect, id: ff_r3, decorative: true, box: [80, 392, 840, 152], fill: panel, radius: 10, shadow: small}
             - {type: rect, id: ff_r3b, decorative: true, box: [80, 392, 4, 152], fill: red}
             - {type: rect, id: ff_r3_pill, decorative: true, box: [104, 408, 134, 28], fill: red, radius: 6}
             - {type: text, id: ff_r3_pt, text: "ERR_SCHEMA", box: [104, 408, 134, 28], style: tag_w}
@@ -504,7 +504,7 @@ slides:
                box: [104, 444, 800, 88], style: body}
 
             # Row 4: TRUNCATION
-            - {type: rect, id: ff_r4, decorative: true, box: [1000, 392, 840, 152], fill: panel, radius: 10}
+            - {type: rect, id: ff_r4, decorative: true, box: [1000, 392, 840, 152], fill: panel, radius: 10, shadow: small}
             - {type: rect, id: ff_r4b, decorative: true, box: [1000, 392, 4, 152], fill: red}
             - {type: rect, id: ff_r4_pill, decorative: true, box: [1024, 408, 182, 28], fill: red, radius: 6}
             - {type: text, id: ff_r4_pt, text: "ERR_TRUNCATION", box: [1024, 408, 182, 28], style: tag_w}
@@ -568,7 +568,7 @@ slides:
           z: 3
           objects:
             - {type: rect, id: v_bg, decorative: true,
-               box: [80, 980, 1760, 50], fill: panel, radius: 8}
+               box: [80, 980, 1760, 50], fill: panel_lift, radius: 8, shadow: small}
             - {type: text, id: v_t,
                text: "Em resumo: usar schema reduz os erros possíveis à camada de significado. Garante que a forma está certa — não que o conteúdo é verdadeiro.",
                box: [120, 995, 1680, 32], style: h2}
@@ -585,7 +585,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: amber}
             - {type: rect, id: channel_band, decorative: true,
                box: [0, 0, 1920, 8], fill: amber}
@@ -614,7 +614,7 @@ slides:
                text: "Eliminado pela validação de schema",
                box: [104, 210, 720, 56], style: ctr_w}
 
-            - {type: rect, id: cv_r1, decorative: true, box: [104, 294, 710, 130], fill: panel, radius: 8}
+            - {type: rect, id: cv_r1, decorative: true, box: [104, 294, 710, 130], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: cv_r1b, decorative: true, box: [104, 294, 5, 130], fill: green}
             - {type: rect, id: cv_r1_pill, decorative: true, box: [120, 310, 134, 26], fill: green, radius: 6}
             - {type: text, id: cv_r1_pt, text: "ERR_SCHEMA", box: [120, 310, 134, 26], style: tag_w}
@@ -622,7 +622,7 @@ slides:
                text: "Toda resposta que não passa pela validação de schema é rejeitada. Nenhuma saída com estrutura inválida consegue passar.",
                box: [120, 346, 680, 66], style: sm_ink}
 
-            - {type: rect, id: cv_r2, decorative: true, box: [104, 444, 710, 130], fill: panel, radius: 8}
+            - {type: rect, id: cv_r2, decorative: true, box: [104, 444, 710, 130], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: cv_r2b, decorative: true, box: [104, 444, 5, 130], fill: amber}
             - {type: rect, id: cv_r2_pill, decorative: true, box: [120, 460, 182, 26], fill: amber, radius: 6}
             - {type: text, id: cv_r2_pt, text: "ERR_TRUNCATION", box: [120, 460, 182, 26], style: tag_w}
@@ -630,7 +630,7 @@ slides:
                text: "Os campos obrigatórios definidos no schema são checados. Se a resposta foi cortada e algum desses campos sumiu, a falha é detectada.",
                box: [120, 496, 680, 66], style: sm_ink}
 
-            - {type: rect, id: cv_r3, decorative: true, box: [104, 594, 710, 130], fill: panel, radius: 8}
+            - {type: rect, id: cv_r3, decorative: true, box: [104, 594, 710, 130], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: cv_r3b, decorative: true, box: [104, 594, 5, 130], fill: amber}
             - {type: rect, id: cv_r3_pill, decorative: true, box: [120, 610, 162, 26], fill: amber, radius: 6}
             - {type: text, id: cv_r3_pt, text: "ERR_HALLUCINATION (parcial)", box: [120, 610, 162, 26], style: tag_w}
@@ -651,7 +651,7 @@ slides:
                text: "Seis classes precisam de compreensão de significado. Schema valida forma, não sentido.",
                box: [924, 294, 890, 66], style: body}
 
-            - {type: rect, id: exp_r1, decorative: true, box: [924, 378, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: exp_r1, decorative: true, box: [924, 378, 890, 130], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: exp_r1b, decorative: true, box: [924, 378, 5, 130], fill: red}
             - {type: rect, id: exp_r1_pill, decorative: true, box: [940, 394, 162, 26], fill: dark, radius: 6}
             - {type: text, id: exp_r1_pt, text: "ERR_OMISSION", box: [940, 394, 162, 26], style: tag_w}
@@ -659,7 +659,7 @@ slides:
                text: "Um campo pode estar presente com a forma correta, mas vazio de significado ou incompleto no conteúdo. A relevância do que está ali continua em aberto.",
                box: [940, 430, 860, 66], style: sm_ink}
 
-            - {type: rect, id: exp_r2, decorative: true, box: [924, 528, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: exp_r2, decorative: true, box: [924, 528, 890, 130], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: exp_r2b, decorative: true, box: [924, 528, 5, 130], fill: red}
             - {type: rect, id: exp_r2_pill, decorative: true, box: [940, 544, 160, 26], fill: dark, radius: 6}
             - {type: text, id: exp_r2_pt, text: "ERR_SYCOPHANCY", box: [940, 544, 160, 26], style: tag_w}
@@ -667,7 +667,7 @@ slides:
                text: "Uma resposta estruturalmente válida pode ter sido fabricada só para agradar. A busca por aprovação fica invisível para o schema.",
                box: [940, 580, 860, 66], style: sm_ink}
 
-            - {type: rect, id: exp_r3, decorative: true, box: [924, 678, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: exp_r3, decorative: true, box: [924, 678, 890, 130], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: exp_r3b, decorative: true, box: [924, 678, 5, 130], fill: red}
             - {type: rect, id: exp_r3_pill, decorative: true, box: [940, 694, 148, 26], fill: dark, radius: 6}
             - {type: text, id: exp_r3_pt, text: "ERR_SEMANTIC", box: [940, 694, 148, 26], style: tag_w}
@@ -687,7 +687,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: green}
             - {type: rect, id: channel_band, decorative: true,
                box: [0, 0, 1920, 8], fill: green}
@@ -729,7 +729,7 @@ slides:
                text: "O que o Validador passa a cobrir",
                box: [104, 258, 720, 64], style: ctr_w}
 
-            - {type: rect, id: cv1, decorative: true, box: [104, 342, 710, 100], fill: panel, radius: 8}
+            - {type: rect, id: cv1, decorative: true, box: [104, 342, 710, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: cv1b, decorative: true, box: [104, 342, 5, 100], fill: green}
             - {type: rect, id: cv1_pill, decorative: true, box: [120, 356, 162, 26], fill: green, radius: 6}
             - {type: text, id: cv1_pt,
@@ -738,7 +738,7 @@ slides:
                text: "Totalmente coberto quando as restrições do prompt são transformadas em regras do validador. Respostas que descumprem essas regras são rejeitadas automaticamente.",
                box: [120, 390, 680, 44], style: sm_ink}
 
-            - {type: rect, id: cv2, decorative: true, box: [104, 452, 710, 100], fill: panel, radius: 8}
+            - {type: rect, id: cv2, decorative: true, box: [104, 452, 710, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: cv2b, decorative: true, box: [104, 452, 5, 100], fill: green}
             - {type: rect, id: cv2_pill, decorative: true, box: [120, 466, 186, 26], fill: green, radius: 6}
             - {type: text, id: cv2_pt,
@@ -747,7 +747,7 @@ slides:
                text: "Listas de valores permitidos e faixas numéricas pegam alucinações óbvias. O validador rejeita respostas com campos fora dos valores aceitos. Mas o núcleo do problema — o significado — segue fora de alcance.",
                box: [120, 500, 680, 44], style: sm_ink}
 
-            - {type: rect, id: cv3, decorative: true, box: [104, 562, 710, 100], fill: panel, radius: 8}
+            - {type: rect, id: cv3, decorative: true, box: [104, 562, 710, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: cv3b, decorative: true, box: [104, 562, 5, 100], fill: green}
             - {type: rect, id: cv3_pill, decorative: true, box: [120, 576, 162, 26], fill: green, radius: 6}
             - {type: text, id: cv3_pt,
@@ -756,7 +756,7 @@ slides:
                text: "Regras de consistência entre campos pegam contradições óbvias: uma data inicial posterior à final, um total que não bate com a soma das partes.",
                box: [120, 610, 680, 44], style: sm_ink}
 
-            - {type: rect, id: cv4, decorative: true, box: [104, 672, 710, 100], fill: panel, radius: 8}
+            - {type: rect, id: cv4, decorative: true, box: [104, 672, 710, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: cv4b, decorative: true, box: [104, 672, 5, 100], fill: green}
             - {type: rect, id: cv4_pill, decorative: true, box: [120, 686, 140, 26], fill: green, radius: 6}
             - {type: text, id: cv4_pt,
@@ -765,7 +765,7 @@ slides:
                text: "Regras de completude que vão além dos campos obrigatórios do schema. O validador exige uma completude de domínio que o schema sozinho não consegue expressar.",
                box: [120, 720, 680, 44], style: sm_ink}
 
-            - {type: rect, id: cv5, decorative: true, box: [104, 782, 710, 100], fill: panel, radius: 8}
+            - {type: rect, id: cv5, decorative: true, box: [104, 782, 710, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: cv5b, decorative: true, box: [104, 782, 5, 100], fill: green}
             - {type: rect, id: cv5_pill, decorative: true, box: [120, 796, 124, 26], fill: green, radius: 6}
             - {type: text, id: cv5_pt,
@@ -787,7 +787,7 @@ slides:
                text: "Estas três classes resistem à automação completa, por mais sofisticado que seja o validador. O predicado de erro ε não é computável no caso geral para nenhuma delas. Não é uma lacuna de engenharia — é um limite teórico.",
                box: [924, 342, 890, 90], style: body}
 
-            - {type: rect, id: rr1, decorative: true, box: [924, 448, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: rr1, decorative: true, box: [924, 448, 890, 130], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: rr1b, decorative: true, box: [924, 448, 5, 130], fill: red}
             - {type: rect, id: rr1_pill, decorative: true, box: [940, 462, 148, 26], fill: dark, radius: 6}
             - {type: text, id: rr1_pt,
@@ -796,7 +796,7 @@ slides:
                text: "O validador consegue confirmar que um campo contém um texto que segue um padrão. Não consegue confirmar que esse texto se refere à coisa certa no mundo real. Significado não é decidível só a partir da estrutura.",
                box: [940, 496, 860, 70], style: sm_ink}
 
-            - {type: rect, id: rr2, decorative: true, box: [924, 590, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: rr2, decorative: true, box: [924, 590, 890, 130], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: rr2b, decorative: true, box: [924, 590, 5, 130], fill: red}
             - {type: rect, id: rr2_pill, decorative: true, box: [940, 604, 160, 26], fill: dark, radius: 6}
             - {type: text, id: rr2_pt,
@@ -805,7 +805,7 @@ slides:
                text: "O validador não tem acesso ao objetivo que guiou a geração da resposta. Não consegue distinguir uma resposta que busca agradar de uma que busca a verdade. A detecção exige testes adversariais ou revisão por especialista.",
                box: [940, 638, 860, 70], style: sm_ink}
 
-            - {type: rect, id: rr3, decorative: true, box: [924, 732, 890, 130], fill: panel, radius: 8}
+            - {type: rect, id: rr3, decorative: true, box: [924, 732, 890, 130], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: rr3b, decorative: true, box: [924, 732, 5, 130], fill: red}
             - {type: rect, id: rr3_pill, decorative: true, box: [940, 746, 172, 26], fill: dark, radius: 6}
             - {type: text, id: rr3_pt,
@@ -826,7 +826,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: purple}
 
         - id: header
@@ -847,7 +847,7 @@ slides:
 
             # ERR_SYCOPHANCY
             - {type: rect, id: rs1, decorative: true,
-               box: [80, 196, 546, 260], fill: panel, radius: 12}
+               box: [80, 196, 546, 260], fill: panel, radius: 12, shadow: small}
             - {type: rect, id: rs1b, decorative: true, box: [80, 196, 6, 260], fill: purple}
             - {type: rect, id: rs1_pill, decorative: true,
                box: [104, 212, 160, 28], fill: purple, radius: 6}
@@ -865,7 +865,7 @@ slides:
 
             # ERR_CALIBRATION
             - {type: rect, id: rs2, decorative: true,
-               box: [686, 196, 546, 260], fill: panel, radius: 12}
+               box: [686, 196, 546, 260], fill: panel, radius: 12, shadow: small}
             - {type: rect, id: rs2b, decorative: true, box: [686, 196, 6, 260], fill: purple}
             - {type: rect, id: rs2_pill, decorative: true,
                box: [710, 212, 172, 28], fill: purple, radius: 6}
@@ -883,7 +883,7 @@ slides:
 
             # Referential grounding failure
             - {type: rect, id: rs3, decorative: true,
-               box: [1292, 196, 546, 260], fill: panel, radius: 12}
+               box: [1292, 196, 546, 260], fill: panel, radius: 12, shadow: small}
             - {type: rect, id: rs3b, decorative: true, box: [1292, 196, 6, 260], fill: purple}
             - {type: rect, id: rs3_pill, decorative: true,
                box: [1316, 212, 148, 28], fill: purple, radius: 6}
@@ -909,7 +909,7 @@ slides:
                box: [104, 508, 1400, 36], style: h2}
 
             - {type: rect, id: c4, decorative: true,
-               box: [104, 558, 840, 150], fill: panel, radius: 8}
+               box: [104, 558, 840, 150], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: c4b, decorative: true, box: [104, 558, 5, 150], fill: red}
             - {type: rect, id: c4_pill, decorative: true,
                box: [120, 572, 150, 26], fill: red, radius: 6}
@@ -920,7 +920,7 @@ slides:
                box: [120, 606, 806, 90], style: body}
 
             - {type: rect, id: c5, decorative: true,
-               box: [1000, 558, 840, 150], fill: panel, radius: 8}
+               box: [1000, 558, 840, 150], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: c5b, decorative: true, box: [1000, 558, 5, 150], fill: amber}
             - {type: rect, id: c5_pill, decorative: true,
                box: [1016, 572, 150, 26], fill: amber, radius: 6}
@@ -953,7 +953,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: amber}
 
         - id: header
@@ -971,7 +971,7 @@ slides:
         - id: scenario
           z: 2
           objects:
-            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8}
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
             - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
             - {type: text, id: scn_t,
@@ -981,7 +981,7 @@ slides:
         - id: prompt_output
           z: 3
           objects:
-            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
             - {type: text, id: prm_h,   text: "Entrada (prompt)", box: [80, 290, 860, 38], style: ctr_w}
             - type: text
@@ -997,7 +997,7 @@ slides:
                   amount         (number)
                   reason         (string)
 
-            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
             - {type: text, id: out_h,
                text: "Saída do modelo (estruturalmente impecável)",
@@ -1031,7 +1031,7 @@ slides:
             - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
                box: [80, 690, 1500, 28], style: h3}
 
-            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: v1_bar,  decorative: true, box: [80, 728, 5, 200],   fill: red}
             - {type: rect, id: v1_pill, decorative: true, box: [104, 744, 154, 26], fill: red, radius: 6}
             - {type: text, id: v1_pt,   text: "Free Form", box: [104, 744, 154, 26], style: tag_w}
@@ -1041,7 +1041,7 @@ slides:
                text: "Sem estrutura nem regras, o sistema repassa o texto adiante. Detecção depende totalmente de revisão humana — se ela acontecer.",
                box: [104, 806, 552, 110], style: sm_ink}
 
-            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: v2_bar,  decorative: true, box: [690, 728, 5, 200],   fill: amber}
             - {type: rect, id: v2_pill, decorative: true, box: [714, 744, 200, 26],  fill: amber, radius: 6}
             - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 744, 200, 26], style: tag_w}
@@ -1051,7 +1051,7 @@ slides:
                text: "JSON correto, todos os campos presentes, tipos batem. O schema não tem como saber que 'Maria Silva' não existe ou que a seção 4.2 é inventada.",
                box: [714, 806, 552, 110], style: sm_ink}
 
-            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8}
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: v3_bar,  decorative: true, box: [1300, 728, 5, 200],   fill: green}
             - {type: rect, id: v3_pill, decorative: true, box: [1324, 744, 130, 26],  fill: green, radius: 6}
             - {type: text, id: v3_pt,   text: "Validador", box: [1324, 744, 130, 26], style: tag_w}
@@ -1081,7 +1081,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: green}
 
         - id: header
@@ -1099,7 +1099,7 @@ slides:
         - id: scenario
           z: 2
           objects:
-            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8}
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
             - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
             - {type: text, id: scn_t,
@@ -1109,7 +1109,7 @@ slides:
         - id: prompt_output
           z: 3
           objects:
-            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
             - {type: text, id: prm_h,   text: "Entrada (prompt)", box: [80, 290, 860, 38], style: ctr_w}
             - type: text
@@ -1125,7 +1125,7 @@ slides:
 
                 Output: { start_date, end_date }   (ISO 8601)
 
-            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
             - {type: text, id: out_h,
                text: "Saída do modelo (datas válidas, mas invertidas)",
@@ -1157,7 +1157,7 @@ slides:
             - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
                box: [80, 690, 1500, 28], style: h3}
 
-            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: v1_bar,  decorative: true, box: [80, 728, 5, 200],   fill: red}
             - {type: rect, id: v1_pill, decorative: true, box: [104, 744, 154, 26], fill: red, radius: 6}
             - {type: text, id: v1_pt,   text: "Free Form", box: [104, 744, 154, 26], style: tag_w}
@@ -1167,7 +1167,7 @@ slides:
                text: "Sem estrutura, ninguém compara as datas. A detecção depende de revisão humana — ou de o sistema a jusante quebrar quando tentar usar o intervalo.",
                box: [104, 806, 552, 110], style: sm_ink}
 
-            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: v2_bar,  decorative: true, box: [690, 728, 5, 200],   fill: amber}
             - {type: rect, id: v2_pill, decorative: true, box: [714, 744, 200, 26],  fill: amber, radius: 6}
             - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 744, 200, 26], style: tag_w}
@@ -1177,7 +1177,7 @@ slides:
                text: "Cada data, isolada, é um valor ISO 8601 válido. O schema valida campos um a um — não tem como ver a relação entre eles.",
                box: [714, 806, 552, 110], style: sm_ink}
 
-            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8}
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: v3_bar,  decorative: true, box: [1300, 728, 5, 200],   fill: green}
             - {type: rect, id: v3_pill, decorative: true, box: [1324, 744, 130, 26],  fill: green, radius: 6}
             - {type: text, id: v3_pt,   text: "Validador", box: [1324, 744, 130, 26], style: tag_w}
@@ -1207,7 +1207,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: purple}
 
         - id: header
@@ -1225,7 +1225,7 @@ slides:
         - id: scenario
           z: 2
           objects:
-            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8}
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
             - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
             - {type: text, id: scn_t,
@@ -1235,7 +1235,7 @@ slides:
         - id: prompt_output
           z: 3
           objects:
-            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
             - {type: text, id: prm_h,   text: "Entrada (prompt)", box: [80, 290, 860, 38], style: ctr_w}
             - type: text
@@ -1254,7 +1254,7 @@ slides:
 
                 Is it secure?
 
-            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8}
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
             - {type: text, id: out_h,
                text: "Saída do modelo (concorda com confiança)",
@@ -1290,7 +1290,7 @@ slides:
             - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
                box: [80, 690, 1500, 28], style: h3}
 
-            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: v1_bar,  decorative: true, box: [80, 728, 5, 200],   fill: red}
             - {type: rect, id: v1_pill, decorative: true, box: [104, 744, 154, 26], fill: red, radius: 6}
             - {type: text, id: v1_pt,   text: "Free Form", box: [104, 744, 154, 26], style: tag_w}
@@ -1300,7 +1300,7 @@ slides:
                text: "Texto livre, sem nenhuma checagem. A desenvolvedora confia na resposta de 'alta confiança' e a vulnerabilidade vai para produção.",
                box: [104, 806, 552, 110], style: sm_ink}
 
-            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8}
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: v2_bar,  decorative: true, box: [690, 728, 5, 200],   fill: red}
             - {type: rect, id: v2_pill, decorative: true, box: [714, 744, 200, 26],  fill: red, radius: 6}
             - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 744, 200, 26], style: tag_w}
@@ -1310,7 +1310,7 @@ slides:
                text: "Schema valida estrutura. Aqui não há estrutura — apenas prosa. E mesmo se houvesse JSON, o erro está no significado, não na forma.",
                box: [714, 806, 552, 110], style: sm_ink}
 
-            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8}
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: v3_bar,  decorative: true, box: [1300, 728, 5, 200],   fill: red}
             - {type: rect, id: v3_pill, decorative: true, box: [1324, 744, 130, 26],  fill: red, radius: 6}
             - {type: text, id: v3_pt,   text: "Validador", box: [1324, 744, 130, 26], style: tag_w}
@@ -1340,7 +1340,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
 
         - id: header
@@ -1547,7 +1547,7 @@ slides:
         - id: bg
           z: 0
           objects:
-            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg}
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
             - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
 
         - id: header
@@ -1566,7 +1566,7 @@ slides:
           z: 2
           objects:
             # 1 — LLM
-            - {type: rect, id: g1_bg,   decorative: true, box: [80, 196, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g1_bg,   decorative: true, box: [80, 196, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g1_bar,  decorative: true, box: [80, 196, 5, 100],   fill: brand}
             - {type: rect, id: g1_pill, decorative: true, box: [104, 208, 220, 26], fill: brand, radius: 6}
             - {type: text, id: g1_pt,   text: "LLM", box: [104, 208, 220, 26], style: tag_w}
@@ -1575,7 +1575,7 @@ slides:
                box: [104, 240, 820, 50], style: sm_ink}
 
             # 2 — GenAI
-            - {type: rect, id: g2_bg,   decorative: true, box: [80, 302, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g2_bg,   decorative: true, box: [80, 302, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g2_bar,  decorative: true, box: [80, 302, 5, 100],   fill: brand}
             - {type: rect, id: g2_pill, decorative: true, box: [104, 314, 220, 26], fill: brand, radius: 6}
             - {type: text, id: g2_pt,   text: "GenAI", box: [104, 314, 220, 26], style: tag_w}
@@ -1584,7 +1584,7 @@ slides:
                box: [104, 346, 820, 50], style: sm_ink}
 
             # 3 — Prompt
-            - {type: rect, id: g3_bg,   decorative: true, box: [80, 408, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g3_bg,   decorative: true, box: [80, 408, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g3_bar,  decorative: true, box: [80, 408, 5, 100],   fill: brand}
             - {type: rect, id: g3_pill, decorative: true, box: [104, 420, 220, 26], fill: brand, radius: 6}
             - {type: text, id: g3_pt,   text: "Prompt", box: [104, 420, 220, 26], style: tag_w}
@@ -1593,7 +1593,7 @@ slides:
                box: [104, 452, 820, 50], style: sm_ink}
 
             # 4 — Schema
-            - {type: rect, id: g4_bg,   decorative: true, box: [80, 514, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g4_bg,   decorative: true, box: [80, 514, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g4_bar,  decorative: true, box: [80, 514, 5, 100],   fill: amber}
             - {type: rect, id: g4_pill, decorative: true, box: [104, 526, 220, 26], fill: amber, radius: 6}
             - {type: text, id: g4_pt,   text: "Schema", box: [104, 526, 220, 26], style: tag_w}
@@ -1602,7 +1602,7 @@ slides:
                box: [104, 558, 820, 50], style: sm_ink}
 
             # 5 — Instance
-            - {type: rect, id: g5_bg,   decorative: true, box: [80, 620, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g5_bg,   decorative: true, box: [80, 620, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g5_bar,  decorative: true, box: [80, 620, 5, 100],   fill: amber}
             - {type: rect, id: g5_pill, decorative: true, box: [104, 632, 220, 26], fill: amber, radius: 6}
             - {type: text, id: g5_pt,   text: "Instance", box: [104, 632, 220, 26], style: tag_w}
@@ -1611,7 +1611,7 @@ slides:
                box: [104, 664, 820, 50], style: sm_ink}
 
             # 6 — Validador
-            - {type: rect, id: g6_bg,   decorative: true, box: [80, 726, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g6_bg,   decorative: true, box: [80, 726, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g6_bar,  decorative: true, box: [80, 726, 5, 100],   fill: amber}
             - {type: rect, id: g6_pill, decorative: true, box: [104, 738, 220, 26], fill: amber, radius: 6}
             - {type: text, id: g6_pt,   text: "Validador", box: [104, 738, 220, 26], style: tag_w}
@@ -1620,7 +1620,7 @@ slides:
                box: [104, 770, 820, 50], style: sm_ink}
 
             # 7 — Free Form
-            - {type: rect, id: g7_bg,   decorative: true, box: [80, 832, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g7_bg,   decorative: true, box: [80, 832, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g7_bar,  decorative: true, box: [80, 832, 5, 100],   fill: amber}
             - {type: rect, id: g7_pill, decorative: true, box: [104, 844, 220, 26], fill: amber, radius: 6}
             - {type: text, id: g7_pt,   text: "Free Form", box: [104, 844, 220, 26], style: tag_w}
@@ -1632,7 +1632,7 @@ slides:
           z: 2
           objects:
             # 8 — Enum
-            - {type: rect, id: g8_bg,   decorative: true, box: [980, 196, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g8_bg,   decorative: true, box: [980, 196, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g8_bar,  decorative: true, box: [980, 196, 5, 100],   fill: amber}
             - {type: rect, id: g8_pill, decorative: true, box: [1004, 208, 220, 26], fill: amber, radius: 6}
             - {type: text, id: g8_pt,   text: "Enum", box: [1004, 208, 220, 26], style: tag_w}
@@ -1641,7 +1641,7 @@ slides:
                box: [1004, 240, 820, 50], style: sm_ink}
 
             # 9 — RAG
-            - {type: rect, id: g9_bg,   decorative: true, box: [980, 302, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g9_bg,   decorative: true, box: [980, 302, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g9_bar,  decorative: true, box: [980, 302, 5, 100],   fill: purple}
             - {type: rect, id: g9_pill, decorative: true, box: [1004, 314, 220, 26], fill: purple, radius: 6}
             - {type: text, id: g9_pt,   text: "RAG", box: [1004, 314, 220, 26], style: tag_w}
@@ -1650,7 +1650,7 @@ slides:
                box: [1004, 346, 820, 50], style: sm_ink}
 
             # 10 — Token
-            - {type: rect, id: g10_bg,   decorative: true, box: [980, 408, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g10_bg,   decorative: true, box: [980, 408, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g10_bar,  decorative: true, box: [980, 408, 5, 100],   fill: purple}
             - {type: rect, id: g10_pill, decorative: true, box: [1004, 420, 220, 26], fill: purple, radius: 6}
             - {type: text, id: g10_pt,   text: "Token", box: [1004, 420, 220, 26], style: tag_w}
@@ -1659,7 +1659,7 @@ slides:
                box: [1004, 452, 820, 50], style: sm_ink}
 
             # 11 — Calibração
-            - {type: rect, id: g11_bg,   decorative: true, box: [980, 514, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g11_bg,   decorative: true, box: [980, 514, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g11_bar,  decorative: true, box: [980, 514, 5, 100],   fill: purple}
             - {type: rect, id: g11_pill, decorative: true, box: [1004, 526, 220, 26], fill: purple, radius: 6}
             - {type: text, id: g11_pt,   text: "Calibração", box: [1004, 526, 220, 26], style: tag_w}
@@ -1668,7 +1668,7 @@ slides:
                box: [1004, 558, 820, 50], style: sm_ink}
 
             # 12 — Predicado de erro (ε)
-            - {type: rect, id: g12_bg,   decorative: true, box: [980, 620, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g12_bg,   decorative: true, box: [980, 620, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g12_bar,  decorative: true, box: [980, 620, 5, 100],   fill: purple}
             - {type: rect, id: g12_pill, decorative: true, box: [1004, 632, 220, 26], fill: purple, radius: 6}
             - {type: text, id: g12_pt,   text: "Predicado de erro (ε)", box: [1004, 632, 220, 26], style: tag_w}
@@ -1677,7 +1677,7 @@ slides:
                box: [1004, 664, 820, 50], style: sm_ink}
 
             # 13 — Red-teaming
-            - {type: rect, id: g13_bg,   decorative: true, box: [980, 726, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g13_bg,   decorative: true, box: [980, 726, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g13_bar,  decorative: true, box: [980, 726, 5, 100],   fill: purple}
             - {type: rect, id: g13_pill, decorative: true, box: [1004, 738, 220, 26], fill: purple, radius: 6}
             - {type: text, id: g13_pt,   text: "Red-teaming", box: [1004, 738, 220, 26], style: tag_w}
@@ -1686,7 +1686,7 @@ slides:
                box: [1004, 770, 820, 50], style: sm_ink}
 
             # 14 — Ancoragem referencial
-            - {type: rect, id: g14_bg,   decorative: true, box: [980, 832, 860, 100], fill: panel, radius: 8}
+            - {type: rect, id: g14_bg,   decorative: true, box: [980, 832, 860, 100], fill: panel, radius: 8, shadow: small}
             - {type: rect, id: g14_bar,  decorative: true, box: [980, 832, 5, 100],   fill: purple}
             - {type: rect, id: g14_pill, decorative: true, box: [1004, 844, 220, 26], fill: purple, radius: 6}
             - {type: text, id: g14_pt,   text: "Ancoragem referencial", box: [1004, 844, 220, 26], style: tag_w}
