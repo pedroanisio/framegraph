@@ -1433,9 +1433,139 @@ slides:
                box: [110, 968, 1700, 36], style: bodyc}
 
   # ═══════════════════════════════════════════════════════════════════════
-  # 11  RESUMO ARQUITETÔNICO — MAPA DE COBERTURA
+  # 11  ESTUDO DE CASO #4 — QUANDO A FALHA CHEGA AO TRIBUNAL (CASO REAL)
   # ═══════════════════════════════════════════════════════════════════════
   - slide: 11
+    id: case_legal_citations
+    title: "Estudo de Caso #4 — Quando a Falha Chega ao Tribunal"
+    notes: "Caso real reportado pelo NYT (Santul Nerkar, 21/abr/2026): o escritório Sullivan & Cromwell pediu desculpas ao tribunal por submeter um documento contendo citações jurídicas fabricadas por IA. Mesmo padrão do Caso #1 — saída estruturalmente impecável, conteúdo inventado, e nenhuma camada automática de verificação no fluxo. Este slide é o exemplo terminal do argumento: não é teoria, é incidente em produção, em domínio crítico. A camada faltante, em todos os casos como este, é o lookup contra fonte autoritativa (Westlaw / LexisNexis / PACER) — exatamente a função que o validador desempenharia."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: amber}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Estudo de Caso #4 — Quando a Falha Chega ao Tribunal",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: amber}
+            - {type: text, id: sub,
+               text: "ERR_HALLUCINATION + ERR_SEMANTIC — caso real, reportado em abril de 2026.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: scenario
+          z: 2
+          objects:
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
+            - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
+            - {type: text, id: scn_t,
+               text: "Um(a) advogado(a) pede ao LLM precedentes para apoiar um argumento jurídico. O sistema devolve uma lista de citações em formato Bluebook impecável — nome de caso, volume, reporter, página, tribunal, ano.",
+               box: [110, 228, 1640, 36], style: body}
+
+        - id: prompt_output
+          z: 3
+          objects:
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: prm_h,   text: "Pedido típico (ilustrativo)", box: [80, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: prm_code
+              box: [104, 348, 820, 210]
+              style: mono_s
+              text: |
+                Provide three U.S. federal precedents
+                supporting the argument that a third-party
+                trustee owes a fiduciary duty to non-client
+                beneficiaries.
+
+                Format each as a standard Bluebook citation.
+
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: out_h,
+               text: "Saída típica (formato impecável, casos inexistentes)",
+               box: [980, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: out_code
+              box: [1004, 348, 820, 210]
+              style: mono_s
+              text: |
+                1. Henderson v. Whitfield Trust Co.,
+                   287 F.3d 145 (9th Cir. 2003).
+                2. In re Coleman-Brock Estate,
+                   412 F.Supp.2d 88 (D.D.C. 2009).
+                3. United States v. Marlowe Holdings,
+                   531 F.3d 712 (2d Cir. 2014).
+
+        - id: annotation
+          z: 4
+          objects:
+            - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 100], fill: red_wash, radius: 8, shadow: small}
+            - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 100],    fill: alert}
+            - {type: text, id: ann_h, text: "Por que está errado",
+               box: [110, 598, 400, 22], style: sm_alert}
+            - {type: text, id: ann_t,
+               text: "Em abril de 2026, o escritório Sullivan & Cromwell pediu desculpas ao tribunal após submeter um documento jurídico contendo citações fabricadas por IA — casos que não existem, redigidos no formato exato de uma citação real. Estrutura impecável (Bluebook, ano, reporter, página); conteúdo inventado. Nenhuma camada automática conferiu se os casos existiam.",
+               box: [110, 624, 1640, 64], style: body}
+
+        - id: verdict
+          z: 5
+          objects:
+            - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
+               box: [80, 710, 1500, 28], style: h3}
+
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 748, 580, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v1_bar,  decorative: true, box: [80, 748, 5, 200],   fill: alert}
+            - {type: rect, id: v1_pill, decorative: true, box: [104, 764, 154, 26], fill: red, radius: 6}
+            - {type: text, id: v1_pt,   text: "Free Form", box: [104, 764, 154, 26], style: tag_w}
+            - {type: text, id: v1_v,    text: "Erro chega ao tribunal",
+               box: [104, 798, 552, 24], style: sm_b}
+            - {type: text, id: v1_t,
+               text: "Texto livre — saída do LLM vai direto para o documento. Detecção depende inteiramente da revisão manual de cada citação antes do protocolo.",
+               box: [104, 826, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 748, 580, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v2_bar,  decorative: true, box: [690, 748, 5, 200],   fill: amber}
+            - {type: rect, id: v2_pill, decorative: true, box: [714, 764, 200, 26],  fill: amber, radius: 6}
+            - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 764, 200, 26], style: tag_w}
+            - {type: text, id: v2_v,    text: "Aceita — formato é válido",
+               box: [714, 798, 552, 24], style: sm_b}
+            - {type: text, id: v2_t,
+               text: "Schema de citação Bluebook valida a estrutura — nome, volume, reporter, página, tribunal, ano. Não consulta nenhum índice de jurisprudência.",
+               box: [714, 826, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 748, 540, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v3_bar,  decorative: true, box: [1300, 748, 5, 200],   fill: green}
+            - {type: rect, id: v3_pill, decorative: true, box: [1324, 764, 130, 26],  fill: green, radius: 6}
+            - {type: text, id: v3_pt,   text: "Validador", box: [1324, 764, 130, 26], style: tag_w}
+            - {type: text, id: v3_v,    text: "Detecta — só com lookup externo",
+               box: [1324, 798, 514, 24], style: sm_b}
+            - {type: text, id: v3_t,
+               text: "Cobertura completa exige validador que consulte Westlaw / LexisNexis / PACER e confirme cada citação. Sem essa camada, o erro passa pela arquitetura inteira.",
+               box: [1324, 826, 514, 110], style: sm_ink}
+
+        - id: takeaway_and_source
+          z: 6
+          objects:
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 962, 1760, 64], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: tk_t,
+               text: "Lição: não é teoria. Sem uma camada automática de verificação contra fonte autoritativa, citações fabricadas chegam ao tribunal — e à reputação do escritório.",
+               box: [110, 970, 1700, 24], style: bodyc}
+            - {type: text, id: src_t,
+               text: "Fonte: Nerkar, S. — \"A.I. 'Hallucinations' Created Errors in Court Filing, Top Law Firm Says\". The New York Times, 21/abr/2026. nytimes.com/2026/04/21/nyregion/sullivan-cromwell-ai-hallucination.html",
+               box: [110, 998, 1700, 22], style: sm}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 12  RESUMO ARQUITETÔNICO — MAPA DE COBERTURA
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 12
     id: coverage_map
     title: "A Cobertura Cresce a Cada Canal — Mas Verdade Nunca É Garantida"
     notes: "Este é o slide de fechamento. A matriz condensa todo o argumento. Leia coluna por coluna: cada canal só adiciona cobertura, nunca remove. As células do resíduo permanecem vermelhas em todos os canais — esse é o ponto."
@@ -1653,9 +1783,9 @@ slides:
                box: [120, 970, 1660, 32], style: anchor}
 
   # ═══════════════════════════════════════════════════════════════════════
-  # 12  GLOSSÁRIO
+  # 13  GLOSSÁRIO
   # ═══════════════════════════════════════════════════════════════════════
-  - slide: 12
+  - slide: 13
     id: glossary
     title: "Glossário — Termos-Chave em Linguagem Simples"
     notes: "Slide de referência. As definições aqui são propositalmente menos rigorosas que as formais — o objetivo é tornar o argumento do deck acessível a quem não é técnico. Cores agrupam os termos: cinza para conceitos fundamentais, escuro intermediário para termos estruturais, escuro para termos técnicos/de pesquisa."
