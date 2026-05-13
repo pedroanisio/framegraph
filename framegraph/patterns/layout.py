@@ -1195,21 +1195,157 @@ class LayoutPlan:
 _MIN_GLOBAL_SCALE: float = 0.6
 
 
+# Stylesheet-derived font sizes used by the planner to measure
+# wrapped-text heights. These match `framegraph/lib/styles/default.yml`.
+# When a deck uses a different stylesheet the planner still produces a
+# reasonable estimate; an explicit per-style table is a future refinement.
+_PLANNER_CARD_BODY_SIZE: float = 10.0
+_PLANNER_CARD_BODY_LH: float = 13.0
+_PLANNER_TABLE_CELL_SIZE: float = 9.0
+_PLANNER_TABLE_CELL_LH: float = 12.0
+_PLANNER_TABLE_HEADER_LH: float = 14.0
+_PLANNER_CARD_LABEL_BAND: float = 14.0  # label height + gap_below
+_PLANNER_CARD_PAD_VERTICAL: float = 20.0  # top + bottom padding
+_PLANNER_TABLE_CELL_VPAD: float = 4.0  # per-cell vertical padding × 2
+
+
+def _measure_zone_height(
+    zone: PatternZone,
+    fill: BaseModel | None,
+    box_w: float,
+    scale: float,
+) -> float:
+    """Wrap-aware height estimate for one zone at a given column width and scale.
+
+    The planner calls this once per zone per scale-trial. Each
+    content_type returns its honest wrapped-text height: lists wrap
+    every item to the column width and sum the line counts; tables
+    measure each row's cells (taking the max line count per row,
+    plus header). The card chrome (label band + padding) is added
+    on top — it does NOT scale with the global font (only text
+    bends).
+
+    Args:
+        zone: The pattern zone (carries content_type, role).
+        fill: Optional validated fill — supplies actual content for
+            real measurement when present.
+        box_w: The width (in pixels) the layout would allocate to
+            this zone. Used as the wrap target.
+        scale: Uniform typography scale in (0, 1].
+
+    Returns:
+        Estimated minimum pixel height the zone needs to render its
+        content honestly at this scale and column width.
+    """
+    chrome_overhead = _PLANNER_CARD_LABEL_BAND + _PLANNER_CARD_PAD_VERTICAL
+    text_box_w = max(1.0, box_w - 32.0)  # subtract horizontal padding (≈ 18 + 14)
+
+    if fill is None:
+        # No content to measure — fall back to a reasonable default.
+        return chrome_overhead + 2 * _PLANNER_CARD_BODY_LH * scale
+
+    value = getattr(fill, zone.role, None)
+    ct = zone.content_type or "title_body"
+
+    if value is None:
+        return chrome_overhead + 2 * _PLANNER_CARD_BODY_LH * scale
+
+    body_size = _PLANNER_CARD_BODY_SIZE * scale
+    body_lh = _PLANNER_CARD_BODY_LH * scale
+
+    try:
+        if ct == "list_items":
+            items = list(value or [])
+            total_lines = 0
+            # Bullet indent + marker eat ~12px of width.
+            bullet_w = max(1.0, text_box_w - 12.0)
+            for it in items:
+                text = (
+                    it
+                    if isinstance(it, str)
+                    else (
+                        f"{it.get('label', '')}: {it.get('metric', '')}"
+                        if isinstance(it, dict) and "label" in it
+                        else str(it)
+                    )
+                )
+                # Pydantic items with .label / .metric:
+                if not isinstance(it, (str, dict)):
+                    label = getattr(it, "label", None)
+                    metric = getattr(it, "metric", None)
+                    if label is not None and metric is not None:
+                        text = f"{label}: {metric}"
+                total_lines += _count_wrapped_lines(text, body_size, bullet_w)
+            return chrome_overhead + total_lines * body_lh
+
+        if ct == "table_data":
+            cell_size = _PLANNER_TABLE_CELL_SIZE * scale
+            cell_lh = _PLANNER_TABLE_CELL_LH * scale
+            header_lh = _PLANNER_TABLE_HEADER_LH * scale
+            cell_vpad = _PLANNER_TABLE_CELL_VPAD * scale
+            headers = list(getattr(value, "headers", None) or [])
+            rows = list(getattr(value, "rows", None) or [])
+            n_cols = max(1, len(headers) or (len(rows[0]) if rows else 1))
+            # Column width inside the table (no per-cell padding here;
+            # already counted in cell_vpad).
+            col_w = max(1.0, text_box_w / n_cols - 8.0)
+            total = 0.0
+            if headers:
+                # Headers are usually short; treat as 1 line.
+                total += header_lh + cell_vpad
+            for row in rows:
+                max_lines = 1
+                for c in row[:n_cols]:
+                    n_lines = _count_wrapped_lines(str(c), cell_size, col_w, bold=False)
+                    max_lines = max(max_lines, n_lines)
+                total += max_lines * cell_lh + cell_vpad
+            return chrome_overhead + total
+
+        if ct == "key_value":
+            n = len(dict(value or {}))
+            return chrome_overhead + max(2, n) * body_lh
+
+        if ct == "chart_data":
+            return chrome_overhead + 120.0 * scale
+
+        if ct in ("title_body", "comparison"):
+            text_full = ""
+            if hasattr(value, "title"):
+                text_full = (
+                    str(getattr(value, "title", "") or "")
+                    + " "
+                    + str(getattr(value, "body", "") or "")
+                )
+            else:
+                text_full = str(value)
+            n_lines = _count_wrapped_lines(text_full, body_size, text_box_w)
+            return chrome_overhead + n_lines * body_lh
+
+        if ct == "metric":
+            return chrome_overhead + 60.0 * scale + body_lh
+
+        if ct == "image":
+            return chrome_overhead + 100.0 * scale
+
+        if ct == "axis_label":
+            return chrome_overhead * 0.5 + body_lh
+
+        if ct == "decorative":
+            return 4.0
+    except (TypeError, AttributeError):
+        pass
+
+    return chrome_overhead + 2 * body_lh
+
+
 def _zone_min_h_at_scale(
     zone: PatternZone,
     fill: BaseModel | None,
     scale: float,
+    box_w: float = 200.0,
 ) -> float:
-    """Estimated minimum pixel height the zone needs at a given scale.
-
-    Layered on top of `_min_natural_height`, applies the planner's
-    uniform scale factor to typography-derived demands. Card chrome
-    (label band, padding) doesn't scale with the global font.
-    """
-    base = _MIN_CARD_OVERHEAD_PX
-    natural = _min_natural_height(zone, fill)
-    text_demand = max(0.0, natural - _MIN_CARD_OVERHEAD_PX)
-    return base + text_demand * scale
+    """Backward-compatible thin wrapper around `_measure_zone_height`."""
+    return _measure_zone_height(zone, fill, box_w, scale)
 
 
 def _solve_layout_at_scale(
@@ -1223,12 +1359,17 @@ def _solve_layout_at_scale(
     """Compute boxes for the pattern at the given typography scale.
 
     Returns ``(boxes, demand_h_by_role)`` where demand is the
-    estimated content-height each zone needs at this scale. The
-    caller compares each ``boxes[role][3]`` to demand to detect
-    overflow.
+    wrap-aware content-height each zone needs at this scale and
+    its allocated column width. The caller compares each
+    ``boxes[role][3]`` to demand to detect overflow.
     """
     boxes = compute_boxes(pattern, canvas_w, canvas_h, margin=margin, fill=fill)
-    demand_h = {z.role: _zone_min_h_at_scale(z, fill, scale) for z in pattern.zones}
+    demand_h: dict[str, float] = {}
+    for z in pattern.zones:
+        b = boxes.get(z.role)
+        if b is None:
+            continue
+        demand_h[z.role] = _measure_zone_height(z, fill, b[2], scale)
     return boxes, demand_h
 
 
