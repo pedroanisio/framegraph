@@ -23,13 +23,14 @@ Architecture
 - Fixtures: tests/fixtures/*.yml  (standalone FG docs or deck.yml files)
 - Goldens:  tests/goldens/<fixture_stem>/<slide_id>.png  (2× rasterised)
 - Tolerance: tests/tolerance.cfg  (single float, %)
-- Renderer:  framegraph_to_svg_v3.py  (standalone) or fg_library.py
-             (deck.yml files are routed through FrameGraphDeckRenderer)
+- Renderer:  framegraph.renderer.FrameGraphRenderer (standalone docs)
+             or framegraph.library.FrameGraphDeckRenderer (deck.yml files)
 
 The harness rasterises at 2× scale (1920×1080 for 960×540 canvas) via
 cairosvg, then computes the per-channel max delta across all pixels.
 A slide passes if max_delta / 255 <= tolerance / 100.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -47,31 +48,36 @@ import yaml
 try:
     import cairosvg
 except ImportError:
-    print("ERROR: cairosvg not found.  pip install cairosvg --break-system-packages", file=sys.stderr)
+    print(
+        "ERROR: cairosvg not found.  pip install cairosvg --break-system-packages", file=sys.stderr
+    )
     sys.exit(2)
 
 try:
     import numpy as np
-    from PIL import Image, ImageChops
+    from PIL import Image
 except ImportError:
-    print("ERROR: Pillow + numpy required.  pip install Pillow numpy --break-system-packages", file=sys.stderr)
+    print(
+        "ERROR: Pillow + numpy required.  pip install Pillow numpy --break-system-packages",
+        file=sys.stderr,
+    )
     sys.exit(2)
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-REPO_ROOT     = Path(__file__).parent.parent
-FIXTURES_DIR  = Path(__file__).parent / "fixtures"
-GOLDENS_DIR   = Path(__file__).parent / "goldens"
+REPO_ROOT = Path(__file__).parent.parent
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+GOLDENS_DIR = Path(__file__).parent / "goldens"
 TOLERANCE_CFG = Path(__file__).parent / "tolerance.cfg"
 RENDERER_PATH = REPO_ROOT / "framegraph" / "renderer.py"
-LIBRARY_PATH  = REPO_ROOT / "framegraph" / "library.py"
-LIB_TOKENS    = REPO_ROOT / "framegraph" / "lib"
+LIBRARY_PATH = REPO_ROOT / "framegraph" / "library.py"
+LIB_TOKENS = REPO_ROOT / "framegraph" / "lib"
 
 SCALE = 2  # rasterisation scale factor
 
 
 # ── Load modules lazily ───────────────────────────────────────────────────────
 _renderer_mod = None
-_library_mod  = None
+_library_mod = None
 
 
 def _load_renderer():
@@ -110,8 +116,9 @@ def load_tolerance() -> float:
 def save_tolerance(t: float) -> None:
     cfg = configparser.ConfigParser()
     cfg["harness"] = {"tolerance": str(t)}
-    TOLERANCE_CFG.write_text(configparser.ConfigParser.__module__
-                             and cfg.write(io.StringIO()) or "")
+    TOLERANCE_CFG.write_text(
+        configparser.ConfigParser.__module__ and cfg.write(io.StringIO()) or ""
+    )
     # write properly
     with open(TOLERANCE_CFG, "w") as f:
         cfg.write(f)
@@ -120,10 +127,10 @@ def save_tolerance(t: float) -> None:
 # ── SVG rendering ─────────────────────────────────────────────────────────────
 @dataclass
 class RenderedSlide:
-    slide_id:  str
-    svg:       str
-    width:     int
-    height:    int
+    slide_id: str
+    svg: str
+    width: int
+    height: int
 
 
 def render_fixture(path: Path) -> list[RenderedSlide]:
@@ -133,21 +140,25 @@ def render_fixture(path: Path) -> list[RenderedSlide]:
     results: list[RenderedSlide] = []
 
     if kind == "presentation-deck":
-        lib   = _load_library()
-        FGL   = lib.FrameGraphLibrary
-        FGDR  = lib.FrameGraphDeckRenderer
+        lib = _load_library()
+        FGL = lib.FrameGraphLibrary
+        FGDR = lib.FrameGraphDeckRenderer
         library = FGL(LIB_TOKENS)
-        deck    = FGDR(data, library=library)
+        deck = FGDR(data, library=library)
         for slide in deck.slides_raw:
             doc = deck.build_slide_doc(slide)
             FGR = _load_renderer().FrameGraphRenderer
             svg = FGR(doc).render_svg()
             canvas = doc.get("scene", {}).get("canvas", {})
             w, h = canvas.get("size", [960, 540])
-            results.append(RenderedSlide(
-                slide_id=slide.get("id", f"slide_{slide.get('slide', 0):02d}"),
-                svg=svg, width=w, height=h,
-            ))
+            results.append(
+                RenderedSlide(
+                    slide_id=slide.get("id", f"slide_{slide.get('slide', 0):02d}"),
+                    svg=svg,
+                    width=w,
+                    height=h,
+                )
+            )
     else:
         FGR = _load_renderer().FrameGraphRenderer
         renderer = FGR(data)
@@ -156,10 +167,14 @@ def render_fixture(path: Path) -> list[RenderedSlide]:
         canvas = data.get("scene", {}).get("canvas", {})
         w, h = canvas.get("size", [960, 540])
         scene_id = data.get("scene", {}).get("id", path.stem)
-        results.append(RenderedSlide(
-            slide_id=scene_id,
-            svg=svg, width=w, height=h,
-        ))
+        results.append(
+            RenderedSlide(
+                slide_id=scene_id,
+                svg=svg,
+                width=w,
+                height=h,
+            )
+        )
 
     return results
 
@@ -177,13 +192,13 @@ def rasterise(svg: str, width: int, height: int) -> Image.Image:
 # ── Comparison ────────────────────────────────────────────────────────────────
 @dataclass
 class SlideResult:
-    fixture:    str
-    slide_id:   str
-    passed:     bool
-    max_delta:  float        # 0–255
-    tolerance:  float        # percent
+    fixture: str
+    slide_id: str
+    passed: bool
+    max_delta: float  # 0–255
+    tolerance: float  # percent
     elapsed_ms: float
-    error:      str | None = None
+    error: str | None = None
 
     @property
     def pct_delta(self) -> float:
@@ -194,15 +209,17 @@ class SlideResult:
         return self.tolerance / 100 * 255
 
 
-def compare(img_new: Image.Image, img_golden: Image.Image, tolerance_pct: float) -> tuple[bool, float]:
-    arr_new    = np.asarray(img_new,    dtype=np.int32)
+def compare(
+    img_new: Image.Image, img_golden: Image.Image, tolerance_pct: float
+) -> tuple[bool, float]:
+    arr_new = np.asarray(img_new, dtype=np.int32)
     arr_golden = np.asarray(img_golden, dtype=np.int32)
     if arr_new.shape != arr_golden.shape:
         # Size mismatch — always fails
         return False, 255.0
-    diff       = np.abs(arr_new - arr_golden)
-    max_delta  = float(diff.max())
-    passed     = (max_delta / 255 * 100) <= tolerance_pct
+    diff = np.abs(arr_new - arr_golden)
+    max_delta = float(diff.max())
+    passed = (max_delta / 255 * 100) <= tolerance_pct
     return passed, max_delta
 
 
@@ -229,15 +246,21 @@ def test_fixture(path: Path, tolerance_pct: float, verbose: bool) -> list[SlideR
     golden_dir = GOLDENS_DIR / path.stem
 
     try:
-        t0     = time.perf_counter()
+        t0 = time.perf_counter()
         slides = render_fixture(path)
         elapsed_total = (time.perf_counter() - t0) * 1000
     except Exception as e:
-        results.append(SlideResult(
-            fixture=path.name, slide_id="(render error)",
-            passed=False, max_delta=255, tolerance=tolerance_pct,
-            elapsed_ms=0, error=str(e),
-        ))
+        results.append(
+            SlideResult(
+                fixture=path.name,
+                slide_id="(render error)",
+                passed=False,
+                max_delta=255,
+                tolerance=tolerance_pct,
+                elapsed_ms=0,
+                error=str(e),
+            )
+        )
         return results
 
     per_slide_ms = elapsed_total / max(len(slides), 1)
@@ -245,36 +268,54 @@ def test_fixture(path: Path, tolerance_pct: float, verbose: bool) -> list[SlideR
     for sl in slides:
         golden_path = golden_dir / f"{sl.slide_id}.png"
         if not golden_path.exists():
-            results.append(SlideResult(
-                fixture=path.name, slide_id=sl.slide_id,
-                passed=False, max_delta=255, tolerance=tolerance_pct,
-                elapsed_ms=per_slide_ms,
-                error="No golden found — run with --bless first",
-            ))
+            results.append(
+                SlideResult(
+                    fixture=path.name,
+                    slide_id=sl.slide_id,
+                    passed=False,
+                    max_delta=255,
+                    tolerance=tolerance_pct,
+                    elapsed_ms=per_slide_ms,
+                    error="No golden found — run with --bless first",
+                )
+            )
             continue
 
         try:
-            img_new    = rasterise(sl.svg, sl.width, sl.height)
+            img_new = rasterise(sl.svg, sl.width, sl.height)
             img_golden = Image.open(golden_path).convert("RGBA")
             passed, max_delta = compare(img_new, img_golden, tolerance_pct)
         except Exception as e:
-            results.append(SlideResult(
-                fixture=path.name, slide_id=sl.slide_id,
-                passed=False, max_delta=255, tolerance=tolerance_pct,
-                elapsed_ms=per_slide_ms, error=str(e),
-            ))
+            results.append(
+                SlideResult(
+                    fixture=path.name,
+                    slide_id=sl.slide_id,
+                    passed=False,
+                    max_delta=255,
+                    tolerance=tolerance_pct,
+                    elapsed_ms=per_slide_ms,
+                    error=str(e),
+                )
+            )
             continue
 
-        results.append(SlideResult(
-            fixture=path.name, slide_id=sl.slide_id,
-            passed=passed, max_delta=max_delta,
-            tolerance=tolerance_pct, elapsed_ms=per_slide_ms,
-        ))
+        results.append(
+            SlideResult(
+                fixture=path.name,
+                slide_id=sl.slide_id,
+                passed=passed,
+                max_delta=max_delta,
+                tolerance=tolerance_pct,
+                elapsed_ms=per_slide_ms,
+            )
+        )
 
         if verbose and not passed:
-            print(f"  FAIL  {path.name}/{sl.slide_id}  "
-                  f"max_delta={max_delta:.1f}  "
-                  f"({max_delta/255*100:.2f}% > {tolerance_pct:.2f}% tolerance)")
+            print(
+                f"  FAIL  {path.name}/{sl.slide_id}  "
+                f"max_delta={max_delta:.1f}  "
+                f"({max_delta / 255 * 100:.2f}% > {tolerance_pct:.2f}% tolerance)"
+            )
 
     return results
 
@@ -282,10 +323,16 @@ def test_fixture(path: Path, tolerance_pct: float, verbose: bool) -> list[SlideR
 # ── CLI ───────────────────────────────────────────────────────────────────────
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="FrameGraph golden-snapshot harness")
-    parser.add_argument("--bless",     action="store_true", help="Write golden PNGs (overwrites existing)")
-    parser.add_argument("--verbose",   action="store_true", help="Print per-slide detail on failure")
-    parser.add_argument("--tolerance", type=float, default=None, help="Override tolerance %% (default: 1.0)")
-    parser.add_argument("--fixture",   type=str,   default=None, help="Run only this fixture (stem or filename)")
+    parser.add_argument(
+        "--bless", action="store_true", help="Write golden PNGs (overwrites existing)"
+    )
+    parser.add_argument("--verbose", action="store_true", help="Print per-slide detail on failure")
+    parser.add_argument(
+        "--tolerance", type=float, default=None, help="Override tolerance %% (default: 1.0)"
+    )
+    parser.add_argument(
+        "--fixture", type=str, default=None, help="Run only this fixture (stem or filename)"
+    )
     args = parser.parse_args(argv)
 
     tolerance = args.tolerance if args.tolerance is not None else load_tolerance()
@@ -314,8 +361,7 @@ def main(argv=None) -> int:
             print(f"  {path.name:<48} {n} slide(s) blessed")
         elapsed = time.perf_counter() - t0
         save_tolerance(tolerance)
-        print(f"\n{total} golden(s) written in {elapsed:.2f}s  "
-              f"(tolerance set to {tolerance:.1f}%)")
+        print(f"\n{total} golden(s) written in {elapsed:.2f}s  (tolerance set to {tolerance:.1f}%)")
         return 0
 
     # ── Test mode ────────────────────────────────────────────────────────────
@@ -327,13 +373,11 @@ def main(argv=None) -> int:
     for path in fixtures:
         results = test_fixture(path, tolerance, args.verbose)
         all_results.extend(results)
-        passes  = sum(1 for r in results if r.passed)
-        fails   = sum(1 for r in results if not r.passed)
-        avg_ms  = sum(r.elapsed_ms for r in results) / max(len(results), 1)
-        status  = "PASS" if fails == 0 else "FAIL"
-        print(f"  {status}  {path.name:<44}  "
-              f"{passes}/{len(results)} slides  "
-              f"{avg_ms:.0f}ms/slide")
+        passes = sum(1 for r in results if r.passed)
+        fails = sum(1 for r in results if not r.passed)
+        avg_ms = sum(r.elapsed_ms for r in results) / max(len(results), 1)
+        status = "PASS" if fails == 0 else "FAIL"
+        print(f"  {status}  {path.name:<44}  {passes}/{len(results)} slides  {avg_ms:.0f}ms/slide")
         if args.verbose:
             for r in results:
                 if not r.passed:
@@ -341,15 +385,17 @@ def main(argv=None) -> int:
                     print(f"         ✗  {r.slide_id}  {err}")
 
     elapsed = time.perf_counter() - t0
-    total   = len(all_results)
-    passed  = sum(1 for r in all_results if r.passed)
-    failed  = total - passed
+    total = len(all_results)
+    passed = sum(1 for r in all_results if r.passed)
+    failed = total - passed
 
     print()
     print("─" * 64)
-    print(f"  {'PASSED' if failed == 0 else 'FAILED'}  "
-          f"{passed}/{total} slides  "
-          f"wall time {elapsed:.2f}s")
+    print(
+        f"  {'PASSED' if failed == 0 else 'FAILED'}  "
+        f"{passed}/{total} slides  "
+        f"wall time {elapsed:.2f}s"
+    )
 
     if failed:
         print(f"\n  {failed} failure(s):")

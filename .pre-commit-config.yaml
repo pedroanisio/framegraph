@@ -20,16 +20,15 @@ repos:
       # Enforce the formatter — no diffs allowed at commit time.
       - id: ruff-format
 
-  # Mypy stays advisory for now (matches the CI lint job's
-  # continue-on-error setting). When the v2.0 modular-split regression
-  # is repaired and `framegraph/renderer.py` no longer mis-tokenises
-  # under mypy 2.0, flip both this hook and the CI job to enforcing.
+  # Mypy is enforcing. The pyproject.toml [tool.mypy] section runs
+  # strict mode + the `pydantic.mypy` plugin; the additional
+  # dependencies below mirror what mypy needs to resolve the schema
+  # models (pydantic) and yaml stubs (types-PyYAML).
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.10.0
     hooks:
       - id: mypy
         files: ^framegraph/
-        # Match pyproject.toml's exclude — see the comment there for why
-        # renderer.py is currently skipped.
-        exclude: ^framegraph/renderer\.py$
-        additional_dependencies: [types-PyYAML]
+        additional_dependencies:
+          - types-PyYAML
+          - pydantic>=2.7

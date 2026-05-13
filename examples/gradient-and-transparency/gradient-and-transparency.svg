@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" shape-rendering="geometricPrecision" text-rendering="optimizeLegibility" role="img" aria-labelledby="svg-title svg-desc">
+<title id="svg-title">Gradient &amp; Transparency</title>
+<desc  id="svg-desc">Showcase of fill_styles, inline gradients, and per-channel opacity.</desc>
+<defs>
+<linearGradient id="grad_sunset" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#EC4899"/></linearGradient>
+<linearGradient id="grad_glass" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.05"/></linearGradient>
+<radialGradient id="grad_glow" cx="0.5" cy="0.5" r="0.65" fx="0.35" fy="0.35" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#06B6D4" stop-opacity="0.85"/><stop offset="1" stop-color="#0F172A" stop-opacity="0"/></radialGradient>
+<linearGradient id="grad_stripes" x1="0" y1="0" x2="20" y2="0" gradientUnits="userSpaceOnUse" spreadMethod="repeat"><stop offset="0" stop-color="#84CC16"/><stop offset="0.5" stop-color="#84CC16"/><stop offset="0.5" stop-color="#84CC16" stop-opacity="0"/><stop offset="1" stop-color="#84CC16" stop-opacity="0"/></linearGradient>
+<linearGradient id="grad_tilted" x1="0" y1="0.5" x2="1" y2="0.5" gradientUnits="objectBoundingBox" gradientTransform="rotate(45 0.5 0.5)"><stop offset="0" stop-color="#EC4899"/><stop offset="1" stop-color="#06B6D4"/></linearGradient>
+<radialGradient id="grad_inline_5" cx="0.5" cy="0.5" r="0.6" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#F8FAFC"/><stop offset="0.7" stop-color="#06B6D4"/><stop offset="1" stop-color="#0F172A" stop-opacity="0"/></radialGradient>
+<marker id="ah-FFFFFF" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#FFFFFF"/></marker>
+<marker id="ah-000000" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#000000"/></marker>
+</defs>
+<g id="layer_bg" data-layer="bg" data-z="">
+  <g id="page_bg" data-type="rect" data-decorative="true"><rect x="0" y="0" width="960" height="540" fill="#0F172A" stroke="none"/></g>
+</g>
+<g id="layer_title" data-layer="title" data-z="">
+  <g id="title_text" data-type="text" data-decorative="true"><text x="40" y="49.84" font-family="primary" font-size="28" font-weight="700" fill="#F8FAFC" text-anchor="start"><tspan x="40" dy="0"></tspan></text></g>
+</g>
+<g id="layer_swatches" data-layer="swatches" data-z="">
+  <g id="sw_sunset" data-type="rect"><rect x="40" y="100" width="200" height="120" fill="url(#grad_sunset)" rx="12" ry="12" stroke="none"/></g>
+  <g id="cap_sunset" data-type="text" data-decorative="true"><text x="140" y="239.36" font-family="primary" font-size="12" font-weight="400" fill="#94A3B8" text-anchor="middle"><tspan x="140" dy="0"></tspan></text></g>
+  <g id="sw_glow" data-type="rect"><rect x="260" y="100" width="200" height="120" fill="#0F172A" rx="12" ry="12" stroke="#FFFFFF" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round" stroke-opacity="0.35"/></g>
+  <g id="sw_glow_in" data-type="rect" data-decorative="true"><rect x="260" y="100" width="200" height="120" fill="url(#grad_glow)" rx="12" ry="12" stroke="none"/></g>
+  <g id="cap_glow" data-type="text" data-decorative="true"><text x="360" y="239.36" font-family="primary" font-size="12" font-weight="400" fill="#94A3B8" text-anchor="middle"><tspan x="360" dy="0"></tspan></text></g>
+  <g id="sw_stripes" data-type="rect"><rect x="480" y="100" width="200" height="120" fill="url(#grad_stripes)" rx="12" ry="12" stroke="none"/></g>
+  <g id="cap_stripes" data-type="text" data-decorative="true"><text x="580" y="239.36" font-family="primary" font-size="12" font-weight="400" fill="#94A3B8" text-anchor="middle"><tspan x="580" dy="0"></tspan></text></g>
+  <g id="sw_tilted" data-type="rect"><rect x="700" y="100" width="220" height="120" fill="url(#grad_tilted)" rx="12" ry="12" stroke="none"/></g>
+  <g id="cap_tilted" data-type="text" data-decorative="true"><text x="810" y="239.36" font-family="primary" font-size="12" font-weight="400" fill="#94A3B8" text-anchor="middle"><tspan x="810" dy="0"></tspan></text></g>
+  <g id="bg_layer" data-type="rect"><rect x="40" y="280" width="200" height="120" fill="#06B6D4" rx="12" ry="12" stroke="none"/></g>
+  <g id="overlay_a" data-type="rect"><rect x="80" y="320" width="200" height="120" fill="#EC4899" rx="12" ry="12" stroke="none" fill-opacity="0.5"/></g>
+  <g id="cap_op" data-type="text" data-decorative="true"><text x="160" y="459.36" font-family="primary" font-size="12" font-weight="400" fill="#94A3B8" text-anchor="middle"><tspan x="160" dy="0"></tspan></text></g>
+  <g id="ring_solid" data-type="rect"><rect x="320" y="280" width="160" height="160" fill="#F59E0B" rx="80" ry="80" stroke="#FFFFFF" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round" stroke-opacity="0.25"/></g>
+  <g id="cap_so" data-type="text" data-decorative="true"><text x="400" y="459.36" font-family="primary" font-size="12" font-weight="400" fill="#94A3B8" text-anchor="middle"><tspan x="400" dy="0"></tspan></text></g>
+  <g id="sw_inline" data-type="rect"><rect x="520" y="280" width="200" height="120" fill="url(#grad_inline_5)" rx="12" ry="12" stroke="none"/></g>
+  <g id="cap_inline" data-type="text" data-decorative="true"><text x="620" y="459.36" font-family="primary" font-size="12" font-weight="400" fill="#94A3B8" text-anchor="middle"><tspan x="620" dy="0"></tspan></text></g>
+  <g id="glass_back" data-type="rect"><rect x="760" y="280" width="160" height="160" fill="url(#grad_sunset)" rx="12" ry="12" stroke="none"/></g>
+  <g id="glass_front" data-type="rect" data-decorative="true"><rect x="760" y="280" width="160" height="70" fill="url(#grad_glass)" rx="12" ry="12" stroke="none"/></g>
+  <g id="cap_glass" data-type="text" data-decorative="true"><text x="840" y="459.36" font-family="primary" font-size="12" font-weight="400" fill="#94A3B8" text-anchor="middle"><tspan x="840" dy="0"></tspan></text></g>
+</g>
+</svg>

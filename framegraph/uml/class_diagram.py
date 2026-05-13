@@ -506,13 +506,13 @@ def compose_class_diagram(
         margin = 40.0
         if layout_result.positions:
             min_left_edge = min(
-                x - dimensions[nid][0] / 2 for nid, (x, _) in layout_result.positions.items()
+                x - dimensions[str(nid)][0] / 2 for nid, (x, _) in layout_result.positions.items()
             )
             x_shift = margin - min_left_edge
         else:
             x_shift = margin
         for nid, (x, y) in layout_result.positions.items():
-            positions[nid] = (x + x_shift, y + margin)
+            positions[str(nid)] = (x + x_shift, y + margin)
     else:
         raise ValueError(
             f"unknown layout strategy {opts.layout!r}; expected 'manual' or 'sugiyama'"

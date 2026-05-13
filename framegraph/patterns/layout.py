@@ -238,7 +238,7 @@ class _AnchorGrid:
         canvas_h: float,
         margin: float,
         fill: BaseModel | None = None,
-    ) -> "_AnchorGrid":
+    ) -> _AnchorGrid:
         """Derive the partition from the union of anchor coordinates.
 
         Two universal rules apply:
@@ -270,12 +270,12 @@ class _AnchorGrid:
             if not isinstance(place, Anchor) or place.fullbleed:
                 continue
             assert place.h is not None and place.v is not None
-            col = _H_INDEX[place.h]
-            row = _V_INDEX[place.v]
+            col_idx = _H_INDEX[place.h]
+            row_idx = _V_INDEX[place.v]
             cells_for_zone: list[tuple[str, str]] = []
-            for c in range(col, min(3, col + max(1, z.span.h))):
+            for c in range(col_idx, min(3, col_idx + max(1, z.span.h))):
                 used_cols.add(_inv(_H_INDEX, c))
-                for r in range(row, min(3, row + max(1, z.span.v))):
+                for r in range(row_idx, min(3, row_idx + max(1, z.span.v))):
                     used_rows.add(_inv(_V_INDEX, r))
                     cells_for_zone.append((_inv(_H_INDEX, c), _inv(_V_INDEX, r)))
             w_demand = _density_weight(z, fill)
@@ -309,9 +309,7 @@ class _AnchorGrid:
                     and z.placement.h == col
                     and z.placement.v == row
                 ]
-                n_wide = sum(
-                    1 for z in zones_here if (z.content_type or "") in wide_types
-                )
+                n_wide = sum(1 for z in zones_here if (z.content_type or "") in wide_types)
                 stacks = n_wide >= (len(zones_here) + 1) // 2
                 if not widths:
                     cell_w = 0.0
@@ -337,11 +335,9 @@ class _AnchorGrid:
                     and z.placement.h == col
                     and z.placement.v == row
                 ]
-                n_wide = sum(
-                    1 for z in zones_here if (z.content_type or "") in wide_types
-                )
+                n_wide = sum(1 for z in zones_here if (z.content_type or "") in wide_types)
                 stacks = n_wide >= (len(zones_here) + 1) // 2 and len(zones_here) > 1
-                cell_h = (sum(heights) if stacks else (max(heights) if heights else 0.0))
+                cell_h = sum(heights) if stacks else (max(heights) if heights else 0.0)
                 best = max(best, cell_h)
             row_weight.append(best or 1.0)
 
@@ -381,12 +377,8 @@ class _AnchorGrid:
                 if not zones_here:
                     continue
                 wide_types = {"table_data", "chart_data", "list_items"}
-                n_wide = sum(
-                    1 for z in zones_here if (z.content_type or "") in wide_types
-                )
-                stacks = (
-                    n_wide >= (len(zones_here) + 1) // 2 and len(zones_here) > 1
-                )
+                n_wide = sum(1 for z in zones_here if (z.content_type or "") in wide_types)
+                stacks = n_wide >= (len(zones_here) + 1) // 2 and len(zones_here) > 1
                 if stacks:
                     cell_min = sum(_min_natural_height(z, fill) for z in zones_here)
                     cell_min += (len(zones_here) - 1) * (margin / 2)
@@ -834,6 +826,49 @@ def _region_box(
 # ─────────────────────────────────────────────────────────────────
 
 
+_MIN_VISIBLE = 12.0
+
+
+def _clamp_to_canvas(box: Box, canvas_w: float, canvas_h: float, margin: float) -> Box:
+    """Clamp a `(x, y, w, h)` box to the canvas inside the outer margin.
+
+    Every relative placement runs its candidate box through this so
+    `_relative_box` outputs stay within `[margin/2, canvas - margin/2]`
+    on both axes — without it, a "below" placement against a tall
+    target lands past the canvas edge (Round 2 regression noticed
+    on `Title Slide` #1 and `Milestone Tracker` #13, where the
+    subtitle / dates zone's natural placement put it past the 1080-px
+    canvas bottom).
+
+    When clipping would leave a degenerate (zero-size) box, the
+    origin is pulled back so the final box has at least `_MIN_VISIBLE`
+    pixels on each axis. That keeps zones visible and on-canvas at
+    the cost of a small overlap with the target. The corpus
+    invariant ``w > 0 and h > 0`` holds; the relative ordering
+    (`subtitle.y >= title.y + title.h - tolerance`) holds within the
+    `_MIN_VISIBLE` tolerance band.
+    """
+    x, y, w, h = box
+    half_m = margin / 2
+    max_x = canvas_w - half_m
+    max_y = canvas_h - half_m
+    # Pull origin inside the inner band before clipping.
+    x = max(x, half_m)
+    y = max(y, half_m)
+    # Clip width / height to the remaining canvas room.
+    w = min(w, max_x - x)
+    h = min(h, max_y - y)
+    # Restore a minimum visible size at the canvas edge if the clip
+    # left the box degenerate.
+    if w < _MIN_VISIBLE:
+        w = min(_MIN_VISIBLE, max_x - half_m)
+        x = min(x, max_x - w)
+    if h < _MIN_VISIBLE:
+        h = min(_MIN_VISIBLE, max_y - half_m)
+        y = min(y, max_y - h)
+    return (x, max(y, half_m), max(w, 0.0), max(h, 0.0))
+
+
 def _relative_box(
     relation: str,
     target_box: Box,
@@ -844,65 +879,60 @@ def _relative_box(
     """Place a zone relative to a target's already-computed box.
 
     Offsets are computed as fractions of the target's dimensions
-    so the result scales with the target.
+    so the result scales with the target. Every result is clamped
+    to the canvas via `_clamp_to_canvas` — the relative pass cannot
+    push a box past the slide edge.
     """
     tx, ty, tw, th = target_box
 
     if relation == "below":
-        return (tx, ty + th + margin / 2, tw, max(th * 0.5, 40.0))
-
-    if relation == "above":
+        candidate = (tx, ty + th + margin / 2, tw, max(th * 0.5, 40.0))
+    elif relation == "above":
         h = max(th * 0.5, 40.0)
-        return (tx, max(ty - h - margin / 2, margin / 2), tw, h)
-
-    if relation == "left_of":
+        candidate = (tx, max(ty - h - margin / 2, margin / 2), tw, h)
+    elif relation == "left_of":
         w = max(tw * 0.4, 60.0)
-        return (max(tx - w - margin / 2, margin / 2), ty, w, th)
-
-    if relation == "right_of":
+        candidate = (max(tx - w - margin / 2, margin / 2), ty, w, th)
+    elif relation == "right_of":
         w = max(tw * 0.4, 60.0)
-        return (tx + tw + margin / 2, ty, w, th)
-
-    if relation == "inside":
+        candidate = (tx + tw + margin / 2, ty, w, th)
+    elif relation == "inside":
         # Inset by 10% on each side.
         pad_w = tw * 0.1
         pad_h = th * 0.1
-        return (tx + pad_w, ty + pad_h, tw - 2 * pad_w, th - 2 * pad_h)
-
-    if relation == "around":
+        candidate = (tx + pad_w, ty + pad_h, tw - 2 * pad_w, th - 2 * pad_h)
+    elif relation == "around":
         # A "ring" zone wrapping the target — slightly larger,
         # rendered behind the target by convention.
         pad_w = tw * 0.15
         pad_h = th * 0.15
-        x = max(tx - pad_w, margin / 2)
-        y = max(ty - pad_h, margin / 2)
-        # Clamp the result to the canvas; with span-aware layout
-        # the target box can already span the full canvas width,
-        # which would push around past the edge.
-        w = min(tw + 2 * pad_w, canvas_w - x - margin / 2)
-        h = min(th + 2 * pad_h, canvas_h - y - margin / 2)
-        return (x, y, max(w, 0.0), max(h, 0.0))
-
-    if relation == "between":
+        candidate = (
+            tx - pad_w,
+            ty - pad_h,
+            tw + 2 * pad_w,
+            th + 2 * pad_h,
+        )
+    elif relation == "between":
         # Place at the target's right edge, narrow box (so a
         # connector / divider sits next to it). When the target
         # is one side of a pair, callers can pick either end as
         # the target — the box just sits at one edge.
         w = max(tw * 0.2, 30.0)
-        return (tx + tw, ty + th * 0.4, w, th * 0.2)
-
-    if relation == "near":
+        candidate = (tx + tw, ty + th * 0.4, w, th * 0.2)
+    elif relation == "near":
         # Slightly offset to the lower-right of the target.
-        return (tx + tw * 0.1, ty + th + margin / 2, tw * 0.6, th * 0.4)
-
-    if relation == "on":
+        candidate = (tx + tw * 0.1, ty + th + margin / 2, tw * 0.6, th * 0.4)
+    elif relation == "on":
         # Overlay — same position as the target, slightly smaller.
         pad_w = tw * 0.05
         pad_h = th * 0.05
-        return (tx + pad_w, ty + pad_h, tw - 2 * pad_w, th - 2 * pad_h)
+        candidate = (tx + pad_w, ty + pad_h, tw - 2 * pad_w, th - 2 * pad_h)
+    else:
+        # Unknown relation: return the target's box unchanged
+        # (already known to be on-canvas — pass-through, no clamp).
+        return target_box
 
-    # Unknown relation: return the target's box unchanged.
-    return target_box
+    return _clamp_to_canvas(candidate, canvas_w, canvas_h, margin)
 
 
 def _canvas_centroid(canvas_w: float, canvas_h: float, margin: float) -> Box:
@@ -959,9 +989,7 @@ def _density_subdivide(
     if n_wide >= (n + 1) // 2:
         # Vertical stack, weighted by row-demand when fill present.
         weights = (
-            [_row_demand_weight(z, fill) for z in zones_in_cell]
-            if fill is not None
-            else [1.0] * n
+            [_row_demand_weight(z, fill) for z in zones_in_cell] if fill is not None else [1.0] * n
         )
         total = sum(weights) or 1.0
         available_h = ch - (n - 1) * gutter
@@ -984,7 +1012,7 @@ def _density_subdivide(
         return _subdivide_cell(cell, n, margin)
     available_w = cw - (n - 1) * gutter
     sub_widths = [available_w * (w / total) for w in weights]
-    boxes: list[Box] = []
+    boxes = []
     x = cx
     for sub_w in sub_widths:
         boxes.append((x, cy, sub_w, ch))
@@ -1031,7 +1059,7 @@ def compute_boxes(
     # anchor cell with sibling-anchored zones, so subdivision logic
     # below sees either {one spanning zone} or {N non-spanning zones}
     # in any given cell, never a mix.
-    anchor_buckets: dict[tuple[str, str] | str, list[PatternZone]] = {}
+    anchor_buckets: dict[tuple[str, str], list[PatternZone]] = {}
     region_zones: list[PatternZone] = []
     relative_zones: list[PatternZone] = []
     fullbleed_zones: list[PatternZone] = []
@@ -1043,7 +1071,8 @@ def compute_boxes(
                 fullbleed_zones.append(z)
             else:
                 # h and v are guaranteed non-None when not fullbleed.
-                key = (place.h, place.v)  # type: ignore[arg-type]
+                assert place.h is not None and place.v is not None
+                key = (place.h, place.v)
                 anchor_buckets.setdefault(key, []).append(z)
         elif isinstance(place, RegionPlacement):
             region_zones.append(z)
@@ -1083,7 +1112,7 @@ def compute_boxes(
     # use its full spanning box. Otherwise treat as a normal cell
     # and subdivide among same-cell siblings.
     for cell_key, zones_in_cell in anchor_buckets.items():
-        h, v = cell_key  # type: ignore[misc]
+        h, v = cell_key
 
         # Single-zone cell — honor span.
         if len(zones_in_cell) == 1:
@@ -1113,9 +1142,7 @@ def compute_boxes(
             # Dangling target — fall back to canvas centroid.
             boxes[z.role] = _canvas_centroid(canvas_w, canvas_h, margin)
         else:
-            boxes[z.role] = _relative_box(
-                place.relation, target_box, canvas_w, canvas_h, margin
-            )
+            boxes[z.role] = _relative_box(place.relation, target_box, canvas_w, canvas_h, margin)
 
     return boxes
 
@@ -1399,18 +1426,19 @@ def compute_layout_plan(
     decides scale or geometry.
     """
     # 1) try nominal
-    boxes, demand = _solve_layout_at_scale(
-        pattern, canvas_w, canvas_h, margin, fill, scale=1.0
-    )
-    overflows_at = lambda boxes, demand: [
-        {
-            "role": role,
-            "required_h": round(demand[role], 1),
-            "available_h": round(box[3], 1),
-        }
-        for role, box in boxes.items()
-        if demand.get(role, 0.0) > box[3] + 0.5
-    ]
+    boxes, demand = _solve_layout_at_scale(pattern, canvas_w, canvas_h, margin, fill, scale=1.0)
+
+    def overflows_at(boxes: dict[str, Box], demand: dict[str, float]) -> list[dict[str, Any]]:
+        return [
+            {
+                "role": role,
+                "required_h": round(demand[role], 1),
+                "available_h": round(box[3], 1),
+            }
+            for role, box in boxes.items()
+            if demand.get(role, 0.0) > box[3] + 0.5
+        ]
+
     overflows = overflows_at(boxes, demand)
     if not overflows:
         return LayoutPlan(
@@ -1424,9 +1452,7 @@ def compute_layout_plan(
     best_fit_scale: float | None = None
     for _ in range(8):  # ~0.005 precision over [0.6, 1.0]
         mid = (lo + hi) / 2.0
-        b, d = _solve_layout_at_scale(
-            pattern, canvas_w, canvas_h, margin, fill, scale=mid
-        )
+        b, d = _solve_layout_at_scale(pattern, canvas_w, canvas_h, margin, fill, scale=mid)
         if not overflows_at(b, d):
             best_fit_scale = mid
             lo = mid  # try larger
@@ -1440,9 +1466,7 @@ def compute_layout_plan(
         return LayoutPlan(
             boxes=boxes,
             scale=best_fit_scale,
-            report=LayoutReport(
-                scale=best_fit_scale, min_scale=_MIN_GLOBAL_SCALE
-            ),
+            report=LayoutReport(scale=best_fit_scale, min_scale=_MIN_GLOBAL_SCALE),
         )
 
     # 3) doesn't fit even at floor — emit boxes at floor and report

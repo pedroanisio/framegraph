@@ -27,12 +27,257 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## [Unreleased]
 
-### Planned (v2.0 line)
+### Added
+- **ADR 0001 Phase 6** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
+  — Link injection. The same FrameSet that emits a sitemap (Phase 4)
+  now wires its `frame.next` chain into the rendered SVG as
+  click-anywhere-to-advance navigation. The SVG2 `<a>` element
+  works in browsers, weasyprint (PDF vector), and embedded HTML
+  — one injection point covers all three output formats.
+  - `framegraph._frameset.inject_svg_navigation_links(svg, frame,
+    frameset, *, target_name, base_url=None, file_template=None)`
+    wraps the rendered SVG body in `<a href="...">` per
+    `frame.next`. The `<title>` and `<desc>` accessibility tags
+    stay outside the link so screen-readers pick up the Frame's
+    name first. Returns the SVG unchanged when `frame.next` is
+    `None` or both URL inputs are `None` (byte-identical
+    regression-locked). `aria-label="Next: <title-or-id>"` is
+    added for keyboard / assistive-tech navigation.
+  - `framegraph._frameset._compute_frame_url(frame_id, target_name,
+    *, base_url, file_template)` resolves the destination URL via
+    one of two strategies:
+    - `base_url` — sitemap-style `<base_url>/<target_name>/<frame_id>`,
+      URL-escaped, matching Phase 4's `emit_sitemap` output.
+    - `file_template` — Python `str.format` template using
+      `{frame_id}` and `{target_name}`, e.g. `"slide_{frame_id}.svg"`
+      for relative file links in a static export.
+  - CLI: `framegraph render --link-base-url <url>` /
+    `--link-template <template>` and `framegraph deck
+    --link-base-url <url>` / `--link-template <template>`. Deck
+    post-processes every per-slide SVG (works with `--target` and
+    `--all-targets`). `--link-base-url` and `--link-template` are
+    mutually exclusive.
+  - 33 regression tests in
+    `tests/integration/test_frameset_phase6.py` cover URL
+    computation (both strategies, escaping, validation), the
+    injection contract (no-op when not wired, well-formed XML
+    output, accessibility-tag placement), CLI integration on both
+    `render` and `deck`, and coerced inputs (legacy single-doc +
+    deck shape).
+
+- **ADR 0001 Phase 5** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
+  — Per-target adjustments. The same Frame adapts to landscape /
+  portrait / mobile / print contexts via three orthogonal knobs on
+  `FrameTarget.adjustments`, applied at projection time inside
+  `build_frame_doc`.
+  - `framegraph._frameset.FrameTargetAdjustments` — typed Pydantic
+    model (`extra="forbid"`) with three fields:
+    - `font_scale: float | None` (strictly positive multiplier;
+      `None` and `1.0` are no-ops). Walks
+      `visual.tokens.text_styles[*].size` and multiplies numeric
+      values; non-numeric `size` shapes (strings, missing, complex
+      types) pass through unchanged.
+    - `hide: list[str]` (defaults `[]`). Drops matching layer ids
+      from `visual.layers` and matching top-level object ids from
+      `layer.objects` in remaining layers. Non-matching ids are
+      silently ignored — the same `hide` list can be reused across
+      Frames where only some ids are present.
+    - `padding_delta: float | None` (signed pixel inset per axis;
+      `None` and `0` are no-ops). Shrinks `scene.canvas.size` by
+      `2 * padding_delta` on each axis. Pattern-system margins,
+      which derive from canvas size, scale proportionally. Negative
+      values expand the canvas; result is clamped at 1 px per axis.
+  - `framegraph._frameset.apply_target_adjustments(doc, adj)` —
+    mutates a projected single-doc dict in fixed order
+    (font_scale → hide → padding_delta) and returns it.
+  - `build_frame_doc` automatically applies a target's adjustments
+    when set; `target.adjustments=None` produces the byte-identical
+    Phase 1-4 projection (regression-locked).
+  - 38 regression tests in
+    `tests/integration/test_frameset_phase5.py` cover the schema
+    (extra-key rejection, `font_scale > 0`, signed
+    `padding_delta`), each knob's application semantics, the
+    no-op edge cases, declared application order, and
+    `render_frameset` integration (SVG width / height shrinks
+    when `padding_delta` is set; hidden layers' fills are absent
+    from the rendered SVG).
+
+- **ADR 0001 Phase 4** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
+  — Sitemap emission. The FrameSet's link graph **is** the sitemap.
+  - `framegraph._frameset.emit_sitemap(fs, base_url, *, target_filter=…)`
+    walks every Frame in declaration order and emits one URL per
+    declared render target. URL pattern:
+    `<base_url>/<target>/<frame_id>` with frame ids and target
+    names URL-escaped via `urllib.parse.quote`. Output validates
+    against the sitemap.org 0.9 schema
+    (`http://www.sitemaps.org/schemas/sitemap/0.9`).
+  - `framegraph._frameset.list_frameset_target_union(fs)` — union
+    of every declared target name (defaults + per-Frame), in
+    discovery order.
+  - `framegraph sitemap <input.yml> --base-url <url> [-o <path>]
+    [--target <name>]` CLI — accepts any FrameGraph YAML
+    (frameset, deck, or legacy single-doc) by coercing through
+    `coerce_to_frameset`. Writes to file with `-o` or to stdout.
+  - 34 regression tests in
+    `tests/integration/test_frameset_phase4.py` cover XML
+    structure, URL escaping (spaces, `?`, `#`, `<`, `>`, `&`),
+    deterministic ordering, target filter, base-URL validation,
+    coerced inputs (legacy + deck), and the CLI surface.
+
+- **ADR 0001 Phase 3** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
+  — Multi-target rendering. Same source FrameSet renders to
+  multiple canvases (landscape, portrait, mobile, custom)
+  deterministically.
+  - `framegraph render --target <name>` renders at the named
+    target's canvas dimensions via the FrameSet path.
+  - `framegraph deck --target <name>` renders every slide at
+    the target's canvas (per-Frame `targets:` first, then
+    `frameset.defaults.targets`).
+  - `framegraph deck --all-targets` loops over every declared
+    target, writing per-target subdirectories
+    (`<output>/landscape/`, `<output>/portrait/`, …).
+  - `--target` and `--all-targets` are mutually exclusive.
+  - `framegraph.library.list_frameset_targets(data)` enumerates
+    the declared target set; `_resolve_frame_target_canvas`
+    resolves the canvas dims with per-Frame override priority.
+  - `FrameGraphDeckRenderer.render_all(out, *, target_name=…)` —
+    the same target lookup wired into the public render API for
+    non-CLI callers.
+  - `build_slide_doc(slide, *, canvas=…)` and
+    `_build_pattern_slide_doc(slide, *, canvas=…)` accept an
+    optional canvas override; defaults preserve byte-identical
+    Phase 2 output.
+  - 21 regression tests in
+    `tests/integration/test_frameset_phase3.py` cover the
+    enumerator, the canvas resolver, the render_all target_name
+    parameter, both CLI commands, the mutually-exclusive flag
+    check, and the byte-identical no-target regression lock.
+
+- **ADR 0001 Phase 2** — Renderer Graph Dispatch + Deck-Merge Lift.
+  `FrameGraphDeckRenderer.render_all`
+  now drives off the FrameSet view of the deck via `coerce_to_frameset`;
+  per-slide enrichment continues to flow through
+  `build_slide_doc` so SVG output is byte-identical to the
+  pre-Phase-2 path. Native-FrameSet YAML gains a parallel
+  enrichment path: `framegraph._frameset.build_frame_doc` lifts
+  `library.build_slide_doc`'s deck-merge logic (token deep-merge,
+  `extends` chain, symbol / component_def shallow-merge,
+  canonical `rendering_contract` defaults) for `kind: frameset`
+  documents.
+- `framegraph._frameset.build_frame_doc(frameset, frame, target)` —
+  enriches a `(FrameSet, Frame, FrameTarget)` triple into a
+  legacy single-document dict ready for `FrameGraphRenderer`.
+- `framegraph._frameset._resolve_extends_chain` — recursive
+  `Frame.extends` resolver with cycle detection, mirroring
+  `library.build_slide_doc`'s `$extends` semantics for native
+  FrameSets.
+- 19 Phase 2 regression tests in
+  `tests/integration/test_frameset_phase2.py`:
+  byte-identical deck SVG parity across every deck fixture; the
+  `build_frame_doc` enrichment contract; multi-frame `extends`
+  chain resolution; cycle rejection; `NotImplementedError` on
+  pattern-composed Frames (Phase 7 scope).
+- **Phase 1** ([2026-05-08]): `framegraph._frameset` module — new
+  Pydantic models (`Frame`, `FrameLink`, `FrameTarget`,
+  `FrameSetDocument`), `validate_frameset`, `coerce_to_frameset`,
+  `render_frameset`, `project_frame_to_document`.
+  `framegraph._schema.validate_any` single dispatch.
+  70 regression tests pinning byte-identical SVG parity for every
+  single-document fixture and structural equivalence for every
+  deck fixture.
+
+### Fixed
+- `framegraph/library.py::FrameGraphDeckRenderer._build_pattern_slide_doc`
+  — sidecar auto-discovery path was still pointing at the legacy
+  `static/refs/fills/` location (sidecars moved into the package
+  at `framegraph/data/fills/` in the publish-prep commit). Pattern-
+  composed deck slides with `item_kind: object` sidecar overrides
+  (BMC `revenue_streams` / `cost_structure`) failed validation
+  pre-fix because the sidecar wasn't found.
+
+### Planned
+- Phase 3: `framegraph render --target <name>` and `framegraph deck
+  --target <name>` flags for multi-target rendering.
+- Phase 4: `framegraph sitemap <frameset.yml>` emitter.
 - `grid` and `row` containers (schema already forward-compatible from `layout.kind`)
 - Full v1.x backward-compat regression report
 - `inner_box` reference syntax (`box: "$card.inner"`) for compound layouts
-- File-path image embedding to data URI at render time
 - `backdrop_blur` and `inner_ring` rendering support where the grammar already exposes them
+- PowerPoint export bridge via `python-pptx` (Tier-1 of [`docs/ANALYSIS.md`](docs/ANALYSIS.md))
+- `fonttools`-backed text-metric measurement to retire the per-character-class width tables
+- Sidecar coverage scale-up from 17 → ~100 of 375 patterns
+
+---
+
+## [0.1.0] — 2026-05-08  (first public PyPI release)
+
+First public release on PyPI. The package has been internal-only up
+to this point under the `2.0.0.dev0` placeholder; renaming to a
+clean `0.1.0` (per [PEP 440](https://peps.python.org/pep-0440/) for
+publish-readiness) for the initial PyPI cut. Subsequent releases
+follow the project's documented MAJOR/MINOR/PATCH semver contract.
+
+### Public API
+- `FrameGraphRenderer(doc).render_svg()` — render a parsed YAML
+  document to SVG.
+- `FrameGraphRenderer.from_yaml_file(path)` — load and render in
+  one step.
+- `FrameGraphLibrary(lib_path)` — discover token packs and symbol
+  packs from a `lib/` directory.
+- `FrameGraphDeckRenderer(data, library=lib).render_all(output_dir)`
+   — render a multi-slide deck YAML to per-slide SVGs (and optional
+  multi-page PDF via the `[pdf]` extra).
+
+### CLI
+- `framegraph render <doc.yml>` — single document → SVG / PDF / 4K PNG.
+- `framegraph deck <deck.yml>` — multi-slide deck → per-slide SVGs +
+  optional multi-page PDF, with `use:` + `fill:` pattern composition.
+- `framegraph patterns list / show / example / build / deck` — slide
+  catalog of 375 patterns (50 generic + 275 consulting + 50 expert);
+  17 ship a curated `example_fill` sidecar.
+- `framegraph docs -o catalog.json` — machine-readable Python API
+  catalog (modules, classes, signatures, Pydantic JSON schemas) for
+  AI-agent consumption.
+- `framegraph version`.
+
+### Diagram coverage
+- 18 first-class visual object types (`rect`, `ellipse`, `text`,
+  `bullet_list`, `line`, `polyline`, `path`, `image`, `connector`,
+  `legend`, `group`, `container`, `bar_chart`, `line_chart`, `icon`,
+  `use`, `chip_row`, `table`).
+- 16 UML primitives + 14 UML 2.5.1 composer types: class, package,
+  use-case, component, deployment, activity, state-machine,
+  sequence, communication, composite-structure, object, profile,
+  timing, interaction-overview.
+
+### Layout
+- Pure-Python four-stage Sugiyama (Eades cycle removal + longest-path
+  layering + median-heuristic crossing minimization + Brandes-Köpf
+  x-coordinate assignment).
+- Pattern layout with span- and density-aware allocation, region
+  handlers, and clamped relative placement.
+
+### Output
+- SVG (always — the rendering core, no extras needed).
+- Raster PDF and 4K PNG via the `[pdf]` extra (cairosvg + Pillow).
+- Vector PDF (selectable text) via the `[pdf-vector]` extra
+  (weasyprint + pypdf).
+
+### Quality gates
+- 1283 tests pass; 90 % coverage gate (87 % current overall).
+- Mypy strict mode: 0 errors. Ruff lint + format: clean on touched
+  surface.
+- Golden-snapshot regression suite under `python tests/run_tests.py`.
+
+### Packaging
+- Pattern catalog (`framegraph/data/patterns/*.yml`) and 17
+  curated sidecars (`framegraph/data/fills/*.yml`) ship inside the
+  wheel via `[tool.setuptools.package-data]`.
+- Seven consulting token packs (`framegraph/lib/tokens/*.yml`) and
+  the bundled default stylesheet (`framegraph/lib/styles/default.yml`).
+- `LICENSE` file (MIT) added at repo root.
+- `[project.urls]` declared so PyPI surfaces Homepage / Repository /
+  Documentation / Issues / Changelog.
 
 ---
 

@@ -1,25 +1,13 @@
-#!/usr/bin/env python3
-"""FrameGraph YAML -> SVG renderer  (v3.0)
+"""FrameGraph YAML -> SVG renderer.
 
-New in v3 vs v2:
-  - visual.symbols  +  type: use   — reusable multi-shape templates (SVG <symbol>/<use>)
-  - type: icon  +  tokens.glyph_map — icon-font or Unicode glyph objects
-  - tokens.fill_styles gradients   — LinearGradient / RadialGradient resolved as url(#id)
-  - layer.opacity                  — fade an entire layer with one field
-  - EllipseObject outer_ring       — second concentric stroke (halo / ring effect)
-  All v2 features preserved; no existing YAML breaks.
-
-Usage:
-    python framegraph_to_svg_v3.py input.yml -o output.svg [--strict] [--no-validate] [--quiet]
+Hosts the `FrameGraphRenderer` class — the concrete `RendererContext`
+implementation that drives the per-type renderer modules in
+`framegraph.renderers.*`. The package's user-facing CLI lives in
+`framegraph.cli`; per-type rendering helpers live in `framegraph._helpers`.
 """
 
 from __future__ import annotations
 
-import argparse
-import html
-import math
-import re
-import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
@@ -31,256 +19,19 @@ try:
 except ImportError as exc:
     raise SystemExit("PyYAML is required: python -m pip install pyyaml") from exc
 
-Point = tuple[float, float]
-Box = tuple[float, float, float, float]
-
-
-# ── Lorem ipsum word bank (deterministic, no randomness) ─────────────────────
-_LOREM_WORDS = [
-    "Lorem",
-    "ipsum",
-    "dolor",
-    "sit",
-    "amet",
-    "consectetur",
-    "adipiscing",
-    "elit",
-    "sed",
-    "do",
-    "eiusmod",
-    "tempor",
-    "incididunt",
-    "ut",
-    "labore",
-    "et",
-    "dolore",
-    "magna",
-    "aliqua",
-    "Ut",
-    "enim",
-    "ad",
-    "minim",
-    "veniam",
-    "quis",
-    "nostrud",
-    "exercitation",
-    "ullamco",
-    "laboris",
-    "nisi",
-    "ut",
-    "aliquip",
-    "ex",
-    "ea",
-    "commodo",
-    "consequat",
-    "Duis",
-    "aute",
-    "irure",
-    "dolor",
-    "in",
-    "reprehenderit",
-    "in",
-    "voluptate",
-    "velit",
-    "esse",
-    "cillum",
-    "dolore",
-    "eu",
-    "fugiat",
-    "nulla",
-    "pariatur",
-    "Excepteur",
-    "sint",
-    "occaecat",
-    "cupidatat",
-    "non",
-    "proident",
-    "sunt",
-    "in",
-    "culpa",
-    "qui",
-    "officia",
-    "deserunt",
-    "mollit",
-    "anim",
-    "id",
-    "est",
-    "laborum",
-    "Sed",
-    "ut",
-    "perspiciatis",
-    "unde",
-    "omnis",
-    "iste",
-    "natus",
-    "error",
-    "sit",
-    "voluptatem",
-    "accusantium",
-    "doloremque",
-    "laudantium",
-    "totam",
-    "rem",
-    "aperiam",
-    "eaque",
-    "ipsa",
-    "quae",
-    "ab",
-    "illo",
-    "inventore",
-    "veritatis",
-    "et",
-    "quasi",
-    "architecto",
-    "beatae",
-    "vitae",
-    "dicta",
-    "sunt",
-    "explicabo",
-    "Nemo",
-    "enim",
-    "ipsam",
-    "voluptatem",
-    "quia",
-    "voluptas",
-    "sit",
-    "aspernatur",
-    "aut",
-    "odit",
-    "aut",
-    "fugit",
-    "sed",
-    "quia",
-    "consequuntur",
-    "magni",
-    "dolores",
-    "eos",
-    "qui",
-    "ratione",
-    "voluptatem",
-    "sequi",
-    "nesciunt",
-    "neque",
-    "porro",
-    "quisquam",
-    "est",
-    "qui",
-    "dolorem",
-    "ipsum",
-    "quia",
-    "dolor",
-    "sit",
-    "amet",
-    "consectetur",
-    "adipisci",
-    "velit",
-]
-
-
-def _lorem(n_words: int = 30) -> str:
-    """Return N words of lorem ipsum, cycling through the word bank."""
-    if n_words <= 0:
-        n_words = 30
-    words = []
-    for i in range(n_words):
-        w = _LOREM_WORDS[i % len(_LOREM_WORDS)]
-        words.append(w)
-    # Capitalise first word, add a period at the end
-    if words:
-        words[0] = words[0].capitalize()
-        words[-1] = words[-1].rstrip(".") + "."
-    return " ".join(words)
-
-
-def _expand_lorem(text: str) -> str:
-    """Expand lorem placeholder strings:
-      "lorem"      → 30 words
-      "lorem:N"    → N words
-    Non-lorem strings are returned unchanged.
-    """
-    t = str(text).strip()
-    tl = t.lower()
-    if tl == "lorem":
-        return _lorem(30)
-    if tl.startswith("lorem:"):
-        try:
-            n = int(tl[6:].strip())
-            return _lorem(n)
-        except ValueError:
-            return _lorem(30)
-    return text
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def esc(v: Any) -> str:
-    return html.escape(str(v), quote=True)
-
-
-def fnum(v: Any, default: float = 0.0) -> float:
-    if v is None:
-        return default
-    try:
-        return float(v)
-    except (TypeError, ValueError):
-        return default
-
-
-def fmt(v: Any) -> str:
-    try:
-        n = float(v)
-    except (TypeError, ValueError):
-        return esc(v)
-    if math.isfinite(n) and abs(n - round(n)) < 1e-9:
-        return str(int(round(n)))
-    return f"{n:.3f}".rstrip("0").rstrip(".")
-
-
-def sid(v: Any) -> str:
-    s = re.sub(r"[^A-Za-z0-9_.:-]+", "_", str(v))
-    if not s or not re.match(r"^[A-Za-z_]", s):
-        s = "id_" + s
-    return s
-
-
-def attrs(a: Mapping[str, Any]) -> str:
-    out: list[str] = []
-    for k, v in a.items():
-        if v is None or v is False:
-            continue
-        if v is True:
-            v = "true"
-        out.append(f'{k}="{esc(v)}"')
-    return " ".join(out)
-
-
-def box(v: Any) -> Box:
-    if not isinstance(v, Sequence) or isinstance(v, (str, bytes)) or len(v) != 4:
-        raise ValueError(f"expected box [x,y,w,h], got {v!r}")
-    return fnum(v[0]), fnum(v[1]), fnum(v[2]), fnum(v[3])
-
-
-def pt(v: Any) -> Point:
-    if not isinstance(v, Sequence) or isinstance(v, (str, bytes)) or len(v) != 2:
-        raise ValueError(f"expected point [x,y], got {v!r}")
-    return fnum(v[0]), fnum(v[1])
-
-
-def deep_get(m: Mapping[str, Any], path: Sequence[str], default: Any = None) -> Any:
-    cur: Any = m
-    for key in path:
-        if not isinstance(cur, Mapping) or key not in cur:
-            return default
-        cur = cur[key]
-    return cur
-
-
-def pts_attr(points: Sequence[Point]) -> str:
-    return " ".join(f"{fmt(x)},{fmt(y)}" for x, y in points)
-
+from framegraph._helpers import (
+    Box,
+    Point,
+    attrs,
+    box,
+    deep_get,
+    esc,
+    fmt,
+    fnum,
+    pt,
+    pts_attr,
+    sid,
+)
 
 # ---------------------------------------------------------------------------
 # Marker shape table — UML 2.5 §11 arrowhead variants
@@ -410,11 +161,20 @@ class FrameGraphRenderer:
         ]
 
         # ── v3 additions ──────────────────────────────────────────────
+        # Annotated to match the `RendererContext` Protocol exactly —
+        # mypy treats Protocol attributes invariantly, so the class
+        # annotation must equal the Protocol's annotation.
+        # Annotated as concrete `dict` (not `Mapping`) to satisfy the
+        # invariant Protocol attribute match in `RendererContext`.
         self.glyph_map: dict[str, str] = dict(self.tokens.get("glyph_map", {}) or {})
         self.fill_styles: dict[str, Any] = dict(self.tokens.get("fill_styles", {}) or {})
         self.symbols: dict[str, Any] = dict(self.visual.get("symbols", {}) or {})
         self.gradient_defs: list[str] = []
         self._uses_icon_font: bool = False
+        # `yaml_source_dir` is set by the CLI / deck renderer after
+        # construction so that `<image>` objects can resolve relative
+        # `href` values. Empty string when no source path is known.
+        self.yaml_source_dir: str = ""
         # ──────────────────────────────────────────────────────────────
 
         self.object_index: dict[str, dict[str, Any]] = {}
@@ -427,10 +187,6 @@ class FrameGraphRenderer:
         # byte-identical with v1.x.
         self.marker_kinds: set[tuple[str, str]] = set()
         self.warnings: list[str] = []
-        # Set externally by callers that load YAML from disk (cli.py, the
-        # standalone renderer main, the deck loader). `renderers/image.py`
-        # reads it via getattr to resolve relative href paths.
-        self.yaml_source_dir: str | None = None
 
         # ── HD effect filter registry (lazy) ──────────────────────────
         # Keyed by deterministic SVG id; value is the resolved <filter>
@@ -489,43 +245,103 @@ class FrameGraphRenderer:
 
     # ── v3: gradient defs ─────────────────────────────────────────────
     def _build_gradients(self) -> None:
-        """Convert fill_styles entries into SVG gradient <defs> strings.
-        Gradient coordinates use objectBoundingBox so they scale with each shape.
+        """Convert fill_styles entries into SVG gradient `<defs>` strings.
+
+        Default coordinate space is `objectBoundingBox` so gradients scale
+        with each shape; override with `gradient_units: userSpaceOnUse`
+        when canvas-space gradients are required.
+
+        Per-stop transparency is emitted via SVG `stop-opacity`; gradient
+        roots may declare `opacity` (applied to every stop that does not
+        override it), `spread_method` (`pad`|`reflect`|`repeat`), and
+        `gradient_transform` (raw SVG transform string).
         """
         for name, fs in self.fill_styles.items():
-            gtype = str(fs.get("type", ""))
-            gid = sid("grad_" + name)
-            stops_svg = "".join(
-                f'<stop offset="{fmt(s.get("offset", 0))}"'
-                f' stop-color="{self.color(s.get("color"), "#000000")}"/>'
-                for s in (fs.get("stops") or [])
+            self._register_gradient(name, fs)
+
+    def _register_gradient(self, name: str, fs: Mapping[str, Any]) -> str:
+        """Build a single gradient `<defs>` entry and return its SVG id.
+
+        Idempotent: re-registering the same `name` returns the existing id
+        without re-appending. Inline gradients call this with a synthetic
+        name to register on first use from `fill_value()`.
+        """
+        gid = sid("grad_" + name)
+        # Idempotency: skip if a def for this id already exists.
+        if any(f'id="{gid}"' in g for g in self.gradient_defs):
+            return gid
+
+        gtype = str(fs.get("type", ""))
+        # Per-gradient default opacity (applies to stops that don't set their own).
+        root_opacity = fs.get("opacity")
+        stops_svg_parts: list[str] = []
+        for s in fs.get("stops") or []:
+            offset = fmt(s.get("offset", 0))
+            stop_color = self.color(s.get("color"), "#000000")
+            # Per-stop opacity wins; falls back to gradient root opacity; else opaque.
+            stop_op = s.get("opacity")
+            if stop_op is None:
+                stop_op = root_opacity
+            op_attr = f' stop-opacity="{fmt(stop_op)}"' if stop_op is not None else ""
+            stops_svg_parts.append(
+                f'<stop offset="{offset}"'
+                f' stop-color="{stop_color}"{op_attr}/>'
             )
-            if gtype == "linear_gradient":
-                p1 = fs.get("from", [0, 0])
-                p2 = fs.get("to", [0, 1])
-                self.gradient_defs.append(
-                    f'<linearGradient id="{gid}"'
-                    f' x1="{fmt(fnum(p1[0]))}" y1="{fmt(fnum(p1[1]))}"'
-                    f' x2="{fmt(fnum(p2[0]))}" y2="{fmt(fnum(p2[1]))}"'
-                    f' gradientUnits="objectBoundingBox">{stops_svg}</linearGradient>'
-                )
-            elif gtype == "radial_gradient":
-                c = fs.get("center", [0.5, 0.5])
-                r = fnum(fs.get("radius"), 0.5)
-                self.gradient_defs.append(
-                    f'<radialGradient id="{gid}"'
-                    f' cx="{fmt(fnum(c[0]))}" cy="{fmt(fnum(c[1]))}" r="{fmt(r)}"'
-                    f' gradientUnits="objectBoundingBox">{stops_svg}</radialGradient>'
-                )
+        stops_svg = "".join(stops_svg_parts)
+
+        # Optional shared attributes: spread method, coordinate space, transform.
+        units = str(fs.get("gradient_units", "objectBoundingBox"))
+        spread = fs.get("spread_method")
+        spread_attr = f' spreadMethod="{esc(spread)}"' if spread else ""
+        gtrans = fs.get("gradient_transform")
+        gtrans_attr = f' gradientTransform="{esc(gtrans)}"' if gtrans else ""
+
+        if gtype == "linear_gradient":
+            p1 = fs.get("from", [0, 0])
+            p2 = fs.get("to", [0, 1])
+            self.gradient_defs.append(
+                f'<linearGradient id="{gid}"'
+                f' x1="{fmt(fnum(p1[0]))}" y1="{fmt(fnum(p1[1]))}"'
+                f' x2="{fmt(fnum(p2[0]))}" y2="{fmt(fnum(p2[1]))}"'
+                f' gradientUnits="{esc(units)}"{spread_attr}{gtrans_attr}>{stops_svg}</linearGradient>'
+            )
+        elif gtype == "radial_gradient":
+            c = fs.get("center", [0.5, 0.5])
+            r = fnum(fs.get("radius"), 0.5)
+            # Optional focal point for off-centre highlight: defaults to centre.
+            focal = fs.get("focal")
+            focal_attr = ""
+            if isinstance(focal, Sequence) and not isinstance(focal, (str, bytes)) and len(focal) >= 2:
+                focal_attr = f' fx="{fmt(fnum(focal[0]))}" fy="{fmt(fnum(focal[1]))}"'
+            self.gradient_defs.append(
+                f'<radialGradient id="{gid}"'
+                f' cx="{fmt(fnum(c[0]))}" cy="{fmt(fnum(c[1]))}" r="{fmt(r)}"'
+                f'{focal_attr}'
+                f' gradientUnits="{esc(units)}"{spread_attr}{gtrans_attr}>{stops_svg}</radialGradient>'
+            )
+        return gid
 
     # ── v3: fill resolution (color token OR gradient IdRef) ────────────
     def fill_value(self, v: Any, default: str = "none") -> str:
-        """Resolve a fill value:
+        """Resolve a fill value to an SVG paint string.
+
         - None / "none"  → default
         - fill_styles key → url(#grad_name)
+        - inline gradient mapping (`{type: linear_gradient|radial_gradient, ...}`)
+          → registered on demand and returned as `url(#grad_inline_N)`
         - color token / literal → hex string
         """
         if v is None:
+            return default
+        # Inline gradient: register a synthetic fill_style on first sight.
+        if isinstance(v, Mapping):
+            gtype = v.get("type")
+            if gtype in ("linear_gradient", "radial_gradient"):
+                inline_name = "inline_" + str(len(self.fill_styles))
+                # Persist so deterministic reuse + defs_svg picks it up.
+                self.fill_styles[inline_name] = dict(v)
+                gid = self._register_gradient(inline_name, v)
+                return f"url(#{gid})"
             return default
         s = str(v)
         if s == "none":
@@ -590,8 +406,9 @@ class FrameGraphRenderer:
         return None
 
     def effect_filter_id(self, kind: str, spec: Any) -> str | None:
-        """Resolve an effect spec to a stable filter id, registering the
-        `<filter>` element on first use.
+        """Resolve an effect spec to a stable filter id.
+
+        Registers the `<filter>` element on first use.
 
         Args:
             kind: "shadow" or "glow".
@@ -718,8 +535,32 @@ class FrameGraphRenderer:
             return d["punct"]
         return d["normal"]
 
-    def _str_width(self, text: str, fs: float, bold: bool) -> float:
-        """Estimate rendered width of text in pixels."""
+    def _str_width(
+        self,
+        text: str,
+        fs: float,
+        bold: bool,
+        font: str | None = None,
+    ) -> float:
+        """Estimate rendered width of text in pixels.
+
+        When ``font`` is a resolved CSS font-family chain and both
+        ``fontTools`` and ``fc-match`` are available on the system, the
+        width is computed from the actual per-glyph advances of the file
+        fontconfig resolves for that chain — the same file the rasterizer
+        (cairosvg via Pango) will draw with. This eliminates the wrap-vs-
+        render mismatch that the per-class fallback table introduces when
+        the installed font is wider than Helvetica.
+
+        When ``font`` is ``None`` or real metrics are unavailable, falls
+        back to the per-character-class estimator (legacy behavior).
+        """
+        if font:
+            from framegraph._font_metrics import measure_text
+
+            real = measure_text(text, font, fs, bold)
+            if real is not None:
+                return real
         return sum(self._char_em(c, bold) for c in text) * fs
 
     def sorted_layers(self) -> list[Mapping[str, Any]]:
@@ -983,7 +824,42 @@ class FrameGraphRenderer:
         st.setdefault("dash", None)
         st.setdefault("arrow_start", False)
         st.setdefault("arrow_end", False)
+        # `opacity` (alias `stroke_opacity`) lets stroke styles declare
+        # transparency without forcing rgba colour literals; it is left
+        # absent (rather than defaulted to 1.0) so stroke_attrs can omit
+        # the SVG attribute entirely when no opacity was requested.
+        if "stroke_opacity" in st and "opacity" not in st:
+            st["opacity"] = st["stroke_opacity"]
         return st
+
+    def opacity_attrs(
+        self,
+        obj: Mapping[str, Any],
+        *,
+        has_fill: bool = True,
+        has_stroke: bool = True,
+    ) -> dict[str, Any]:
+        """Build per-shape `fill-opacity` / `stroke-opacity` SVG attrs.
+
+        Object-level `opacity` is emitted by `group_attrs()` on the
+        wrapping `<g>`. This helper handles the channel-specific values
+        that compose with it: callers merge the result into the geometry
+        attribute dict (rect, ellipse, path, line, polyline).
+
+        Channels are dropped when the geometry has no paint in that
+        channel (e.g., `<line>` has no fill, so `has_fill=False` skips
+        any `fill-opacity` even when the object declared one).
+        """
+        out: dict[str, Any] = {}
+        if has_fill:
+            fop = obj.get("fill_opacity")
+            if fop is not None:
+                out["fill-opacity"] = fmt(fop)
+        if has_stroke:
+            sop = obj.get("stroke_opacity")
+            if sop is not None:
+                out["stroke-opacity"] = fmt(sop)
+        return out
 
     def rect_stroke(self, obj: Mapping[str, Any]) -> dict[str, Any] | None:
         """Resolve the stroke for a `rect`/`ellipse`-style object.
@@ -1127,6 +1003,10 @@ class FrameGraphRenderer:
             "stroke-linecap": st.get("linecap", "butt"),
             "stroke-linejoin": st.get("linejoin", "round"),
         }
+        # Stroke opacity: emit only when explicitly requested (no implicit 1.0).
+        st_op = st.get("opacity")
+        if st_op is not None:
+            a["stroke-opacity"] = fmt(st_op)
         dash = st.get("dash")
         if dash:
             if isinstance(dash, Sequence) and not isinstance(dash, str):
@@ -1635,6 +1515,11 @@ class FrameGraphRenderer:
             style_name or obj.get("stroke_style"),
             obj.get("stroke") if isinstance(obj.get("stroke"), Mapping) else None,
         ) or self.stroke_style("direct_flow")
+        # Lines/polylines carry stroke only (`fill="none"`), so fill_opacity
+        # is intentionally suppressed here even when present on the object.
+        op_extra = self.opacity_attrs(obj, has_fill=False)
+        # Shadow / glow available on lines for "highlighted edge" effects.
+        fx_extra = self.effect_filter_attrs(obj)
         if len(points) == 2 and not force_poly:
             p1, p2 = points
             geom: dict[str, Any] = {
@@ -1645,139 +1530,13 @@ class FrameGraphRenderer:
                 "fill": "none",
             }
             geom.update(self.stroke_attrs(st, arrows=True))
+            geom.update(op_extra)
+            geom.update(fx_extra)
             svg = f"<line {attrs(geom)}/>"
         else:
             geom = {"points": pts_attr(points), "fill": "none"}
             geom.update(self.stroke_attrs(st, arrows=True))
+            geom.update(op_extra)
+            geom.update(fx_extra)
             svg = f"<polyline {attrs(geom)}/>"
         return f"<g {attrs(self.group_attrs(obj))}>{svg}</g>"
-
-    def render_connector(self, obj: Mapping[str, Any]) -> str:
-        start = self.endpoint(obj.get("from"))
-        end = self.endpoint(obj.get("to"))
-        route = obj.get("route", {}) or {"type": "straight"}
-        rtype = str(route.get("type", "straight"))
-        if rtype == "straight":
-            points = [start, end]
-        elif rtype in ("orthogonal", "polyline"):
-            if route.get("points"):
-                points = [pt(p) for p in route["points"]]
-                if points and points[0] != start:
-                    points.insert(0, start)
-                if points and points[-1] != end:
-                    points.append(end)
-            else:
-                mid_x = (start[0] + end[0]) / 2
-                points = [start, (mid_x, start[1]), (mid_x, end[1]), end]
-        elif rtype == "bezier":
-            c1 = pt(route.get("control1", route.get("c1", start)))
-            c2 = pt(route.get("control2", route.get("c2", end)))
-            d = f"M {fmt(start[0])} {fmt(start[1])} C {fmt(c1[0])} {fmt(c1[1])} {fmt(c2[0])} {fmt(c2[1])} {fmt(end[0])} {fmt(end[1])}"
-            points = []
-        else:
-            raise ValueError(f"unsupported route type '{rtype}'")
-        if rtype != "bezier":
-            d = self.path_d(points)
-        st = self.stroke_style(
-            obj.get("stroke_style"),
-            obj.get("stroke") if isinstance(obj.get("stroke"), Mapping) else None,
-        )
-        a: dict[str, Any] = {"d": d, "fill": "none"}
-        a.update(self.stroke_attrs(st, arrows=True))
-        out = [f"<g {attrs(self.group_attrs(obj))}>", f"<path {attrs(a)}/>"]
-        label = obj.get("label")
-        if isinstance(label, Mapping):
-            out.append(
-                self.text_svg(
-                    label.get("text", ""),
-                    box(label.get("box", [0, 0, 0, 0])),
-                    self.text_style(label.get("style", "tiny")),
-                )
-            )
-        out.append("</g>")
-        return "\n".join(out)
-
-    def render_legend(self, obj: Mapping[str, Any]) -> str:
-        out = [f"<g {attrs(self.group_attrs(obj))}>"]
-        for item in obj.get("items", []) or []:
-            if not isinstance(item, Mapping):
-                continue
-            sample = item.get("sample", {}) or {}
-            item_id = item.get("id", "legend_item")
-            if sample.get("type") == "line":
-                pseudo = {
-                    "id": str(item_id) + ".sample",
-                    "type": "legend_sample",
-                    "bind": item.get("bind"),
-                    "stroke_style": sample.get("stroke_style"),
-                }
-                out.append(
-                    self.line_svg(
-                        pseudo,
-                        [pt(sample.get("from", [0, 0])), pt(sample.get("to", [0, 0]))],
-                        sample.get("stroke_style"),
-                    )
-                )
-            elif sample.get("type") in ("rounded_rect", "rect"):
-                pseudo = {
-                    "id": str(item_id) + ".sample",
-                    "type": "legend_sample",
-                    "bind": item.get("bind"),
-                    "box": sample.get("box", [0, 0, 0, 0]),
-                    "radius": sample.get("radius", 0),
-                    "fill": sample.get("fill", "none"),
-                    "stroke": sample.get("stroke"),
-                }
-                out.append(self.render_rect(pseudo))
-            label = item.get("label")
-            if isinstance(label, Mapping):
-                out.append(
-                    self.text_svg(
-                        label.get("text", ""),
-                        box(label.get("box", [0, 0, 0, 0])),
-                        self.text_style(label.get("style", "legend")),
-                    )
-                )
-        out.append("</g>")
-        return "\n".join(out)
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
-
-
-def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="FrameGraph YAML → SVG renderer v3")
-    p.add_argument("input", type=Path)
-    p.add_argument("output_positional", type=Path, nargs="?")
-    p.add_argument("-o", "--output", type=Path)
-    p.add_argument("--strict", action="store_true")
-    p.add_argument("--no-validate", action="store_true")
-    p.add_argument("--quiet", action="store_true")
-    return p.parse_args(argv)
-
-
-def main(argv: list[str] | None = None) -> int:
-    args = parse_args(argv)
-    output = args.output or args.output_positional
-    try:
-        renderer = FrameGraphRenderer.from_yaml_file(args.input)
-        if not args.no_validate:
-            for w in renderer.validate():
-                print(f"warning: {w}", file=sys.stderr)
-        svg = renderer.render_svg()
-        if output:
-            output.write_text(svg, encoding="utf-8")
-            if not args.quiet:
-                print(f"wrote {output}  ({output.stat().st_size / 1024:.1f} KB)", file=sys.stderr)
-        else:
-            print(svg, end="")
-        return 0
-    except Exception as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        return 1
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

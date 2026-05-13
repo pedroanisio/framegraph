@@ -51,9 +51,7 @@ def _is_deck(data: dict) -> bool:
 
 def _all_standalone_fixtures() -> list[Path]:
     return sorted(
-        f
-        for f in FIXTURES.glob("*.yml")
-        if not _is_deck(yaml.safe_load(f.read_text()) or {})
+        f for f in FIXTURES.glob("*.yml") if not _is_deck(yaml.safe_load(f.read_text()) or {})
     )
 
 
@@ -189,9 +187,7 @@ def test_rejects_bar_chart_box_with_three_elements() -> None:
             "layers": [
                 {
                     "id": "L",
-                    "objects": [
-                        {"type": "bar_chart", "id": "bad", "box": [0, 0, 10]}
-                    ],
+                    "objects": [{"type": "bar_chart", "id": "bad", "box": [0, 0, 10]}],
                 }
             ]
         }

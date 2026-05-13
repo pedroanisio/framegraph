@@ -27,7 +27,6 @@ import pytest
 from framegraph._patterns import SlidePattern
 from framegraph.patterns import compute_boxes
 
-
 # ─────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────
@@ -366,9 +365,7 @@ class TestCorpusCoverage:
                 failures.append((p.id, p.name, f"raised: {exc}"))
                 continue
             if len(boxes) != len(p.zones):
-                failures.append(
-                    (p.id, p.name, f"{len(p.zones)} zones, {len(boxes)} boxes")
-                )
+                failures.append((p.id, p.name, f"{len(p.zones)} zones, {len(boxes)} boxes"))
                 continue
             for z in p.zones:
                 box = boxes.get(z.role)
@@ -377,9 +374,7 @@ class TestCorpusCoverage:
                     continue
                 x, y, w, h = box
                 if w <= 0 or h <= 0:
-                    failures.append(
-                        (p.id, p.name, f"role {z.role!r} has w={w}, h={h}")
-                    )
+                    failures.append((p.id, p.name, f"role {z.role!r} has w={w}, h={h}"))
         assert not failures, f"{len(failures)} layout failures: {failures[:5]}"
 
 
@@ -392,9 +387,21 @@ class TestSpanAware:
     """A zone with span > 1 gets a box wider than a single cell."""
 
     def test_span_h2_zone_is_wider_than_default(self) -> None:
-        # Two patterns, identical except for span on the same zone.
-        zones_default = [_zone("a", h="left", v="middle")]
-        zones_spanned = [_zone("a", h="left", v="middle")]
+        # Two patterns, identical except for span on zone "a". Both
+        # have a sibling zone "b" at (right, middle) that occupies a
+        # column of its own — without it, the layout's "used
+        # coordinates only" rule (see _AnchorGrid.from_zones)
+        # collapses the grid to a single column and the spanned and
+        # unspanned cases trivially produce the same width. Span has
+        # observable effect only when there is a competing column.
+        zones_default = [
+            _zone("a", h="left", v="middle"),
+            _zone("b", h="right", v="middle"),
+        ]
+        zones_spanned = [
+            _zone("a", h="left", v="middle"),
+            _zone("b", h="right", v="middle"),
+        ]
         zones_spanned[0]["span"] = {"h": 2, "v": 1}
 
         p_default = _pattern(zones_default, pattern_id=99100)
@@ -455,8 +462,7 @@ class TestSpanAware:
         single_cell = (CANVAS_W - 2 * 24.0 - 2 * 24.0) / 3
         expected_min = single_cell * (z.span.h - 0.5)  # at least h-0.5 cells
         assert w > expected_min, (
-            f"pattern #{p.id} role {z.role!r} span.h={z.span.h}: "
-            f"w={w}, expected >{expected_min}"
+            f"pattern #{p.id} role {z.role!r} span.h={z.span.h}: w={w}, expected >{expected_min}"
         )
 
 
@@ -494,11 +500,16 @@ class TestDensityAware:
         boxes_none = compute_boxes(p, CANVAS_W, CANVAS_H, fill=None)
         assert boxes_no == boxes_none
 
-    def test_density_weights_table_higher_than_list(self) -> None:
-        """A table sibling gets more width than a list sibling in the same cell.
+    def test_density_weights_table_taller_than_list(self) -> None:
+        """A table sibling gets more *height* than a list sibling when both
+        are wide-content types in the same cell.
 
-        The fill payload signals density: a table_data zone with many
-        columns has higher demand than a list_items zone with short items.
+        Per `_density_subdivide`'s documented contract (see
+        ``framegraph/patterns/layout.py``), wide-content siblings
+        (``table_data``, ``chart_data``, ``list_items``) **stack
+        vertically**, each getting full cell width and a height
+        proportional to its row demand. Density therefore lives on
+        the height axis for wide-content siblings, not on width.
         """
         zones = [
             {
@@ -516,7 +527,10 @@ class TestDensityAware:
         ]
         p = _pattern(zones, pattern_id=99202)
 
-        # Build a fill payload: the table has 4 columns; the list has 3 short items.
+        # Build a fill payload: the table has 6 rows × 4 columns;
+        # the list has 3 short items. The table's larger row count
+        # gives it a higher row-demand weight under the vertical-
+        # stack density allocation.
         from framegraph.patterns import derive_default_fill_schema
 
         Model = derive_default_fill_schema(p)
@@ -524,24 +538,35 @@ class TestDensityAware:
             {
                 "tbl": {
                     "headers": ["A", "B", "C", "D"],
-                    "rows": [["1", "2", "3", "4"]],
+                    "rows": [
+                        ["1", "2", "3", "4"],
+                        ["5", "6", "7", "8"],
+                        ["9", "10", "11", "12"],
+                        ["13", "14", "15", "16"],
+                        ["17", "18", "19", "20"],
+                        ["21", "22", "23", "24"],
+                    ],
                 },
                 "lst": ["a", "b", "c"],
             }
         )
 
-        # With fill: table should get more width than list.
+        # With fill: table should be TALLER than the list under
+        # vertical-stack density allocation. Both keep full cell width.
         boxes = compute_boxes(p, CANVAS_W, CANVAS_H, fill=fill)
-        tw = boxes["tbl"][2]
-        lw = boxes["lst"][2]
-        assert tw > lw, (
-            f"table width ({tw}) should exceed list width ({lw}) under "
-            f"density allocation"
+        th = boxes["tbl"][3]
+        lh = boxes["lst"][3]
+        assert th > lh, (
+            f"table height ({th}) should exceed list height ({lh}) under "
+            f"density allocation (wide-content siblings stack vertically)"
         )
+        # Both share full cell width — confirm horizontal allocation
+        # is not what carries density information here.
+        assert abs(boxes["tbl"][2] - boxes["lst"][2]) < 1.0
 
-        # Without fill: the two should be approximately equal.
+        # Without fill: heights should be approximately equal (uniform split).
         boxes_no_fill = compute_boxes(p, CANVAS_W, CANVAS_H)
-        assert abs(boxes_no_fill["tbl"][2] - boxes_no_fill["lst"][2]) < 1.0
+        assert abs(boxes_no_fill["tbl"][3] - boxes_no_fill["lst"][3]) < 1.0
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -569,3 +594,65 @@ class TestBackwardsCompat:
                 # Allow up to 2px tolerance over the canvas (rounding).
                 assert x + w <= CANVAS_W + 2, f"#{p.id}/{role}: exceeds canvas W"
                 assert y + h <= CANVAS_H + 2, f"#{p.id}/{role}: exceeds canvas H"
+
+
+# ─────────────────────────────────────────────────────────────────
+# Relative-placement clamping (regression for off-canvas zones)
+# ─────────────────────────────────────────────────────────────────
+
+
+class TestRelativeClamping:
+    """A `relation: below` target that already fills the canvas must not
+    push its dependent off the slide edge.
+
+    Pattern #1 (`Title Slide`) is the canonical case: a `large` title
+    consumes most of the canvas; the `subtitle` is `relative: below(title)`.
+    Without clamping, the subtitle's bottom landed ~10 px below the
+    1080-tall slide — invisible, and a violation of the layout
+    invariant `y + h <= canvas_h + 2`.
+    """
+
+    def test_below_relation_on_oversize_target_is_clamped(self) -> None:
+        """`below` against a canvas-filling target stays inside the slide."""
+        zones = [
+            _zone("hero", h="center", v="middle", size="large"),
+            _zone("foot", relative={"relation": "below", "target": "hero"}, size="medium"),
+        ]
+        p = _pattern(zones, pattern_id=99300)
+        boxes = compute_boxes(p, CANVAS_W, CANVAS_H)
+        x, y, w, h = boxes["foot"]
+        assert h > 0, f"foot got degenerate height {h}"
+        assert y + h <= CANVAS_H + 2, f"foot bottom {y + h} exceeds canvas height {CANVAS_H}"
+
+    def test_relative_fallback_when_target_fills_canvas(self) -> None:
+        """When `below` would land entirely off-canvas, fall back to a
+        visible centroid box rather than emitting `h=0` or pushing past
+        the edge.
+        """
+        zones = [
+            _zone("hero", fullbleed=True, size="full"),
+            _zone("note", relative={"relation": "below", "target": "hero"}, size="small"),
+        ]
+        p = _pattern(zones, pattern_id=99301)
+        boxes = compute_boxes(p, CANVAS_W, CANVAS_H)
+        x, y, w, h = boxes["note"]
+        assert w > 0 and h > 0, f"note got degenerate ({w}, {h})"
+        # The fallback must lie within the canvas.
+        assert x >= 0 and y >= 0
+        assert x + w <= CANVAS_W + 2
+        assert y + h <= CANVAS_H + 2
+
+    @pytest.mark.parametrize("relation", ["below", "above", "left_of", "right_of"])
+    def test_directional_relations_stay_on_canvas(self, relation: str) -> None:
+        """All four cardinal `relative` placements honour the canvas clamp."""
+        zones = [
+            _zone("anchor", h="center", v="middle", size="large"),
+            _zone("dep", relative={"relation": relation, "target": "anchor"}, size="medium"),
+        ]
+        p = _pattern(zones, pattern_id=99302)
+        boxes = compute_boxes(p, CANVAS_W, CANVAS_H)
+        x, y, w, h = boxes["dep"]
+        assert w > 0 and h > 0, f"{relation}: degenerate ({w}, {h})"
+        assert x >= 0 and y >= 0, f"{relation}: negative origin"
+        assert x + w <= CANVAS_W + 2, f"{relation}: exceeds canvas W"
+        assert y + h <= CANVAS_H + 2, f"{relation}: exceeds canvas H"

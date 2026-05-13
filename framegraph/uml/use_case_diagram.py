@@ -162,8 +162,8 @@ def compose_use_case_diagram(
         else:
             x_shift = margin
             y_shift = y_margin
-        for nid, (sx, sy) in layout_result.positions.items():
-            positions[nid] = (sy + x_shift, sx + y_shift)
+        for sg_nid, (sx, sy) in layout_result.positions.items():
+            positions[str(sg_nid)] = (sy + x_shift, sx + y_shift)
     else:
         raise ValueError(
             f"unknown layout strategy {opts.layout!r}; expected 'manual' or 'sugiyama'"

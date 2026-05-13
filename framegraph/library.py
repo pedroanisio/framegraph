@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any, cast
@@ -55,9 +54,7 @@ def deep_merge(base: Any, override: Any) -> Any:
     return result
 
 
-def _scale_text_styles(
-    text_styles: dict[str, Any], scale: float
-) -> dict[str, Any]:
+def _scale_text_styles(text_styles: dict[str, Any], scale: float) -> dict[str, Any]:
     """Apply a uniform scale factor to every text-style's size + line_height.
 
     Used by the deck loader to expose the layout planner's chosen
@@ -271,6 +268,11 @@ class FrameGraphComposer:
 
 
 def cmd_compose(args: argparse.Namespace, lib: FrameGraphLibrary) -> int:
+    """Compose a diagram against the library and write/print the merged YAML.
+
+    The composer's only job is YAML expansion. Use the package CLI
+    (`framegraph render <input>`) to convert the composed YAML to SVG.
+    """
     composer = FrameGraphComposer(lib)
     diagram = load_yaml(args.input)
 
@@ -278,19 +280,6 @@ def cmd_compose(args: argparse.Namespace, lib: FrameGraphLibrary) -> int:
     built = composer.compose(diagram, theme_override=args.theme, extra_symbols=extra_syms)
 
     output = args.output
-    if args.render:
-        # Write to a temp YAML, then invoke the renderer
-        import tempfile
-
-        tmp = Path(tempfile.mkstemp(suffix=".yml")[1])
-        dump_yaml(built, tmp)
-        svg_out = output or args.input.with_suffix(".svg")
-        renderer = args.renderer or (Path(__file__).parent.parent / "framegraph_to_svg_v3.py")
-        rc = subprocess.run(
-            [sys.executable, str(renderer), str(tmp), "-o", str(svg_out)], check=False
-        ).returncode
-        tmp.unlink(missing_ok=True)
-        return rc
     if output:
         dump_yaml(built, output)
         print(f"wrote {output}", file=sys.stderr)
@@ -345,11 +334,9 @@ def build_parser() -> argparse.ArgumentParser:
     # compose
     cp = sub.add_parser("compose", help="Merge library into a diagram YAML")
     cp.add_argument("input", type=Path, help="Diagram .fg.yml source")
-    cp.add_argument("-o", "--output", type=Path, help="Output path (.yml or .svg with --render)")
+    cp.add_argument("-o", "--output", type=Path, help="Output YAML path")
     cp.add_argument("-t", "--theme", help="Theme id (overrides $theme in file)")
     cp.add_argument("-s", "--symbols", help="Comma-separated extra symbol refs")
-    cp.add_argument("--render", action="store_true", help="Pipe to renderer, emit SVG")
-    cp.add_argument("--renderer", type=Path, help="Path to framegraph_to_svg_v3.py")
 
     # list-themes
     sub.add_parser("list-themes", help="List available token packs")
@@ -361,33 +348,88 @@ def build_parser() -> argparse.ArgumentParser:
     # list-symbols
     sub.add_parser("list-symbols", help="List available symbol packs")
 
+    # render-deck
+    rp = sub.add_parser("render-deck", help="Render a multi-page deck YAML into per-slide SVGs")
+    rp.add_argument("input", type=Path, help="Deck YAML (.deck.yml)")
+    rp.add_argument("-o", "--output", type=Path, help="Output directory (default: ./output)")
+
     return p
-
-
-def main(argv: list[str] | None = None) -> int:
-    parser = build_parser()
-    args = parser.parse_args(argv)
-    lib = FrameGraphLibrary(args.lib_path)
-
-    if args.command == "compose":
-        return cmd_compose(args, lib)
-    if args.command == "list-themes":
-        return cmd_list_themes(lib)
-    if args.command == "show-theme":
-        return cmd_show_theme(args, lib)
-    if args.command == "list-symbols":
-        return cmd_list_symbols(lib)
-    parser.print_help()
-    return 1
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
 
 
 # ---------------------------------------------------------------------------
 # Deck renderer  (v1.2 extension — multi-page)
 # ---------------------------------------------------------------------------
+
+
+def _resolve_frame_target_canvas(frame: Any, frameset: Any, target_name: str) -> list[float]:
+    """Look up a `FrameTarget`'s canvas by name on a Frame inside a FrameSet.
+
+    Phase 3 helper. Resolution order matches `_frameset._resolve_target`:
+    per-Frame `targets` first, then the FrameSet's
+    `defaults.targets`. Raises `KeyError` when the name is not
+    declared on either side — same contract as the renderer
+    adapter so `framegraph deck --target <name>` and
+    `render_frameset(..., target_name=<name>)` fail in the same way.
+
+    Args:
+        frame: A `framegraph._frameset.Frame` instance.
+        frameset: A `framegraph._frameset.FrameSetDocument` instance.
+        target_name: The target identifier to resolve.
+
+    Returns:
+        The matching target's `canvas` list `[width, height]`.
+
+    Raises:
+        KeyError: When neither the Frame nor the FrameSet defaults
+            declare a target with that name.
+    """
+    candidates = list(frame.targets) or list(frameset.frameset.defaults.targets)
+    for t in candidates:
+        if t.name == target_name:
+            return list(t.canvas)
+    raise KeyError(
+        f"Frame {frame.id!r} has no target named {target_name!r}; "
+        f"available: {[t.name for t in candidates]}"
+    )
+
+
+def list_frameset_targets(deck_data: dict[str, Any]) -> list[str]:
+    """Return every target name declared on a FrameSet view of `deck_data`.
+
+    Phase 3 helper for `framegraph deck --all-targets`. Coerces the
+    input to a `FrameSetDocument` and walks the FrameSet defaults
+    plus every per-Frame target, returning the unique target names
+    in declaration order.
+
+    Args:
+        deck_data: A FrameGraph YAML payload. Anything
+            `coerce_to_frameset` accepts is accepted here.
+
+    Returns:
+        Ordered, deduplicated list of target names. Empty when the
+        FrameSet declares no targets (callers can fall back to
+        single-target rendering).
+    """
+    from framegraph._frameset import coerce_to_frameset
+
+    raw_for_coerce = (
+        deck_data
+        if isinstance(deck_data, dict) and deck_data.get("dsl") == "FrameGraph"
+        else {**(deck_data if isinstance(deck_data, dict) else {}), "dsl": "FrameGraph"}
+    )
+    fs = coerce_to_frameset(raw_for_coerce)
+    seen: list[str] = []
+    seen_set: set[str] = set()
+    for t in fs.frameset.defaults.targets:
+        if t.name not in seen_set:
+            seen.append(t.name)
+            seen_set.add(t.name)
+    for f in fs.frames:
+        for t in f.targets:
+            if t.name not in seen_set:
+                seen.append(t.name)
+                seen_set.add(t.name)
+    return seen
 
 
 class FrameGraphDeckRenderer:
@@ -458,7 +500,7 @@ class FrameGraphDeckRenderer:
         # "default") or a path. Defaults to the bundled "default".
         self._stylesheet = self._load_stylesheet()
         # Pattern catalog — lazy-loaded on first `use:` encounter.
-        self._catalog = None
+        self._catalog: Any = None
         # Per-slide layout reports — populated by `build_slide_doc`
         # for templated slides. Keyed by slide id; carries the
         # planner's scale and overflow facts.
@@ -541,12 +583,13 @@ class FrameGraphDeckRenderer:
                 if slug == target:
                     return p
             raise KeyError(f"no pattern matching slug {ref!r}")
-        raise TypeError(
-            f"`use:` expects an int id or string slug; got {type(ref).__name__}"
-        )
+        raise TypeError(f"`use:` expects an int id or string slug; got {type(ref).__name__}")
 
     def _build_pattern_slide_doc(
-        self, slide: dict[str, Any]
+        self,
+        slide: dict[str, Any],
+        *,
+        canvas: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build a Document for a slide using `use: <pattern>` + `fill:`.
 
@@ -575,17 +618,14 @@ class FrameGraphDeckRenderer:
 
         pattern = self._resolve_pattern(slide["use"])
 
-        # Sidecar auto-discovery — same convention as the CLI.
-        fills_dir = (
-            Path(__file__).resolve().parent.parent
-            / "static"
-            / "refs"
-            / "fills"
-        )
+        # Sidecar auto-discovery — same convention as the CLI's
+        # `_find_sidecar`. Sidecars ship inside the package under
+        # `framegraph/data/fills/` (moved from the legacy
+        # `static/refs/fills/` path in the publish-prep commit so the
+        # wheel carries them).
+        fills_dir = Path(__file__).resolve().parent / "data" / "fills"
         sidecar_matches = (
-            sorted(fills_dir.glob(f"{pattern.id:03d}-*.yml"))
-            if fills_dir.exists()
-            else []
+            sorted(fills_dir.glob(f"{pattern.id:03d}-*.yml")) if fills_dir.exists() else []
         )
 
         if sidecar_matches:
@@ -596,7 +636,10 @@ class FrameGraphDeckRenderer:
 
         fill = Model.model_validate(slide.get("fill") or {})
 
-        canvas = self.deck_config.get("canvas", {"size": [960, 540]})
+        # Phase 3 — `canvas` override (used by multi-target rendering).
+        # When None, fall back to the deck-level canvas.
+        if canvas is None:
+            canvas = self.deck_config.get("canvas", {"size": [960, 540]})
         size = canvas.get("size", [960, 540])
         canvas_w, canvas_h = float(size[0]), float(size[1])
 
@@ -608,9 +651,7 @@ class FrameGraphDeckRenderer:
 
         top_reserve = 0.0
         if chrome_cfg.get("enabled"):
-            top_reserve = float(
-                (chrome_cfg.get("title_separator") or {}).get("y_offset", 56)
-            )
+            top_reserve = float((chrome_cfg.get("title_separator") or {}).get("y_offset", 56))
         bottom_reserve = 0.0
         footer_cfg = chrome_cfg.get("footer") or {}
         if footer_cfg:
@@ -637,22 +678,13 @@ class FrameGraphDeckRenderer:
         # to apply to every text style on this slide, and the
         # LayoutReport (overflow facts for the operator).
         plan = compute_layout_plan(pattern, canvas_w, content_h, fill=fill)
-        layout = {
-            role: (x, y + content_y, w, h)
-            for role, (x, y, w, h) in plan.boxes.items()
-        }
+        layout = {role: (x, y + content_y, w, h) for role, (x, y, w, h) in plan.boxes.items()}
         plan_scale = plan.scale
         plan_report = plan.report
 
-        label_overrides = (
-            slide.get("labels") if isinstance(slide.get("labels"), dict) else None
-        )
-        numbers = (
-            slide.get("numbers") if isinstance(slide.get("numbers"), dict) else None
-        )
-        titles = (
-            slide.get("titles") if isinstance(slide.get("titles"), dict) else None
-        )
+        label_overrides = slide.get("labels") if isinstance(slide.get("labels"), dict) else None
+        numbers = slide.get("numbers") if isinstance(slide.get("numbers"), dict) else None
+        titles = slide.get("titles") if isinstance(slide.get("titles"), dict) else None
 
         doc = compose_document(
             pattern,
@@ -755,9 +787,7 @@ class FrameGraphDeckRenderer:
         top_stripe = chrome_cfg.get("top_stripe") or {}
         if top_stripe:
             stripe_h = float(top_stripe.get("height", 4))
-            stripe_color = overrides.get("top_stripe_color") or top_stripe.get(
-                "color", "accent"
-            )
+            stripe_color = overrides.get("top_stripe_color") or top_stripe.get("color", "accent")
             objects.append(
                 {
                     "id": "_chrome.top_stripe",
@@ -953,9 +983,7 @@ class FrameGraphDeckRenderer:
                     "decorative": True,
                     "box": [text_x, text_y, text_w, text_h],
                     "text": synthesis_text,
-                    "style": synthesis_cfg.get(
-                        "emphasis_typography", "synthesis_em"
-                    ),
+                    "style": synthesis_cfg.get("emphasis_typography", "synthesis_em"),
                 }
             )
         elif isinstance(synthesis_text, dict):
@@ -969,9 +997,7 @@ class FrameGraphDeckRenderer:
                         "decorative": True,
                         "box": [text_x, text_y, text_w, 22],
                         "text": title_t,
-                        "style": synthesis_cfg.get(
-                            "emphasis_typography", "synthesis_em"
-                        ),
+                        "style": synthesis_cfg.get("emphasis_typography", "synthesis_em"),
                     }
                 )
             if body_t:
@@ -982,15 +1008,18 @@ class FrameGraphDeckRenderer:
                         "decorative": True,
                         "box": [text_x, text_y + 26, text_w, max(0.0, text_h - 26)],
                         "text": body_t,
-                        "style": synthesis_cfg.get(
-                            "body_typography", "synthesis_body"
-                        ),
+                        "style": synthesis_cfg.get("body_typography", "synthesis_body"),
                     }
                 )
 
         return {"id": "_synthesis_band", "z": 5, "objects": objects}
 
-    def build_slide_doc(self, slide: dict[str, Any]) -> dict[str, Any]:
+    def build_slide_doc(
+        self,
+        slide: dict[str, Any],
+        *,
+        canvas: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Assemble a complete FrameGraph document for a single slide.
 
         Two slide modes:
@@ -1010,12 +1039,22 @@ class FrameGraphDeckRenderer:
             ↓ deck.tokens
               ↓ $extends base slide tokens   ← SP-5a
                 ↓ this slide tokens
+
+        Args:
+            slide: The slide entry from `self.slides_raw`.
+            canvas: Phase 3 of ADR 0001 — optional canvas override.
+                When None (default), the deck-level
+                `self.deck_config.get("canvas", ...)` applies.
+                When given, the override wins; used by multi-target
+                rendering (`--target` flag) to render the same slide
+                at the FrameSet's target dimensions.
         """
         # Pattern-composition path: short-circuit when `use:` is set.
         if slide.get("use") is not None:
-            return self._build_pattern_slide_doc(slide)
+            return self._build_pattern_slide_doc(slide, canvas=canvas)
 
-        canvas = self.deck_config.get("canvas", {"size": [960, 540]})
+        if canvas is None:
+            canvas = self.deck_config.get("canvas", {"size": [960, 540]})
         slide_num = slide.get("slide", 0)
         slide_id = slide.get("id", f"slide_{slide_num:02d}")
 
@@ -1243,38 +1282,112 @@ class FrameGraphDeckRenderer:
         path.write_text("\n".join(lines), encoding="utf-8")
         return path
 
-    def render_all(self, output_dir: Path) -> list[Path]:
-        """Render every slide, return list of output paths."""
-        import importlib.util
-        import sys as _sys
+    def render_all(
+        self,
+        output_dir: Path,
+        *,
+        yaml_source_dir: str | Path | None = None,
+        target_name: str | None = None,
+    ) -> list[Path]:
+        """Render every slide; return the per-slide output paths.
 
-        # Locate the v3 renderer relative to this file
-        renderer_path = Path(__file__).parent / "renderer.py"
-        spec = importlib.util.spec_from_file_location("fg_renderer", renderer_path)
-        if spec is None or spec.loader is None:
-            raise ImportError(f"could not load renderer at {renderer_path}")
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        FGR = mod.FrameGraphRenderer
+        Phase 2 of ADR 0001: the slide loop drives off the FrameSet
+        view of `self.raw` (via `coerce_to_frameset`). Per-slide
+        enrichment continues to flow through `self.build_slide_doc`
+        so deck-merge semantics (`library $theme < deck.tokens <
+        $extends < slide.tokens`, master-slide chrome, pattern
+        composition) stay byte-identical to Phase 1 output when
+        ``target_name`` is None.
+
+        Phase 3 of ADR 0001: when ``target_name`` is given, every
+        slide renders at the FrameSet target's canvas dimensions
+        (looked up on the per-Frame `targets` first, then the
+        FrameSet's `defaults.targets`). This is the
+        `framegraph deck --target <name>` entry point;
+        `framegraph deck --all-targets` calls this once per target.
+
+        Args:
+            output_dir: Directory to receive `slide_<N>_<id>.svg` files.
+            yaml_source_dir: Absolute directory of the deck YAML, used by
+                `<image>` objects to resolve relative `href`s. When
+                None, image paths must be absolute.
+            target_name: Optional FrameSet target identifier. When
+                None (default), every slide uses the deck-level
+                canvas — preserves Phase 1/2 byte-identical output.
+                When set, the matching `FrameTarget` is resolved
+                (per-Frame override > FrameSet defaults) and its
+                `canvas` dimensions override `deck.canvas` per slide.
+
+        Raises:
+            KeyError: When ``target_name`` is given and not declared
+                on either the slide's Frame or in the FrameSet
+                defaults.
+
+        """
+        # Deferred import: `framegraph.renderer` imports `framegraph.library`
+        # via the package's `__init__.py`, so a top-level import here would
+        # close the cycle.
+        from framegraph._frameset import coerce_to_frameset
+        from framegraph.renderer import FrameGraphRenderer
+
+        # Build the FrameSet view of `self.raw`. `coerce_to_frameset`
+        # is total over deck YAML — Phase 1 pinned this. The Frame
+        # ids match the slide ids 1:1 (preserves the
+        # `slide_<NN>_<id>.svg` filename convention below).
+        #
+        # `coerce_to_frameset` requires a top-level `dsl: FrameGraph`
+        # marker; the deck-renderer constructor accepts dicts
+        # without it (the validate-only-when-dsl-set gate matches
+        # `FrameGraphRenderer.__init__`). Inject the marker when
+        # absent so deck dicts assembled programmatically (the
+        # `tests/unit/test_library.py` fixtures, the deck-composer
+        # intermediate builds) participate in the FrameSet spine.
+        raw_for_coerce = (
+            self.raw
+            if isinstance(self.raw, dict) and self.raw.get("dsl") == "FrameGraph"
+            else {**(self.raw if isinstance(self.raw, dict) else {}), "dsl": "FrameGraph"}
+        )
+        frameset = coerce_to_frameset(raw_for_coerce)
+        slides_by_id = {
+            str(slide.get("id", f"slide_{slide.get('slide', i + 1):02d}")): slide
+            for i, slide in enumerate(self.slides_raw)
+        }
 
         output_dir.mkdir(parents=True, exist_ok=True)
+        source_dir = str(Path(yaml_source_dir).resolve()) if yaml_source_dir else ""
         out_paths: list[Path] = []
         # Aggregate per-slide LayoutReports, populated by the planner
         # via `build_slide_doc` for templated slides. Render is
         # faithful and emits no reports of its own — the planner is
         # the single decision-maker for geometry + uniform typography
         # scale, and the only source of overflow facts.
-        self.constraint_reports: list[dict[str, Any]] = []
-        for slide in self.slides_raw:
+        self.constraint_reports = []
+        for frame in frameset.frames:
+            slide = slides_by_id.get(frame.id)
+            if slide is None:
+                # `coerce_to_frameset` synthesizes an "empty"
+                # placeholder Frame for empty deck YAML. Skip it —
+                # there's no slide payload to enrich or render.
+                continue
             n = slide.get("slide", 0)
-            sid = slide.get("id", f"slide_{n:02d}")
-            doc = self.build_slide_doc(slide)
-            renderer = FGR(doc)
+            sid = frame.id
+            # Phase 3: when `target_name` is given, look up the
+            # target on the per-Frame `targets` first, falling back
+            # to the FrameSet's `defaults.targets`. Pass the resolved
+            # canvas to `build_slide_doc` so deck-merge enrichment
+            # uses the target dimensions.
+            slide_canvas: dict[str, Any] | None = None
+            if target_name is not None:
+                target_canvas = _resolve_frame_target_canvas(frame, frameset, target_name)
+                slide_canvas = {"size": list(target_canvas), "units": "px"}
+            doc = self.build_slide_doc(slide, canvas=slide_canvas)
+            renderer = FrameGraphRenderer(doc)
+            renderer.yaml_source_dir = source_dir
             svg = renderer.render_svg()
             path = output_dir / f"slide_{n:02d}_{sid}.svg"
             path.write_text(svg, encoding="utf-8")
             kb = path.stat().st_size / 1024
-            print(f"  slide {n:02d}  →  {path.name}  ({kb:.1f} KB)", file=_sys.stderr)
+            print(f"  slide {n:02d}  →  {path.name}  ({kb:.1f} KB)", file=sys.stderr)
             out_paths.append(path)
 
             # One LayoutReport per templated slide.
@@ -1296,61 +1409,40 @@ class FrameGraphDeckRenderer:
         # Write speaker notes if any slide declares them
         notes_path = self.render_notes(output_dir)
         if notes_path:
-            print(f"  notes   →  {notes_path.name}", file=_sys.stderr)
+            print(f"  notes   →  {notes_path.name}", file=sys.stderr)
         return out_paths
 
 
 def cmd_render_deck(args: argparse.Namespace, lib: FrameGraphLibrary) -> int:
+    """Handle `render-deck` — render every slide of a deck YAML to SVG."""
     deck_data = load_yaml(args.input)
     renderer = FrameGraphDeckRenderer(deck_data, library=lib)
     out_dir = args.output or args.input.parent / "output"
     print(f"Rendering {len(renderer.slides_raw)} slides → {out_dir}", file=sys.stderr)
-    paths = renderer.render_all(out_dir)
+    paths = renderer.render_all(out_dir, yaml_source_dir=args.input.parent)
     print(f"Done. {len(paths)} SVGs written.", file=sys.stderr)
     return 0
 
 
-# Patch build_parser to add render-deck subcommand. The two redefinitions
-# below are a deliberate monkey-patch over the earlier `build_parser`/`main`:
-# we keep a reference to the original (`_orig_build_parser`) and extend it
-# with the `render-deck` subcommand. mypy correctly flags the `no-redef`;
-# `# type: ignore[no-redef]` documents the intentional override.
-_orig_build_parser = build_parser
-
-
-def build_parser() -> argparse.ArgumentParser:  # type: ignore[no-redef]
-    p = _orig_build_parser()
-    if p._subparsers is None:
-        return p
-    sub = cast(
-        "argparse._SubParsersAction[argparse.ArgumentParser]",
-        p._subparsers._group_actions[0],
-    )
-    rp = sub.add_parser("render-deck", help="Render a multi-page deck YAML into per-slide SVGs")
-    rp.add_argument("input", type=Path, help="Deck YAML (.deck.yml)")
-    rp.add_argument("-o", "--output", type=Path, help="Output directory (default: ./output)")
-    return p
-
-
-build_parser_original = build_parser  # keep reference
-
-
-def main(argv: list[str] | None = None) -> int:  # type: ignore[no-redef]
+def main(argv: list[str] | None = None) -> int:
+    """Composer CLI dispatch — `compose`, `list-themes`, `show-theme`,
+    `list-symbols`, `render-deck`.
+    """
     parser = build_parser()
     args = parser.parse_args(argv)
     lib = FrameGraphLibrary(args.lib_path)
-    if args.command == "compose":
-        return cmd_compose(args, lib)
-    if args.command == "list-themes":
-        return cmd_list_themes(lib)
-    if args.command == "show-theme":
-        return cmd_show_theme(args, lib)
-    if args.command == "list-symbols":
-        return cmd_list_symbols(lib)
-    if args.command == "render-deck":
-        return cmd_render_deck(args, lib)
-    parser.print_help()
-    return 1
+    dispatch = {
+        "compose": lambda: cmd_compose(args, lib),
+        "list-themes": lambda: cmd_list_themes(lib),
+        "show-theme": lambda: cmd_show_theme(args, lib),
+        "list-symbols": lambda: cmd_list_symbols(lib),
+        "render-deck": lambda: cmd_render_deck(args, lib),
+    }
+    handler = dispatch.get(args.command)
+    if handler is None:
+        parser.print_help()
+        return 1
+    return handler()
 
 
 if __name__ == "__main__":

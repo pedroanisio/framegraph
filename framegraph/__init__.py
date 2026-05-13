@@ -20,5 +20,5 @@ Public API
 from .library import FrameGraphDeckRenderer, FrameGraphLibrary
 from .renderer import FrameGraphRenderer
 
-__version__ = "2.0.0.dev0"
+__version__ = "0.1.0"
 __all__ = ["FrameGraphRenderer", "FrameGraphLibrary", "FrameGraphDeckRenderer"]

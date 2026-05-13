@@ -186,6 +186,11 @@ class StrokeStyle(BaseModel):
     arrow_end: bool | None = None
     linecap: str | None = None
     linejoin: str | None = None
+    # Channel transparency for the stroke. Either field accepted;
+    # `opacity` here means stroke-opacity (group-level opacity is
+    # carried on the object base). Range: 0.0 (transparent) – 1.0.
+    opacity: float | None = None
+    stroke_opacity: float | None = None
 
 
 class Tokens(BaseModel):
@@ -266,6 +271,36 @@ class ComponentDef(BaseModel):
 # `class`) is allowed on every object via `extra="allow"`.
 
 
+class OuterRing(BaseModel):
+    """Halo border emitted as a concentric stroke around a rect/ellipse.
+
+    Drawn before the primary geometry so the inner fill paints over the
+    ring's interior — leaving only the ring band visible. Honoured by
+    every rect-shaped renderer (`rect`, `image`, `component`) and by
+    `ellipse` (which uses `offset` instead of `gap`, accepted as a
+    synonym).
+    """
+
+    model_config = ConfigDict(extra="allow")
+    color: Color | None = None
+    width: float | None = None
+    # rect convention; `offset` is accepted as a synonym for ellipses.
+    gap: float | None = None
+    offset: float | None = None
+    dash: list[float] | str | None = None
+    opacity: float | None = None
+
+
+# `shadow` / `glow` accept three forms at the YAML surface:
+#   - a preset name string ("small" | "medium" | "large")
+#   - a mapping with optional `preset` plus dx/dy/blur/color/opacity overrides
+#   - the literal "none" / false to disable
+# Declared as a permissive alias so the schema documents the contract
+# without rejecting any of the legitimate input shapes.
+ShadowSpec = str | dict[str, Any] | bool | None
+GlowSpec = str | dict[str, Any] | bool | None
+
+
 class _ObjectBase(BaseModel):
     model_config = ConfigDict(extra="allow")
     id: str | None = None
@@ -274,7 +309,19 @@ class _ObjectBase(BaseModel):
     box: Box | None = None
     rotation: Any = None  # accepts number or [deg, cx, cy] list
     ports: dict[str, Point] | None = None
+    # `opacity` applies to the wrapping <g>; channel-specific opacity
+    # composes with it on the inner geometry without forcing rgba colour
+    # literals. All three are optional and default to "fully opaque".
     opacity: float | None = None
+    fill_opacity: float | None = None
+    stroke_opacity: float | None = None
+    # Visual decoration available on every renderer that paints primary
+    # geometry. `shadow` / `glow` resolve to <filter> defs (mutually
+    # exclusive — glow wins when both are set). `outer_ring` is a
+    # concentric border used for halo / status-ring effects.
+    shadow: ShadowSpec = None
+    glow: GlowSpec = None
+    outer_ring: OuterRing | dict[str, Any] | None = None
 
 
 class RectObject(_ObjectBase):
@@ -842,6 +889,50 @@ def validate_document(data: dict[str, Any]) -> Document:
     return Document.model_validate(data)
 
 
+def validate_any(data: dict[str, Any]) -> Any:
+    """Validate any FrameGraph document — dispatches by `kind:`.
+
+    Phase 1 of ADR 0001 ("Collapse `Document` and `Deck` into a
+    `FrameSet` graph") introduces `kind: frameset` alongside the
+    existing `kind: hybrid-semantic-visual-diagram` and
+    `kind: presentation-deck`. This helper centralizes the dispatch
+    so callers don't have to inspect `kind:` themselves.
+
+    Args:
+        data: A parsed YAML mapping with `dsl: FrameGraph`.
+
+    Returns:
+        Either a `Document`, `DeckDocument`, or `FrameSetDocument`,
+        depending on `data["kind"]` (or the presence of `slides:`).
+
+    Raises:
+        pydantic.ValidationError: If the input fails the matching
+            schema.
+        ValueError: If `data` is not a mapping or lacks
+            `dsl: FrameGraph`.
+    """
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"FrameGraph document root must be a mapping; got {type(data).__name__}"
+        )
+    if data.get("dsl") != "FrameGraph":
+        raise ValueError(
+            f"FrameGraph document must declare `dsl: FrameGraph`; got {data.get('dsl')!r}"
+        )
+
+    # Lazy import — `_frameset` imports types from this module only via
+    # the public surface, so a top-level import would not cause a cycle,
+    # but defer to keep import-time latency low.
+    from framegraph._frameset import validate_frameset as _vfs
+
+    kind = data.get("kind")
+    if kind == "frameset":
+        return _vfs(data)
+    if kind == "presentation-deck" or isinstance(data.get("slides"), list):
+        return validate_deck(data)
+    return validate_document(data)
+
+
 def validate_deck(data: dict[str, Any]) -> DeckDocument:
     """Validate a parsed YAML mapping as a multi-slide deck.
 
@@ -869,16 +960,17 @@ def validate_object(obj: dict[str, Any]) -> Any:
 
 
 __all__ = [
-    "Document",
-    "DeckDocument",
-    "Scene",
-    "Visual",
-    "Tokens",
-    "Semantic",
-    "Layer",
-    "SymbolDef",
     "ComponentDef",
-    "validate_document",
+    "DeckDocument",
+    "Document",
+    "Layer",
+    "Scene",
+    "Semantic",
+    "SymbolDef",
+    "Tokens",
+    "Visual",
+    "validate_any",
     "validate_deck",
+    "validate_document",
     "validate_object",
 ]

@@ -80,6 +80,43 @@ def test_render_rect_outer_ring_with_opacity() -> None:
     assert "opacity" in out
 
 
+def test_render_rect_square_inner_with_outer_ring_keeps_ring_square() -> None:
+    """Regression: outer_ring must not get rounded corners when the
+    inner rect has no `radius`. Pre-fix, the ring rect always inherited
+    rx/ry because the guard tested the (always-truthy) renderer context.
+    """
+    out = shapes.render_rect(
+        _ctx(),
+        {
+            "box": [0, 0, 100, 50],
+            "outer_ring": {"color": "#000", "width": 2, "gap": 4},
+        },
+    )
+    # Two rects: outer ring rect (first) and inner rect (second).
+    # Neither should carry rx/ry when the inner rect is square.
+    assert "rx=" not in out
+    assert "ry=" not in out
+
+
+def test_render_rect_rounded_inner_with_outer_ring_grows_corner_radius() -> None:
+    """Sibling test to the regression: when the inner rect IS rounded,
+    the outer ring rx/ry must equal `radius + gap + width/2` so the
+    ring follows the inner corner concentrically.
+    """
+    out = shapes.render_rect(
+        _ctx(),
+        {
+            "box": [0, 0, 100, 50],
+            "radius": 6,
+            "outer_ring": {"color": "#000", "width": 2, "gap": 4},
+        },
+    )
+    # expand = gap + width/2 = 4 + 1 = 5; ring rx = 6 + 5 = 11
+    assert 'rx="11"' in out and 'ry="11"' in out
+    # The inner rect retains its own rx/ry of 6
+    assert 'rx="6"' in out and 'ry="6"' in out
+
+
 def test_render_ellipse_with_box_inscribes_ellipse() -> None:
     out = shapes.render_ellipse(_ctx(), {"box": [0, 0, 20, 10]})
     assert "<ellipse" in out
@@ -115,16 +152,12 @@ def test_render_ellipse_outer_ring_with_string_dash() -> None:
 
 
 def test_render_line_object_emits_line_via_line_svg() -> None:
-    out = lines.render_line_object(
-        _ctx(), {"id": "l1", "from": [0, 0], "to": [10, 10]}
-    )
+    out = lines.render_line_object(_ctx(), {"id": "l1", "from": [0, 0], "to": [10, 10]})
     assert out  # non-empty
 
 
 def test_render_polyline_emits_polyline_with_points() -> None:
-    out = lines.render_polyline(
-        _ctx(), {"id": "p1", "points": [[0, 0], [10, 0], [10, 10]]}
-    )
+    out = lines.render_polyline(_ctx(), {"id": "p1", "points": [[0, 0], [10, 0], [10, 10]]})
     assert out
 
 
@@ -153,9 +186,7 @@ def test_render_connector_straight_default_route() -> None:
             ]
         }
     }
-    out = lines.render_connector(
-        _ctx(doc), {"type": "connector", "from": "a", "to": "b"}
-    )
+    out = lines.render_connector(_ctx(doc), {"type": "connector", "from": "a", "to": "b"})
     assert "<path" in out
 
 
@@ -230,10 +261,8 @@ def test_render_legend_with_line_sample_uses_line_svg() -> None:
         {
             "type": "legend",
             "id": "leg",
-            "items": [
-                {"id": "i1", "sample": {"type": "line", "from": [0, 0], "to": [10, 0]}}
-            ],
-        }
+            "items": [{"id": "i1", "sample": {"type": "line", "from": [0, 0], "to": [10, 0]}}],
+        },
     )
     assert out.startswith("<g")
 
@@ -257,9 +286,7 @@ def test_render_legend_empty_items_emits_just_group() -> None:
 def test_render_icon_with_explicit_glyph_emits_string() -> None:
     """Icon with `glyph` Unicode codepoint produces an SVG element."""
     r = _ctx()
-    out = symbols.render_icon(
-        r, {"type": "icon", "id": "i1", "glyph": "x", "box": [0, 0, 20, 20]}
-    )
+    out = symbols.render_icon(r, {"type": "icon", "id": "i1", "glyph": "x", "box": [0, 0, 20, 20]})
     assert isinstance(out, str)
 
 
@@ -278,9 +305,7 @@ def test_render_use_known_symbol_emits_referenced_objects() -> None:
             "visual": {
                 "symbols": {
                     "node_rect": {
-                        "objects": [
-                            {"type": "rect", "id": "r", "box": [0, 0, 10, 10]}
-                        ],
+                        "objects": [{"type": "rect", "id": "r", "box": [0, 0, 10, 10]}],
                     }
                 }
             }
@@ -318,14 +343,10 @@ def test_render_image_with_http_url_passes_through() -> None:
 
 def test_render_image_with_local_file_inlines_base64(tmp_path: Path) -> None:
     """A real local PNG path resolves and inlines as data URI."""
-    src = (
-        Path(__file__).resolve().parents[1] / "fixtures" / "test_logo.png"
-    )
+    src = Path(__file__).resolve().parents[1] / "fixtures" / "test_logo.png"
     r = _ctx()
     r.yaml_source_dir = str(src.parent)
-    out = image.render_image(
-        r, {"id": "img", "box": [0, 0, 10, 10], "href": src.name}
-    )
+    out = image.render_image(r, {"id": "img", "box": [0, 0, 10, 10], "href": src.name})
     assert "data:image/" in out or "<image" in out
 
 
@@ -333,9 +354,7 @@ def test_render_image_placeholder_for_missing_file(tmp_path: Path) -> None:
     """A missing local file falls back to a placeholder rect or comment."""
     r = _ctx()
     r.yaml_source_dir = str(tmp_path)
-    out = image.render_image(
-        r, {"id": "img", "box": [0, 0, 10, 10], "href": "missing.png"}
-    )
+    out = image.render_image(r, {"id": "img", "box": [0, 0, 10, 10], "href": "missing.png"})
     # Must return something, not crash
     assert isinstance(out, str)
 

@@ -191,9 +191,7 @@ def test_library_load_symbols_resolves_relative_path(tmp_path: Path) -> None:
     lib_path = _make_lib_tree(tmp_path)
     # Add an extra unindexed symbol file path
     extra = lib_path / "symbols" / "extra.sym.yml"
-    extra.write_text(
-        yaml.dump({"symbols": {"foo": {"shape": "rect"}}}), encoding="utf-8"
-    )
+    extra.write_text(yaml.dump({"symbols": {"foo": {"shape": "rect"}}}), encoding="utf-8")
     lib = FrameGraphLibrary(lib_path)
     # Reach via filename-relative form (no _meta.id pre-registered)
     syms = lib.load_symbols("extra")
@@ -508,8 +506,6 @@ def test_library_cmd_compose_writes_yaml_output(
         output=out,
         theme=None,
         symbols=None,
-        render=False,
-        renderer=None,
     )
     rc = cmd_compose(args, FrameGraphLibrary(lib_path))
     assert rc == 0
@@ -524,9 +520,7 @@ def test_library_cmd_compose_no_output_prints_to_stdout(
     lib_path = _make_lib_tree(tmp_path)
     diagram = tmp_path / "diag.yml"
     diagram.write_text(yaml.dump({"$theme": "alpha", "visual": {"objects": []}}))
-    args = argparse.Namespace(
-        input=diagram, output=None, theme=None, symbols=None, render=False, renderer=None
-    )
+    args = argparse.Namespace(input=diagram, output=None, theme=None, symbols=None)
     rc = cmd_compose(args, FrameGraphLibrary(lib_path))
     assert rc == 0
     out = capsys.readouterr().out
@@ -545,8 +539,6 @@ def test_library_cmd_compose_with_symbols_arg_includes_symbols(
         output=out,
         theme=None,
         symbols="shared/icons",
-        render=False,
-        renderer=None,
     )
     rc = cmd_compose(args, FrameGraphLibrary(lib_path))
     assert rc == 0
@@ -554,17 +546,24 @@ def test_library_cmd_compose_with_symbols_arg_includes_symbols(
     assert "node_rect" in parsed["visual"]["symbols"]
 
 
-def test_library_cmd_list_themes_unit(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_library_compose_subparser_has_no_render_flag() -> None:
+    """Regression: the dead `--render` and `--renderer` flags pointed at a
+    removed standalone script (`framegraph_to_svg_v3.py`). They were
+    excised; SVG output is the package CLI's job (`framegraph render`).
+    """
+    parser = build_parser()
+    args = parser.parse_args(["compose", "/dev/null"])
+    assert not hasattr(args, "render")
+    assert not hasattr(args, "renderer")
+
+
+def test_library_cmd_list_themes_unit(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     rc = cmd_list_themes(FrameGraphLibrary(_make_lib_tree(tmp_path)))
     assert rc == 0
     assert "Alpha Theme" in capsys.readouterr().out
 
 
-def test_library_cmd_show_theme_unit(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_library_cmd_show_theme_unit(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     rc = cmd_show_theme(
         argparse.Namespace(theme_id="alpha"),
         FrameGraphLibrary(_make_lib_tree(tmp_path)),
@@ -573,9 +572,7 @@ def test_library_cmd_show_theme_unit(
     assert "Alpha Theme" in capsys.readouterr().out
 
 
-def test_library_cmd_list_symbols_unit(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_library_cmd_list_symbols_unit(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     rc = cmd_list_symbols(FrameGraphLibrary(_make_lib_tree(tmp_path)))
     assert rc == 0
     assert "node_rect" in capsys.readouterr().out
@@ -633,3 +630,68 @@ def test_library_cmd_render_deck_uses_default_output_when_none(tmp_path: Path) -
     assert rc == 0
     # default output dir is <input.parent>/output
     assert (tmp_path / "output").is_dir()
+
+
+def test_deck_render_propagates_yaml_source_dir_for_relative_image_href(
+    tmp_path: Path,
+) -> None:
+    """Regression: `<image>` objects in a deck must be able to resolve
+    a relative `href` against the deck YAML's directory.
+
+    Pre-fix, only the single-document CLI path set `renderer.yaml_source_dir`;
+    the deck renderer never propagated it, so deck slides' relative
+    image paths silently broke.
+    """
+    deck_dir = tmp_path / "deck_root"
+    deck_dir.mkdir()
+    asset = deck_dir / "logo.png"
+    asset.write_bytes(b"\x89PNG\r\n\x1a\n")  # minimal PNG signature
+
+    deck_yaml = deck_dir / "deck.yml"
+    deck_yaml.write_text(
+        yaml.dump(
+            {
+                "slides": [
+                    {
+                        "slide": 1,
+                        "id": "s1",
+                        "visual": {
+                            "layers": [
+                                {
+                                    "id": "L",
+                                    "objects": [
+                                        {
+                                            "type": "image",
+                                            "id": "img1",
+                                            "box": [0, 0, 100, 50],
+                                            "href": "logo.png",
+                                        }
+                                    ],
+                                }
+                            ]
+                        },
+                    }
+                ],
+            }
+        )
+    )
+
+    out_dir = tmp_path / "out"
+    deck = FrameGraphDeckRenderer(yaml.safe_load(deck_yaml.read_text()))
+    paths = deck.render_all(out_dir, yaml_source_dir=deck_dir)
+    assert len(paths) == 1
+    svg = paths[0].read_text()
+    # When yaml_source_dir is set, the image renderer reads the file and
+    # inlines it as a base64 data URI. Without propagation, the unresolved
+    # literal href="logo.png" would appear instead.
+    assert "data:image/png;base64," in svg
+    assert 'href="logo.png"' not in svg
+
+
+def test_deck_render_default_yaml_source_dir_is_empty(tmp_path: Path) -> None:
+    """Without `yaml_source_dir`, deck rendering still succeeds — relative
+    image paths simply don't resolve to absolute URIs.
+    """
+    deck = FrameGraphDeckRenderer({"slides": [{"slide": 1, "id": "s1", "visual": {"layers": []}}]})
+    paths = deck.render_all(tmp_path / "out")
+    assert len(paths) == 1

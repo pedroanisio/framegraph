@@ -32,8 +32,8 @@ from pydantic import BaseModel, ConfigDict, Field, create_model, model_validator
 
 from framegraph._patterns import SlidePattern
 from framegraph.patterns.fill import (
-    MissingContentTypeError,
     _DEFAULT_TYPES,
+    MissingContentTypeError,
 )
 
 __all__ = [
@@ -46,11 +46,11 @@ __all__ = [
 ]
 
 
-# Path to the BMC sidecar — the Phase 2 proof.
+# Path to the BMC sidecar — the Phase 2 proof. Lives under the
+# package's `data/fills/` directory so it travels with the wheel.
 BMC_SIDECAR_PATH: Path = (
-    Path(__file__).resolve().parent.parent.parent
-    / "static"
-    / "refs"
+    Path(__file__).resolve().parent.parent
+    / "data"
     / "fills"
     / "044-business-model-canvas.yml"
 )
@@ -89,13 +89,9 @@ class SidecarZoneOverride(BaseModel):
     @model_validator(mode="after")
     def _validate_object_requires_fields(self) -> SidecarZoneOverride:
         if self.item_kind == "object" and not self.item_fields:
-            raise ValueError(
-                "item_kind=object requires `item_fields` to be set"
-            )
+            raise ValueError("item_kind=object requires `item_fields` to be set")
         if self.item_kind == "string" and self.item_fields:
-            raise ValueError(
-                "item_kind=string does not accept `item_fields`"
-            )
+            raise ValueError("item_kind=string does not accept `item_fields`")
         return self
 
 
@@ -147,9 +143,7 @@ def load_sidecar(path: Path | str) -> PatternFillSidecar:
 # ─────────────────────────────────────────────────────────────────
 
 
-def _build_object_item_model(
-    role: str, override: SidecarZoneOverride
-) -> type[BaseModel]:
+def _build_object_item_model(role: str, override: SidecarZoneOverride) -> type[BaseModel]:
     """Construct a Pydantic model for one object-shaped list item."""
     assert override.item_kind == "object"
     assert override.item_fields is not None
@@ -201,16 +195,14 @@ def derive_fill_schema_with_sidecar(
     """
     if sidecar.pattern_id != pattern.id:
         raise ValueError(
-            f"sidecar pattern_id {sidecar.pattern_id} does not match "
-            f"pattern id {pattern.id}"
+            f"sidecar pattern_id {sidecar.pattern_id} does not match pattern id {pattern.id}"
         )
 
     pattern_roles = {z.role for z in pattern.zones}
     unknown = set(sidecar.zones) - pattern_roles
     if unknown:
         raise KeyError(
-            f"sidecar references unknown roles for pattern {pattern.id}: "
-            f"{sorted(unknown)}"
+            f"sidecar references unknown roles for pattern {pattern.id}: {sorted(unknown)}"
         )
 
     fields: dict[str, Any] = {}
@@ -221,8 +213,12 @@ def derive_fill_schema_with_sidecar(
             if override.item_kind == "string":
                 py_type: Any = list[str]
             else:  # object
+                # `_build_object_item_model` returns a Pydantic model
+                # built at runtime; mypy can't see it as a type, so
+                # we subscribe `list[]` via `__class_getitem__` to
+                # avoid the static valid-type check on `list[Item]`.
                 Item = _build_object_item_model(z.role, override)
-                py_type = list[Item]
+                py_type = list.__class_getitem__(Item)
             fields[z.role] = (py_type, Field(...))
             continue
 

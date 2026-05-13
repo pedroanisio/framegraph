@@ -110,6 +110,7 @@ def text_svg(
     align = str(style.get("align", "left")).lower()
     v_align = str(style.get("v_align", "middle")).lower()  # NEW: top|middle|bottom
     do_wrap = bool(style.get("wrap", False))  # NEW: word-wrap flag
+    font_family = style.get("font")
 
     ew = h if rotation is not None and 80 <= abs(fnum(rotation)) % 180 <= 100 else w
 
@@ -125,7 +126,7 @@ def text_svg(
             line = ""
             for word in words:
                 test = (line + " " + word).strip()
-                if ew > 0 and r._str_width(test, font_size, bold) > ew and line:
+                if ew > 0 and r._str_width(test, font_size, bold, font_family) > ew and line:
                     result.append(line)
                     line = word
                 else:
@@ -138,18 +139,18 @@ def text_svg(
     if do_wrap:
         lines = wrap_text(raw_text, fs)
         # After wrapping, longest line might still exceed box → shrink only if needed
-        if ew > 0 and r._str_width(lines[lines.index(max(lines, key=len))], fs, bold) > ew:
+        if ew > 0 and r._str_width(lines[lines.index(max(lines, key=len))], fs, bold, font_family) > ew:
             old = fs
-            _lw = r._str_width(max(lines, key=len), fs, bold)
+            _lw = r._str_width(max(lines, key=len), fs, bold, font_family)
             fs = max(min_fs, fs * ew / max(_lw, 1))
             lh = max(fs * 1.05, lh * fs / max(old, 1))
         # Rewrap at new font size if it shrank
         lines = wrap_text(raw_text, fs)
     else:
         lines = raw_text.split("\n")
-        if ew > 0 and r._str_width(lines[lines.index(max(lines, key=len))], fs, bold) > ew:
+        if ew > 0 and r._str_width(lines[lines.index(max(lines, key=len))], fs, bold, font_family) > ew:
             old = fs
-            _lw = r._str_width(max(lines, key=len), fs, bold)
+            _lw = r._str_width(max(lines, key=len), fs, bold, font_family)
             fs = max(min_fs, fs * ew / max(_lw, 1))
             lh = max(fs * 1.05, lh * fs / max(old, 1))
 
@@ -237,8 +238,10 @@ def spans_svg(
             }
         )
 
+    span_font = base_style.get("font")
+
     def span_width(sp_dict: dict[str, Any], text: str) -> float:
-        return r._str_width(text, sp_dict["size"], sp_dict["bold"])
+        return r._str_width(text, sp_dict["size"], sp_dict["bold"], span_font)
 
     # Flatten to words with span index for re-assembly
     # Each word: (word_text, span_idx, is_last_in_span, trailing_space)
@@ -258,7 +261,7 @@ def spans_svg(
         for word, si, _ in flat_words:
             sp = resolved[si]
             word_w = span_width(sp, word)
-            space_w = r._str_width(" ", sp["size"], sp["bold"])
+            space_w = r._str_width(" ", sp["size"], sp["bold"], span_font)
             if cur_line and cur_w + space_w + word_w > ew:
                 lines.append(cur_line)
                 cur_line = [(word, si)]
@@ -382,28 +385,13 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
     lh = lh_orig
     gap = gap_orig
 
+    bullet_font = style.get("font")
     # Resolve marker width
-    marker_w = r._str_width(marker + " ", fs, bold)
+    marker_w = r._str_width(marker + " ", fs, bold, bullet_font)
     text_x = x + indent_px
-    avail_w = w - indent_px
-    # Update fa fill_size/font-size to reflect the shrunk fs.
-    # `fa` is built below; nothing else to do here.
-
-    def wrap(text: str) -> list[str]:
-        lines, line = [], ""
-        for word in text.split():
-            test = (line + " " + word).strip()
-            if line and r._str_width(test, fs, bold) > avail_w:
-                lines.append(line)
-                line = word
-            else:
-                line = test
-        if line:
-            lines.append(line)
-        return lines or [""]
 
     fa = {
-        "font-family": style.get("font"),
+        "font-family": bullet_font,
         "font-size": fmt(fs),
         "font-weight": weight,
         "fill": style.get("color", "#000000"),
@@ -426,13 +414,15 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
             it_text = (
                 _expand_lorem(item)
                 if isinstance(item, str)
-                else _expand_lorem(str(item.get("text", ""))) if isinstance(item, Mapping) else ""
+                else _expand_lorem(str(item.get("text", "")))
+                if isinstance(item, Mapping)
+                else ""
             )
             line_buf = ""
             n_lines = 0
             for word in it_text.split():
                 test = (line_buf + " " + word).strip()
-                if line_buf and r._str_width(test, fs, bold) > (w - indent_px) * 0.92:
+                if line_buf and r._str_width(test, fs, bold, bullet_font) > (w - indent_px) * 0.92:
                     n_lines += 1
                     line_buf = word
                 else:
@@ -466,17 +456,16 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
         body_x = text_x + extra_indent
         body_w = w - indent_px - extra_indent
 
-        # Word-wrap body text to available width. The width estimator
-        # uses a per-character class table that systematically
-        # underestimates real font widths by a few percent; we trim
-        # an 8 % safety margin from the threshold so wrapped lines
-        # never push past the box edge.
+        # Word-wrap body text to available width. When real font metrics
+        # are available the estimator matches the rasterizer; the 8 %
+        # safety margin remains as a belt-and-suspenders cushion against
+        # the per-class fallback path on systems without `fontTools`.
         safe_body_w = body_w * 0.92
         wrapped = []
         line_buf = ""
         for word in item_text.split():
             test = (line_buf + " " + word).strip()
-            if line_buf and r._str_width(test, fs, bold) > safe_body_w:
+            if line_buf and r._str_width(test, fs, bold, bullet_font) > safe_body_w:
                 wrapped.append(line_buf)
                 line_buf = word
             else:

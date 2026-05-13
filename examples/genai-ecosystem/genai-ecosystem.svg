@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" shape-rendering="geometricPrecision" text-rendering="optimizeLegibility" role="img" aria-labelledby="svg-title svg-desc">
+<title id="svg-title">The Generative AI Ecosystem</title>
+<desc  id="svg-desc">Hub-and-spoke view: GenAI sits at the center, mediating interacting agents and a connected ecosystem, with five canonical use-case lanes below.</desc>
+<defs>
+<marker id="ah-C9CED5" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#C9CED5"/></marker>
+<marker id="ah-D6DBE0" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#D6DBE0"/></marker>
+<marker id="ah-2563EB" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#2563EB"/></marker>
+<marker id="ah-000000" viewBox="0 0 8 5" markerWidth="8" markerHeight="5" refX="8" refY="2.5" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,2.5 L0,5 Z" fill="#000000"/></marker>
+</defs>
+<g id="layer_bg" data-layer="bg" data-z="0">
+  <g id="page" data-type="rect" data-decorative="true"><rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" stroke="none"/></g>
+</g>
+<g id="layer_connectors" data-layer="connectors" data-z="1">
+  <g id="c_left_pillar" data-type="line" data-decorative="true"><line x1="460" y1="305" x2="560" y2="305" fill="none" stroke="#C9CED5" stroke-width="1.25" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="4 4"/></g>
+  <g id="c_right_pillar" data-type="line" data-decorative="true"><line x1="720" y1="305" x2="820" y2="305" fill="none" stroke="#C9CED5" stroke-width="1.25" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="4 4"/></g>
+  <g id="c_uc_automate" data-type="line" data-decorative="true"><line x1="620" y1="365" x2="190" y2="480" fill="none" stroke="#C9CED5" stroke-width="1.25" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="4 4"/></g>
+  <g id="c_uc_general" data-type="line" data-decorative="true"><line x1="630" y1="365" x2="430" y2="480" fill="none" stroke="#C9CED5" stroke-width="1.25" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="4 4"/></g>
+  <g id="c_uc_media" data-type="line" data-decorative="true"><line x1="640" y1="365" x2="670" y2="480" fill="none" stroke="#C9CED5" stroke-width="1.25" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="4 4"/></g>
+  <g id="c_uc_agentic" data-type="line" data-decorative="true"><line x1="650" y1="365" x2="910" y2="480" fill="none" stroke="#C9CED5" stroke-width="1.25" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="4 4"/></g>
+  <g id="c_uc_content" data-type="line" data-decorative="true"><line x1="660" y1="365" x2="1120" y2="480" fill="none" stroke="#C9CED5" stroke-width="1.25" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="4 4"/></g>
+</g>
+<g id="layer_title" data-layer="title" data-z="2">
+  <g id="t_title" data-type="text" data-decorative="true"><text x="80" y="94.96" font-family="Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#0F172A" text-anchor="start"><tspan x="80" dy="0">The Generative AI Ecosystem</tspan></text></g>
+  <g id="t_underline" data-type="rect" data-decorative="true"><rect x="80" y="128" width="56" height="4" fill="#2563EB" rx="2" ry="2" stroke="none"/></g>
+</g>
+<g id="layer_left_pillar" data-layer="left_pillar" data-z="3">
+  <g id="lp_bg" data-type="rect" data-bind="pillar_agents"><rect x="80" y="200" width="380" height="210" fill="#F5F7FA" rx="8" ry="8" stroke="none"/></g>
+  <g id="lp_head" data-type="text" data-decorative="true"><text x="100" y="228.14" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start"><tspan x="100" dy="0">Interacting Agents</tspan></text></g>
+  <g id="lp_humans_bg" data-type="rect" data-bind="pillar_agents"><rect x="104" y="248" width="110" height="42" fill="#FFFFFF" rx="6" ry="6" stroke="#D6DBE0" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="lp_humans_t" data-type="text" data-decorative="true"><text x="159" y="272.64" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#0F172A" text-anchor="middle"><tspan x="159" dy="0">Humans</tspan></text></g>
+  <g id="lp_systems_bg" data-type="rect" data-bind="pillar_agents"><rect x="222" y="248" width="110" height="42" fill="#FFFFFF" rx="6" ry="6" stroke="#D6DBE0" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="lp_systems_t" data-type="text" data-decorative="true"><text x="277" y="272.64" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#0F172A" text-anchor="middle"><tspan x="277" dy="0">Systems</tspan></text></g>
+  <g id="lp_genai_bg" data-type="rect" data-bind="pillar_agents"><rect x="104" y="308" width="110" height="42" fill="#FFFFFF" rx="6" ry="6" stroke="#2563EB" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="lp_genai_t" data-type="text" data-decorative="true"><text x="159" y="332.64" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle"><tspan x="159" dy="0">GenAI</tspan></text></g>
+</g>
+<g id="layer_right_pillar" data-layer="right_pillar" data-z="3">
+  <g id="rp_bg" data-type="rect" data-bind="pillar_ecosystem"><rect x="820" y="200" width="380" height="210" fill="#F5F7FA" rx="8" ry="8" stroke="none"/></g>
+  <g id="rp_head" data-type="text" data-decorative="true"><text x="840" y="228.14" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="start"><tspan x="840" dy="0">Connected Ecosystem</tspan></text></g>
+  <g id="rp_humans_bg" data-type="rect" data-bind="pillar_ecosystem"><rect x="844" y="248" width="110" height="42" fill="#FFFFFF" rx="6" ry="6" stroke="#D6DBE0" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="rp_humans_t" data-type="text" data-decorative="true"><text x="899" y="272.64" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#0F172A" text-anchor="middle"><tspan x="899" dy="0">Humans</tspan></text></g>
+  <g id="rp_systems_bg" data-type="rect" data-bind="pillar_ecosystem"><rect x="962" y="248" width="110" height="42" fill="#FFFFFF" rx="6" ry="6" stroke="#D6DBE0" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="rp_systems_t" data-type="text" data-decorative="true"><text x="1017" y="272.64" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#0F172A" text-anchor="middle"><tspan x="1017" dy="0">Systems</tspan></text></g>
+  <g id="rp_genai_bg" data-type="rect" data-bind="pillar_ecosystem"><rect x="844" y="308" width="110" height="42" fill="#FFFFFF" rx="6" ry="6" stroke="#2563EB" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="rp_genai_t" data-type="text" data-decorative="true"><text x="899" y="332.64" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle"><tspan x="899" dy="0">GenAI</tspan></text></g>
+</g>
+<g id="layer_use_cases" data-layer="use_cases" data-z="3">
+  <g id="uc1_bg" data-type="rect" data-bind="uc_automate"><rect x="80" y="480" width="220" height="100" fill="#FFFFFF" rx="8" ry="8" stroke="#D6DBE0" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="uc1_t" data-type="text" data-decorative="true"><text x="190" y="533.92" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="middle"><tspan x="190" dy="0">Automate Work</tspan></text></g>
+  <g id="uc2_bg" data-type="rect" data-bind="uc_general"><rect x="320" y="480" width="220" height="100" fill="#FFFFFF" rx="8" ry="8" stroke="#D6DBE0" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="uc2_t" data-type="text" data-decorative="true"><text x="430" y="525.52" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="middle"><tspan x="430" dy="0">General Purpose</tspan><tspan x="430" dy="16.8">Assistance</tspan></text></g>
+  <g id="uc3_bg" data-type="rect" data-bind="uc_media"><rect x="560" y="480" width="220" height="100" fill="#EBF1FE" rx="8" ry="8" stroke="#2563EB" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="uc3_t" data-type="text" data-decorative="true"><text x="670" y="533.92" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2563EB" text-anchor="middle"><tspan x="670" dy="0">Media Creation</tspan></text></g>
+  <g id="uc4_bg" data-type="rect" data-bind="uc_agentic"><rect x="800" y="480" width="220" height="100" fill="#FFFFFF" rx="8" ry="8" stroke="#D6DBE0" stroke-width="1" stroke-linecap="butt" stroke-linejoin="round"/></g>
+  <g id="uc4_t" data-type="text" data-decorative="true"><text x="910" y="533.92" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="middle"><tspan x="910" dy="0">Agentic Behavior</tspan></text></g>
+  <g id="uc5_bg" data-type="rect" data-bind="uc_content"><rect x="1040" y="480" width="160" height="100" fill="#0F1A2B" rx="8" ry="8" stroke="none"/></g>
+  <g id="uc5_t" data-type="text" data-decorative="true"><text x="1120" y="533.92" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle"><tspan x="1120" dy="0">Content</tspan></text></g>
+</g>
+<g id="layer_hub" data-layer="hub" data-z="4">
+  <g id="hub_bg" data-type="rect" data-bind="hub_genai"><rect x="540" y="245" width="180" height="120" fill="#2563EB" rx="8" ry="8" stroke="none"/></g>
+  <g id="hub_t" data-type="text" data-decorative="true"><text x="630" y="311.16" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle"><tspan x="630" dy="0">GenAI</tspan></text></g>
+</g>
+</svg>

@@ -114,7 +114,7 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
     bx, by, bw, bh = box(obj.get("box", [0, 0, 0, 0]))
     style = obj.get("style") or {}
     rows = obj.get("rows") or []
-    header = obj.get("header")
+    header: list[Any] = list(obj.get("header") or [])
     columns = obj.get("columns")
 
     # Determine column count: explicit `columns` declaration wins, else
@@ -171,6 +171,18 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
     )
     header_line_h = header_size_default * 1.3
 
+    # Resolve the planning font once: prefer body_text_style's font, fall
+    # back to header_text_style, then to None (per-class estimator).
+    body_font_default = (
+        (style.get("body_text_style") or {}).get("font")
+        if isinstance(style.get("body_text_style"), Mapping)
+        else None
+    ) or (
+        (style.get("header_text_style") or {}).get("font")
+        if isinstance(style.get("header_text_style"), Mapping)
+        else None
+    )
+
     def _measure_lines(text: str, font_size: float, col_w: float) -> int:
         """Count wrapped lines a cell's text needs at the given column width."""
         if not text:
@@ -185,7 +197,7 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
             line = ""
             for w in words:
                 test = (line + " " + w).strip()
-                if line and r._str_width(test, font_size, False) > avail:
+                if line and r._str_width(test, font_size, False, body_font_default) > avail:
                     n += 1
                     line = w
                 else:
@@ -200,9 +212,7 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
             if i < len(cells):
                 cell = _normalize_cell(cells[i])
                 cell_text = str(cell.get("text", ""))
-                max_lines = max(
-                    max_lines, _measure_lines(cell_text, font_size, col_widths[i])
-                )
+                max_lines = max(max_lines, _measure_lines(cell_text, font_size, col_widths[i]))
         return max_lines * line_h + 2 * v_pad
 
     row_h_explicit = obj.get("row_height")
@@ -213,9 +223,7 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
         uniform_h = fnum(row_h_explicit)
         body_row_heights = [uniform_h] * n_body_rows
     else:
-        body_row_heights = [
-            _row_height(row, body_size_default, body_line_h) for row in rows
-        ]
+        body_row_heights = [_row_height(row, body_size_default, body_line_h) for row in rows]
     if header_h_explicit is not None:
         header_h = fnum(header_h_explicit)
     elif has_header:
@@ -223,9 +231,7 @@ def render_table(r: RendererContext, obj: Mapping[str, Any]) -> str:
     else:
         header_h = 0.0
 
-    row_h = (
-        sum(body_row_heights) / len(body_row_heights) if body_row_heights else 0.0
-    )
+    row_h = sum(body_row_heights) / len(body_row_heights) if body_row_heights else 0.0
 
     # Style defaults
     border_color = r.color(style.get("border_color", "#D0CEC8"), "#D0CEC8")
@@ -388,10 +394,11 @@ def _emit_cell_text(
     bold = weight in ("700", "bold", "bolder")
     line_h = fnum(cell_style.get("line_height"), size * 1.3)
     avail_w = max(1.0, cw - 2 * h_pad)
+    cell_font = cell_style.get("font")
 
-    # Wrap text into lines that fit `avail_w`. The width estimator
-    # tends to undercount; trim 8% off avail_w as a safety margin so
-    # rendered glyphs stay clear of the next column's separator.
+    # Wrap text into lines that fit `avail_w`. With real font metrics
+    # the estimator matches the rasterizer; the 8 % cushion remains a
+    # belt-and-suspenders against the per-class fallback path.
     safe_w = avail_w * 0.92
     lines: list[str] = []
     if estimate_width is not None and text:
@@ -403,7 +410,7 @@ def _emit_cell_text(
             line = ""
             for w in words:
                 test = (line + " " + w).strip()
-                if line and estimate_width(test, size, bold) > safe_w:
+                if line and estimate_width(test, size, bold, cell_font) > safe_w:
                     lines.append(line)
                     line = w
                 else:

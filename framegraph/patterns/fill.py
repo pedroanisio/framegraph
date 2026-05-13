@@ -34,7 +34,7 @@ Default content shapes per `ContentType`:
 | `axis_label` | ``{title: str, units: str | None}``          |
 | `decorative` | ``None`` (no fill required; kept for symmetry)  |
 
-Sidecars (Phase 2+, in `static/refs/fills/<id>.yml`) override these
+Sidecars (Phase 2+, in `framegraph/data/fills/<id>.yml`) override these
 defaults per pattern when a richer shape is needed.
 """
 
@@ -150,7 +150,7 @@ class AxisLabelContent(BaseModel):
 # Map each ContentType literal to its default content type.
 # `key_value` and `list_items` use generic typing rather than a
 # wrapper model. `decorative` accepts None.
-_DEFAULT_TYPES: dict[ContentType, Any] = {  # type: ignore[valid-type]
+_DEFAULT_TYPES: dict[ContentType, Any] = {
     "title_body": TitleBodyContent,
     "metric": MetricContent,
     "list_items": list[str],
@@ -195,7 +195,7 @@ def derive_default_fill_schema(pattern: SlidePattern) -> type[BaseModel]:
             f"pattern {pattern.id} ({pattern.name!r}) has {len(missing)} zone(s) "
             f"without content_type: {missing}. Annotate via "
             f"scripts/annotate_content_types.py or add a sidecar in "
-            f"static/refs/fills/{pattern.id:03d}-*.yml"
+            f"framegraph/data/fills/{pattern.id:03d}-*.yml"
         )
 
     fields: dict[str, Any] = {}

@@ -31,12 +31,13 @@ class RendererContext(Protocol):
     """
 
     # ── Document state ────────────────────────────────────────────────
-    # Note: `object_index` and `glyph_map` are typed as concrete dicts so
-    # plug-ins can mutate them (e.g. layout.py registers resolved child
-    # boxes by id). The other three are read-only views over document
-    # state — but we still type them as dict for variance compatibility
-    # with the concrete `FrameGraphRenderer` which constructs them as
-    # dicts.
+    # All five attributes are typed as concrete `dict` to match what
+    # `FrameGraphRenderer` constructs in `__init__`. Mypy's Protocol
+    # attribute matching is invariant, so widening to `Mapping` here
+    # would force the implementing class to declare the same — losing
+    # mutability that `renderers/layout.py` relies on (it writes
+    # resolved child boxes into `object_index`). Read-only consumers
+    # can still treat these as Mappings structurally.
     scene: dict[str, Any]
     object_index: dict[str, dict[str, Any]]
     symbols: dict[str, Any]
@@ -46,6 +47,12 @@ class RendererContext(Protocol):
     # `_uses_icon_font` is mutated by plug-ins that emit icon-font glyphs;
     # `defs_svg()` reads it to decide whether to inject the Tabler webfont.
     _uses_icon_font: bool
+
+    # `yaml_source_dir` is the absolute directory of the source YAML
+    # document. `renderers/image.py` reads it to resolve relative
+    # `<image>` `href`s; the CLI / deck renderer set it after
+    # construction. Empty string when no source path is known.
+    yaml_source_dir: str
 
     # ── Token resolution ──────────────────────────────────────────────
     def color(self, v: Any, default: str = ...) -> str: ...
@@ -59,6 +66,13 @@ class RendererContext(Protocol):
         st: Mapping[str, Any] | None,
         *,
         arrows: bool = ...,
+    ) -> dict[str, Any]: ...
+    def opacity_attrs(
+        self,
+        obj: Mapping[str, Any],
+        *,
+        has_fill: bool = ...,
+        has_stroke: bool = ...,
     ) -> dict[str, Any]: ...
     def group_attrs(
         self,
@@ -90,9 +104,9 @@ class RendererContext(Protocol):
 
     # ── Plug-in helpers ────────────────────────────────────────────────
     # `text_svg`, `render_rect`, `eval_length` are the "modular-split"
-    # delegates: they live as free functions in framegraph.renderers.*
-    # and are wired onto FrameGraphRenderer as thin methods (see
-    # commit 1bc5547). Plug-ins call them as r.text_svg(...) etc.
+    # delegates: they live as free functions in `framegraph.renderers.*`
+    # and are wired onto `FrameGraphRenderer` as thin methods so plug-ins
+    # can call them as `r.text_svg(...)`, `r.render_rect(...)`, etc.
     #
     # `effect_filter_attrs` is the v3.0 HD-effects Protocol member:
     # shape renderers call it to receive the SVG `filter="url(#…)"`

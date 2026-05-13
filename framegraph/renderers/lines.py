@@ -39,8 +39,10 @@ def render_polyline(r: RendererContext, obj: Mapping[str, Any]) -> str:
 def render_path(r: RendererContext, obj: Mapping[str, Any]) -> str:
     """Render a raw SVG `path` object — the `d` attribute is taken verbatim."""
     st = r.stroke_style(obj.get("stroke_style"), obj.get("stroke"))
-    a = {"d": obj.get("d", ""), "fill": r.fill_value(obj.get("fill"), "none")}
+    a: dict[str, Any] = {"d": obj.get("d", ""), "fill": r.fill_value(obj.get("fill"), "none")}
     a.update(r.stroke_attrs(st, arrows=True))
+    a.update(r.opacity_attrs(obj))
+    a.update(r.effect_filter_attrs(obj))
     return f"<g {attrs(r.group_attrs(obj))}><path {attrs(a)}/></g>"
 
 
@@ -52,10 +54,7 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
     coordinate pairs, etc. `route` selects the path style:
     `straight` (default), `orthogonal`, or `bezier`.
 
-    Note: emits an inner label via `r.text_svg` when `obj.label` is
-    a mapping. `r.text_svg` is part of the v2.0 plug-in contract but
-    is currently missing from `FrameGraphRenderer`; calls fail with
-    `AttributeError` and are demoted to comments by `render_svg`.
+    Emits an inner label via `r.text_svg` when `obj.label` is a mapping.
     """
     start = r.endpoint(obj.get("from"))
     end = r.endpoint(obj.get("to"))
@@ -88,6 +87,12 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
     )
     a: dict[str, Any] = {"d": d, "fill": "none"}
     a.update(r.stroke_attrs(st, arrows=True))
+    # Connectors carry stroke only; skip fill_opacity emission.
+    a.update(r.opacity_attrs(obj, has_fill=False))
+    # Shadow / glow on connectors is uncommon but enables effects like
+    # "highlighted critical path"; emitted here so it's available on
+    # parity with rect/ellipse.
+    a.update(r.effect_filter_attrs(obj))
     out = [f"<g {attrs(r.group_attrs(obj))}>", f"<path {attrs(a)}/>"]
     label = obj.get("label")
     if isinstance(label, Mapping):
@@ -108,10 +113,6 @@ def render_legend(r: RendererContext, obj: Mapping[str, Any]) -> str:
     Each item's `sample` describes either a `line` (rendered via
     `r.line_svg`) or a `rect`/`rounded_rect` swatch (rendered via
     `r.render_rect`) followed by a label rendered via `r.text_svg`.
-
-    Note: depends on `r.render_rect` and `r.text_svg`, which are
-    part of the v2.0 plug-in contract but currently missing from
-    `FrameGraphRenderer`; failures are demoted to comments.
     """
     out = [f"<g {attrs(r.group_attrs(obj))}>"]
     for item in obj.get("items", []) or []:
@@ -155,11 +156,6 @@ def render_legend(r: RendererContext, obj: Mapping[str, Any]) -> str:
             )
     out.append("</g>")
     return "\n".join(out)
-
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
 
 
 RENDERERS = {

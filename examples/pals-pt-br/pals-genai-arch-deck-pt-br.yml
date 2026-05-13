@@ -1,0 +1,2131 @@
+---
+disclaimer:
+  notice: >-
+    Nenhuma informação neste documento deve ser tomada como verdade absoluta.
+    Qualquer afirmação ou premissa que não tenha respaldo em uma definição
+    lógica clara ou em uma referência verificável pode estar incorreta, ser
+    equivocada ou uma alucinação. Citação da Lei de PALS: Pedro Anisio de
+    Luna e Silva (2026), Zenodo 10.5281/zenodo.19401530. As nove definições
+    de classes de erro vêm da Lei de PALS v1.5.4. As afirmações sobre
+    arquitetura são derivações analíticas, não medições empíricas.
+  generated_by: "Claude Sonnet 4.6"
+
+dsl: FrameGraph
+version: 1.5
+kind: presentation-deck
+
+deck:
+  canvas:
+    size: [1920, 1080]
+    units: px
+
+  component_defs:
+    chip:
+      fill: brand_s
+      text_style: tag_bc
+      geometry:
+        radius: 6
+
+  tokens:
+    colors:
+      bg:        "#FAFAFA"
+      ink:       "#1A1A1A"
+      muted:     "#666666"
+      brand:     "#2D2D2D"
+      brand_s:   "#E8E8E8"
+      panel:     "#F5F5F5"
+      stroke:    "#CCCCCC"
+      teal:      "#4A4A4A"
+      teal_s:    "#E0E0E0"
+      amber:     "#555555"
+      amber_s:   "#EBEBEB"
+      red:       "#404040"
+      red_s:     "#F0F0F0"
+      purple:    "#505050"
+      purple_s:  "#EFEFEF"
+      dark:      "#1A1A1A"
+      white:     "#FFFFFF"
+      green:     "#3A3A3A"
+      green_s:   "#E5E5E5"
+      orange:    "#474747"
+      # Editorial spot accent — used only at the failure moments where
+      # a fabricated LLM output reaches an end user. Scarcity is the
+      # design contract: if you find yourself adding `alert` to a third
+      # location per slide, the slide has lost its argument focus.
+      alert:     "#B91C1C"
+
+    fonts:
+      sans: "'DejaVu Sans', 'Liberation Sans', Helvetica Neue, Helvetica, Arial, sans-serif"
+      mono: "'DejaVu Sans Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace"
+
+    text_styles:
+      cover_h:  {font: sans, size: 56, weight: 700, color: ink,   align: left,   v_align: top}
+      cover_s:  {font: sans, size: 19, weight: 400, color: muted, align: left,   v_align: top, wrap: true}
+      stitle:   {font: sans, size: 36, weight: 700, color: ink,   align: left,   v_align: top}
+      h2:       {font: sans, size: 22, weight: 700, color: ink,   align: left,   v_align: top}
+      h3:       {font: sans, size: 17, weight: 700, color: ink,   align: left,   v_align: top}
+      body:     {font: sans, size: 16, weight: 400, color: ink,   align: left,   v_align: top, wrap: true}
+      bodyc:    {font: sans, size: 16, weight: 400, color: muted, align: left,   v_align: top, wrap: true}
+      sm:       {font: sans, size: 14, weight: 400, color: muted, align: left,   v_align: top, wrap: true}
+      sm_ink:   {font: sans, size: 14, weight: 400, color: ink,   align: left,   v_align: top, wrap: true}
+      sm_b:     {font: sans, size: 14, weight: 700, color: ink,   align: left,   v_align: top}
+      sm_alert: {font: sans, size: 14, weight: 700, color: alert, align: left,   v_align: top}
+      ctr:      {font: sans, size: 15, weight: 400, color: ink,   align: center, v_align: middle, wrap: true}
+      ctr_b:    {font: sans, size: 14, weight: 700, color: brand, align: center, v_align: middle, wrap: true}
+      ctr_w:    {font: sans, size: 14, weight: 700, color: white, align: center, v_align: middle, wrap: true}
+      ctr_m:    {font: sans, size: 14, weight: 400, color: ink,   align: center, v_align: middle, wrap: true}
+      mono_s:   {font: mono, size: 12, weight: 400, color: brand, align: left,   v_align: top, wrap: true}
+      kpi:      {font: sans, size: 38, weight: 700, color: brand, align: center, v_align: middle}
+      kpi_l:    {font: sans, size: 12, weight: 400, color: muted, align: center, v_align: top}
+      lbl_w:    {font: sans, size: 14, weight: 700, color: white, align: center, v_align: middle}
+      lbl_b:    {font: sans, size: 14, weight: 700, color: brand, align: center, v_align: middle}
+      tag_w:    {font: mono, size: 12, weight: 700, color: white, align: center, v_align: middle}
+      tag_b:    {font: mono, size: 12, weight: 700, color: brand, align: left,   v_align: middle}
+      tag_bc:   {font: mono, size: 12, weight: 700, color: brand, align: center, v_align: middle}
+      tag_r:    {font: mono, size: 12, weight: 700, color: red,   align: left,   v_align: middle}
+      anchor:   {font: sans, size: 18, weight: 700, color: ink,   align: left,   v_align: top, wrap: true}
+      anchor_m: {font: sans, size: 18, weight: 400, color: muted, align: left,   v_align: top, wrap: true}
+      anchor_w:  {font: sans, size: 18, weight: 700, color: white, align: left, v_align: top, wrap: true}
+      anchor_wm: {font: sans, size: 18, weight: 400, color: white, align: left, v_align: top, wrap: true}
+      eq_brand: {font: mono, size: 28, weight: 700, color: brand, align: left, v_align: middle}
+
+    stroke_styles:
+      thin:  {color: stroke, width: 0.75}
+      dash:  {color: stroke, width: 1.0, dash: [4, 3]}
+      brand: {color: brand,  width: 1.5}
+      red:   {color: red,    width: 1.5}
+
+    fill_styles:
+      # Subtle vertical fade for backgrounds (bg → panel)
+      bg_soft:
+        type: linear_gradient
+        from: [0, 0]
+        to: [0, 1]
+        stops:
+          - {offset: 0, color: bg}
+          - {offset: 1, color: panel}
+
+      # Soft "lift" — white at top fading to panel; gives panels depth
+      panel_lift:
+        type: linear_gradient
+        from: [0, 0]
+        to: [0, 1]
+        stops:
+          - {offset: 0, color: white,  opacity: 0.85}
+          - {offset: 1, color: panel,  opacity: 1}
+
+      # Brand-tinted highlight panel — for law / hero blocks
+      brand_lift:
+        type: linear_gradient
+        from: [0, 0]
+        to: [0, 1]
+        stops:
+          - {offset: 0, color: brand_s, opacity: 1}
+          - {offset: 1, color: panel,   opacity: 0.95}
+
+      # Dark depth gradient — for anchor / take-away blocks
+      dark_grad:
+        type: linear_gradient
+        from: [0, 0]
+        to: [0, 1]
+        stops:
+          - {offset: 0, color: brand}
+          - {offset: 1, color: dark}
+
+      # Dark bar gradient — for prompt/output title bars
+      dark_bar:
+        type: linear_gradient
+        from: [0, 0]
+        to: [0, 1]
+        stops:
+          - {offset: 0, color: dark}
+          - {offset: 1, color: brand}
+
+      # Annotation wash — soft red fading to neutral, with right-side transparency
+      red_wash:
+        type: linear_gradient
+        from: [0, 0]
+        to: [1, 0]
+        stops:
+          - {offset: 0, color: red_s, opacity: 1}
+          - {offset: 1, color: panel, opacity: 0.5}
+
+      # Channel-coded soft fades for cover preview boxes
+      red_soft:
+        type: linear_gradient
+        from: [0, 0]
+        to: [1, 0]
+        stops:
+          - {offset: 0, color: red_s,  opacity: 1}
+          - {offset: 1, color: panel,  opacity: 0.7}
+
+      amber_soft:
+        type: linear_gradient
+        from: [0, 0]
+        to: [1, 0]
+        stops:
+          - {offset: 0, color: amber_s, opacity: 1}
+          - {offset: 1, color: panel,   opacity: 0.7}
+
+      green_soft:
+        type: linear_gradient
+        from: [0, 0]
+        to: [1, 0]
+        stops:
+          - {offset: 0, color: green_s, opacity: 1}
+          - {offset: 1, color: panel,   opacity: 0.7}
+
+slides:
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 0  CONTEXTO  —  Grounding
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 0
+    id: context
+    title: "GenAI Já Está no Caminho da Decisão — e Seus Erros Vão Adiante por Padrão"
+    notes: "Slide de fundamentação. Use-o para alinhar todos no mesmo ponto de partida: GenAI já está em produção tomando decisões, seus erros saem com aparência correta, e este deck responde uma única pergunta — onde, no caminho do prompt até o usuário, é possível barrar o erro? Não entre em detalhes da Lei de PALS nem da taxonomia ainda (slides próprios). Reconheça o que NÃO está no escopo (escolha de modelo, prompt engineering, treinamento) para que o público não fique esperando esses tópicos."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "GenAI Já Está no Caminho da Decisão — e Seus Erros Vão Adiante por Padrão",
+               box: [80, 72, 1760, 80], style: stitle}
+            - {type: rect, id: rule, decorative: true, box: [80, 156, 80, 4], fill: brand}
+            - {type: text, id: sub,
+               text: "Antes de discutir arquitetura, é preciso ver onde GenAI já está hoje, como suas falhas se diferenciam de bugs tradicionais e qual pergunta este deck efetivamente responde.",
+               box: [80, 178, 1760, 50], style: bodyc}
+
+        - id: column_headers
+          z: 2
+          objects:
+            - {type: text, id: lcol_h, text: "O contexto",      box: [80,  244, 860, 24], style: h3}
+            - {type: text, id: rcol_h, text: "Sobre este deck", box: [980, 244, 860, 24], style: h3}
+
+        - id: column_left
+          z: 3
+          objects:
+            # Block A — Onde GenAI atua hoje
+            - {type: rect, id: a_bg,   decorative: true, box: [80, 282, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: a_bar,  decorative: true, box: [80, 282, 5, 168],   fill: brand}
+            - {type: rect, id: a_pill, decorative: true, box: [104, 294, 240, 26], fill: brand, radius: 6}
+            - {type: text, id: a_pt,   text: "Onde GenAI atua hoje", box: [104, 294, 240, 26], style: tag_w}
+            - {type: text, id: a_t,
+               text: "GenAI deixou de ser ferramenta de rascunho. Em sistemas reais, ela aprova reembolsos, redige cláusulas de contrato, classifica pedidos, revisa código e responde clientes — diretamente. A resposta do modelo entra no fluxo da decisão sem um humano intermediário.",
+               box: [104, 332, 820, 110], style: sm_ink}
+
+            # Block B — Como GenAI falha diferente
+            - {type: rect, id: b_bg,   decorative: true, box: [80, 470, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: b_bar,  decorative: true, box: [80, 470, 5, 168],   fill: amber}
+            - {type: rect, id: b_pill, decorative: true, box: [104, 482, 300, 26], fill: amber, radius: 6}
+            - {type: text, id: b_pt,   text: "Como GenAI falha diferente", box: [104, 482, 300, 26], style: tag_w}
+            - {type: text, id: b_t,
+               text: "Bugs tradicionais quebram o sistema. Erros de GenAI passam pelo sistema com aparência correta: JSON bem formado contendo dados inventados, texto fluente que é bajulação, confiança alta sobre análise errada. O erro atravessa o sistema; não o trava.",
+               box: [104, 520, 820, 110], style: sm_ink}
+
+            # Block C — O caminho prompt → usuário
+            - {type: rect, id: c_bg,   decorative: true, box: [80, 658, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: c_bar,  decorative: true, box: [80, 658, 5, 168],   fill: purple}
+            - {type: rect, id: c_pill, decorative: true, box: [104, 670, 280, 26], fill: purple, radius: 6}
+            - {type: text, id: c_pt,   text: "O caminho prompt → usuário", box: [104, 670, 280, 26], style: tag_w}
+            - {type: text, id: c_t,
+               text: "Entre o prompt e o usuário existem pontos onde o erro ainda pode ser detectado. Este deck examina três deles — Free Form, Schema + Instance e Validador — e o que cada um pega ou deixa passar.",
+               box: [104, 708, 820, 110], style: sm_ink}
+
+        - id: column_right
+          z: 3
+          objects:
+            # Block D — Escopo
+            - {type: rect, id: d_bg,   decorative: true, box: [980, 282, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: d_bar,  decorative: true, box: [980, 282, 5, 168],   fill: brand}
+            - {type: rect, id: d_pill, decorative: true, box: [1004, 294, 140, 26], fill: brand, radius: 6}
+            - {type: text, id: d_pt,   text: "Escopo", box: [1004, 294, 140, 26], style: tag_w}
+            - {type: text, id: d_t,
+               text: "A arquitetura mínima entre o modelo e o usuário. Onde verificar, o que cada ponto cobre, o que sobra como resíduo permanente. A pergunta operativa é sempre a mesma: este canal pega esta classe de erro?",
+               box: [1004, 332, 820, 110], style: sm_ink}
+
+            # Block E — Fora do escopo
+            - {type: rect, id: e_bg,   decorative: true, box: [980, 470, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: e_bar,  decorative: true, box: [980, 470, 5, 168],   fill: muted}
+            - {type: rect, id: e_pill, decorative: true, box: [1004, 482, 200, 26], fill: muted, radius: 6}
+            - {type: text, id: e_pt,   text: "Fora do escopo", box: [1004, 482, 200, 26], style: tag_w}
+            - {type: text, id: e_t,
+               text: "Se GenAI deve ser usada. Comparações entre modelos. Prompt engineering. Treinamento ou fine-tuning. Tudo isso é assumido como decidido — a pergunta começa quando o modelo já está em produção.",
+               box: [1004, 520, 820, 110], style: sm_ink}
+
+            # Block F — Estrutura do deck
+            - {type: rect, id: f_bg,   decorative: true, box: [980, 658, 860, 168], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: f_bar,  decorative: true, box: [980, 658, 5, 168],   fill: teal}
+            - {type: rect, id: f_pill, decorative: true, box: [1004, 670, 220, 26], fill: teal, radius: 6}
+            - {type: text, id: f_pt,   text: "Estrutura do deck", box: [1004, 670, 220, 26], style: tag_w}
+            - {type: text, id: f_t,
+               text: "Lei de PALS (matemática) → 9 classes de erro (vocabulário) → 3 canais (arquitetura) → 3 estudos de caso (concreto) → matriz de cobertura (síntese) → glossário.",
+               box: [1004, 708, 820, 110], style: sm_ink}
+
+        - id: anchor
+          z: 4
+          objects:
+            - {type: rect, id: anc_bg, decorative: true, box: [80, 856, 1760, 110], fill: dark_grad, radius: 8, shadow: small}
+            - {type: text, id: anc_h,
+               text: "Premissa de todo o deck",
+               box: [110, 874, 1700, 26], style: anchor_w}
+            - {type: text, id: anc_t,
+               text: "O erro de GenAI não pode ser eliminado — só roteado. A arquitetura decide para onde.",
+               box: [110, 908, 1700, 44], style: anchor_wm}
+
+        - id: footer
+          z: 5
+          objects:
+            - {type: text, id: fn,
+               text: "Termos não familiares (LLM, schema, validador, RAG, predicado de erro ε) estão definidos no glossário ao final do deck.",
+               box: [80, 988, 1760, 30], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 1  CAPA
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 1
+    id: cover
+    title: "Arquitetura de Verificação para GenAI — Cobertura de Erros sob a Lei de PALS"
+    notes: "Deixe claro o que está em jogo logo de início: erro em LLM é uma propriedade estatística, não um problema de configuração que se resolve. A arquitetura escolhe se vai expor o erro ou delimitá-lo. Nenhuma arquitetura o elimina."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+            - {type: rect, id: btm_band, decorative: true, box: [0, 860, 1920, 220], fill: panel_lift}
+
+        - id: content
+          z: 1
+          objects:
+            - {type: text, id: cover_h,
+               text: "Arquitetura de Verificação para GenAI",
+               box: [80, 200, 1600, 100], style: cover_h}
+            - {type: text, id: cover_sub,
+               text: "A forma como o sistema verifica respostas decide quais erros chegam ao usuário, quais\nficam contidos e quais são bloqueados — nos canais Free Form, Schema + Instance e Validador.",
+               box: [80, 320, 1400, 80], style: cover_s}
+            - {type: rect, id: rule, decorative: true, box: [80, 300, 80, 4], fill: brand}
+
+        - id: law_block
+          z: 2
+          objects:
+            - {type: rect, id: law_bg, decorative: true,
+               box: [80, 430, 1760, 110], fill: brand_lift, radius: 10, shadow: small}
+            - {type: rect, id: law_bar, decorative: true,
+               box: [80, 430, 6, 110], fill: brand}
+            - {type: text, id: law_t,
+               text: "Lei de PALS (v1.5.4) — Pedro Anisio de Luna e Silva, 2026  ·  Zenodo 10.5281/zenodo.19401530",
+               box: [110, 442, 1500, 28], style: h3}
+            - type: text
+              id: law_eq
+              box: [110, 476, 1500, 44]
+              style: body
+              spans:
+                - {text: "E[ε(M(x), x)] ≥ δ > 0", weight: 700, color: brand}
+                - {text: "   para todo modelo M e toda entrada realista — o erro nunca chega a zero", weight: 400, color: ink}
+
+        - id: channels_preview
+          z: 3
+          objects:
+            - {type: rect, id: ch1, decorative: true,
+               box: [80, 580, 540, 80], fill: red_soft, radius: 8, shadow: small}
+            - {type: rect, id: ch1b, decorative: true,
+               box: [80, 580, 5, 80], fill: red}
+            - {type: text, id: ch1t,
+               text: "Free Form  —  todas as 9 classes de erro chegam\nao usuário, sem nenhuma detecção automática",
+               box: [100, 580, 510, 80], style: bodyc}
+
+            - {type: rect, id: ch2, decorative: true,
+               box: [700, 580, 540, 80], fill: amber_soft, radius: 8, shadow: small}
+            - {type: rect, id: ch2b, decorative: true,
+               box: [700, 580, 5, 80], fill: amber}
+            - {type: text, id: ch2t,
+               text: "Estruturado (Schema + Instance)  —  os erros\nficam contidos na camada de significado",
+               box: [720, 580, 510, 80], style: bodyc}
+
+            - {type: rect, id: ch3, decorative: true,
+               box: [1320, 580, 540, 80], fill: green_soft, radius: 8, shadow: small}
+            - {type: rect, id: ch3b, decorative: true,
+               box: [1320, 580, 5, 80], fill: green}
+            - {type: text, id: ch3t,
+               text: "Validador  —  a última barreira automática do\nsistema, mas não garante que esteja correto",
+               box: [1340, 580, 510, 80], style: bodyc}
+
+        - id: footer
+          z: 4
+          objects:
+            - {type: text, id: fn,
+               text: "As nove classes de erro: ERR_HALLUCINATION · ERR_OMISSION · ERR_SCHEMA · ERR_TRUNCATION · ERR_SYCOPHANCY · ERR_INSTRUCTION · ERR_CALIBRATION · ERR_REASONING · ERR_SEMANTIC",
+               box: [80, 918, 1760, 40], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 2  LEI DE PALS — ERRO IRREDUTÍVEL
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 2
+    id: pals_grounding
+    title: "O Erro de LLM Não Pode Ser Eliminado — Verificar Não É Opcional"
+    notes: "A forma matemática é empiricamente sólida e honesta sobre seus limites. Os corolários é que a tornam aplicável à arquitetura: o Corolário 4 nomeia a classe de defeito, o Corolário 5 nomeia a armadilha."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "O Erro de LLM Não Pode Ser Eliminado — Verificar Não É Opcional",
+               box: [80, 56, 1600, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: brand}
+
+        - id: operative
+          z: 2
+          objects:
+            - {type: rect, id: op_bg, decorative: true,
+               box: [80, 136, 1760, 130], fill: brand_lift, radius: 10, shadow: small}
+            - {type: rect, id: op_bar, decorative: true,
+               box: [80, 136, 6, 130], fill: brand}
+            - {type: text, id: op_h,
+               text: "Forma matemática",
+               box: [110, 150, 600, 32], style: h3}
+            - {type: text, id: op_eq,
+               text: "E[ε(M(x), x)] ≥ δ > 0",
+               box: [110, 186, 800, 56], style: eq_brand}
+            - {type: text, id: op_def,
+               text: "Vale para qualquer modelo M e qualquer entrada realista. ε é o predicado de erro; δ é o piso desse erro — sempre maior que zero. É uma propriedade estatística: não diz onde o erro vai aparecer, só garante que ele existe e não desaparece.",
+               box: [700, 152, 1080, 110], style: body}
+
+        - id: corollaries
+          z: 3
+          objects:
+            - {type: text, id: cor_h,
+               text: "Corolários com consequências para a arquitetura",
+               box: [80, 294, 900, 36], style: h2}
+
+            # Corollary 4
+            - {type: rect, id: c4_bg, decorative: true,
+               box: [80, 342, 840, 200], fill: panel, radius: 10, shadow: small}
+            - {type: rect, id: c4_bar, decorative: true,
+               box: [80, 342, 6, 200], fill: brand}
+            - {type: rect, id: c4_pill, decorative: true,
+               box: [104, 356, 150, 28], fill: brand, radius: 14}
+            - {type: text, id: c4_pillt,
+               text: "Corolário 4", box: [104, 356, 150, 28], style: lbl_w}
+            - {type: text, id: c4_ht,
+               text: "Aceitar a saída sem verificar = defeito de arquitetura",
+               box: [278, 356, 620, 28], style: h3}
+            - {type: text, id: c4_b,
+               text: "Qualquer sistema que repassa a resposta de uma IA generativa adiante sem nenhum ponto de verificação declarado está, na prática, incorporando os erros do modelo de forma silenciosa. Não verificar não é uma escolha neutra de design — é uma classe específica de defeito de arquitetura. Esse corolário é a consequência mais direta da fórmula acima.",
+               box: [104, 398, 790, 130], style: body}
+
+            # Corollary 5
+            - {type: rect, id: c5_bg, decorative: true,
+               box: [1000, 342, 840, 200], fill: panel, radius: 10, shadow: small}
+            - {type: rect, id: c5_bar, decorative: true,
+               box: [1000, 342, 6, 200], fill: amber}
+            - {type: rect, id: c5_pill, decorative: true,
+               box: [1024, 356, 150, 28], fill: amber, radius: 14}
+            - {type: text, id: c5_pillt,
+               text: "Corolário 5", box: [1024, 356, 150, 28], style: lbl_w}
+            - {type: text, id: c5_ht,
+               text: "Modelos mais avançados deslocam o problema da verificação",
+               box: [1198, 356, 620, 28], style: h3}
+            - {type: text, id: c5_b,
+               text: "Trocar por um modelo mais avançado sem melhorar o verificador é uma regressão de arquitetura. Modelos melhores produzem erros mais convincentes — justamente nas classes mais difíceis de detectar: ERR_SEMANTIC, ERR_SYCOPHANCY, ERR_CALIBRATION. A lacuna de verificação só aumenta se o verificador não evoluir junto.",
+               box: [1024, 398, 790, 130], style: body}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 3  TAXONOMIA DE ERRO
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 3
+    id: error_taxonomy
+    title: "Nove Classes de Erro — Cada Uma Exige uma Detecção Diferente"
+    notes: "Este slide define as nove classes de erro sobre as quais o resto do deck constrói o argumento. O ponto não é completude por completude; é que cada classe falha de um jeito diferente e, por isso, exige uma estratégia de verificação diferente."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill, decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080], fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Nove Classes de Erro — Cada Uma Exige uma Detecção Diferente",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: brand}
+            - {type: text, id: sub,
+               text: "Uma só taxonomia, nove modos de falha distintos. Nenhum verificador único cobre todos da mesma forma.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: chips
+          z: 2
+          objects:
+            - type: chip_row
+              id: err_chips
+              origin: [80, 208]
+              gap: 20
+              height: 36
+              items:
+                - {text: "ERR_HALLUCINATION", width: 176}
+                - {text: "ERR_OMISSION",      width: 176}
+                - {text: "ERR_SCHEMA",        width: 176}
+                - {text: "ERR_TRUNCATION",    width: 176}
+                - {text: "ERR_SYCOPHANCY",    width: 176}
+                - {text: "ERR_INSTRUCTION",   width: 176}
+                - {text: "ERR_CALIBRATION",   width: 176}
+                - {text: "ERR_REASONING",     width: 176}
+                - {text: "ERR_SEMANTIC",      width: 176}
+
+        - id: table
+          z: 3
+          objects:
+            - {type: rect, id: r1, decorative: true, box: [80, 278, 840, 64], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: r1b, decorative: true, box: [80, 278, 4, 64], fill: brand}
+            - {type: text, id: r1l, text: "ERR_HALLUCINATION", box: [96, 286, 220, 20], style: sm_b}
+            - {type: text, id: r1d, text: "Afirmações fabricadas, apresentadas com convicção como se fossem fatos.", box: [320, 286, 560, 36], style: body}
+
+            - {type: rect, id: r2, decorative: true, box: [80, 356, 840, 64], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: r2b, decorative: true, box: [80, 356, 4, 64], fill: brand}
+            - {type: text, id: r2l, text: "ERR_OMISSION", box: [96, 364, 220, 20], style: sm_b}
+            - {type: text, id: r2d, text: "Informação obrigatória que não aparece na resposta.", box: [320, 364, 560, 36], style: body}
+
+            - {type: rect, id: r3, decorative: true, box: [80, 434, 840, 64], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: r3b, decorative: true, box: [80, 434, 4, 64], fill: brand}
+            - {type: text, id: r3l, text: "ERR_SCHEMA", box: [96, 442, 220, 20], style: sm_b}
+            - {type: text, id: r3d, text: "A resposta não respeita o formato exigido.", box: [320, 442, 560, 36], style: body}
+
+            - {type: rect, id: r4, decorative: true, box: [80, 512, 840, 64], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: r4b, decorative: true, box: [80, 512, 4, 64], fill: brand}
+            - {type: text, id: r4l, text: "ERR_TRUNCATION", box: [96, 520, 220, 20], style: sm_b}
+            - {type: text, id: r4d, text: "A resposta é interrompida no meio, sem aviso.", box: [320, 520, 560, 36], style: body}
+
+            - {type: rect, id: r5, decorative: true, box: [80, 590, 840, 64], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: r5b, decorative: true, box: [80, 590, 4, 64], fill: brand}
+            - {type: text, id: r5l, text: "ERR_SYCOPHANCY", box: [96, 598, 220, 20], style: sm_b}
+            - {type: text, id: r5d, text: "A resposta busca agradar em vez de dizer a verdade.", box: [320, 598, 560, 36], style: body}
+
+            - {type: rect, id: r6, decorative: true, box: [1000, 278, 840, 64], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: r6b, decorative: true, box: [1000, 278, 4, 64], fill: brand}
+            - {type: text, id: r6l, text: "ERR_INSTRUCTION", box: [1016, 286, 220, 20], style: sm_b}
+            - {type: text, id: r6d, text: "Instruções claras dadas no prompt são ignoradas.", box: [1240, 286, 560, 36], style: body}
+
+            - {type: rect, id: r7, decorative: true, box: [1000, 356, 840, 64], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: r7b, decorative: true, box: [1000, 356, 4, 64], fill: brand}
+            - {type: text, id: r7l, text: "ERR_CALIBRATION", box: [1016, 364, 220, 20], style: sm_b}
+            - {type: text, id: r7d, text: "O modelo expressa confiança que não condiz com sua precisão real.", box: [1240, 364, 560, 36], style: body}
+
+            - {type: rect, id: r8, decorative: true, box: [1000, 434, 840, 64], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: r8b, decorative: true, box: [1000, 434, 4, 64], fill: brand}
+            - {type: text, id: r8l, text: "ERR_REASONING", box: [1016, 442, 220, 20], style: sm_b}
+            - {type: text, id: r8d, text: "Os fatos podem estar certos, mas a lógica que os conecta está errada.", box: [1240, 442, 560, 36], style: body}
+
+            - {type: rect, id: r9, decorative: true, box: [1000, 512, 840, 64], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: r9b, decorative: true, box: [1000, 512, 4, 64], fill: brand}
+            - {type: text, id: r9l, text: "ERR_SEMANTIC", box: [1016, 520, 220, 20], style: sm_b}
+            - {type: text, id: r9d, text: "A forma da resposta está correta, mas o significado está errado.", box: [1240, 520, 560, 36], style: body}
+
+        - id: takeaway
+          z: 4
+          objects:
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 690, 1760, 110], fill: panel_lift, radius: 10, shadow: small}
+            - {type: text, id: tk_h, text: "Consequência prática para o design", box: [110, 718, 500, 28], style: h3}
+            - {type: text, id: tk_t, text: "Cada classe de erro pede um tipo específico de verificação. Checagem de estrutura não pega problema de significado; checagem de significado não substitui a de estrutura.", box: [110, 754, 1600, 32], style: h2}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 4  CANAL FREE FORM
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 4
+    id: free_form
+    title: "Saída Free-Form — Todas as Nove Classes Chegam ao Usuário"
+    notes: "O ponto crucial é que nenhuma das nove classes é detectável automaticamente aqui. Revisão humana não é uma alternativa de fallback — é a única camada disponível. E o custo de detecção é o mesmo para todas as classes."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: red}
+            - {type: rect, id: channel_band, decorative: true,
+               box: [0, 0, 1920, 8], fill: red}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Saída Free-Form — Todas as Nove Classes Chegam ao Usuário",
+               box: [80, 56, 1600, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: red}
+
+        - id: grid
+          z: 2
+          objects:
+            - {type: text, id: intro,
+               text: "Sem nenhuma verificação automática, as nove classes caem todas no colo da revisão humana. Quatro exemplos abaixo; as cinco restantes seguem o mesmo padrão (ver matriz no slide 11).",
+               box: [80, 138, 1500, 44], style: h2}
+
+            # Row 1: HALLUCINATION
+            - {type: rect, id: ff_r1, decorative: true, box: [80, 216, 840, 152], fill: panel, radius: 10, shadow: small}
+            - {type: rect, id: ff_r1b, decorative: true, box: [80, 216, 4, 152], fill: red}
+            - {type: rect, id: ff_r1_pill, decorative: true, box: [104, 232, 192, 28], fill: red, radius: 6}
+            - {type: text, id: ff_r1_pt, text: "ERR_HALLUCINATION", box: [104, 232, 192, 28], style: tag_w}
+            - {type: text, id: ff_r1_t,
+               text: "Afirmações falsas. Sem fontes externas para conferir, só uma pessoa lendo a resposta consegue identificar.",
+               box: [104, 268, 800, 88], style: body}
+
+            # Row 2: OMISSION
+            - {type: rect, id: ff_r2, decorative: true, box: [1000, 216, 840, 152], fill: panel, radius: 10, shadow: small}
+            - {type: rect, id: ff_r2b, decorative: true, box: [1000, 216, 4, 152], fill: red}
+            - {type: rect, id: ff_r2_pill, decorative: true, box: [1024, 232, 162, 28], fill: red, radius: 6}
+            - {type: text, id: ff_r2_pt, text: "ERR_OMISSION", box: [1024, 232, 162, 28], style: tag_w}
+            - {type: text, id: ff_r2_t,
+               text: "Falta conteúdo obrigatório. Como não há lista do que é exigido nem schema para checar, nada é detectado automaticamente.",
+               box: [1024, 268, 800, 88], style: body}
+
+            # Row 3: SCHEMA
+            - {type: rect, id: ff_r3, decorative: true, box: [80, 392, 840, 152], fill: panel, radius: 10, shadow: small}
+            - {type: rect, id: ff_r3b, decorative: true, box: [80, 392, 4, 152], fill: red}
+            - {type: rect, id: ff_r3_pill, decorative: true, box: [104, 408, 134, 28], fill: red, radius: 6}
+            - {type: text, id: ff_r3_pt, text: "ERR_SCHEMA", box: [104, 408, 134, 28], style: tag_w}
+            - {type: text, id: ff_r3_t,
+               text: "A resposta não segue nenhuma estrutura formal. Sem schema, não há validação possível. Conferir estrutura na mão é caro e sujeito a erros.",
+               box: [104, 444, 800, 88], style: body}
+
+            # Row 4: TRUNCATION
+            - {type: rect, id: ff_r4, decorative: true, box: [1000, 392, 840, 152], fill: panel, radius: 10, shadow: small}
+            - {type: rect, id: ff_r4b, decorative: true, box: [1000, 392, 4, 152], fill: red}
+            - {type: rect, id: ff_r4_pill, decorative: true, box: [1024, 408, 182, 28], fill: red, radius: 6}
+            - {type: text, id: ff_r4_pt, text: "ERR_TRUNCATION", box: [1024, 408, 182, 28], style: tag_w}
+            - {type: text, id: ff_r4_t,
+               text: "A resposta é cortada no meio, sem aviso. Sem tamanho mínimo nem contagem de campos definidos, o corte só aparece quando alguém lê.",
+               box: [1024, 444, 800, 88], style: body}
+
+            # Bottom intro: semantic layer
+            - {type: rect, id: left_intro, decorative: true,
+               box: [80, 588, 760, 324], fill: none, stroke: stroke, stroke_width: 0.5, radius: 10}
+            - {type: text, id: left_h, text: "Estrutura", box: [104, 604, 720, 28], style: h2}
+
+            - {type: rect, id: left_l1, decorative: true,
+               box: [104, 664, 710, 72], fill: panel, radius: 8}
+            - {type: rect, id: left_l1r, decorative: true,
+               box: [104, 664, 5, 72], fill: dark}
+            - {type: text, id: left_l1a,
+               text: "ERR_SCHEMA", box: [120, 668, 560, 24], style: h2}
+            - {type: text, id: left_l1b,
+               text: "A própria estrutura está errada", box: [120, 696, 560, 22], style: body}
+
+            - {type: rect, id: left_l2, decorative: true,
+               box: [104, 752, 710, 72], fill: panel, radius: 8}
+            - {type: rect, id: left_l2r, decorative: true,
+               box: [104, 752, 5, 72], fill: dark}
+            - {type: text, id: left_l2a,
+               text: "ERR_TRUNCATION", box: [120, 756, 560, 24], style: h2}
+            - {type: text, id: left_l2b,
+               text: "A estrutura está incompleta", box: [120, 784, 560, 22], style: body}
+
+            - {type: rect, id: right_intro, decorative: true,
+               box: [1000, 588, 760, 324], fill: none, stroke: stroke, stroke_width: 0.5, radius: 10}
+            - {type: text, id: right_h, text: "Semântica", box: [1024, 604, 720, 28], style: h2}
+
+            - {type: rect, id: right_l3, decorative: true,
+               box: [1024, 664, 710, 72], fill: panel, radius: 8}
+            - {type: rect, id: right_l3r, decorative: true,
+               box: [1024, 664, 5, 72], fill: dark}
+            - {type: text, id: right_l3a,
+               text: "ERR_SEMANTIC", box: [1040, 668, 560, 24], style: h2}
+            - {type: text, id: right_l3b,
+               text: "O significado está fora do alcance do schema", box: [1040, 696, 560, 22], style: body}
+
+            - {type: rect, id: right_l4, decorative: true,
+               box: [1024, 752, 710, 72], fill: panel, radius: 8}
+            - {type: rect, id: right_l4r, decorative: true,
+               box: [1024, 752, 5, 72], fill: dark}
+            - {type: text, id: right_l4a,
+               text: "ERR_SYCOPHANCY", box: [1040, 756, 560, 24], style: h2}
+            - {type: text, id: right_l4b,
+               text: "A intenção está fora do alcance do schema", box: [1040, 784, 560, 22], style: body}
+
+            - {type: text, id: right_takeaway,
+               text: "Verdade, lógica, significado, intenção.",
+               box: [1000, 940, 660, 32], style: h2}
+            - {type: text, id: right_takeaway_s,
+               text: "Uma resposta válida ainda pode estar errada.",
+               box: [1000, 976, 660, 24], style: bodyc}
+
+        - id: verdict
+          z: 3
+          objects:
+            - {type: rect, id: v_bg, decorative: true,
+               box: [80, 980, 1760, 50], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: v_t,
+               text: "Em resumo: usar schema reduz os erros possíveis à camada de significado. Garante que a forma está certa — não que o conteúdo é verdadeiro.",
+               box: [120, 995, 1680, 32], style: h2}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 5  CANAL SCHEMA + INSTANCE
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 5
+    id: schema_instance
+    title: "Schema + Instance — Bloqueia Forma, Não Significado"
+    notes: "Schema é o segundo nível. A máquina valida a estrutura instantaneamente. Mas estrutura correta não é a mesma coisa que verdade. A camada de significado fica — sempre — em aberto."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: amber}
+            - {type: rect, id: channel_band, decorative: true,
+               box: [0, 0, 1920, 8], fill: amber}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Schema + Instance — Bloqueia Forma, Não Significado",
+               box: [80, 56, 1600, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: amber}
+            - {type: text, id: sub,
+               text: "A máquina garante a forma; a verdade continua dependendo de quem é capaz de avaliá-la — pessoa, especialista ou fonte externa.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: table
+          z: 2
+          objects:
+            # LEFT: covered
+            - {type: rect, id: cov_bg, decorative: true,
+               box: [80, 210, 760, 740], fill: none, stroke: stroke, stroke_width: 0.5, radius: 10}
+            - {type: rect, id: cov_top, decorative: true,
+               box: [80, 210, 760, 56], fill: dark_bar, radius: 8}
+            - {type: text, id: cov_h,
+               text: "Coberto pela validação de schema (estrutura eliminada, conteúdo apenas parcial)",
+               box: [104, 210, 720, 56], style: ctr_w}
+
+            - {type: rect, id: cv_r1, decorative: true, box: [104, 294, 710, 130], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: cv_r1b, decorative: true, box: [104, 294, 5, 130], fill: green}
+            - {type: rect, id: cv_r1_pill, decorative: true, box: [120, 310, 134, 26], fill: green, radius: 6}
+            - {type: text, id: cv_r1_pt, text: "ERR_SCHEMA", box: [120, 310, 134, 26], style: tag_w}
+            - {type: text, id: cv_r1_t,
+               text: "Toda resposta que não passa pela validação de schema é rejeitada. Nenhuma saída com estrutura inválida consegue passar.",
+               box: [120, 346, 680, 66], style: sm_ink}
+
+            - {type: rect, id: cv_r2, decorative: true, box: [104, 444, 710, 130], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: cv_r2b, decorative: true, box: [104, 444, 5, 130], fill: amber}
+            - {type: rect, id: cv_r2_pill, decorative: true, box: [120, 460, 182, 26], fill: amber, radius: 6}
+            - {type: text, id: cv_r2_pt, text: "ERR_TRUNCATION", box: [120, 460, 182, 26], style: tag_w}
+            - {type: text, id: cv_r2_t,
+               text: "Os campos obrigatórios definidos no schema são checados. Se a resposta foi cortada e algum desses campos sumiu, a falha é detectada.",
+               box: [120, 496, 680, 66], style: sm_ink}
+
+            - {type: rect, id: cv_r3, decorative: true, box: [104, 594, 710, 130], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: cv_r3b, decorative: true, box: [104, 594, 5, 130], fill: amber}
+            - {type: rect, id: cv_r3_pill, decorative: true, box: [120, 610, 162, 26], fill: amber, radius: 6}
+            - {type: text, id: cv_r3_pt, text: "ERR_HALLUCINATION (parcial)", box: [120, 610, 162, 26], style: tag_w}
+            - {type: text, id: cv_r3_t,
+               text: "Listas de valores permitidos (enum) e faixas numéricas pegam alucinações óbvias. Já a detecção no nível do significado continua fora de alcance.",
+               box: [120, 646, 680, 66], style: sm_ink}
+
+            # RIGHT: exposed
+            - {type: rect, id: exp_bg, decorative: true,
+               box: [900, 210, 940, 740], fill: none, stroke: stroke, stroke_width: 0.5, radius: 10}
+            - {type: rect, id: exp_top, decorative: true,
+               box: [900, 210, 940, 56], fill: dark_bar, radius: 8}
+            - {type: text, id: exp_h,
+               text: "Não coberto — o que sobra na camada de significado",
+               box: [924, 210, 900, 56], style: ctr_w}
+
+            - {type: text, id: exp_intro,
+               text: "Cinco classes ficam totalmente expostas no schema — HALLUCINATION, SYCOPHANCY, CALIBRATION, REASONING, SEMANTIC. OMISSION fica reduzida (campos obrigatórios), mas omissão de domínio escapa. Schema valida forma, não sentido. Os exemplos abaixo ilustram três delas.",
+               box: [924, 294, 890, 66], style: body}
+
+            - {type: rect, id: exp_r1, decorative: true, box: [924, 378, 890, 130], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: exp_r1b, decorative: true, box: [924, 378, 5, 130], fill: amber}
+            - {type: rect, id: exp_r1_pill, decorative: true, box: [940, 394, 220, 26], fill: dark, radius: 6}
+            - {type: text, id: exp_r1_pt, text: "ERR_OMISSION (parcial)", box: [940, 394, 220, 26], style: tag_w}
+            - {type: text, id: exp_r1_t,
+               text: "Campos obrigatórios são detectados pelo schema. Mas omissão de domínio — campo presente, com forma correta e vazio de significado — escapa para o validador.",
+               box: [940, 430, 860, 66], style: sm_ink}
+
+            - {type: rect, id: exp_r2, decorative: true, box: [924, 528, 890, 130], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: exp_r2b, decorative: true, box: [924, 528, 5, 130], fill: red}
+            - {type: rect, id: exp_r2_pill, decorative: true, box: [940, 544, 160, 26], fill: dark, radius: 6}
+            - {type: text, id: exp_r2_pt, text: "ERR_SYCOPHANCY", box: [940, 544, 160, 26], style: tag_w}
+            - {type: text, id: exp_r2_t,
+               text: "Uma resposta estruturalmente válida pode ter sido fabricada só para agradar. A busca por aprovação fica invisível para o schema.",
+               box: [940, 580, 860, 66], style: sm_ink}
+
+            - {type: rect, id: exp_r3, decorative: true, box: [924, 678, 890, 130], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: exp_r3b, decorative: true, box: [924, 678, 5, 130], fill: red}
+            - {type: rect, id: exp_r3_pill, decorative: true, box: [940, 694, 148, 26], fill: dark, radius: 6}
+            - {type: text, id: exp_r3_pt, text: "ERR_SEMANTIC", box: [940, 694, 148, 26], style: tag_w}
+            - {type: text, id: exp_r3_t,
+               text: "Significado fica fora do alcance do schema. Uma resposta com estrutura impecável pode estar apontando para a entidade errada no mundo real.",
+               box: [940, 730, 860, 66], style: sm_ink}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 6  VALIDADOR — O LIMITE DE VERIFICAÇÃO
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 6
+    id: validator
+    title: "Validadores Ampliam a Cobertura — mas Não Provam Verdade"
+    notes: "O validador é a última barreira automática desta arquitetura — schema também rejeita, mas só para regras de negócio, restrições entre campos e faixas de valores existe o validador. O resíduo (ERR_SEMANTIC, ERR_SYCOPHANCY, ERR_CALIBRATION) não é uma limitação de validador — é um limite teórico."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: green}
+            - {type: rect, id: channel_band, decorative: true,
+               box: [0, 0, 1920, 8], fill: green}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Validadores Ampliam a Cobertura — mas Não Provam Verdade",
+               box: [80, 56, 1420, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: green}
+            - {type: rect, id: status_pill, decorative: true,
+               box: [1540, 58, 300, 44], fill: bg, radius: 22}
+            - {type: rect, id: status_pill_s, decorative: true,
+               box: [1540, 58, 300, 44], stroke: dark, stroke_width: 1, fill: none, radius: 22}
+            - {type: text, id: status_t,
+               text: "Última barreira automática",
+               box: [1540, 58, 300, 44], style: lbl_b}
+
+        - id: definition
+          z: 2
+          objects:
+            - {type: rect, id: def_rule, decorative: true,
+               box: [80, 136, 1760, 2], fill: stroke}
+            - {type: text, id: def_t,
+               text: "O Validador é a última barreira automática desta arquitetura: codifica regras de negócio, restrições entre campos e faixas de valores que o schema sozinho não alcança. Schema também rejeita automaticamente, mas só sobre estrutura — o validador é a única camada automática para semântica de domínio. O resultado é uma saída auditável — não uma saída comprovadamente correta.",
+               box: [80, 154, 1680, 60], style: body}
+
+        - id: coverage_table
+          z: 3
+          objects:
+            # LEFT: what validator covers
+            - {type: rect, id: cov_bg, decorative: true,
+               box: [80, 258, 760, 710], fill: none, stroke: stroke, stroke_width: 0.5, radius: 12}
+            - {type: rect, id: cov_top, decorative: true,
+               box: [80, 258, 760, 64], fill: dark_bar, radius: 8}
+            - {type: text, id: cov_h,
+               text: "O que o Validador passa a cobrir",
+               box: [104, 258, 720, 64], style: ctr_w}
+
+            - {type: rect, id: cv1, decorative: true, box: [104, 342, 710, 100], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: cv1b, decorative: true, box: [104, 342, 5, 100], fill: green}
+            - {type: rect, id: cv1_pill, decorative: true, box: [120, 356, 162, 26], fill: green, radius: 6}
+            - {type: text, id: cv1_pt,
+               text: "ERR_INSTRUCTION", box: [120, 356, 162, 26], style: tag_w}
+            - {type: text, id: cv1_t,
+               text: "Coberto para restrições mecanizáveis (formato, faixas, presença). Instruções de tom, estilo ou intenção continuam fora de alcance — caem no resíduo de SYCOPHANCY/SEMANTIC.",
+               box: [120, 390, 680, 44], style: sm_ink}
+
+            - {type: rect, id: cv2, decorative: true, box: [104, 452, 710, 100], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: cv2b, decorative: true, box: [104, 452, 5, 100], fill: green}
+            - {type: rect, id: cv2_pill, decorative: true, box: [120, 466, 186, 26], fill: green, radius: 6}
+            - {type: text, id: cv2_pt,
+               text: "ERR_HALLUCINATION (parcial)", box: [120, 466, 186, 26], style: tag_w}
+            - {type: text, id: cv2_t,
+               text: "Listas de valores permitidos e faixas numéricas pegam alucinações óbvias. O validador rejeita respostas com campos fora dos valores aceitos. Mas o núcleo do problema — o significado — segue fora de alcance.",
+               box: [120, 500, 680, 44], style: sm_ink}
+
+            - {type: rect, id: cv3, decorative: true, box: [104, 562, 710, 100], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: cv3b, decorative: true, box: [104, 562, 5, 100], fill: green}
+            - {type: rect, id: cv3_pill, decorative: true, box: [120, 576, 162, 26], fill: green, radius: 6}
+            - {type: text, id: cv3_pt,
+               text: "ERR_REASONING (parcial)", box: [120, 576, 162, 26], style: tag_w}
+            - {type: text, id: cv3_t,
+               text: "Regras de consistência entre campos pegam contradições óbvias: uma data inicial posterior à final, um total que não bate com a soma das partes.",
+               box: [120, 610, 680, 44], style: sm_ink}
+
+            - {type: rect, id: cv4, decorative: true, box: [104, 672, 710, 100], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: cv4b, decorative: true, box: [104, 672, 5, 100], fill: green}
+            - {type: rect, id: cv4_pill, decorative: true, box: [120, 686, 140, 26], fill: green, radius: 6}
+            - {type: text, id: cv4_pt,
+               text: "ERR_OMISSION", box: [120, 686, 140, 26], style: tag_w}
+            - {type: text, id: cv4_t,
+               text: "Regras de completude que vão além dos campos obrigatórios do schema. O validador exige uma completude de domínio que o schema sozinho não consegue expressar.",
+               box: [120, 720, 680, 44], style: sm_ink}
+
+            - {type: rect, id: cv5, decorative: true, box: [104, 782, 710, 100], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: cv5b, decorative: true, box: [104, 782, 5, 100], fill: green}
+            - {type: rect, id: cv5_pill, decorative: true, box: [120, 796, 124, 26], fill: green, radius: 6}
+            - {type: text, id: cv5_pt,
+               text: "ERR_SCHEMA", box: [120, 796, 124, 26], style: tag_w}
+            - {type: text, id: cv5_t,
+               text: "A estrutura é reconfirmada no momento da validação, mesmo se o schema não for aplicado mais à frente no fluxo. A palavra final sobre a forma é do validador.",
+               box: [120, 830, 680, 44], style: sm_ink}
+
+            # RIGHT: permanent residual
+            - {type: rect, id: res_bg, decorative: true,
+               box: [900, 258, 940, 710], fill: none, stroke: stroke, stroke_width: 0.5, radius: 12}
+            - {type: rect, id: res_top, decorative: true,
+               box: [900, 258, 940, 64], fill: dark_bar, radius: 8}
+            - {type: text, id: res_h,
+               text: "Resíduo permanente — fora do alcance de qualquer validador",
+               box: [924, 258, 900, 64], style: ctr_w}
+
+            - {type: text, id: res_intro,
+               text: "Para SEMANTIC e SYCOPHANCY, ε não é decidível no caso geral por motivos teóricos. Para CALIBRATION, ε é mensurável em conjuntos de teste — mas o validador só vê o texto final, não a distribuição que o gerou. O resultado prático é o mesmo: nenhuma das três é detectável na fronteira de saída.",
+               box: [924, 342, 890, 90], style: body}
+
+            - {type: rect, id: rr1, decorative: true, box: [924, 448, 890, 130], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: rr1b, decorative: true, box: [924, 448, 5, 130], fill: red}
+            - {type: rect, id: rr1_pill, decorative: true, box: [940, 462, 148, 26], fill: dark, radius: 6}
+            - {type: text, id: rr1_pt,
+               text: "ERR_SEMANTIC", box: [940, 462, 148, 26], style: tag_w}
+            - {type: text, id: rr1_t,
+               text: "O validador consegue confirmar que um campo contém um texto que segue um padrão. Não consegue confirmar que esse texto se refere à coisa certa no mundo real. Significado não é decidível só a partir da estrutura.",
+               box: [940, 496, 860, 70], style: sm_ink}
+
+            - {type: rect, id: rr2, decorative: true, box: [924, 590, 890, 130], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: rr2b, decorative: true, box: [924, 590, 5, 130], fill: red}
+            - {type: rect, id: rr2_pill, decorative: true, box: [940, 604, 160, 26], fill: dark, radius: 6}
+            - {type: text, id: rr2_pt,
+               text: "ERR_SYCOPHANCY", box: [940, 604, 160, 26], style: tag_w}
+            - {type: text, id: rr2_t,
+               text: "O validador não tem acesso ao objetivo que guiou a geração da resposta. Não consegue distinguir uma resposta que busca agradar de uma que busca a verdade. A detecção exige testes adversariais ou revisão por especialista.",
+               box: [940, 638, 860, 70], style: sm_ink}
+
+            - {type: rect, id: rr3, decorative: true, box: [924, 732, 890, 130], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: rr3b, decorative: true, box: [924, 732, 5, 130], fill: red}
+            - {type: rect, id: rr3_pill, decorative: true, box: [940, 746, 172, 26], fill: dark, radius: 6}
+            - {type: text, id: rr3_pt,
+               text: "ERR_CALIBRATION", box: [940, 746, 172, 26], style: tag_w}
+            - {type: text, id: rr3_t,
+               text: "A confiança é uma propriedade da distribuição interna do modelo. O validador só vê o texto final, não a distribuição que o gerou. Confiança mal calibrada fica invisível na fronteira de saída.",
+               box: [940, 780, 860, 70], style: sm_ink}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 7  EXPOSIÇÃO RESIDUAL
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 7
+    id: residual
+    title: "O Erro Residual É Permanente — Não Um Bug a Consertar"
+    notes: "O resíduo não é uma lacuna da arquitetura atual — é uma característica permanente de qualquer implantação de modelos probabilísticos. A postura honesta é nomeá-lo, descrever o que pode reduzi-lo (mas não eliminá-lo) e reafirmar o Corolário 5: modelos mais avançados alargam o resíduo se o verificador não evoluir junto."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: purple}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "O Erro Residual É Permanente — Não Um Bug a Consertar",
+               box: [80, 56, 1600, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: purple}
+
+        - id: residual_classes
+          z: 2
+          objects:
+            - {type: text, id: res_h,
+               text: "Três classes que schema e validador, sozinhos, não conseguem cobrir",
+               box: [80, 138, 1400, 36], style: h2}
+
+            # ERR_SYCOPHANCY
+            - {type: rect, id: rs1, decorative: true,
+               box: [80, 196, 546, 260], fill: panel, radius: 12, shadow: small}
+            - {type: rect, id: rs1b, decorative: true, box: [80, 196, 6, 260], fill: purple}
+            - {type: rect, id: rs1_pill, decorative: true,
+               box: [104, 212, 160, 28], fill: purple, radius: 6}
+            - {type: text, id: rs1_pt,
+               text: "ERR_SYCOPHANCY", box: [104, 212, 160, 28], style: tag_w}
+            - {type: text, id: rs1_def,
+               text: "Resposta moldada pelo que o modelo acha que o usuário quer ouvir, em vez da verdade.",
+               box: [104, 250, 510, 44], style: body}
+            - {type: text, id: rs1_req,
+               text: "O que reduz (mas não elimina) isso:",
+               box: [104, 304, 510, 22], style: sm_b}
+            - {type: text, id: rs1_r,
+               text: "Testes de consistência adversariais (a mesma pergunta feita de várias formas diferentes); benchmarks de calibração comparando as respostas do modelo com dados verdadeiros em corpus de teste; red-teaming com prompts contrastivos para revelar comportamento de concordância.",
+               box: [104, 330, 510, 110], style: sm_ink}
+
+            # ERR_CALIBRATION
+            - {type: rect, id: rs2, decorative: true,
+               box: [686, 196, 546, 260], fill: panel, radius: 12, shadow: small}
+            - {type: rect, id: rs2b, decorative: true, box: [686, 196, 6, 260], fill: purple}
+            - {type: rect, id: rs2_pill, decorative: true,
+               box: [710, 212, 172, 28], fill: purple, radius: 6}
+            - {type: text, id: rs2_pt,
+               text: "ERR_CALIBRATION", box: [710, 212, 172, 28], style: tag_w}
+            - {type: text, id: rs2_def,
+               text: "A confiança que o modelo expressa não condiz com sua precisão real.",
+               box: [710, 250, 510, 44], style: body}
+            - {type: text, id: rs2_req,
+               text: "O que reduz (mas não elimina) isso:",
+               box: [710, 304, 510, 22], style: sm_b}
+            - {type: text, id: rs2_r,
+               text: "Experimentos de calibração de temperatura em conjuntos de teste; escalonamento de Platt ou regressão isotônica sobre os scores de confiança; revisão humana das respostas que o modelo marcou como alta confiança.",
+               box: [710, 330, 510, 110], style: sm_ink}
+
+            # Referential grounding failure
+            - {type: rect, id: rs3, decorative: true,
+               box: [1292, 196, 546, 260], fill: panel, radius: 12, shadow: small}
+            - {type: rect, id: rs3b, decorative: true, box: [1292, 196, 6, 260], fill: purple}
+            - {type: rect, id: rs3_pill, decorative: true,
+               box: [1316, 212, 148, 28], fill: purple, radius: 6}
+            - {type: text, id: rs3_pt,
+               text: "ERR_SEMANTIC", box: [1316, 212, 148, 28], style: tag_w}
+            - {type: text, id: rs3_def,
+               text: "Forma correta, significado errado. Falha de ancoragem referencial.",
+               box: [1316, 250, 510, 44], style: body}
+            - {type: text, id: rs3_req,
+               text: "O que reduz (mas não elimina) isso:",
+               box: [1316, 304, 510, 22], style: sm_b}
+            - {type: text, id: rs3_r,
+               text: "Consulta a fontes externas autoritativas; RAG com corpora verificados; revisão por especialista de domínio quando a referência é crítica. Nenhuma dessas opções é totalmente automatizada no caso geral.",
+               box: [1316, 330, 510, 110], style: sm_ink}
+
+        - id: corollaries_block
+          z: 3
+          objects:
+            - {type: rect, id: cor_bg, decorative: true,
+               box: [80, 490, 1760, 240], fill: none, stroke: stroke, stroke_width: 0.5, radius: 12}
+            - {type: text, id: cor_h,
+               text: "Implicações para a arquitetura (Lei de PALS, Corolários 4 e 5)",
+               box: [104, 508, 1400, 36], style: h2}
+
+            - {type: rect, id: c4, decorative: true,
+               box: [104, 558, 840, 150], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: c4b, decorative: true, box: [104, 558, 5, 150], fill: red}
+            - {type: rect, id: c4_pill, decorative: true,
+               box: [120, 572, 150, 26], fill: red, radius: 6}
+            - {type: text, id: c4_pt,
+               text: "Corolário 4", box: [120, 572, 150, 26], style: tag_w}
+            - {type: text, id: c4_t,
+               text: "Aceitar em silêncio, em qualquer canal, é um defeito de arquitetura. Qualquer sistema que repassa adiante respostas de IA generativa sem uma camada explícita de verificação para as classes residuais não está sendo neutro — está adotando o erro residual como se fosse correto.",
+               box: [120, 606, 806, 90], style: body}
+
+            - {type: rect, id: c5, decorative: true,
+               box: [1000, 558, 840, 150], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: c5b, decorative: true, box: [1000, 558, 5, 150], fill: amber}
+            - {type: rect, id: c5_pill, decorative: true,
+               box: [1016, 572, 150, 26], fill: amber, radius: 6}
+            - {type: text, id: c5_pt,
+               text: "Corolário 5", box: [1016, 572, 150, 26], style: tag_w}
+            - {type: text, id: c5_t,
+               text: "Subir para um modelo mais avançado sem evoluir o verificador é uma regressão de arquitetura. Modelos melhores produzem respostas mais plausíveis exatamente nas classes mais difíceis de detectar. O resíduo aumenta se o verificador não acompanhar.",
+               box: [1016, 606, 806, 90], style: body}
+
+        - id: note
+          z: 4
+          objects:
+            - {type: rect, id: note_bg, decorative: true,
+               box: [80, 764, 1760, 90], fill: none, stroke: stroke, stroke_width: 0.5, radius: 8}
+            - {type: rect, id: note_rule, decorative: true,
+               box: [80, 764, 1760, 4], fill: dark}
+            - {type: text, id: note_t,
+               text: "O resíduo não é uma lacuna a ser fechada. É uma característica permanente que precisa ser nomeada com honestidade, mitigada com sinceridade e roteada por revisão humana sempre que estar correto importar.",
+               box: [110, 778, 1660, 62], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 8  ESTUDO DE CASO #1 — FORMA PERFEITA, SIGNIFICADO ERRADO
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 8
+    id: case_hallucination
+    title: "Estudo de Caso #1 — Forma Impecável, Significado Fabricado"
+    notes: "Caso clássico que ilustra o Corolário 4: a saída tem estrutura impecável, mas os dados são fabricados. Schema valida e aceita; o validador só detectaria com consulta a uma fonte externa autoritativa. Este é o tipo de erro mais perigoso — parece confiável."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: amber}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Estudo de Caso #1 — Forma Impecável, Significado Fabricado",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: amber}
+            - {type: text, id: sub,
+               text: "ERR_HALLUCINATION + ERR_SEMANTIC — forma sem ancoragem na realidade.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: scenario
+          z: 2
+          objects:
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
+            - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
+            - {type: text, id: scn_t,
+               text: "Um chatbot de atendimento recebe um pedido de reembolso citando a apólice 'PA-2026-9924'. O sistema pede ao LLM um registro estruturado do reembolso em JSON.",
+               box: [110, 228, 1640, 36], style: body}
+
+        - id: prompt_output
+          z: 3
+          objects:
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: prm_h,   text: "Entrada (prompt)", box: [80, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: prm_code
+              box: [104, 348, 820, 210]
+              style: mono_s
+              text: |
+                Generate a refund record for policy PA-2026-9924.
+
+                Output JSON with fields:
+                  policy_id      (string)
+                  customer_name  (string)
+                  amount         (number)
+                  reason         (string)
+
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: out_h,
+               text: "Saída do modelo (estruturalmente impecável)",
+               box: [980, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: out_code
+              box: [1004, 348, 820, 210]
+              style: mono_s
+              text: |
+                {
+                  "policy_id":     "PA-2026-9924",
+                  "customer_name": "Maria Silva",
+                  "amount":        450.00,
+                  "reason":        "Cancellation per refund policy section 4.2"
+                }
+
+        - id: annotation
+          z: 4
+          objects:
+            - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 80], fill: red_wash, radius: 8, shadow: small}
+            - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 80],    fill: alert}
+            - {type: text, id: ann_h, text: "Por que está errado",
+               box: [110, 598, 400, 22], style: sm_alert}
+            - {type: text, id: ann_t,
+               text: "Maria Silva nunca foi cliente. A apólice PA-2026-9924 existe — mas pertence a João Santos. A 'seção 4.2' não existe na política de reembolso. Três fabricações, embaladas em um JSON impecável.",
+               box: [110, 624, 1640, 40], style: body}
+
+        - id: verdict
+          z: 5
+          objects:
+            - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
+               box: [80, 690, 1500, 28], style: h3}
+
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v1_bar,  decorative: true, box: [80, 728, 5, 200],   fill: alert}
+            - {type: rect, id: v1_pill, decorative: true, box: [104, 744, 154, 26], fill: red, radius: 6}
+            - {type: text, id: v1_pt,   text: "Free Form", box: [104, 744, 154, 26], style: tag_w}
+            - {type: text, id: v1_v,    text: "Erro chega ao usuário",
+               box: [104, 778, 552, 24], style: sm_b}
+            - {type: text, id: v1_t,
+               text: "Sem estrutura nem regras, o sistema repassa o texto adiante. Detecção depende totalmente de revisão humana — se ela acontecer.",
+               box: [104, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v2_bar,  decorative: true, box: [690, 728, 5, 200],   fill: amber}
+            - {type: rect, id: v2_pill, decorative: true, box: [714, 744, 200, 26],  fill: amber, radius: 6}
+            - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 744, 200, 26], style: tag_w}
+            - {type: text, id: v2_v,    text: "Aceita — a forma é válida",
+               box: [714, 778, 552, 24], style: sm_b}
+            - {type: text, id: v2_t,
+               text: "JSON correto, todos os campos presentes, tipos batem. O schema não tem como saber que 'Maria Silva' não existe ou que a seção 4.2 é inventada.",
+               box: [714, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v3_bar,  decorative: true, box: [1300, 728, 5, 200],   fill: green}
+            - {type: rect, id: v3_pill, decorative: true, box: [1324, 744, 130, 26],  fill: green, radius: 6}
+            - {type: text, id: v3_pt,   text: "Validador", box: [1324, 744, 130, 26], style: tag_w}
+            - {type: text, id: v3_v,    text: "Parcial — só com cross-check",
+               box: [1324, 778, 514, 24], style: sm_b}
+            - {type: text, id: v3_t,
+               text: "Detecta apenas se houver consulta automática ao banco de clientes / apólices. Sem RAG ou fonte externa autoritativa, o erro passa.",
+               box: [1324, 806, 514, 110], style: sm_ink}
+
+        - id: takeaway
+          z: 6
+          objects:
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: tk_t,
+               text: "Lição: estrutura impecável não é prova de verdade. Sem consulta a uma fonte externa autoritativa, dados fabricados chegam ao usuário final.",
+               box: [110, 968, 1700, 36], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 9  ESTUDO DE CASO #2 — QUANDO SÓ O VALIDADOR DETECTA
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 9
+    id: case_reasoning
+    title: "Estudo de Caso #2 — Campos Válidos, Relação Contraditória"
+    notes: "Caso onde o schema é satisfeito mas a relação entre campos está errada. Mostra exatamente o valor exclusivo do validador — regras lógicas entre campos. Sem essa camada, o erro passa silenciosamente."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: green}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Estudo de Caso #2 — Campos Válidos, Relação Contraditória",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: green}
+            - {type: text, id: sub,
+               text: "ERR_REASONING — só o validador captura a contradição entre campos.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: scenario
+          z: 2
+          objects:
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
+            - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
+            - {type: text, id: scn_t,
+               text: "Um sistema de geração de contratos pede ao LLM o período de cobertura: início depois de 1º de agosto de 2026, duração de exatamente 6 meses.",
+               box: [110, 228, 1640, 36], style: body}
+
+        - id: prompt_output
+          z: 3
+          objects:
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: prm_h,   text: "Entrada (prompt)", box: [80, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: prm_code
+              box: [104, 348, 820, 210]
+              style: mono_s
+              text: |
+                Generate the contract coverage period.
+
+                Constraints:
+                  - Start date must be after 2026-08-01
+                  - Duration: exactly 6 months
+
+                Output: { start_date, end_date }   (ISO 8601)
+
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: out_h,
+               text: "Saída do modelo (datas válidas, mas invertidas)",
+               box: [980, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: out_code
+              box: [1004, 348, 820, 210]
+              style: mono_s
+              text: |
+                {
+                  "start_date": "2026-12-01",
+                  "end_date":   "2026-08-15"
+                }
+
+        - id: annotation
+          z: 4
+          objects:
+            - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 80], fill: red_wash, radius: 8, shadow: small}
+            - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 80],    fill: alert}
+            - {type: text, id: ann_h, text: "Por que está errado",
+               box: [110, 598, 400, 22], style: sm_alert}
+            - {type: text, id: ann_t,
+               text: "Ambas as datas têm formato ISO 8601 perfeitamente válido. Mas end_date (2026-08-15) é anterior a start_date (2026-12-01) — uma contradição lógica entre campos que o schema, sozinho, não consegue ver.",
+               box: [110, 624, 1640, 40], style: body}
+
+        - id: verdict
+          z: 5
+          objects:
+            - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
+               box: [80, 690, 1500, 28], style: h3}
+
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v1_bar,  decorative: true, box: [80, 728, 5, 200],   fill: alert}
+            - {type: rect, id: v1_pill, decorative: true, box: [104, 744, 154, 26], fill: red, radius: 6}
+            - {type: text, id: v1_pt,   text: "Free Form", box: [104, 744, 154, 26], style: tag_w}
+            - {type: text, id: v1_v,    text: "Erro chega ao usuário",
+               box: [104, 778, 552, 24], style: sm_b}
+            - {type: text, id: v1_t,
+               text: "Sem estrutura, ninguém compara as datas. A detecção depende de revisão humana — ou de o sistema a jusante quebrar quando tentar usar o intervalo.",
+               box: [104, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v2_bar,  decorative: true, box: [690, 728, 5, 200],   fill: amber}
+            - {type: rect, id: v2_pill, decorative: true, box: [714, 744, 200, 26],  fill: amber, radius: 6}
+            - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 744, 200, 26], style: tag_w}
+            - {type: text, id: v2_v,    text: "Aceita — campos isolados são válidos",
+               box: [714, 778, 552, 24], style: sm_b}
+            - {type: text, id: v2_t,
+               text: "Cada data, isolada, é um valor ISO 8601 válido. O schema valida campos um a um — não tem como ver a relação entre eles.",
+               box: [714, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v3_bar,  decorative: true, box: [1300, 728, 5, 200],   fill: green}
+            - {type: rect, id: v3_pill, decorative: true, box: [1324, 744, 130, 26],  fill: green, radius: 6}
+            - {type: text, id: v3_pt,   text: "Validador", box: [1324, 744, 130, 26], style: tag_w}
+            - {type: text, id: v3_v,    text: "REJEITA — regra entre campos viola",
+               box: [1324, 778, 514, 24], style: sm_b}
+            - {type: text, id: v3_t,
+               text: "Duas regras codificam o prompt: end_date >= start_date (inversão) E end_date == start_date + 6 meses (duração). A primeira sozinha já rejeita esta saída; a segunda captura toda a restrição.",
+               box: [1324, 806, 514, 110], style: sm_ink}
+
+        - id: takeaway
+          z: 6
+          objects:
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: tk_t,
+               text: "Lição: schema valida cada campo isoladamente. Apenas o validador captura relações lógicas entre campos — esse é o seu valor exclusivo.",
+               box: [110, 968, 1700, 36], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 10  ESTUDO DE CASO #3 — QUANDO NADA AUTOMATIZADO DETECTA
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 10
+    id: case_residual
+    title: "Estudo de Caso #3 — Concordância Confiante com Premissa Errada"
+    notes: "O resíduo da Lei de PALS em ação. Sycophancy + miscalibration: o modelo concorda confiantemente com uma premissa errada. Nem schema nem validador podem ajudar — porque a saída é texto livre e o erro está no significado, não na forma."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: purple}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Estudo de Caso #3 — Concordância Confiante com Premissa Errada",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: purple}
+            - {type: text, id: sub,
+               text: "ERR_SYCOPHANCY + ERR_CALIBRATION — resíduo permanente da Lei de PALS, fora do alcance automatizado.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: scenario
+          z: 2
+          objects:
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
+            - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
+            - {type: text, id: scn_t,
+               text: "Uma desenvolvedora pede ao LLM uma revisão de segurança em um endpoint de login. A pergunta carrega uma premissa: 'está seguro?'",
+               box: [110, 228, 1640, 36], style: body}
+
+        - id: prompt_output
+          z: 3
+          objects:
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: prm_h,   text: "Entrada (prompt)", box: [80, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: prm_code
+              box: [104, 348, 820, 210]
+              style: mono_s
+              text: |
+                Review this login endpoint:
+
+                @app.post('/login')
+                def login(req):
+                    user = db.execute(
+                      f"SELECT * FROM users WHERE name='{req.name}'"
+                    )
+                    return {'ok': bool(user)}
+
+                Is it secure?
+
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: out_h,
+               text: "Saída do modelo (concorda com confiança)",
+               box: [980, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: out_code
+              box: [1004, 348, 820, 210]
+              style: mono_s
+              text: |
+                Yes! This endpoint looks good. It properly
+                queries the user table and returns a boolean
+                indicating success.
+
+                Clean implementation. No security issues
+                detected.
+
+                Confidence: HIGH
+
+        - id: annotation
+          z: 4
+          objects:
+            - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 80], fill: red_wash, radius: 8, shadow: small}
+            - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 80],    fill: alert}
+            - {type: text, id: ann_h, text: "Por que está errado",
+               box: [110, 598, 400, 22], style: sm_alert}
+            - {type: text, id: ann_t,
+               text: "O código tem uma vulnerabilidade clássica de SQL injection — interpolação direta de req.name na query. O modelo concordou com a premissa do usuário (sycophancy) e expressou alta confiança em uma análise totalmente errada (miscalibration).",
+               box: [110, 624, 1640, 40], style: body}
+
+        - id: verdict
+          z: 5
+          objects:
+            - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
+               box: [80, 690, 1500, 28], style: h3}
+
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 728, 580, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v1_bar,  decorative: true, box: [80, 728, 5, 200],   fill: alert}
+            - {type: rect, id: v1_pill, decorative: true, box: [104, 744, 154, 26], fill: red, radius: 6}
+            - {type: text, id: v1_pt,   text: "Free Form", box: [104, 744, 154, 26], style: tag_w}
+            - {type: text, id: v1_v,    text: "Erro chega ao usuário",
+               box: [104, 778, 552, 24], style: sm_b}
+            - {type: text, id: v1_t,
+               text: "Texto livre, sem nenhuma checagem. A desenvolvedora confia na resposta de 'alta confiança' e a vulnerabilidade vai para produção.",
+               box: [104, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 728, 580, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v2_bar,  decorative: true, box: [690, 728, 5, 200],   fill: red}
+            - {type: rect, id: v2_pill, decorative: true, box: [714, 744, 200, 26],  fill: red, radius: 6}
+            - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 744, 200, 26], style: tag_w}
+            - {type: text, id: v2_v,    text: "Não se aplica — saída é texto livre",
+               box: [714, 778, 552, 24], style: sm_b}
+            - {type: text, id: v2_t,
+               text: "Schema valida estrutura. Aqui não há estrutura — apenas prosa. E mesmo se houvesse JSON, o erro está no significado, não na forma.",
+               box: [714, 806, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 728, 540, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v3_bar,  decorative: true, box: [1300, 728, 5, 200],   fill: red}
+            - {type: rect, id: v3_pill, decorative: true, box: [1324, 744, 130, 26],  fill: red, radius: 6}
+            - {type: text, id: v3_pt,   text: "Validador", box: [1324, 744, 130, 26], style: tag_w}
+            - {type: text, id: v3_v,    text: "Não se aplica — fora de alcance",
+               box: [1324, 778, 514, 24], style: sm_b}
+            - {type: text, id: v3_t,
+               text: "Nenhuma regra programática genérica detecta sycophancy ou miscalibration. Resíduo permanente da Lei de PALS.",
+               box: [1324, 806, 514, 110], style: sm_ink}
+
+        - id: takeaway
+          z: 6
+          objects:
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: tk_t,
+               text: "Lição: para esta classe, schema e validador não ajudam. A defesa é red-teaming, testes adversariais e revisão por especialista de domínio.",
+               box: [110, 968, 1700, 36], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 11  ESTUDO DE CASO #4 — QUANDO A FALHA CHEGA AO TRIBUNAL (CASO REAL)
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 11
+    id: case_legal_citations
+    title: "Estudo de Caso #4 — Quando a Falha Chega ao Tribunal"
+    notes: "Caso real reportado pelo NYT (Santul Nerkar, 21/abr/2026): o escritório Sullivan & Cromwell pediu desculpas ao tribunal por submeter um documento contendo citações jurídicas fabricadas por IA. Mesmo padrão do Caso #1 — saída estruturalmente impecável, conteúdo inventado, e nenhuma camada automática de verificação no fluxo. Este slide é o exemplo terminal do argumento: não é teoria, é incidente em produção, em domínio crítico. A camada faltante, em todos os casos como este, é o lookup contra fonte autoritativa (Westlaw / LexisNexis / PACER) — exatamente a função que o validador desempenharia."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: amber}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Estudo de Caso #4 — Quando a Falha Chega ao Tribunal",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: amber}
+            - {type: text, id: sub,
+               text: "ERR_HALLUCINATION + ERR_SEMANTIC — caso real, reportado em abril de 2026.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: scenario
+          z: 2
+          objects:
+            - {type: rect, id: scn_bg, decorative: true, box: [80, 196, 1760, 70], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: scn_bar, decorative: true, box: [80, 196, 5, 70], fill: brand}
+            - {type: text, id: scn_h, text: "Cenário", box: [110, 204, 200, 22], style: sm_b}
+            - {type: text, id: scn_t,
+               text: "Um(a) advogado(a) pede ao LLM precedentes para apoiar um argumento jurídico. O sistema devolve uma lista de citações em formato Bluebook impecável — nome de caso, volume, reporter, página, tribunal, ano.",
+               box: [110, 228, 1640, 36], style: body}
+
+        - id: prompt_output
+          z: 3
+          objects:
+            - {type: rect, id: prm_bg,  decorative: true, box: [80, 290, 860, 280], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: prm_top, decorative: true, box: [80, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: prm_h,   text: "Pedido típico (ilustrativo)", box: [80, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: prm_code
+              box: [104, 348, 820, 210]
+              style: mono_s
+              text: |
+                Provide three U.S. federal precedents
+                supporting the argument that a third-party
+                trustee owes a fiduciary duty to non-client
+                beneficiaries.
+
+                Format each as a standard Bluebook citation.
+
+            - {type: rect, id: out_bg,  decorative: true, box: [980, 290, 860, 280], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: out_top, decorative: true, box: [980, 290, 860, 38],  fill: dark_bar,  radius: 8}
+            - {type: text, id: out_h,
+               text: "Saída típica (formato impecável, casos inexistentes)",
+               box: [980, 290, 860, 38], style: ctr_w}
+            - type: text
+              id: out_code
+              box: [1004, 348, 820, 210]
+              style: mono_s
+              text: |
+                1. Henderson v. Whitfield Trust Co.,
+                   287 F.3d 145 (9th Cir. 2003).
+                2. In re Coleman-Brock Estate,
+                   412 F.Supp.2d 88 (D.D.C. 2009).
+                3. United States v. Marlowe Holdings,
+                   531 F.3d 712 (2d Cir. 2014).
+
+        - id: annotation
+          z: 4
+          objects:
+            - {type: rect, id: ann_bg,  decorative: true, box: [80, 590, 1760, 100], fill: red_wash, radius: 8, shadow: small}
+            - {type: rect, id: ann_bar, decorative: true, box: [80, 590, 5, 100],    fill: alert}
+            - {type: text, id: ann_h, text: "Por que está errado",
+               box: [110, 598, 400, 22], style: sm_alert}
+            - {type: text, id: ann_t,
+               text: "Em abril de 2026, o escritório Sullivan & Cromwell pediu desculpas ao tribunal após submeter um documento jurídico contendo citações fabricadas por IA — casos que não existem, redigidos no formato exato de uma citação real. Estrutura impecável (Bluebook, ano, reporter, página); conteúdo inventado. Nenhuma camada automática conferiu se os casos existiam.",
+               box: [110, 624, 1640, 64], style: body}
+
+        - id: verdict
+          z: 5
+          objects:
+            - {type: text, id: v_h, text: "O que cada canal faz com esta saída",
+               box: [80, 710, 1500, 28], style: h3}
+
+            - {type: rect, id: v1_bg,   decorative: true, box: [80, 748, 580, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v1_bar,  decorative: true, box: [80, 748, 5, 200],   fill: alert}
+            - {type: rect, id: v1_pill, decorative: true, box: [104, 764, 154, 26], fill: red, radius: 6}
+            - {type: text, id: v1_pt,   text: "Free Form", box: [104, 764, 154, 26], style: tag_w}
+            - {type: text, id: v1_v,    text: "Erro chega ao tribunal",
+               box: [104, 798, 552, 24], style: sm_b}
+            - {type: text, id: v1_t,
+               text: "Texto livre — saída do LLM vai direto para o documento. Detecção depende inteiramente da revisão manual de cada citação antes do protocolo.",
+               box: [104, 826, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v2_bg,   decorative: true, box: [690, 748, 580, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v2_bar,  decorative: true, box: [690, 748, 5, 200],   fill: amber}
+            - {type: rect, id: v2_pill, decorative: true, box: [714, 764, 200, 26],  fill: amber, radius: 6}
+            - {type: text, id: v2_pt,   text: "Schema + Instance", box: [714, 764, 200, 26], style: tag_w}
+            - {type: text, id: v2_v,    text: "Aceita — formato é válido",
+               box: [714, 798, 552, 24], style: sm_b}
+            - {type: text, id: v2_t,
+               text: "Schema de citação Bluebook valida a estrutura — nome, volume, reporter, página, tribunal, ano. Não consulta nenhum índice de jurisprudência.",
+               box: [714, 826, 552, 110], style: sm_ink}
+
+            - {type: rect, id: v3_bg,   decorative: true, box: [1300, 748, 540, 200], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: v3_bar,  decorative: true, box: [1300, 748, 5, 200],   fill: green}
+            - {type: rect, id: v3_pill, decorative: true, box: [1324, 764, 130, 26],  fill: green, radius: 6}
+            - {type: text, id: v3_pt,   text: "Validador", box: [1324, 764, 130, 26], style: tag_w}
+            - {type: text, id: v3_v,    text: "Detecta — só com lookup externo",
+               box: [1324, 798, 514, 24], style: sm_b}
+            - {type: text, id: v3_t,
+               text: "Cobertura completa exige validador que consulte Westlaw / LexisNexis / PACER e confirme cada citação. Sem essa camada, o erro passa pela arquitetura inteira.",
+               box: [1324, 826, 514, 110], style: sm_ink}
+
+        - id: takeaway_and_source
+          z: 6
+          objects:
+            - {type: rect, id: tk_bg, decorative: true, box: [80, 962, 1760, 64], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: tk_t,
+               text: "Lição: não é teoria. Sem uma camada automática de verificação contra fonte autoritativa, citações fabricadas chegam ao tribunal — e à reputação do escritório.",
+               box: [110, 970, 1700, 24], style: bodyc}
+            - {type: text, id: src_t,
+               text: "Fonte: Nerkar, S. — \"A.I. 'Hallucinations' Created Errors in Court Filing, Top Law Firm Says\". The New York Times, 21/abr/2026. nytimes.com/2026/04/21/nyregion/sullivan-cromwell-ai-hallucination.html",
+               box: [110, 998, 1700, 22], style: sm}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 12  RESUMO ARQUITETÔNICO — MAPA DE COBERTURA
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 12
+    id: coverage_map
+    title: "A Cobertura Cresce a Cada Canal — Mas Verdade Nunca É Garantida"
+    notes: "Este é o slide de fechamento. A matriz condensa todo o argumento. Leia coluna por coluna: cada canal só adiciona cobertura, nunca remove. As células do resíduo permanecem vermelhas em todos os canais — esse é o ponto."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "A Cobertura Cresce a Cada Canal — Mas Verdade Nunca É Garantida",
+               box: [80, 56, 1600, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: brand}
+
+        - id: matrix
+          z: 2
+          objects:
+            # ── column headers ────────────────────────────────────────────
+            - {type: text, id: ch_class,
+               text: "Classe de erro", box: [80, 148, 380, 36], style: h3}
+
+            - {type: rect, id: ch_ff, decorative: true, box: [480, 140, 340, 44], fill: red, radius: 6}
+            - {type: text, id: ch_fft,
+               text: "Free Form", box: [480, 140, 340, 44], style: lbl_w}
+
+            - {type: rect, id: ch_sc, decorative: true, box: [840, 140, 340, 44], fill: amber, radius: 6}
+            - {type: text, id: ch_sct,
+               text: "Schema + Instance", box: [840, 140, 340, 44], style: lbl_w}
+
+            - {type: rect, id: ch_va, decorative: true, box: [1200, 140, 340, 44], fill: green, radius: 6}
+            - {type: text, id: ch_vat,
+               text: "Validador", box: [1200, 140, 340, 44], style: lbl_w}
+
+            - {type: text, id: ch_mech,
+               text: "Como detectar", box: [1560, 148, 280, 36], style: h3}
+
+            # ── divider ───────────────────────────────────────────────────
+            - {type: rect, id: divider, decorative: true, box: [80, 192, 1760, 2], fill: stroke}
+
+            # Legend
+            - {type: rect, id: leg_exposed, decorative: true,
+               box: [80, 196, 120, 28], fill: red_s, radius: 4}
+            - {type: text, id: leg_exp_t,
+               text: "Exposto", box: [80, 196, 120, 28], style: ctr_m}
+            - {type: rect, id: leg_reduced, decorative: true,
+               box: [212, 196, 120, 28], fill: amber_s, radius: 4}
+            - {type: text, id: leg_red_t,
+               text: "Reduzido", box: [212, 196, 120, 28], style: ctr_m}
+            - {type: rect, id: leg_covered, decorative: true,
+               box: [344, 196, 120, 28], fill: green_s, radius: 4}
+            - {type: text, id: leg_cov_t,
+               text: "Coberto", box: [344, 196, 120, 28], style: ctr_m}
+
+            # ── zebra row bands (odd rows) ────────────────────────────────
+            - {type: rect, id: zebra_1, decorative: true, box: [80, 228, 1760, 60], fill: panel, radius: 8}
+            - {type: rect, id: zebra_3, decorative: true, box: [80, 348, 1760, 60], fill: panel, radius: 8}
+            - {type: rect, id: zebra_5, decorative: true, box: [80, 468, 1760, 60], fill: panel, radius: 8}
+            - {type: rect, id: zebra_7, decorative: true, box: [80, 588, 1760, 60], fill: panel, radius: 8}
+            - {type: rect, id: zebra_9, decorative: true, box: [80, 708, 1760, 60], fill: panel, radius: 8}
+
+            # ── Row 1: ERR_HALLUCINATION ──────────────────────────────────
+            - {type: text, id: r1_lt,
+               text: "ERR_HALLUCINATION", box: [100, 232, 340, 52], style: body}
+            - {type: rect, id: r1_ff, decorative: true, box: [480, 232, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r1_fft, text: "Exposto", box: [480, 232, 340, 52], style: ctr_m}
+            - {type: rect, id: r1_sc, decorative: true, box: [840, 232, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r1_sct, text: "Exposto", box: [840, 232, 340, 52], style: ctr_m}
+            - {type: rect, id: r1_va, decorative: true, box: [1200, 232, 340, 52], fill: amber_s, radius: 4}
+            - {type: text, id: r1_vat, text: "Parcial (enum / faixa de valores)", box: [1200, 232, 340, 52], style: ctr_m}
+            - {type: text, id: r1_mech,
+               text: "Consulta a fonte externa; testes adversariais",
+               box: [1560, 232, 280, 52], style: sm}
+
+            # ── Row 2: ERR_OMISSION ────────────────────────────────────────
+            - {type: text, id: r2_lt,
+               text: "ERR_OMISSION", box: [100, 292, 340, 52], style: body}
+            - {type: rect, id: r2_ff, decorative: true, box: [480, 292, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r2_fft, text: "Exposto", box: [480, 292, 340, 52], style: ctr_m}
+            - {type: rect, id: r2_sc, decorative: true, box: [840, 292, 340, 52], fill: amber_s, radius: 4}
+            - {type: text, id: r2_sct, text: "Reduzido (campos obrigatórios)", box: [840, 292, 340, 52], style: ctr_m}
+            - {type: rect, id: r2_va, decorative: true, box: [1200, 292, 340, 52], fill: green_s, radius: 4}
+            - {type: text, id: r2_vat, text: "Coberto (regras de completude)", box: [1200, 292, 340, 52], style: ctr_m}
+            - {type: text, id: r2_mech,
+               text: "Campos obrigatórios declarados; regras de completude do domínio",
+               box: [1560, 292, 280, 52], style: sm}
+
+            # ── Row 3: ERR_SCHEMA ──────────────────────────────────────────
+            - {type: text, id: r3_lt,
+               text: "ERR_SCHEMA", box: [100, 352, 340, 52], style: body}
+            - {type: rect, id: r3_ff, decorative: true, box: [480, 352, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r3_fft, text: "Exposto", box: [480, 352, 340, 52], style: ctr_m}
+            - {type: rect, id: r3_sc, decorative: true, box: [840, 352, 340, 52], fill: green_s, radius: 4}
+            - {type: text, id: r3_sct, text: "Eliminado (por construção)", box: [840, 352, 340, 52], style: ctr_m}
+            - {type: rect, id: r3_va, decorative: true, box: [1200, 352, 340, 52], fill: green_s, radius: 4}
+            - {type: text, id: r3_vat, text: "Coberto (reconfirmado)", box: [1200, 352, 340, 52], style: ctr_m}
+            - {type: text, id: r3_mech,
+               text: "Validação de schema; checagem de tipos",
+               box: [1560, 352, 280, 52], style: sm}
+
+            # ── Row 4: ERR_TRUNCATION ─────────────────────────────────
+            - {type: text, id: r4_lt,
+               text: "ERR_TRUNCATION", box: [100, 412, 340, 52], style: body}
+            - {type: rect, id: r4_ff, decorative: true, box: [480, 412, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r4_fft, text: "Exposto", box: [480, 412, 340, 52], style: ctr_m}
+            - {type: rect, id: r4_sc, decorative: true, box: [840, 412, 340, 52], fill: amber_s, radius: 4}
+            - {type: text, id: r4_sct, text: "Reduzido (campos obrigatórios)", box: [840, 412, 340, 52], style: ctr_m}
+            - {type: rect, id: r4_va, decorative: true, box: [1200, 412, 340, 52], fill: green_s, radius: 4}
+            - {type: text, id: r4_vat, text: "Coberto (regras de tamanho / contagem)", box: [1200, 412, 340, 52], style: ctr_m}
+            - {type: text, id: r4_mech,
+               text: "Restrições de tamanho mínimo; asserções de contagem",
+               box: [1560, 412, 280, 52], style: sm}
+
+            # ── Row 5: ERR_SYCOPHANCY ─────────────────────────────────
+            - {type: text, id: r5_lt,
+               text: "ERR_SYCOPHANCY", box: [100, 472, 340, 52], style: body}
+            - {type: rect, id: r5_ff, decorative: true, box: [480, 472, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r5_fft, text: "Exposto", box: [480, 472, 340, 52], style: ctr_m}
+            - {type: rect, id: r5_sc, decorative: true, box: [840, 472, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r5_sct, text: "Exposto", box: [840, 472, 340, 52], style: ctr_m}
+            - {type: rect, id: r5_va, decorative: true, box: [1200, 472, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r5_vat, text: "Exposto — resíduo permanente", box: [1200, 472, 340, 52], style: ctr_m}
+            - {type: text, id: r5_mech,
+               text: "Testes de consistência adversariais; benchmarks de calibração",
+               box: [1560, 472, 280, 52], style: sm}
+
+            # ── Row 6: ERR_INSTRUCTION ────────────────────────────────
+            - {type: text, id: r6_lt,
+               text: "ERR_INSTRUCTION", box: [100, 532, 340, 52], style: body}
+            - {type: rect, id: r6_ff, decorative: true, box: [480, 532, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r6_fft, text: "Exposto", box: [480, 532, 340, 52], style: ctr_m}
+            - {type: rect, id: r6_sc, decorative: true, box: [840, 532, 340, 52], fill: amber_s, radius: 4}
+            - {type: text, id: r6_sct, text: "Parcial (restrições no schema)", box: [840, 532, 340, 52], style: ctr_m}
+            - {type: rect, id: r6_va, decorative: true, box: [1200, 532, 340, 52], fill: green_s, radius: 4}
+            - {type: text, id: r6_vat, text: "Coberto (restrições viram regras)", box: [1200, 532, 340, 52], style: ctr_m}
+            - {type: text, id: r6_mech,
+               text: "Regras de restrição explícitas; rejeição pelo validador",
+               box: [1560, 532, 280, 52], style: sm}
+
+            # ── Row 7: ERR_CALIBRATION ────────────────────────────────
+            - {type: text, id: r7_lt,
+               text: "ERR_CALIBRATION", box: [100, 592, 340, 52], style: body}
+            - {type: rect, id: r7_ff, decorative: true, box: [480, 592, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r7_fft, text: "Exposto", box: [480, 592, 340, 52], style: ctr_m}
+            - {type: rect, id: r7_sc, decorative: true, box: [840, 592, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r7_sct, text: "Exposto", box: [840, 592, 340, 52], style: ctr_m}
+            - {type: rect, id: r7_va, decorative: true, box: [1200, 592, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r7_vat, text: "Exposto — resíduo permanente", box: [1200, 592, 340, 52], style: ctr_m}
+            - {type: text, id: r7_mech,
+               text: "Escalonamento de Platt; benchmarks de calibração em conjunto de teste",
+               box: [1560, 592, 280, 52], style: sm}
+
+            # ── Row 8: ERR_REASONING ──────────────────────────────────
+            - {type: text, id: r8_lt,
+               text: "ERR_REASONING", box: [100, 652, 340, 52], style: body}
+            - {type: rect, id: r8_ff, decorative: true, box: [480, 652, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r8_fft, text: "Exposto", box: [480, 652, 340, 52], style: ctr_m}
+            - {type: rect, id: r8_sc, decorative: true, box: [840, 652, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r8_sct, text: "Exposto", box: [840, 652, 340, 52], style: ctr_m}
+            - {type: rect, id: r8_va, decorative: true, box: [1200, 652, 340, 52], fill: amber_s, radius: 4}
+            - {type: text, id: r8_vat, text: "Coberto p/ regras mecanizáveis", box: [1200, 652, 340, 52], style: ctr_m}
+            - {type: text, id: r8_mech,
+               text: "Regras de restrição entre campos; checagens de consistência lógica",
+               box: [1560, 652, 280, 52], style: sm}
+
+            # ── Row 9: ERR_SEMANTIC ───────────────────────────────────
+            - {type: text, id: r9_lt,
+               text: "ERR_SEMANTIC", box: [100, 712, 340, 52], style: body}
+            - {type: rect, id: r9_ff, decorative: true, box: [480, 712, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r9_fft, text: "Exposto", box: [480, 712, 340, 52], style: ctr_m}
+            - {type: rect, id: r9_sc, decorative: true, box: [840, 712, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r9_sct, text: "Exposto", box: [840, 712, 340, 52], style: ctr_m}
+            - {type: rect, id: r9_va, decorative: true, box: [1200, 712, 340, 52], fill: red_s, radius: 4}
+            - {type: text, id: r9_vat, text: "Exposto — resíduo permanente", box: [1200, 712, 340, 52], style: ctr_m}
+            - {type: text, id: r9_mech,
+               text: "Consulta a fonte externa; revisão por especialista de domínio; RAG",
+               box: [1560, 712, 280, 52], style: sm}
+
+        - id: anchor_block
+          z: 3
+          objects:
+            # Editorial take-away panel: replaces the prior heavy dark
+            # slab with a soft brand-lifted card so the conclusion still
+            # anchors the slide without dominating it. Visual punctuation
+            # comes from a brand left bar + tag pill instead of inverse
+            # contrast.
+            - {type: rect, id: anc_bg, decorative: true,
+               box: [80, 790, 1760, 200], fill: brand_lift, radius: 12,
+               shadow: medium,
+               outer_ring: {color: stroke, width: 1, gap: 0}}
+            - {type: rect, id: anc_accent, decorative: true,
+               box: [80, 790, 8, 200], fill: brand}
+            - {type: rect, id: anc_tag, decorative: true,
+               box: [120, 808, 130, 26], fill: brand, radius: 4}
+            - {type: text, id: anc_tag_t,
+               text: "CONCLUSÃO", box: [120, 808, 130, 26], style: tag_w}
+            - {type: text, id: anc_h,
+               text: "Estrutura legível por máquina é o que permite verificar.",
+               box: [120, 850, 1660, 44], style: anchor}
+            - {type: text, id: anc_l1,
+               text: "A validação por schema reduz os erros possíveis à camada de significado.",
+               box: [120, 894, 1660, 32], style: anchor_m}
+            - {type: text, id: anc_l2,
+               text: "O Validador é a última barreira automática do sistema.",
+               box: [120, 928, 1660, 32], style: anchor_m}
+            - {type: rect, id: anc_rule, decorative: true,
+               box: [120, 962, 800, 1.5], fill: brand}
+            - {type: text, id: anc_final,
+               text: "Nada nesta arquitetura garante que a resposta esteja correta.",
+               box: [120, 970, 1660, 32], style: anchor}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 13  GLOSSÁRIO
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 13
+    id: glossary
+    title: "Glossário — Termos-Chave em Linguagem Simples"
+    notes: "Slide de referência. As definições aqui são propositalmente menos rigorosas que as formais — o objetivo é tornar o argumento do deck acessível a quem não é técnico. Cores agrupam os termos: cinza para conceitos fundamentais, escuro intermediário para termos estruturais, escuro para termos técnicos/de pesquisa."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Glossário — Termos-Chave em Linguagem Simples",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: brand}
+            - {type: text, id: sub,
+               text: "Os termos abaixo aparecem ao longo do deck. As definições priorizam clareza sobre rigor formal.",
+               box: [80, 142, 1500, 32], style: h2}
+
+        - id: column_left
+          z: 2
+          objects:
+            # 1 — LLM (foundation)
+            - {type: rect, id: g1_bg,   decorative: true, box: [80, 196, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g1_bar,  decorative: true, box: [80, 196, 5, 88],   fill: brand}
+            - {type: rect, id: g1_pill, decorative: true, box: [104, 206, 220, 24], fill: brand, radius: 6}
+            - {type: text, id: g1_pt,   text: "LLM", box: [104, 206, 220, 24], style: tag_w}
+            - {type: text, id: g1_def,
+               text: "Modelo de linguagem treinado em grande volume de texto. Gera respostas estatisticamente prováveis a partir de uma entrada — sem entender o que diz no sentido humano.",
+               box: [104, 234, 820, 46], style: sm_ink}
+
+            # 2 — GenAI (foundation)
+            - {type: rect, id: g2_bg,   decorative: true, box: [80, 290, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g2_bar,  decorative: true, box: [80, 290, 5, 88],   fill: brand}
+            - {type: rect, id: g2_pill, decorative: true, box: [104, 300, 220, 24], fill: brand, radius: 6}
+            - {type: text, id: g2_pt,   text: "GenAI", box: [104, 300, 220, 24], style: tag_w}
+            - {type: text, id: g2_def,
+               text: "Inteligência Artificial Generativa. Sistemas que produzem conteúdo novo (texto, imagem, código) em vez de apenas classificar ou prever.",
+               box: [104, 328, 820, 46], style: sm_ink}
+
+            # 3 — Prompt (foundation)
+            - {type: rect, id: g3_bg,   decorative: true, box: [80, 384, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g3_bar,  decorative: true, box: [80, 384, 5, 88],   fill: brand}
+            - {type: rect, id: g3_pill, decorative: true, box: [104, 394, 220, 24], fill: brand, radius: 6}
+            - {type: text, id: g3_pt,   text: "Prompt", box: [104, 394, 220, 24], style: tag_w}
+            - {type: text, id: g3_def,
+               text: "A entrada em linguagem natural enviada ao modelo. Define a tarefa, o contexto e quaisquer restrições para a resposta.",
+               box: [104, 422, 820, 46], style: sm_ink}
+
+            # 4 — Canal (structural)  [NEW]
+            - {type: rect, id: g4_bg,   decorative: true, box: [80, 478, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g4_bar,  decorative: true, box: [80, 478, 5, 88],   fill: amber}
+            - {type: rect, id: g4_pill, decorative: true, box: [104, 488, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g4_pt,   text: "Canal", box: [104, 488, 220, 24], style: tag_w}
+            - {type: text, id: g4_def,
+               text: "Cada um dos três caminhos pelos quais a saída de uma IA generativa pode ser tratada — Free Form, Schema + Instance, Validador. Define quais classes de erro são detectáveis.",
+               box: [104, 516, 820, 46], style: sm_ink}
+
+            # 5 — Schema (structural)
+            - {type: rect, id: g5_bg,   decorative: true, box: [80, 572, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g5_bar,  decorative: true, box: [80, 572, 5, 88],   fill: amber}
+            - {type: rect, id: g5_pill, decorative: true, box: [104, 582, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g5_pt,   text: "Schema", box: [104, 582, 220, 24], style: tag_w}
+            - {type: text, id: g5_def,
+               text: "Contrato formal que descreve a estrutura esperada da resposta: campos, tipos e valores permitidos.",
+               box: [104, 610, 820, 46], style: sm_ink}
+
+            # 6 — Instance (structural)
+            - {type: rect, id: g6_bg,   decorative: true, box: [80, 666, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g6_bar,  decorative: true, box: [80, 666, 5, 88],   fill: amber}
+            - {type: rect, id: g6_pill, decorative: true, box: [104, 676, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g6_pt,   text: "Instance", box: [104, 676, 220, 24], style: tag_w}
+            - {type: text, id: g6_def,
+               text: "Uma resposta concreta gerada pelo modelo. Pode estar ou não em conformidade com o schema.",
+               box: [104, 704, 820, 46], style: sm_ink}
+
+            # 7 — Validador (structural)
+            - {type: rect, id: g7_bg,   decorative: true, box: [80, 760, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g7_bar,  decorative: true, box: [80, 760, 5, 88],   fill: amber}
+            - {type: rect, id: g7_pill, decorative: true, box: [104, 770, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g7_pt,   text: "Validador", box: [104, 770, 220, 24], style: tag_w}
+            - {type: text, id: g7_def,
+               text: "Componente que aplica regras de negócio à resposta (restrições entre campos, faixas, completude) e a aceita ou rejeita automaticamente.",
+               box: [104, 798, 820, 46], style: sm_ink}
+
+            # 8 — Exposto (structural)  [NEW]
+            - {type: rect, id: g8_bg,   decorative: true, box: [80, 854, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g8_bar,  decorative: true, box: [80, 854, 5, 88],   fill: amber}
+            - {type: rect, id: g8_pill, decorative: true, box: [104, 864, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g8_pt,   text: "Exposto", box: [104, 864, 220, 24], style: tag_w}
+            - {type: text, id: g8_def,
+               text: "Classe de erro que o canal não detecta — chega ao usuário final. Oposto de 'coberto' (detectado e bloqueado) ou 'reduzido' (detectado parcialmente).",
+               box: [104, 892, 820, 46], style: sm_ink}
+
+        - id: column_right
+          z: 2
+          objects:
+            # 9 — Free Form (structural)
+            - {type: rect, id: g9_bg,   decorative: true, box: [980, 196, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g9_bar,  decorative: true, box: [980, 196, 5, 88],   fill: amber}
+            - {type: rect, id: g9_pill, decorative: true, box: [1004, 206, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g9_pt,   text: "Free Form", box: [1004, 206, 220, 24], style: tag_w}
+            - {type: text, id: g9_def,
+               text: "Saída sem nenhuma estrutura imposta. Toda detecção de erro depende de revisão humana.",
+               box: [1004, 234, 820, 46], style: sm_ink}
+
+            # 10 — Enum (structural)
+            - {type: rect, id: g10_bg,   decorative: true, box: [980, 290, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g10_bar,  decorative: true, box: [980, 290, 5, 88],   fill: amber}
+            - {type: rect, id: g10_pill, decorative: true, box: [1004, 300, 220, 24], fill: amber, radius: 6}
+            - {type: text, id: g10_pt,   text: "Enum", box: [1004, 300, 220, 24], style: tag_w}
+            - {type: text, id: g10_def,
+               text: "Lista finita de valores permitidos para um campo. Permite rejeitar qualquer valor fora do conjunto declarado.",
+               box: [1004, 328, 820, 46], style: sm_ink}
+
+            # 11 — RAG (technical)
+            - {type: rect, id: g11_bg,   decorative: true, box: [980, 384, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g11_bar,  decorative: true, box: [980, 384, 5, 88],   fill: purple}
+            - {type: rect, id: g11_pill, decorative: true, box: [1004, 394, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g11_pt,   text: "RAG", box: [1004, 394, 220, 24], style: tag_w}
+            - {type: text, id: g11_def,
+               text: "Retrieval-Augmented Generation. O modelo recebe trechos recuperados de uma fonte externa como contexto antes de responder. Reduz alucinações quando os trechos são usados — mas pode ignorá-los ou contradizê-los.",
+               box: [1004, 422, 820, 46], style: sm_ink}
+
+            # 12 — Token (technical)
+            - {type: rect, id: g12_bg,   decorative: true, box: [980, 478, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g12_bar,  decorative: true, box: [980, 478, 5, 88],   fill: purple}
+            - {type: rect, id: g12_pill, decorative: true, box: [1004, 488, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g12_pt,   text: "Token", box: [1004, 488, 220, 24], style: tag_w}
+            - {type: text, id: g12_def,
+               text: "Unidade básica de texto que o modelo manipula (palavra, parte de palavra ou caractere). A resposta é gerada token a token.",
+               box: [1004, 516, 820, 46], style: sm_ink}
+
+            # 13 — Calibração (technical)
+            - {type: rect, id: g13_bg,   decorative: true, box: [980, 572, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g13_bar,  decorative: true, box: [980, 572, 5, 88],   fill: purple}
+            - {type: rect, id: g13_pill, decorative: true, box: [1004, 582, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g13_pt,   text: "Calibração", box: [1004, 582, 220, 24], style: tag_w}
+            - {type: text, id: g13_def,
+               text: "Alinhamento entre a confiança que o modelo expressa e sua precisão real. Calibração ruim significa que 'alta confiança' não garante acerto.",
+               box: [1004, 610, 820, 46], style: sm_ink}
+
+            # 14 — Predicado de erro (ε) (technical)
+            - {type: rect, id: g14_bg,   decorative: true, box: [980, 666, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g14_bar,  decorative: true, box: [980, 666, 5, 88],   fill: purple}
+            - {type: rect, id: g14_pill, decorative: true, box: [1004, 676, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g14_pt,   text: "Predicado de erro (ε)", box: [1004, 676, 220, 24], style: tag_w}
+            - {type: text, id: g14_def,
+               text: "Função que indica se a resposta está errada. δ é o piso do valor esperado de ε — a parcela de erro que nunca desaparece.",
+               box: [1004, 704, 820, 46], style: sm_ink}
+
+            # 15 — Red-teaming (technical)
+            - {type: rect, id: g15_bg,   decorative: true, box: [980, 760, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g15_bar,  decorative: true, box: [980, 760, 5, 88],   fill: purple}
+            - {type: rect, id: g15_pill, decorative: true, box: [1004, 770, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g15_pt,   text: "Red-teaming", box: [1004, 770, 220, 24], style: tag_w}
+            - {type: text, id: g15_def,
+               text: "Teste deliberado do sistema com prompts projetados para induzir falhas. Forma de auditoria adversarial.",
+               box: [1004, 798, 820, 46], style: sm_ink}
+
+            # 16 — Ancoragem referencial (technical)
+            - {type: rect, id: g16_bg,   decorative: true, box: [980, 854, 860, 88], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: g16_bar,  decorative: true, box: [980, 854, 5, 88],   fill: purple}
+            - {type: rect, id: g16_pill, decorative: true, box: [1004, 864, 220, 24], fill: purple, radius: 6}
+            - {type: text, id: g16_pt,   text: "Ancoragem referencial", box: [1004, 864, 220, 24], style: tag_w}
+            - {type: text, id: g16_def,
+               text: "Propriedade de que um nome ou referência na resposta corresponda à entidade correta no mundo real. É a propriedade que falha em ERR_SEMANTIC.",
+               box: [1004, 892, 820, 46], style: sm_ink}
+
+        - id: footer
+          z: 3
+          objects:
+            - {type: rect, id: foot_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: foot_t,
+               text: "As definições aqui são propositalmente simples. As versões formais seguem a Lei de PALS v1.5.4 e as referências citadas no disclaimer.",
+               box: [110, 968, 1700, 36], style: bodyc}
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # 14  APÊNDICE — A LEI DE PALS, PARTE POR PARTE
+  # ═══════════════════════════════════════════════════════════════════════
+  - slide: 14
+    id: appendix_pals_math
+    title: "Apêndice — A Lei de PALS, Parte por Parte"
+    notes: "Slide de apêndice. Desmistifica a desigualdade da Lei de PALS para um público não-matemático sem perder rigor. Cada símbolo é decomposto, depois a fórmula é traduzida em quatro passos, depois um exemplo numérico mostra a consequência operacional. A fonte é citada explicitamente — derivação formal, não estimativa empírica. Os valores numéricos do exemplo são marcados como ilustrativos."
+    visual:
+      layers:
+        - id: bg
+          z: 0
+          objects:
+            - {type: rect, id: bg_fill,  decorative: true, box: [0, 0, 1920, 1080], fill: bg_soft}
+            - {type: rect, id: left_bar, decorative: true, box: [0, 0, 8, 1080],    fill: brand}
+
+        - id: header
+          z: 1
+          objects:
+            - {type: text, id: stitle,
+               text: "Apêndice — A Lei de PALS, Parte por Parte",
+               box: [80, 56, 1700, 58], style: stitle}
+            - {type: rect, id: rule, decorative: true,
+               box: [80, 116, 56, 3], fill: brand}
+            - {type: text, id: sub,
+               text: "Como ler  E[ε(M(x), x)] ≥ δ > 0  sem precisar de matemática avançada — peça por peça, com um exemplo numérico no final.",
+               box: [80, 142, 1700, 32], style: h2}
+
+        - id: hero
+          z: 2
+          objects:
+            - {type: rect, id: hero_bg, decorative: true,
+               box: [80, 196, 1760, 130], fill: brand_lift, radius: 10, shadow: small}
+            - {type: rect, id: hero_bar, decorative: true,
+               box: [80, 196, 6, 130], fill: brand}
+            - {type: text, id: hero_h,
+               text: "A fórmula em uma linha",
+               box: [110, 210, 600, 28], style: h3}
+            - {type: text, id: hero_eq,
+               text: "E[ε(M(x), x)] ≥ δ > 0",
+               box: [110, 246, 800, 56], style: eq_brand}
+            - {type: text, id: hero_def,
+               text: "Vale para qualquer modelo M e qualquer entrada realista x. É a forma original publicada na Lei de PALS v1.5.4 — abaixo, peça por peça, em linguagem comum.",
+               box: [700, 220, 1080, 100], style: body}
+
+        - id: legend
+          z: 3
+          objects:
+            # Card 1 — M (modelo)
+            - {type: rect, id: l1_bg,   decorative: true, box: [80, 346, 336, 164], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: l1_bar,  decorative: true, box: [80, 346, 5, 164],   fill: brand}
+            - {type: text, id: l1_tok,  text: "M",
+               box: [104, 360, 312, 40], style: eq_brand}
+            - {type: text, id: l1_name, text: "Modelo",
+               box: [104, 408, 312, 22], style: sm_b}
+            - {type: text, id: l1_def,
+               text: "Qualquer modelo de linguagem — atual ou futuro. A fórmula não privilegia nenhuma família: vale para todos.",
+               box: [104, 434, 312, 70], style: sm_ink}
+
+            # Card 2 — x (entrada)
+            - {type: rect, id: l2_bg,   decorative: true, box: [432, 346, 336, 164], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: l2_bar,  decorative: true, box: [432, 346, 5, 164],   fill: brand}
+            - {type: text, id: l2_tok,  text: "x",
+               box: [456, 360, 312, 40], style: eq_brand}
+            - {type: text, id: l2_name, text: "Entrada realista",
+               box: [456, 408, 312, 22], style: sm_b}
+            - {type: text, id: l2_def,
+               text: "O tipo de prompt que aparece no uso real, não um caso adversarial inventado em laboratório.",
+               box: [456, 434, 312, 70], style: sm_ink}
+
+            # Card 3 — ε (predicado de erro)
+            - {type: rect, id: l3_bg,   decorative: true, box: [784, 346, 336, 164], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: l3_bar,  decorative: true, box: [784, 346, 5, 164],   fill: brand}
+            - {type: text, id: l3_tok,  text: "ε(M(x), x)",
+               box: [808, 360, 312, 40], style: eq_brand}
+            - {type: text, id: l3_name, text: "Erro da resposta",
+               box: [808, 408, 312, 22], style: sm_b}
+            - {type: text, id: l3_def,
+               text: "Quanto a resposta M(x) erra a entrada x. Pode ser 0/1 (errou ou não) ou um número contínuo, conforme a tarefa.",
+               box: [808, 434, 312, 70], style: sm_ink}
+
+            # Card 4 — E[·] (valor esperado)
+            - {type: rect, id: l4_bg,   decorative: true, box: [1136, 346, 336, 164], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: l4_bar,  decorative: true, box: [1136, 346, 5, 164],   fill: brand}
+            - {type: text, id: l4_tok,  text: "E[·]",
+               box: [1160, 360, 312, 40], style: eq_brand}
+            - {type: text, id: l4_name, text: "Valor esperado",
+               box: [1160, 408, 312, 22], style: sm_b}
+            - {type: text, id: l4_def,
+               text: "A média de ε quando se varre todas as entradas realistas, ponderadas pela frequência com que aparecem.",
+               box: [1160, 434, 312, 70], style: sm_ink}
+
+            # Card 5 — δ (piso do erro)
+            - {type: rect, id: l5_bg,   decorative: true, box: [1488, 346, 336, 164], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: l5_bar,  decorative: true, box: [1488, 346, 5, 164],   fill: amber}
+            - {type: text, id: l5_tok,  text: "δ",
+               box: [1512, 360, 312, 40], style: eq_brand}
+            - {type: text, id: l5_name, text: "Piso do erro",
+               box: [1512, 408, 312, 22], style: sm_b}
+            - {type: text, id: l5_def,
+               text: "Um número estritamente positivo. A média do erro pode se aproximar de δ, mas nunca cai abaixo.",
+               box: [1512, 434, 312, 70], style: sm_ink}
+
+        - id: reading
+          z: 4
+          objects:
+            # Left column — Em palavras simples
+            - {type: rect, id: rd1_bg,   decorative: true, box: [80, 540, 860, 260], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: rd1_bar,  decorative: true, box: [80, 540, 5, 260],   fill: brand}
+            - {type: rect, id: rd1_pill, decorative: true, box: [104, 554, 320, 26], fill: brand, radius: 6}
+            - {type: text, id: rd1_pt,   text: "EM PALAVRAS SIMPLES",
+               box: [104, 554, 320, 26], style: tag_w}
+            - {type: text, id: rd1_l1,
+               text: "1.  Pegue um modelo qualquer e a distribuição realista de entradas que ele recebe na prática.",
+               box: [104, 596, 820, 36], style: body}
+            - {type: text, id: rd1_l2,
+               text: "2.  Calcule a média do erro nas respostas. É isso que E[ε(·)] significa.",
+               box: [104, 638, 820, 36], style: body}
+            - {type: text, id: rd1_l3,
+               text: "3.  Essa média é sempre maior ou igual a um número positivo δ.",
+               box: [104, 680, 820, 36], style: body}
+            - {type: text, id: rd1_l4,
+               text: "4.  Por isso, melhorar o modelo aproxima E[ε(·)] de δ — mas nunca de zero.",
+               box: [104, 722, 820, 36], style: body}
+
+            # Right column — O que a fórmula NÃO diz
+            - {type: rect, id: rd2_bg,   decorative: true, box: [980, 540, 860, 260], fill: panel, radius: 8, shadow: small}
+            - {type: rect, id: rd2_bar,  decorative: true, box: [980, 540, 5, 260],   fill: amber}
+            - {type: rect, id: rd2_pill, decorative: true, box: [1004, 554, 380, 26], fill: amber, radius: 6}
+            - {type: text, id: rd2_pt,   text: "O QUE A FÓRMULA NÃO DIZ",
+               box: [1004, 554, 380, 26], style: tag_w}
+            - {type: text, id: rd2_l1,
+               text: "•  Não diz qual entrada vai gerar erro — só que, em média, alguma fração dará.",
+               box: [1004, 596, 820, 36], style: body}
+            - {type: text, id: rd2_l2,
+               text: "•  Não diz qual classe de erro vai aparecer (ERR_HALLUCINATION, ERR_SEMANTIC, etc.).",
+               box: [1004, 638, 820, 36], style: body}
+            - {type: text, id: rd2_l3,
+               text: "•  Não diz o valor exato de δ — depende da tarefa, do modelo e do critério de erro.",
+               box: [1004, 680, 820, 36], style: body}
+            - {type: text, id: rd2_l4,
+               text: "•  Não impede que erros isolados sejam zero — só impede que a média seja zero.",
+               box: [1004, 722, 820, 36], style: body}
+
+        - id: example
+          z: 5
+          objects:
+            - {type: rect, id: ex_bg,   decorative: true, box: [80, 820, 1760, 120], fill: amber_soft, radius: 8, shadow: small}
+            - {type: rect, id: ex_bar,  decorative: true, box: [80, 820, 5, 120],    fill: amber}
+            - {type: rect, id: ex_pill, decorative: true, box: [104, 832, 280, 26],  fill: amber, radius: 6}
+            - {type: text, id: ex_pt,   text: "EM PRODUÇÃO (EXEMPLO ILUSTRATIVO)",
+               box: [104, 832, 380, 26], style: tag_w}
+            - {type: text, id: ex_t,
+               text: "Suponha δ = 0,1 % (uma resposta em mil é defeituosa, em média). Em um sistema com 1 milhão de chamadas/dia, isso garante pelo menos ~1.000 respostas defeituosas/dia — sem dizer quais. Trocar por um modelo melhor reduz o número, mas δ continua positivo. A única forma de impedir que esses erros cheguem ao usuário é interceptá-los entre o modelo e a saída — é o que os canais Free Form, Schema + Instance e Validador fazem.",
+               box: [104, 866, 1700, 70], style: body}
+
+        - id: footer
+          z: 6
+          objects:
+            - {type: rect, id: foot_bg, decorative: true, box: [80, 950, 1760, 70], fill: panel_lift, radius: 8, shadow: small}
+            - {type: text, id: foot_t,
+               text: "Fonte: Pedro Anisio de Luna e Silva (2026). Lei de PALS, versão 1.5.4. Zenodo 10.5281/zenodo.19401530. A desigualdade é uma derivação formal, não uma estimativa empírica. Os valores de δ no exemplo são ilustrativos.",
+               box: [110, 962, 1700, 50], style: bodyc}

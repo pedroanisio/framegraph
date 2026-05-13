@@ -1,0 +1,164 @@
+dsl: FrameGraph
+version: 1.5
+kind: feature-demo
+
+# ─────────────────────────────────────────────────────────────────────────
+# Gradient & Transparency Capability Demo
+#
+# Demonstrates the four ways the renderer composes color now:
+#   1. Linear / radial gradients declared as named `fill_styles` tokens
+#      with per-stop opacity, gradient_units, spread_method,
+#      gradient_transform, and (radial) focal point.
+#   2. Inline gradient mappings supplied directly as an object's `fill`.
+#   3. Per-channel transparency on shapes via `fill_opacity` /
+#      `stroke_opacity` (channel-scoped, distinct from group `opacity`).
+#   4. Stroke-style level `opacity` carried by reusable `stroke_styles`.
+# ─────────────────────────────────────────────────────────────────────────
+
+scene:
+  id: gradient_transparency_demo
+  name: "Gradient & Transparency"
+  description: "Showcase of fill_styles, inline gradients, and per-channel opacity."
+  canvas:
+    size: [960, 540]
+    units: px
+
+visual:
+  tokens:
+    colors:
+      page_bg:    "#0F172A"
+      ink:        "#F8FAFC"
+      muted:      "#94A3B8"
+      cyan:       "#06B6D4"
+      magenta:    "#EC4899"
+      lime:       "#84CC16"
+      amber:      "#F59E0B"
+
+    text_styles:
+      title:    {font: primary, size: 28, weight: 700, color: ink,   align: left,   v_align: top}
+      caption:  {font: primary, size: 12, weight: 400, color: muted, align: center, v_align: middle, wrap: true}
+
+    stroke_styles:
+      hairline_soft: {color: "#FFFFFF", width: 1.0, opacity: 0.35}
+
+    fill_styles:
+      # 1. Vanilla linear gradient (corner-to-corner via objectBoundingBox).
+      sunset:
+        type: linear_gradient
+        from: [0, 0]
+        to:   [1, 1]
+        stops:
+          - {offset: 0.0, color: "#F59E0B"}
+          - {offset: 1.0, color: "#EC4899"}
+
+      # 2. Linear gradient with per-stop opacity — the "fade" at the top.
+      glass:
+        type: linear_gradient
+        from: [0, 0]
+        to:   [0, 1]
+        stops:
+          - {offset: 0.0, color: "#FFFFFF", opacity: 0.55}
+          - {offset: 1.0, color: "#FFFFFF", opacity: 0.05}
+
+      # 3. Radial gradient with off-centre focal point and root opacity.
+      glow:
+        type: radial_gradient
+        center: [0.5, 0.5]
+        radius: 0.65
+        focal:  [0.35, 0.35]
+        opacity: 0.85
+        stops:
+          - {offset: 0.0, color: "#06B6D4"}
+          - {offset: 1.0, color: "#0F172A", opacity: 0.0}
+
+      # 4. Repeating linear gradient in user-space coordinates — true
+      #    20px stripes regardless of shape size.
+      stripes:
+        type: linear_gradient
+        from: [0, 0]
+        to:   [20, 0]
+        gradient_units: userSpaceOnUse
+        spread_method: repeat
+        stops:
+          - {offset: 0.0, color: "#84CC16"}
+          - {offset: 0.5, color: "#84CC16"}
+          - {offset: 0.5, color: "#84CC16", opacity: 0.0}
+          - {offset: 1.0, color: "#84CC16", opacity: 0.0}
+
+      # 5. Rotated linear gradient via gradient_transform.
+      tilted:
+        type: linear_gradient
+        from: [0, 0.5]
+        to:   [1, 0.5]
+        gradient_transform: "rotate(45 0.5 0.5)"
+        stops:
+          - {offset: 0.0, color: "#EC4899"}
+          - {offset: 1.0, color: "#06B6D4"}
+
+  layers:
+    - id: bg
+      objects:
+        - {type: rect, id: page_bg, decorative: true, box: [0, 0, 960, 540], fill: page_bg}
+
+    - id: title
+      objects:
+        - type: text
+          id: title_text
+          decorative: true
+          box: [40, 28, 880, 40]
+          content: "Gradient & Transparency"
+          style: title
+
+    - id: swatches
+      objects:
+        # Row 1 — named gradients ─────────────────────────────────────────
+        - {type: rect, id: sw_sunset,  box: [40,  100, 200, 120], radius: 12, fill: sunset}
+        - {type: text, id: cap_sunset, decorative: true, box: [40, 226, 200, 20],
+           content: "1. Linear (objectBoundingBox)", style: caption}
+
+        - {type: rect, id: sw_glow,    box: [260, 100, 200, 120], radius: 12, fill: page_bg, stroke_style: hairline_soft}
+        - {type: rect, id: sw_glow_in, box: [260, 100, 200, 120], radius: 12, fill: glow, decorative: true}
+        - {type: text, id: cap_glow,   decorative: true, box: [260, 226, 200, 20],
+           content: "2. Radial w/ focal + root opacity", style: caption}
+
+        - {type: rect, id: sw_stripes, box: [480, 100, 200, 120], radius: 12, fill: stripes}
+        - {type: text, id: cap_stripes, decorative: true, box: [480, 226, 200, 20],
+           content: "3. userSpaceOnUse + repeat", style: caption}
+
+        - {type: rect, id: sw_tilted, box: [700, 100, 220, 120], radius: 12, fill: tilted}
+        - {type: text, id: cap_tilted, decorative: true, box: [700, 226, 220, 20],
+           content: "4. gradient_transform rotate(45)", style: caption}
+
+        # Row 2 — transparency on solid fills ─────────────────────────────
+        - {type: rect, id: bg_layer,   box: [40, 280, 200, 120], radius: 12, fill: cyan}
+        - {type: rect, id: overlay_a,  box: [80, 320, 200, 120], radius: 12,
+           fill: magenta, fill_opacity: 0.5}
+        - {type: text, id: cap_op,     decorative: true, box: [40, 446, 240, 20],
+           content: "5. fill_opacity overlay", style: caption}
+
+        - {type: rect, id: ring_solid, box: [320, 280, 160, 160], radius: 80,
+           fill: amber, stroke: "#FFFFFF", stroke_opacity: 0.25}
+        - {type: text, id: cap_so,     decorative: true, box: [320, 446, 160, 20],
+           content: "6. stroke_opacity ring", style: caption}
+
+        # Row 2 — inline gradient mapping (no token name needed) ──────────
+        - type: rect
+          id: sw_inline
+          box: [520, 280, 200, 120]
+          radius: 12
+          fill:
+            type: radial_gradient
+            center: [0.5, 0.5]
+            radius: 0.6
+            stops:
+              - {offset: 0.0, color: "#F8FAFC"}
+              - {offset: 0.7, color: "#06B6D4"}
+              - {offset: 1.0, color: "#0F172A", opacity: 0.0}
+        - {type: text, id: cap_inline, decorative: true, box: [520, 446, 200, 20],
+           content: "7. Inline gradient on `fill`", style: caption}
+
+        # Row 2 — gradient on top with glass overlay ──────────────────────
+        - {type: rect, id: glass_back,  box: [760, 280, 160, 160], radius: 12, fill: sunset}
+        - {type: rect, id: glass_front, box: [760, 280, 160, 70],  radius: 12, fill: glass, decorative: true}
+        - {type: text, id: cap_glass,   decorative: true, box: [760, 446, 160, 20],
+           content: "8. Per-stop opacity glass", style: caption}

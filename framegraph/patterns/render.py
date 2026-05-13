@@ -31,6 +31,7 @@ Architecture
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from pydantic import BaseModel
@@ -83,9 +84,7 @@ def _stringify_item(item: Any) -> str:
     return str(item)
 
 
-def _resolve_typography_ref(
-    ref: Any, stylesheet: Stylesheet | None
-) -> dict[str, Any]:
+def _resolve_typography_ref(ref: Any, stylesheet: Stylesheet | None) -> dict[str, Any]:
     """Look up a typography reference (string id or inline mapping)."""
     if not ref:
         return {}
@@ -163,11 +162,7 @@ def _emit_card(
         Document.
     """
     treatment_name = style.get("treatment") if style else None
-    treatments = (
-        stylesheet.model_dump().get("treatments", {})
-        if stylesheet is not None
-        else {}
-    )
+    treatments = stylesheet.model_dump().get("treatments", {}) if stylesheet is not None else {}
     treatment = treatments.get(treatment_name, {}) if treatment_name else {}
 
     objects: list[dict[str, Any]] = []
@@ -221,9 +216,7 @@ def _emit_card(
         )
 
     # ── 3. Slot grid inside the padded inner area ──
-    pad_top, pad_right, pad_bottom, pad_left = _padding_tuple(
-        treatment.get("padding")
-    )
+    pad_top, pad_right, pad_bottom, pad_left = _padding_tuple(treatment.get("padding"))
     inner_x = x + pad_left
     inner_y = y + pad_top
     inner_w = max(0.0, w - pad_left - pad_right)
@@ -247,9 +240,7 @@ def _emit_card(
                 "type": "text",
                 "box": [inner_x, inner_y, n_width, n_height],
                 "text": str(number_text),
-                "style": _resolve_typography_ref(
-                    number_slot.get("typography"), stylesheet
-                ),
+                "style": _resolve_typography_ref(number_slot.get("typography"), stylesheet),
             }
         )
         # Body content shifts to the right of the number column.
@@ -266,9 +257,7 @@ def _emit_card(
                 "type": "text",
                 "box": [body_left, cur_y, body_right - body_left, lh],
                 "text": label_text,
-                "style": _resolve_typography_ref(
-                    label_slot.get("typography"), stylesheet
-                ),
+                "style": _resolve_typography_ref(label_slot.get("typography"), stylesheet),
             }
         )
         cur_y += lh + gap_below
@@ -284,9 +273,7 @@ def _emit_card(
                 "type": "text",
                 "box": [body_left, cur_y, body_right - body_left, th],
                 "text": title_text,
-                "style": _resolve_typography_ref(
-                    title_slot.get("typography"), stylesheet
-                ),
+                "style": _resolve_typography_ref(title_slot.get("typography"), stylesheet),
             }
         )
         cur_y += th + gap_below
@@ -316,8 +303,7 @@ def _body_title_body(
 ) -> list[dict[str, Any]]:
     """`title_body` body slot: bold title + body text, both wrapped."""
     typography = _resolve_typography_ref(
-        (style.get("slots") or {}).get("body", {}).get("typography")
-        or "card_body",
+        (style.get("slots") or {}).get("body", {}).get("typography") or "card_body",
         stylesheet,
     )
     title = getattr(value, "title", None) or ""
@@ -343,10 +329,59 @@ def _body_title_body(
 def _body_list_items(
     role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
 ) -> list[dict[str, Any]]:
-    """`list_items` body slot: bullet list, theme-styled markers."""
+    """`list_items` body slot.
+
+    Two emission paths, decided by the runtime shape of the items:
+
+    - **String items** → emit a `bullet_list` with theme-styled markers.
+      This is the default for ``list_items`` zones whose effective
+      schema kept the default ``list[str]`` shape.
+    - **Object items** (e.g. ``list[{label, metric}]`` from a sidecar
+      ``item_kind: object`` override) → emit a `table` whose header
+      row is the field names and whose body rows are the field
+      values, in declaration order. This honours the Round 2 Phase 3
+      "list-of-objects renders as table" contract pinned by
+      ``tests/integration/test_pattern_render.py``.
+
+    Detection is purely runtime — the renderer doesn't need to thread
+    the sidecar object through. A Pydantic model exposes
+    ``model_dump``; a plain mapping exposes ``items()``; everything
+    else is treated as a string.
+    """
     items = list(value or [])
     typography = _resolve_typography_ref("card_body", stylesheet)
-    obj: dict[str, Any] = {
+
+    # Detect object items by checking the first one. The fill schema
+    # builder constrains a sidecar-overridden list zone to a single
+    # uniform shape, so the first item's shape applies to all.
+    has_object_items = bool(items) and (
+        hasattr(items[0], "model_dump") or isinstance(items[0], Mapping)
+    )
+
+    if has_object_items:
+        # Coerce to ordered list-of-dicts.
+        rows_raw: list[Mapping[str, Any]] = [
+            it.model_dump() if hasattr(it, "model_dump") else dict(it) for it in items
+        ]
+        # Header: union of keys preserving declaration order from the
+        # first item (sidecar item_fields order is preserved by
+        # Pydantic v2 model dumps).
+        header: list[str] = list(rows_raw[0].keys())
+        rows: list[list[str]] = [
+            [_stringify_item(row.get(k, "")) for k in header] for row in rows_raw
+        ]
+        obj: dict[str, Any] = {
+            "id": f"zone_{role}",
+            "type": "table",
+            "box": list(body_box),
+            "header": header,
+            "rows": rows,
+        }
+        if typography:
+            obj["style"] = {"cell_text_style": typography}
+        return [obj]
+
+    obj = {
         "id": f"zone_{role}",
         "type": "bullet_list",
         "box": list(body_box),
@@ -361,11 +396,7 @@ def _body_list_items(
 def _body_key_value(
     role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
 ) -> list[dict[str, Any]]:
-    items = (
-        []
-        if value is None
-        else [f"{k}: {v}" for k, v in value.items()]
-    )
+    items = [] if value is None else [f"{k}: {v}" for k, v in value.items()]
     typography = _resolve_typography_ref("card_body_small", stylesheet)
     obj: dict[str, Any] = {
         "id": f"zone_{role}",
@@ -413,14 +444,10 @@ def _body_chart_data(
         "box": list(body_box),
         "series": series,
     }
-    treatments = (
-        stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
-    )
+    treatments = stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
     treatment_name = style.get("treatment") if style else None
     palette = (
-        ((treatments.get(treatment_name) or {}).get("slots") or {})
-        .get("chart", {})
-        .get("palette")
+        ((treatments.get(treatment_name) or {}).get("slots") or {}).get("chart", {}).get("palette")
     )
     if palette:
         obj["palette"] = palette
@@ -432,13 +459,9 @@ def _body_table_data(
 ) -> list[dict[str, Any]]:
     headers = getattr(value, "headers", None) or []
     rows = getattr(value, "rows", None) or []
-    treatments = (
-        stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
-    )
+    treatments = stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
     treatment_name = style.get("treatment") if style else None
-    table_slot = (
-        (treatments.get(treatment_name) or {}).get("slots", {}).get("table") or {}
-    )
+    table_slot = (treatments.get(treatment_name) or {}).get("slots", {}).get("table") or {}
     obj: dict[str, Any] = {
         "id": f"zone_{role}",
         "type": "table",
@@ -484,9 +507,7 @@ def _body_metric(
     role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
 ) -> list[dict[str, Any]]:
     """`metric` body slot: large KPI value above small label/trend."""
-    treatments = (
-        stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
-    )
+    treatments = stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
     treatment_name = style.get("treatment") if style else None
     slots = (treatments.get(treatment_name) or {}).get("slots") or {}
     value_typo = _resolve_typography_ref(
@@ -625,9 +646,7 @@ def compose_document(
             card-title slot per zone.
     """
     objects: list[dict[str, Any]] = []
-    label_cfg = (
-        stylesheet.model_dump().get("zone_labels", {}) if stylesheet else {}
-    )
+    label_cfg = stylesheet.model_dump().get("zone_labels", {}) if stylesheet else {}
 
     for zone in pattern.zones:
         if zone.role not in layout:
@@ -665,9 +684,14 @@ def compose_document(
             objects.extend(body_emitter(zone.role, value, zone_box, {}, None))
             continue
 
-        def make_body_emit(_zone=zone, _value=value, _style=zone_style):
+        def make_body_emit(
+            _zone: Any = zone,
+            _value: Any = value,
+            _style: dict[str, Any] = zone_style,
+        ) -> Any:
             def _emit(body_box: Box) -> list[dict[str, Any]]:
                 return body_emitter(_zone.role, _value, body_box, _style, stylesheet)
+
             return _emit
 
         objects.extend(

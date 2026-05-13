@@ -17,7 +17,7 @@ This work is subject to the methodological caveats and commitments described in 
 
 YAML-first hybrid semantic-visual diagram DSL that renders to clean SVG.
 
-Current package version: `2.0.0.dev0`.
+Current package version: `0.1.0` (first public PyPI release).
 
 ```yaml
 dsl: FrameGraph
@@ -99,10 +99,79 @@ deck.render_all(Path("output/"))
 ### CLI
 
 ```
-framegraph render  diagram.yml [-o output.svg]
-framegraph deck    deck.yml    [-o output_dir/]
+framegraph render   diagram.yml [-o output.svg] [--pdf] [--4k]
+framegraph deck     deck.yml    [-o output_dir/] [--pdf] [--4k]
+framegraph patterns list [--has-sidecar] [--json]
+framegraph patterns show    <id>
+framegraph patterns example <id> [-o fill.yml]
+framegraph patterns build   <id> --fill content.yml [-o out.svg]
+framegraph patterns deck    [-o output_dir/] [--ids=10,44,91] [--pdf]
+framegraph docs     [-o catalog.json]   # machine-readable API for agents
 framegraph version
 ```
+
+---
+
+## Documentation map
+
+| If you want… | Read |
+|---|---|
+| Concept overview + install + quick start | this file |
+| **Comprehensive human user manual** (multi-page workflows, theming, comparison with alternatives) | [`docs/MANUAL.md`](docs/MANUAL.md) |
+| Agent-oriented CLI reference (entry points, fill contract, error recovery) | [`AGENTS.md`](./AGENTS.md) |
+| Fill / sidecar authoring depth | [`docs/AUTHORING-FILLS.md`](docs/AUTHORING-FILLS.md) |
+| Mission, audience, non-goals | [`PURPOSE.md`](./PURPOSE.md) |
+| Project conventions and constraints | [`CLAUDE.md`](./CLAUDE.md) |
+| End-to-end worked single-slide example | [`examples/genai-ecosystem/`](examples/genai-ecosystem/) |
+
+## For AI agents
+
+If you are an AI agent producing slides or diagrams, start with
+[`AGENTS.md`](./AGENTS.md). It lists the four entry points
+(`render`, `deck`, `patterns *`, `docs`), the fill contract, and
+the validation error recovery patterns. The shortest agent path is:
+
+```sh
+# Discover sidecared patterns
+framegraph patterns list --has-sidecar --json
+
+# Pull a curated example fill, render it
+framegraph patterns example 10 -o swot.fill.yml
+framegraph patterns build   10 --fill swot.fill.yml -o swot.svg
+
+# Or assemble a deck where each slide is a one-liner pattern reference
+framegraph deck deck.yml -o ./out --pdf
+```
+
+A deck slide composed from a pattern looks like:
+
+```yaml
+slides:
+  - use: 10                  # pattern id (or slug, e.g. "swot-analysis")
+    fill:
+      strengths:    ["Brand", "Team"]
+      weaknesses:   ["Mobile UX"]
+      opportunities: ["AI"]
+      threats:      ["Macro"]
+```
+
+For a full corpus walk-through:
+
+```sh
+framegraph patterns deck --pdf -o ./demo
+# → demo/svgs/<pid>-<slug>.svg
+# → demo/fills/<pid>-<slug>.fill.yml
+# → demo/patterns-deck.pdf
+```
+
+For a pattern *without* a sidecar, run `framegraph patterns show <id>`
+to read its zones and content_types, then write a flat
+`{role: content}` fill from the [default content shapes](docs/AUTHORING-FILLS.md#default-content-shapes).
+
+For a slide that **doesn't fit any catalog pattern** (a custom
+hub-and-spoke diagram, an architecture map, etc.), see the bespoke
+single-slide walk-through under [`examples/genai-ecosystem/`](examples/genai-ecosystem/) —
+YAML source, rendered SVG, rendered PDF, and the exact CLI commands.
 
 ---
 
@@ -191,11 +260,12 @@ See `CHANGELOG.md` for full history.
 
 | Version | Status | Notes |
 |---|---|---|
-| `2.0.0.dev0` | Current | Modular renderer split is in tree; CLI, tests, and docs reflect the dev line |
-| Next 2.0 goals | In progress | `grid`/`row` layout completion, full v1.x compatibility audit, remaining rendering gaps such as `backdrop_blur` and `inner_ring` |
+| `0.1.0` | Current — first public PyPI release | Modular renderer, 375-pattern catalog, 14 UML composers, mypy-strict-clean |
+| Next minor | In progress | PowerPoint export bridge, `fonttools`-backed text metrics, sidecar coverage scale-up |
 
 ---
 
 ## License
 
-MIT metadata is declared in `pyproject.toml`. A repository `LICENSE` file has not yet been added.
+[MIT](./LICENSE). See [`docs/PUBLISHING.md`](docs/PUBLISHING.md) for the
+release-cutting procedure.
