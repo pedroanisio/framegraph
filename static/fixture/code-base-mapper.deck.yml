@@ -1,0 +1,999 @@
+dsl: FrameGraph
+version: 1.5
+kind: presentation-deck
+
+# ─────────────────────────────────────────────────────────────────────────
+# code-base-mapper — Architecture Report (FrameGraph deck)
+# Source of facts: cbm MCP bundle `code-base-mapper` @ 715de92, tool 0.5.0.
+# Generated 2026-05-14 by Claude Opus 4.7.
+# Composed entirely from sidecared FrameGraph patterns (no bespoke SVG).
+# ─────────────────────────────────────────────────────────────────────────
+
+$theme: mckinsey
+brand_text: "code-base-mapper · Architecture Report · 715de92"
+
+deck:
+  canvas:
+    size: [1920, 1080]
+
+  # Bespoke UML slides reference these; theme tokens are still available
+  # because deck.tokens is *merged* with the library $theme tokens.
+  tokens:
+    colors:
+      uml_panel:        "#FFFFFF"
+      uml_panel_border: "#D0CEC8"
+      uml_classifier:   "#F5F3EF"     # warm off-white (matches surface)
+      uml_classifier_b: "#002060"     # mckinsey primary
+      uml_iface:        "#FFFFFF"
+      uml_iface_b:      "#1A6FA8"
+      uml_pkg:          "#EEF2FA"
+      uml_pkg_b:        "#002060"
+      uml_db:           "#FEF6E8"
+      uml_db_b:         "#9A4D2C"
+      uml_actor:        "#FFFFFF"
+      uml_actor_b:      "#002060"
+      uml_edge:         "#1A1A1A"
+      uml_edge_muted:   "#6B6B6B"
+      uml_caption:      "#6B6B6B"
+    text_styles:
+      uml_title:    {font: heading, size: 32, weight: 700, color: primary,   align: left,   line_height: 38}
+      uml_subtitle: {font: primary, size: 14, weight: 400, color: text_muted, align: left,  line_height: 18, italic: true}
+      uml_caption:  {font: primary, size: 12, weight: 400, color: uml_caption, align: left, line_height: 16, italic: true, wrap: true}
+      uml_pkg_lbl:  {font: primary, size: 11, weight: 700, color: primary,   align: left,   line_height: 14}
+      uml_note:     {font: primary, size: 11, weight: 400, color: text,      align: left,   line_height: 15, wrap: true}
+      uml_msg:      {font: primary, size: 12, weight: 400, color: text,      align: left,   line_height: 16}
+      uml_reply:    {font: primary, size: 12, weight: 400, color: text_muted, align: left,  line_height: 16, italic: true}
+      uml_step:     {font: primary, size: 10, weight: 700, color: accent,    align: left,   line_height: 13}
+
+  symbols:
+    # Bespoke chrome for the UML slides. Bespoke and patterned slides
+    # can coexist because each slide draws its own chrome.
+    uml_chrome:
+      box: [0, 0, 1920, 1080]
+      slots: [slide_title, slide_subtitle, slide_num]
+      objects:
+        - {type: rect, id: bg,         box: [0,0,1920,1080], fill: white}
+        - {type: rect, id: top_rule,   box: [0,0,1920,8],    fill: primary}
+        - {type: text, id: title_text, box: [60,36,1500,42], text: "$slide_title",    style: uml_title}
+        - {type: text, id: subtitle,   box: [60,82,1500,22], text: "$slide_subtitle", style: uml_subtitle}
+        - {type: text, id: snum,       box: [1760,40,120,22], text: "$slide_num",
+           style: {font: primary, size: 12, weight: 700, color: text_muted, align: right}}
+        - {type: line, id: title_rule, from: [60,120], to: [1860,120], stroke: {color: border, width: 0.6}}
+        - {type: line, id: foot_rule,  from: [60,1040], to: [1860,1040], stroke: {color: border, width: 0.6}}
+        - {type: text, id: brand,      box: [60,1050,1200,20],
+           text: "code-base-mapper · Architecture Report · 715de92 · UML",
+           style: {font: primary, size: 11, weight: 400, color: text_muted, align: left}}
+        - {type: text, id: src,        box: [1260,1050,600,20],
+           text: "Source: cbm MCP — facts cited from bundle queries (see report)",
+           style: {font: primary, size: 11, weight: 400, color: text_muted, align: right}}
+
+slides:
+  # ── Slide 1 — SWOT: overall architectural posture ─────────────────────
+  - id: 01-swot
+    use: 10
+    fill:
+      strengths:
+        - "Layered RDF model: L1 host facts, L2 chunks+embeddings, L3 SKOS concepts — cleanly separated"
+        - "SHACL conformance = true; 179 unique blobs; deterministic, content-addressed bundle"
+        - "models.py is a pure data hub: 25 inbound / 0 outbound — acyclic root for the host layer"
+        - "Two surfaces (REST FastAPI + MCP stdio/HTTP) share one bundle store; MCP imports REST — no duplicate impl"
+        - "9 language adapters + dedicated Python/TS-JS symbol resolvers (20.7 KB + 23.0 KB)"
+      weaknesses:
+        - "tests-edges heuristic under-fires: only 8 edges for 42 test files (ratio 0.47) — graph can't answer 'tests cover X?'"
+        - "Controlled-vocab coverage: 1 / 1 427 concepts kinded (only `import_statement`) despite v1-default-on commit"
+        - "handlers.py concentrates 22 MCP tools in one 29.3 KB file — large blast radius"
+        - "frontend/backend/app.py is a single 39.7 KB FastAPI file (largest source file in the repo)"
+        - "__init__.py fan-out (deg 30, 26 outbound) — package surface change touches every adapter"
+      opportunities:
+        - "Extend tests_edges.py (2.8 KB — small) to bind tests to subjects via imports or coverage hooks"
+        - "Grow software_primitives.yaml to lift more concepts into kinded domain/structural/relational categories"
+        - "Per-tool split of handlers.py to scope blast radius and shrink test_handlers.py (15.0 KB)"
+        - "Re-use the L2 embeddings (MiniLM-L6-v2, 384-dim) for cross-bundle semantic search"
+        - "Vendor schema fixtures already underway (XSD, proto v2) — pattern for codifying language quirks"
+      threats:
+        - "Bundle-format drift between tool versions (0.5.0 today) and stored bundles — no version-pinned migration path is visible"
+        - "Reliance on tree-sitter grammars: per-language adapter rot if grammars move upstream"
+        - "Single-file FastAPI + single-file handlers raise merge-conflict risk as the MCP surface grows"
+        - "Embeddings backend default is offline-friendly but binds the bundle to one model family"
+
+  # ── Slide 2 — Diagnostic Summary by architectural dimension ──────────
+  - id: 02-diagnostic
+    use: 111
+    fill:
+      dimensions:
+        - "Layered model integrity"
+        - "Public surface design (REST + MCP)"
+        - "Test↔subject traceability"
+        - "Controlled-vocab coverage"
+        - "Per-language adapter breadth"
+      status:
+        headers: [Dimension, Status]
+        rows:
+          - [Layered model, "Green"]
+          - [Public surfaces, "Green"]
+          - [Test traceability, "Red"]
+          - [Vocab coverage, "Amber"]
+          - [Adapter breadth, "Green"]
+      findings:
+        headers: [Dimension, Finding]
+        rows:
+          - [Layered model, "L1/L2/L3 are physically separate; SHACL conforms; 968 chunks, 1 427 concepts"]
+          - [Public surfaces, "MCP handlers.py imports REST app.py — one impl, two adapters"]
+          - [Test traceability, "8 tests-edges for 42 test files — heuristic in tests_edges.py underfires"]
+          - [Vocab coverage, "Only import_statement is kinded; loader+yaml wired but yield ≈ 0"]
+          - [Adapter breadth, "9 language adapters under codebase_mapper/languages/, Python+TS first-class"]
+      implications:
+        headers: [Dimension, Implication]
+        rows:
+          - [Layered model, "Safe to extend per-layer; preserve namespace discipline (cbm/cbml2/cbml3/skos)"]
+          - [Public surfaces, "Keep MCP-as-thin-adapter rule; reject parallel impls in handlers.py"]
+          - [Test traceability, "Reimplement tests_edges using imports or coverage — current ratio claim is mis-grounded"]
+          - [Vocab coverage, "Either expand software_primitives.yaml or relax the matcher; ship measurable kind-yield"]
+          - [Adapter breadth, "Promote a 2-tier rule: first-class (Py, TS) vs structural-only (others)"]
+
+  # ── Slide 3 — Layer / Operating Model view (repurposes 183) ──────────
+  - id: 03-layers
+    use: 183
+    fill:
+      data_domains:
+        - "L1 — Host facts (cbm:)"
+        - "L2 — Chunks + embeddings (cbml2:)"
+        - "L3 — Concept graph (cbml3:/skos:)"
+        - "Symbol cross-references"
+        - "Bundle envelope + SHACL"
+      domain_owners:
+        headers: [Layer, Owning module]
+        rows:
+          - ["L1 host", "codebase_mapper/ (pipeline.py, models.py, languages/*)"]
+          - ["L2 chunks", "plugins/chunks_embeddings/ (chunker, backends, embedder)"]
+          - ["L3 concepts", "plugins/concept_graph/ (splitter, concepts, graph_writer)"]
+          - ["Xrefs", "plugins/symbol_xrefs/ (python_resolver 20.7 KB, tsjs_resolver 23.0 KB)"]
+          - ["Envelope", "rdf_emit.py + emit_bundle.py + reconstruct.py"]
+      governance_forums:
+        headers: [Layer, Key predicates]
+        rows:
+          - ["L1 host", "cbm:path, cbm:imports, cbm:hasPhase, cbm:tests"]
+          - ["L2 chunks", "cbml2:inFile, cbml2:beginIndex, cbml2:endIndex, cbml2:embeddingRow"]
+          - ["L3 concepts", "cbml3:lexicalizes, cbml3:composedOf, skos:related, skos:prefLabel"]
+          - ["Xrefs", "SymbolXrefEdge, UnresolvedSymbolRef (from models.py)"]
+          - ["Envelope", "build_inventory_graph, build_shacl_graph, build_ontology_mapping_graph"]
+      platform_capabilities:
+        headers: [Layer, Backing tech]
+        rows:
+          - ["L1 host", "tree-sitter (ts_setup.py) + per-language adapters"]
+          - ["L2 chunks", "sentence-transformers/all-MiniLM-L6-v2 (384-dim)"]
+          - ["L3 concepts", "Identifier splitter + co-occurrence (SKOS-compatible)"]
+          - ["Xrefs", "Python/TS resolvers + aggregator"]
+          - ["Envelope", "rdflib turtle/json-ld emitters; SHACL validator"]
+      priority_use_cases:
+        headers: [Layer, Primary consumer]
+        rows:
+          - ["L1 host", "file_detail, list_files, imports_of/imported_by, file_impact"]
+          - ["L2 chunks", "semantic_neighbors, chunk_detail, chunk_blob"]
+          - ["L3 concepts", "concept_detail, concept_neighborhood"]
+          - ["Xrefs", "/symbol_graph endpoint + UI SymbolGraph view"]
+          - ["Envelope", "orient_bundle, bundle_summary, repository_summary"]
+
+  # ── Slide 4 — Best Practice Gap (current vs desired) ─────────────────
+  - id: 04-gap
+    use: 122
+    fill:
+      practice_areas:
+        title: "Architectural practices under review"
+        body: "Five concrete areas where the current implementation diverges from a defensible target state."
+      current_practice:
+        headers: [Area, Today]
+        rows:
+          - ["Test-edge graph", "Heuristic in tests_edges.py emits 8 edges for 42 test files"]
+          - ["Vocab kinding", "1 / 1 427 concepts kinded; loader wired but matcher near-empty"]
+          - ["MCP handlers", "22 tools in one 29.3 KB handlers.py"]
+          - ["FastAPI backend", "Single 39.7 KB app.py — all 12 endpoints in one module"]
+          - ["LLM output trust", "Not visibly applied to the embedding/concept pipeline"]
+      leading_practice:
+        headers: [Area, Leading practice]
+        rows:
+          - ["Test-edge graph", "Imports-based binding OR coverage.py ingest; ratio claim grounded"]
+          - ["Vocab kinding", "Coverage > 30% of frequency-top concepts; CI guards regressions"]
+          - ["MCP handlers", "One module per tool group (bundle/file/chunk/concept/sparql)"]
+          - ["FastAPI backend", "Routers split by resource; shared deps in app.factory"]
+          - ["LLM output trust", "Schema-validate every LLM-emitted artifact; reject silently-empty fills"]
+      required_change:
+        headers: [Area, Required change]
+        rows:
+          - ["Test-edge graph", "Rewrite tests_edges.py to score by import-overlap; add coverage hook"]
+          - ["Vocab kinding", "Expand software_primitives.yaml; add lexical-match CI assertion"]
+          - ["MCP handlers", "Split handlers.py along the 22-tool boundary; preserve dispatch table"]
+          - ["FastAPI backend", "Extract APIRouter modules per resource; thin app.py to wiring"]
+          - ["LLM output trust", "Add PALS-law contract block + validator at every LLM seam (per CLAUDE.md)"]
+
+  # ── Slide 5 — Unknowns Map ───────────────────────────────────────────
+  - id: 05-unknowns
+    use: 280
+    fill:
+      known_facts:
+        - "181 files (Py 103, TS 21, Proto 5); 968 chunks; 1 427 concepts; SHACL conforms"
+        - "Embeddings backend: sentence-transformers/all-MiniLM-L6-v2 at 384 dims"
+        - "Two surfaces (REST FastAPI + MCP) backed by one bundle store"
+        - "Recent commits add static fixtures: XSD (5f478c7) + proto v2 (715de92)"
+        - "L3 controlled vocabulary v1 is 'default on' (commit 41e9423)"
+      known_unknowns:
+        - "Actual test-coverage % (only 0.47 file-ratio reported; 8 tests-edges is unreliable)"
+        - "Bundle-format compatibility window across tool_version bumps"
+        - "Throughput / latency of repository_summary on 10× larger bundles"
+        - "OAuth / auth posture of the MCP HTTP transport at production load"
+        - "Concrete kind-coverage target for the controlled vocabulary"
+      assumptions:
+        - "Per-language adapters can be extended without touching pipeline.py orchestration"
+        - "MCP handlers will continue to import frontend/backend/app.py rather than fork its impl"
+        - "rdf_emit.py output is byte-stable across runs at the same commit"
+        - "MiniLM-L6-v2 embeddings remain serviceable; no upgrade pressure in next quarter"
+        - "Plugin registration via register_builtins() is sufficient for all future emitters"
+      open_risks:
+        - "tests_edges under-counting creates false confidence in coverage reports"
+        - "Single-file handlers.py / app.py become merge-conflict hotspots as MCP surface grows"
+        - "Vocab v1 default-on with near-zero kind yield is a silent-no-op risk for L3 consumers"
+        - "AST_summary_total_bytes (6.05 MB) on 181 files — scaling to 10k files is unverified"
+        - "Tree-sitter grammar version drift could silently change parse output between bundles"
+
+  # ── Slide 6 — RAID Log (Risks / Assumptions / Issues / Dependencies) ─
+  - id: 06-raid
+    use: 93
+    fill:
+      risks:
+        - "R1: Bundle drift across tool_version — no migration path visible"
+        - "R2: handlers.py (29.3 KB) merge conflicts as MCP tools grow"
+        - "R3: tests_edges under-fires → coverage claims under-grounded"
+        - "R4: Vocab kinding stays at 1/1 427 → L3 typing loses value"
+        - "R5: Embeddings backend single-source (MiniLM-L6-v2)"
+      assumptions:
+        - "A1: MCP handlers stay as thin adapters over REST app.py"
+        - "A2: SHACL conformance is enforced on every emitted bundle"
+        - "A3: Plugin registration is the only emitter wiring path"
+        - "A4: Tree-sitter grammars remain backward-compatible"
+        - "A5: 384-dim MiniLM vectors are enough for semantic_neighbors"
+      issues:
+        - "I1: Only 8 tests-edges across 42 test files (cbm: tests heuristic too narrow)"
+        - "I2: 1/1 427 concepts kinded despite vocab-v1 default-on"
+        - "I3: frontend/backend/app.py at 39.7 KB — largest single source file"
+        - "I4: handlers.py at 29.3 KB with 22 tool handlers in-file"
+        - "I5: tests/verify_xrefs.py at 50.9 KB — test-of-record but unwieldy"
+      dependencies:
+        - "D1: tree-sitter grammars per supported language"
+        - "D2: sentence-transformers (MiniLM-L6-v2) + Python ML stack"
+        - "D3: rdflib for emit + SHACL validation"
+        - "D4: FastAPI for REST surface; MCP SDK for tool transport"
+        - "D5: React + Vite + Cytoscape for the UI tier"
+
+  # ── Slide 7 — Decision Log: recent commits as architectural decisions ─
+  - id: 07-decisions
+    use: 219
+    fill:
+      decision_items:
+        - "Vendor proto/dsl/v2 fixture + classifier coverage"
+        - "Add repository_summary MCP tool (one-shot executive read)"
+        - "Vendor static/schemas/ XSD fixture + classifier coverage"
+        - "L3 controlled vocabulary v1: typed concepts, default on"
+        - "Add pedagogical strategies + animation script schema"
+      decision_owner:
+        headers: [Decision, Commit]
+        rows:
+          - [Proto v2 fixture, "715de92"]
+          - [repository_summary tool, "6d919f6"]
+          - [XSD fixture, "5f478c7"]
+          - [Vocab v1 default-on, "41e9423"]
+          - [Animation schema, "53535b7"]
+      decision_date:
+        headers: [Decision, Trajectory]
+        rows:
+          - [Proto v2 fixture, "Extend classifier breadth"]
+          - [repository_summary tool, "Replace chain of 3+ MCP calls with one"]
+          - [XSD fixture, "Schema-data classification"]
+          - [Vocab v1 default-on, "Make L3 typing the new default"]
+          - [Animation schema, "Open visual-explainer authoring lane"]
+      implications:
+        headers: [Decision, Implication]
+        rows:
+          - [Proto v2 fixture, "Adds 5 .proto files to bundle; classifier must keep up"]
+          - [repository_summary tool, "Becomes the recommended first deep call after select_bundle"]
+          - [XSD fixture, "Schema-detection now part of test corpus"]
+          - [Vocab v1 default-on, "All new bundles emit kinded concepts (yield TBD)"]
+          - [Animation schema, "New auxiliary schema family in the project"]
+      follow_up_actions:
+        headers: [Decision, Follow-up]
+        rows:
+          - [Proto v2 fixture, "Add proto-symbol resolver to plugins/symbol_xrefs/"]
+          - [repository_summary tool, "Verify under 10× bundle load; pin response shape"]
+          - [XSD fixture, "Extend xsd-aware concept extraction"]
+          - [Vocab v1 default-on, "Set + track kind-coverage SLO; today = 1/1 427"]
+          - [Animation schema, "Wire to visual-explainer skill / pipeline"]
+
+  # ── Slide 8 — Early Warning Indicators (drift signals) ───────────────
+  - id: 08-ewi
+    use: 297
+    fill:
+      indicators:
+        title: "Drift signals to monitor"
+        body: "Quantitative tripwires derived from the cbm bundle. Cross any threshold and re-run a full architectural review."
+      thresholds:
+        headers: [Indicator, Threshold]
+        rows:
+          - ["SHACL conformance", "shacl_conforms == false"]
+          - ["Test-edge ratio", "tests_edges < files_with_tests × 0.25"]
+          - ["Vocab kind coverage", "kinded / total < 0.05"]
+          - ["handlers.py size", "> 40 KB or > 30 tool handlers"]
+          - ["app.py size", "> 50 KB or > 20 endpoints"]
+      current_signal:
+        headers: [Indicator, Today]
+        rows:
+          - ["SHACL conformance", "true ✓"]
+          - ["Test-edge ratio", "8 / 42 = 0.19 ✗"]
+          - ["Vocab kind coverage", "1 / 1 427 = 0.0007 ✗"]
+          - ["handlers.py size", "29.3 KB, 22 handlers — within"]
+          - ["app.py size", "39.7 KB, ~12 endpoints — within"]
+      response_action:
+        headers: [Indicator, Response]
+        rows:
+          - ["SHACL conformance", "Block release; bisect emit_bundle.py"]
+          - ["Test-edge ratio", "Reimplement tests_edges.py with imports-based binding"]
+          - ["Vocab kind coverage", "Grow software_primitives.yaml or relax matcher"]
+          - ["handlers.py size", "Split along tool boundary; one module per tool group"]
+          - ["app.py size", "Extract APIRouter modules per resource"]
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Bespoke / freeform UML slides — added for diagram fidelity.
+  # These use FrameGraph's UML primitives (uml.classifier_box,
+  # uml.lifeline, uml.activation_bar, connector) rather than slot-based
+  # patterns. Every line/box position is verified against the cbm bundle.
+  # ─────────────────────────────────────────────────────────────────────
+
+  # ── Slide 9 — UML Component diagram ──────────────────────────────────
+  - id: 09-uml-component
+    slide: 9
+    title: "Component view (UML)"
+    description: "UML component diagram of code-base-mapper's seven swimlanes."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: ch, decorative: true, symbol: uml_chrome, box: [0,0,1920,1080],
+               slide_title: "Component view (UML)",
+               slide_subtitle: "Build pipeline → bundle store → REST + MCP adapters → UI/agents · arrows are «uses» dependencies",
+               slide_num: "09"}
+
+        # Package frames (UML packages).
+        - id: packages
+          z: 5
+          objects:
+            # Ingest
+            - {type: rect, id: pkg_ingest, decorative: true, box: [60,150,1800,90],
+               fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}, radius: 6}
+            - {type: text, id: pkg_ingest_l, decorative: true,
+               text: "«package»  ingest (source tree · manifests · git · vocab · tree-sitter)",
+               box: [78,158,1000,16], style: uml_pkg_lbl}
+
+            # Core pipeline
+            - {type: rect, id: pkg_core, decorative: true, box: [60,260,1800,210],
+               fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}, radius: 6}
+            - {type: text, id: pkg_core_l, decorative: true,
+               text: "«package»  codebase_mapper  (L1 host facts · pipeline orchestrator · per-language adapters)",
+               box: [78,268,1100,16], style: uml_pkg_lbl}
+
+            # Plugins
+            - {type: rect, id: pkg_plug, decorative: true, box: [60,490,1800,150],
+               fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}, radius: 6}
+            - {type: text, id: pkg_plug_l, decorative: true,
+               text: "«package»  plugins  (L2 chunks+embeddings · L3 concept graph · symbol xrefs)",
+               box: [78,498,1100,16], style: uml_pkg_lbl}
+
+            # Bundle store
+            - {type: rect, id: pkg_bnd, decorative: true, box: [60,660,1800,90],
+               fill: uml_db, stroke: {color: uml_db_b, width: 0.8}, radius: 6}
+            - {type: text, id: pkg_bnd_l, decorative: true,
+               text: "«datastore»  _tmp/<bundle>/  · turtle/json-ld · npy · SHACL ✓ · 179 unique blobs",
+               box: [78,668,1100,16], style: uml_pkg_lbl}
+
+            # Serve
+            - {type: rect, id: pkg_srv, decorative: true, box: [60,770,1800,170],
+               fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}, radius: 6}
+            - {type: text, id: pkg_srv_l, decorative: true,
+               text: "«package»  serve  (REST FastAPI + MCP stdio/HTTP — two adapters, one bundle store)",
+               box: [78,778,1100,16], style: uml_pkg_lbl}
+
+        # UML components inside the packages.
+        - id: components
+          z: 10
+          objects:
+            # ── ingest row
+            - type: uml.classifier_box
+              id: src_tree
+              box: [90, 188, 240, 44]
+              name: "source tree"
+              stereotype: component
+            - type: uml.classifier_box
+              id: manifests
+              box: [360, 188, 240, 44]
+              name: "manifests + lockfiles"
+              stereotype: component
+            - type: uml.classifier_box
+              id: gitp
+              box: [630, 188, 200, 44]
+              name: "git_plumbing"
+              stereotype: component
+            - type: uml.classifier_box
+              id: vocab
+              box: [860, 188, 240, 44]
+              name: "vocab / loader"
+              stereotype: component
+            - type: uml.classifier_box
+              id: classify
+              box: [1130, 188, 200, 44]
+              name: "classify"
+              stereotype: component
+            - type: uml.classifier_box
+              id: ts_setup
+              box: [1360, 188, 220, 44]
+              name: "ts_setup"
+              stereotype: component
+            - type: uml.classifier_box
+              id: register_b
+              box: [1610, 188, 220, 44]
+              name: "register_builtins"
+              stereotype: component
+
+            # ── core row (orchestrator + façade + dataclasses)
+            - type: uml.classifier_box
+              id: pipeline
+              box: [90, 310, 280, 60]
+              name: "pipeline.map_codebase"
+              stereotype: component
+            - type: uml.classifier_box
+              id: facade
+              box: [400, 310, 240, 60]
+              name: "__init__ (façade)"
+              stereotype: component
+            - type: uml.classifier_box
+              id: extensions
+              box: [670, 310, 220, 60]
+              name: "extensions"
+              stereotype: component
+            - type: uml.classifier_box
+              id: builtins
+              box: [920, 310, 240, 60]
+              name: "_builtins (analyzers + resolvers)"
+              stereotype: component
+            - type: uml.classifier_box
+              id: models
+              box: [1190, 310, 220, 60]
+              name: "models  (pure dataclasses)"
+              stereotype: component
+            - type: uml.classifier_box
+              id: langs
+              box: [1440, 310, 240, 60]
+              name: "languages/* (9 adapters)"
+              stereotype: component
+            - type: uml.classifier_box
+              id: rdf_emit
+              box: [1700, 310, 160, 60]
+              name: "rdf_emit"
+              stereotype: component
+
+            - type: uml.classifier_box
+              id: emit_bundle
+              box: [90, 392, 240, 50]
+              name: "emit_bundle"
+              stereotype: component
+            - type: uml.classifier_box
+              id: reconstruct
+              box: [360, 392, 220, 50]
+              name: "reconstruct"
+              stereotype: component
+            - type: uml.classifier_box
+              id: regenerate
+              box: [610, 392, 220, 50]
+              name: "regenerate"
+              stereotype: component
+            - type: uml.classifier_box
+              id: cli
+              box: [860, 392, 220, 50]
+              name: "cli · __main__"
+              stereotype: component
+            - type: uml.classifier_box
+              id: self_test
+              box: [1110, 392, 220, 50]
+              name: "self_test"
+              stereotype: component
+
+            # ── plugins row
+            - type: uml.classifier_box
+              id: p_chunks
+              box: [90, 542, 380, 80]
+              name: "chunks_embeddings"
+              stereotype: component
+              attributes:
+                - {name: "chunker · backends · embedder", type: "MiniLM-L6-v2 · 384d"}
+                - {name: "artifact · graph_writer", type: "→ cbml2:"}
+            - type: uml.classifier_box
+              id: p_concepts
+              box: [500, 542, 380, 80]
+              name: "concept_graph"
+              stereotype: component
+              attributes:
+                - {name: "splitter · concepts", type: "SKOS"}
+                - {name: "artifact · graph_writer", type: "→ cbml3: / skos:"}
+            - type: uml.classifier_box
+              id: p_xrefs
+              box: [910, 542, 380, 80]
+              name: "symbol_xrefs"
+              stereotype: component
+              attributes:
+                - {name: "python_resolver", type: "20.7 KB"}
+                - {name: "tsjs_resolver · aggregator", type: "23.0 KB"}
+            - type: uml.classifier_box
+              id: p_vocab
+              box: [1320, 542, 380, 80]
+              name: "vocab application"
+              stereotype: component
+              attributes:
+                - {name: "loader", type: "software_primitives.yaml"}
+                - {name: "kind coverage", type: "1 / 1 427"}
+
+            # ── bundle store (datastore-styled lozenges)
+            - type: uml.classifier_box
+              id: bnd_l1
+              box: [120, 690, 280, 44]
+              name: "L1 host RDF  (cbm:)"
+              stereotype: artifact
+            - type: uml.classifier_box
+              id: bnd_l2
+              box: [430, 690, 320, 44]
+              name: "L2 chunks + embeddings  (cbml2:)"
+              stereotype: artifact
+            - type: uml.classifier_box
+              id: bnd_l3
+              box: [780, 690, 320, 44]
+              name: "L3 concept graph  (cbml3:/skos:)"
+              stereotype: artifact
+            - type: uml.classifier_box
+              id: bnd_x
+              box: [1130, 690, 240, 44]
+              name: "symbol xrefs index"
+              stereotype: artifact
+            - type: uml.classifier_box
+              id: bnd_s
+              box: [1400, 690, 320, 44]
+              name: "SHACL + ontology mapping"
+              stereotype: artifact
+
+            # ── serve row
+            - type: uml.classifier_box
+              id: rest
+              box: [90, 810, 540, 110]
+              name: "frontend.backend.app"
+              stereotype: component
+              attributes:
+                - {name: "load_bundle · /bundles", type: ""}
+                - {name: "/summary · /file_graph · /symbol_graph", type: ""}
+                - {name: "/concept_graph · /impact · /chunks · /chunk_search", type: ""}
+            - type: uml.classifier_box
+              id: mcp_srv
+              box: [660, 810, 540, 110]
+              name: "frontend.mcp_server"
+              stereotype: component
+              attributes:
+                - {name: "server.build_server · run_stdio", type: ""}
+                - {name: "handlers (22 tools dispatch)", type: ""}
+                - {name: "resources · prompts · subscriptions · auth", type: ""}
+            - type: uml.classifier_box
+              id: ui
+              box: [1230, 810, 300, 110]
+              name: "frontend.ui  (React + Vite)"
+              stereotype: component
+              attributes:
+                - {name: "App · api · bundle-context", type: ""}
+                - {name: "7 views + Cytoscape graph", type: ""}
+            - type: uml.classifier_box
+              id: agents
+              box: [1560, 810, 300, 110]
+              name: "MCP-aware agents"
+              stereotype: component
+              attributes:
+                - {name: "Claude Code / IDE", type: ""}
+                - {name: "stdio + HTTP transport", type: ""}
+
+        # UML dependency edges — «uses» (open arrowhead, dashed)
+        - id: edges
+          z: 20
+          objects:
+            # ingest → core
+            - {type: connector, id: e_pipe1, from: {object: src_tree,  side: south}, to: {object: pipeline, side: north}, route: {type: orthogonal},
+               stroke: {color: uml_edge_muted, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: connector, id: e_pipe2, from: {object: manifests, side: south}, to: {object: pipeline, side: north}, route: {type: orthogonal},
+               stroke: {color: uml_edge_muted, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: connector, id: e_pipe3, from: {object: ts_setup,  side: south}, to: {object: langs,   side: north}, route: {type: orthogonal},
+               stroke: {color: uml_edge_muted, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # facade → builtins (registers analyzers/resolvers)
+            - {type: connector, id: e_reg, from: {object: facade, side: east}, to: {object: builtins, side: west},
+               stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: e_reg_l, decorative: true, text: "«register»", box: [646,335,80,14],
+               style: {font: primary, size: 9, weight: 400, color: text_muted, align: left, italic: true}}
+
+            # pipeline → models (uses)
+            - {type: connector, id: e_pm, from: {object: pipeline, side: east, offset: 25}, to: {object: models, side: west},
+               stroke: {color: uml_edge, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # core → plugins (orchestration)
+            - {type: connector, id: e_c_pchk, from: {object: pipeline,    side: south}, to: {object: p_chunks,  side: north}, route: {type: orthogonal},
+               stroke: {color: uml_edge, width: 1.2, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: connector, id: e_c_pcon, from: {object: rdf_emit,    side: south}, to: {object: p_concepts, side: north}, route: {type: orthogonal},
+               stroke: {color: uml_edge, width: 1.2, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: connector, id: e_c_pxr,  from: {object: models,      side: south}, to: {object: p_xrefs,   side: north}, route: {type: orthogonal},
+               stroke: {color: uml_edge, width: 1.2, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: connector, id: e_c_pv,   from: {object: emit_bundle, side: south}, to: {object: p_vocab,   side: north}, route: {type: orthogonal},
+               stroke: {color: uml_edge, width: 1.2, arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # plugins → bundle store («writes»)
+            - {type: connector, id: e_w1, from: {object: p_chunks,  side: south}, to: {object: bnd_l2, side: north}, route: {type: orthogonal},
+               stroke: {color: primary, width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: connector, id: e_w2, from: {object: p_concepts, side: south}, to: {object: bnd_l3, side: north}, route: {type: orthogonal},
+               stroke: {color: primary, width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: connector, id: e_w3, from: {object: p_xrefs,    side: south}, to: {object: bnd_x,  side: north}, route: {type: orthogonal},
+               stroke: {color: primary, width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: connector, id: e_w4, from: {object: p_vocab,    side: south}, to: {object: bnd_s,  side: north}, route: {type: orthogonal},
+               stroke: {color: primary, width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+
+            # bundle store → serve (REST + MCP both read it)
+            - {type: connector, id: e_r1, from: {object: bnd_l1, side: south}, to: {object: rest,    side: north}, route: {type: orthogonal},
+               stroke: {color: primary, width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: connector, id: e_r2, from: {object: bnd_l2, side: south}, to: {object: mcp_srv, side: north}, route: {type: orthogonal},
+               stroke: {color: primary, width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # MCP handlers «delegate» to REST (handlers imports app.py — verified via cbm file_detail)
+            - {type: connector, id: e_d,  from: {object: mcp_srv, side: west}, to: {object: rest, side: east},
+               stroke: {color: primary, width: 1.2, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: e_d_l, decorative: true, text: "«delegate»  (handlers ⇢ app.load_bundle)",
+               box: [640,790,420,14],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: left, italic: true}}
+
+            # serve → UI / agents
+            - {type: connector, id: e_ui1, from: {object: rest,    side: east}, to: {object: ui,     side: west},
+               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: connector, id: e_ag1, from: {object: mcp_srv, side: east, offset: 30}, to: {object: agents, side: west, offset: -10},
+               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: open_arrow}}
+
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: cap, decorative: true,
+               text: "UML legend: solid open-arrow = synchronous «uses» · dashed open-arrow = optional «uses» · filled-triangle = «writes» to artifact · «delegate» on REST↔MCP edge reflects the actual code dependency (frontend/mcp_server/handlers.py → frontend/backend/app.py) verified via cbm file_detail.",
+               box: [60,956,1800,72], style: uml_caption}
+
+  # ── Slide 10 — UML Class diagram of host-layer dataclasses ───────────
+  - id: 10-uml-class
+    slide: 10
+    title: "Host-layer class diagram (UML)"
+    description: "codebase_mapper/models.py: the pure data hub (deg 25, 0 out, 25 in)."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: ch, decorative: true, symbol: uml_chrome, box: [0,0,1920,1080],
+               slide_title: "Host-layer class diagram (UML)",
+               slide_subtitle: "models.py — pure dataclasses; FileRecord is the aggregate root, every *Edge references files by path",
+               slide_num: "10"}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: bg, decorative: true, box: [60,140,1800,810],
+               fill: uml_panel, stroke: {color: uml_panel_border, width: 0.6}, radius: 6}
+
+        - id: classes
+          z: 10
+          objects:
+            # ── Aggregate root: FileRecord (top center)
+            - type: uml.classifier_box
+              id: FileRecord
+              box: [780, 180, 360, 240]
+              name: FileRecord
+              stereotype: dataclass
+              attributes:
+                - {name: path,          type: str}
+                - {name: uri,           type: str}
+                - {name: language,      type: "str | None"}
+                - {name: type,          type: str}
+                - {name: size,          type: int}
+                - {name: contentSha256, type: str}
+                - {name: importsOut,    type: "list[str]"}
+                - {name: importsIn,     type: "list[str]"}
+
+            # ── Edge family: ImportEdge / ImportExternalEdge / DeclaresDependencyEdge / PinsDependencyEdge
+            - type: uml.classifier_box
+              id: ImportEdge
+              box: [80, 470, 260, 110]
+              name: ImportEdge
+              stereotype: dataclass
+              attributes:
+                - {name: source, type: str}
+                - {name: target, type: str}
+
+            - type: uml.classifier_box
+              id: ImportExternalEdge
+              box: [380, 470, 280, 110]
+              name: ImportExternalEdge
+              stereotype: dataclass
+              attributes:
+                - {name: source,  type: str}
+                - {name: package, type: str}
+
+            - type: uml.classifier_box
+              id: DeclaresDependencyEdge
+              box: [700, 470, 280, 110]
+              name: DeclaresDependencyEdge
+              stereotype: dataclass
+              attributes:
+                - {name: manifest, type: str}
+                - {name: package,  type: str}
+
+            - type: uml.classifier_box
+              id: PinsDependencyEdge
+              box: [1020, 470, 280, 110]
+              name: PinsDependencyEdge
+              stereotype: dataclass
+              attributes:
+                - {name: lockfile, type: str}
+                - {name: package,  type: str}
+                - {name: version,  type: str}
+
+            - type: uml.classifier_box
+              id: TestsEdge
+              box: [1340, 470, 260, 110]
+              name: TestsEdge
+              stereotype: dataclass
+              attributes:
+                - {name: test,    type: str}
+                - {name: subject, type: str}
+
+            # ── Symbol-xref family (bottom row)
+            - type: uml.classifier_box
+              id: SymbolXrefEdge
+              box: [380, 720, 360, 160]
+              name: SymbolXrefEdge
+              stereotype: dataclass
+              attributes:
+                - {name: source_file,    type: str}
+                - {name: source_symbol,  type: str}
+                - {name: target_file,    type: str}
+                - {name: target_symbol,  type: str}
+                - {name: kind,           type: str}
+
+            - type: uml.classifier_box
+              id: UnresolvedSymbolRef
+              box: [820, 720, 360, 160]
+              name: UnresolvedSymbolRef
+              stereotype: dataclass
+              attributes:
+                - {name: source_file,   type: str}
+                - {name: source_symbol, type: str}
+                - {name: name,          type: str}
+                - {name: language,      type: str}
+
+            # ── Side note about purity
+            - type: uml.classifier_box
+              id: NoteCard
+              box: [1340, 720, 480, 160]
+              name: "models.py  (note)"
+              stereotype: note
+              attributes:
+                - {name: "import degree", type: "25"}
+                - {name: "imports out",   type: "0  (pure data hub)"}
+                - {name: "imports in",    type: "25  (every adapter + plugin)"}
+                - {name: "loc",           type: "2 525 B"}
+
+        - id: edges
+          z: 20
+          objects:
+            # FileRecord ◇— ImportEdge   (aggregation, hollow diamond at FileRecord)
+            - {type: connector, id: a_ie,
+               from: {object: ImportEdge, side: north}, to: {object: FileRecord, side: south, offset: -120}, route: {type: orthogonal},
+               stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
+            - {type: connector, id: a_iee,
+               from: {object: ImportExternalEdge, side: north}, to: {object: FileRecord, side: south, offset: -60}, route: {type: orthogonal},
+               stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
+            - {type: connector, id: a_dde,
+               from: {object: DeclaresDependencyEdge, side: north}, to: {object: FileRecord, side: south}, route: {type: orthogonal},
+               stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
+            - {type: connector, id: a_pde,
+               from: {object: PinsDependencyEdge, side: north}, to: {object: FileRecord, side: south, offset: 60}, route: {type: orthogonal},
+               stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
+            - {type: connector, id: a_te,
+               from: {object: TestsEdge, side: north}, to: {object: FileRecord, side: south, offset: 120}, route: {type: orthogonal},
+               stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
+
+            # FileRecord ◆— SymbolXrefEdge / UnresolvedSymbolRef (composition, filled diamond)
+            - {type: connector, id: c_sxe,
+               from: {object: SymbolXrefEdge, side: north}, to: {object: FileRecord, side: south, offset: -30}, route: {type: orthogonal},
+               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_diamond}}
+            - {type: connector, id: c_usr,
+               from: {object: UnresolvedSymbolRef, side: north}, to: {object: FileRecord, side: south, offset: 30}, route: {type: orthogonal},
+               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_diamond}}
+
+        - id: legend
+          z: 25
+          objects:
+            - {type: text, id: lg, decorative: true,
+               text: "◇ hollow diamond = aggregation  (FileRecord is whole, *Edge is part — no lifetime coupling)     ◆ filled diamond = composition  (xrefs/unresolved are owned by their source FileRecord)",
+               box: [80,170,1750,18],
+               style: {font: primary, size: 11, weight: 400, color: text_muted, align: left}}
+
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: cap, decorative: true,
+               text: "Source: codebase_mapper/models.py chunks 169–176 (cbm file_detail). FileRecord, ImportEdge, ImportExternalEdge, DeclaresDependencyEdge, PinsDependencyEdge, TestsEdge, SymbolXrefEdge, UnresolvedSymbolRef. Attribute names are illustrative of the dataclass field names visible in the chunks; full signatures are in models.py L20–L93.",
+               box: [60,956,1800,72], style: uml_caption}
+
+  # ── Slide 11 — UML Sequence diagram: repository_summary call path ────
+  - id: 11-uml-sequence
+    slide: 11
+    title: "repository_summary — sequence diagram (UML)"
+    description: "Actual call path of the most useful one-shot MCP tool. Replaces a chain of bundle_summary + list_files + concept_detail."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: ch, decorative: true, symbol: uml_chrome, box: [0,0,1920,1080],
+               slide_title: "repository_summary — sequence diagram (UML)",
+               slide_subtitle: "MCP tool dispatch · handlers.py L284–L394 · delegates into frontend/backend/app.py:load_bundle  (verified via cbm file_detail)",
+               slide_num: "11"}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: bg, decorative: true, box: [60,140,1800,810],
+               fill: uml_panel, stroke: {color: uml_panel_border, width: 0.6}, radius: 6}
+
+        # Lifelines — 5 columns
+        - id: lifelines
+          z: 10
+          objects:
+            - {type: uml.lifeline, id: AgentLL,
+               box: [120, 170, 220, 720],
+               name: ":Agent", actor: true, head_height: 70}
+
+            - {type: uml.lifeline, id: SrvLL,
+               box: [420, 170, 240, 720],
+               name: "srv", type_name: "MCP Server (server.py)", head_height: 56}
+
+            - {type: uml.lifeline, id: HndLL,
+               box: [760, 170, 240, 720],
+               name: "h", type_name: "handlers._repository_summary", head_height: 56}
+
+            - {type: uml.lifeline, id: AppLL,
+               box: [1100, 170, 240, 720],
+               name: "app", type_name: "backend.app", head_height: 56}
+
+            - {type: uml.lifeline, id: BndLL,
+               box: [1440, 170, 320, 720],
+               name: "bnd", type_name: "_tmp/<bundle>/", head_height: 56}
+
+        # Activation bars
+        - id: activations
+          z: 15
+          objects:
+            - {type: uml.activation_bar, id: ab_srv, box: [535, 290, 12, 530]}
+            - {type: uml.activation_bar, id: ab_hnd, box: [875, 330, 12, 450]}
+            - {type: uml.activation_bar, id: ab_app, box: [1215, 380, 12, 320]}
+
+        - id: messages
+          z: 20
+          objects:
+            # 1: Agent → MCP server  CallTool(repository_summary, args)
+            - {type: line, id: m1, from: [232, 290], to: [535, 290],
+               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m1_l, decorative: true,
+               text: "1.  CallTool(repository_summary, {central_files_limit, entry_points_limit, key_concepts_limit})",
+               box: [250,260,1000,16], style: uml_msg}
+
+            # 2: srv → handlers  dispatch(_repository_summary, …)
+            - {type: line, id: m2, from: [547, 330], to: [875, 330],
+               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m2_l, decorative: true,
+               text: "2.  dispatch(_repository_summary, args)",
+               box: [565,302,700,16], style: uml_msg}
+
+            # 3: handlers → app  load_bundle(bundle_name)
+            - {type: line, id: m3, from: [887, 380], to: [1215, 380],
+               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m3_l, decorative: true,
+               text: "3.  load_bundle(bundle_name)   [app.py L76–L248]",
+               box: [905,352,700,16], style: uml_msg}
+
+            # 4: app → bundle  read turtle / npy / manifest
+            - {type: line, id: m4, from: [1227, 430], to: [1600, 430],
+               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m4_l, decorative: true,
+               text: "4.  read turtle · npy · manifest · SHACL graph",
+               box: [1245,402,540,16], style: uml_msg}
+
+            # 5: bundle → app  Bundle dataclass instance  (reply, dashed)
+            - {type: line, id: m5, from: [1600, 490], to: [1227, 490],
+               stroke: {color: uml_edge_muted, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m5_l, decorative: true,
+               text: "5.  Bundle  (cached via @lru_cache)",
+               box: [1245,462,540,16], style: uml_reply}
+
+            # 6: app → handlers  Bundle  (reply, dashed)
+            - {type: line, id: m6, from: [1215, 540], to: [887, 540],
+               stroke: {color: uml_edge_muted, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m6_l, decorative: true,
+               text: "6.  Bundle",
+               box: [905,512,540,16], style: uml_reply}
+
+            # 7: handlers self-call (loop): histogram + rank by import-degree
+            - {type: line, id: m7, from: [887, 595], to: [970, 595],
+               stroke: {color: primary, width: 1.0, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: line, id: m7b, from: [970, 595], to: [970, 660],
+               stroke: {color: primary, width: 1.0}}
+            - {type: line, id: m7c, from: [970, 660], to: [887, 660],
+               stroke: {color: primary, width: 1.0, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m7_l, decorative: true,
+               text: "7.  histogram(languages, types)  ·  rank files by import-degree  ·  top-K concepts by frequency",
+               box: [905,568,900,16], style: uml_msg}
+
+            # 8: handlers → app  _entry_point_kind(path)  (per central file)
+            - {type: line, id: m8, from: [887, 700], to: [1215, 700],
+               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: m8_l, decorative: true,
+               text: "8.  _entry_point_kind(path)   [for each candidate]",
+               box: [905,672,700,16], style: uml_msg}
+
+            # 9: app → handlers  kind | None
+            - {type: line, id: m9, from: [1215, 740], to: [887, 740],
+               stroke: {color: uml_edge_muted, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m9_l, decorative: true,
+               text: "9.  python_main | python_cli | python_app | None",
+               box: [905,714,700,16], style: uml_reply}
+
+            # 10: handlers → srv  RepositorySummary payload (reply)
+            - {type: line, id: m10, from: [875, 790], to: [547, 790],
+               stroke: {color: uml_edge_muted, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m10_l, decorative: true,
+               text: "10.  RepositorySummary{ total_files, total_chunks, total_concepts, files_by_language, files_by_type, central_files[], entry_points[], key_concepts[], dependency_summary, test_coverage_hint, shacl_conforms }",
+               box: [565,762,1200,16], style: uml_reply}
+
+            # 11: srv → Agent  ToolResult (reply)
+            - {type: line, id: m11, from: [535, 830], to: [232, 830],
+               stroke: {color: uml_edge_muted, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: m11_l, decorative: true,
+               text: "11.  ToolResult(json)",
+               box: [250,802,700,16], style: uml_reply}
+
+        # Step numbers down the left rail
+        - id: steps
+          z: 22
+          objects:
+            - {type: text, id: s1,  decorative: true, text: "STEP 01", box: [80, 285, 70,14], style: uml_step}
+            - {type: text, id: s2,  decorative: true, text: "STEP 02", box: [80, 325, 70,14], style: uml_step}
+            - {type: text, id: s3,  decorative: true, text: "STEP 03", box: [80, 375, 70,14], style: uml_step}
+            - {type: text, id: s4,  decorative: true, text: "STEP 04", box: [80, 425, 70,14], style: uml_step}
+            - {type: text, id: s5,  decorative: true, text: "STEP 05", box: [80, 485, 70,14], style: uml_step}
+            - {type: text, id: s6,  decorative: true, text: "STEP 06", box: [80, 535, 70,14], style: uml_step}
+            - {type: text, id: s7,  decorative: true, text: "STEP 07", box: [80, 590, 70,14], style: uml_step}
+            - {type: text, id: s8,  decorative: true, text: "STEP 08", box: [80, 695, 70,14], style: uml_step}
+            - {type: text, id: s9,  decorative: true, text: "STEP 09", box: [80, 735, 70,14], style: uml_step}
+            - {type: text, id: s10, decorative: true, text: "STEP 10", box: [80, 785, 70,14], style: uml_step}
+            - {type: text, id: s11, decorative: true, text: "STEP 11", box: [80, 825, 70,14], style: uml_step}
+
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: cap, decorative: true,
+               text: "Filled-triangle arrows = synchronous call (sync semantics); dashed open-arrow = reply. The handler is the single hot spot — it owns ranking and entry-point classification. Replacing this one tool with the prior 3-call chain (bundle_summary + list_files + concept_detail) is the design rationale behind commit 6d919f6.",
+               box: [60,956,1800,72], style: uml_caption}
