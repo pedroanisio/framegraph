@@ -93,38 +93,38 @@ slides:
     slide: 1
     use: 10
     title: "Architectural SWOT — code-base-mapper @ 715de92"
-    synthesis: "Strong layered model and dual REST/MCP surface, but test↔subject traceability and vocab kinding are the load-bearing weaknesses to close before the next release."
+    synthesis: "Strong **layered model** and **dual REST/MCP surface**, but **test↔subject traceability** and **vocab kinding** are the load-bearing weaknesses to close before the next release."
     fill:
       strengths:
-        - "Layered RDF model: L1 host facts, L2 chunks+embeddings, L3 SKOS concepts — cleanly separated"
-        - "SHACL conformance = true; 179 unique blobs; deterministic, content-addressed bundle"
-        - "models.py is a pure data hub: 25 inbound / 0 outbound — acyclic root for the host layer"
-        - "Two surfaces (REST FastAPI + MCP stdio/HTTP) share one bundle store; MCP imports REST — no duplicate impl"
-        - "9 language adapters + dedicated Python/TS-JS symbol resolvers (20.7 KB + 23.0 KB)"
+        - "**Layered RDF model**: L1 host facts, L2 chunks+embeddings, L3 SKOS concepts — cleanly separated"
+        - "**SHACL conformance = true**; 179 unique blobs; deterministic, content-addressed bundle"
+        - "`models.py` is a **pure data hub**: 25 inbound / 0 outbound — acyclic root for the host layer"
+        - "Two surfaces (REST FastAPI + MCP stdio/HTTP) share **one bundle store**; MCP imports REST — no duplicate impl"
+        - "**9 language adapters** + dedicated Python/TS-JS symbol resolvers (20.7 KB + 23.0 KB)"
       weaknesses:
-        - "tests-edges heuristic under-fires: only 8 edges for 42 test files (ratio 0.47) — graph can't answer 'tests cover X?'"
-        - "Controlled-vocab coverage: 1 / 1 427 concepts kinded (only `import_statement`) despite v1-default-on commit"
-        - "handlers.py concentrates 22 MCP tools in one 29.3 KB file — large blast radius"
-        - "frontend/backend/app.py is a single 39.7 KB FastAPI file (largest source file in the repo)"
-        - "__init__.py fan-out (deg 30, 26 outbound) — package surface change touches every adapter"
+        - "**tests-edges heuristic under-fires**: only 8 edges for 42 test files (ratio 0.47) — graph can't answer 'tests cover X?'"
+        - "**Controlled-vocab coverage**: 1 / 1 427 concepts kinded (only `import_statement`) despite v1-default-on commit"
+        - "`handlers.py` concentrates **22 MCP tools** in one 29.3 KB file — **large blast radius**"
+        - "`frontend/backend/app.py` is a single **39.7 KB** FastAPI file (largest source file in the repo)"
+        - "`__init__.py` fan-out (**deg 30**, 26 outbound) — package surface change touches every adapter"
       opportunities:
-        - "Extend tests_edges.py (2.8 KB — small) to bind tests to subjects via imports or coverage hooks"
-        - "Grow software_primitives.yaml to lift more concepts into kinded domain/structural/relational categories"
-        - "Per-tool split of handlers.py to scope blast radius and shrink test_handlers.py (15.0 KB)"
-        - "Re-use the L2 embeddings (MiniLM-L6-v2, 384-dim) for cross-bundle semantic search"
-        - "Vendor schema fixtures already underway (XSD, proto v2) — pattern for codifying language quirks"
+        - "Extend `tests_edges.py` (2.8 KB — small) to **bind tests to subjects** via imports or coverage hooks"
+        - "Grow `software_primitives.yaml` to lift more concepts into **kinded** domain/structural/relational categories"
+        - "**Per-tool split** of `handlers.py` to scope blast radius and shrink `test_handlers.py` (15.0 KB)"
+        - "Re-use the L2 embeddings (MiniLM-L6-v2, 384-dim) for **cross-bundle semantic search**"
+        - "Vendor schema fixtures already underway (XSD, proto v2) — **pattern** for codifying language quirks"
       threats:
-        - "Bundle-format drift between tool versions (0.5.0 today) and stored bundles — no version-pinned migration path is visible"
-        - "Reliance on tree-sitter grammars: per-language adapter rot if grammars move upstream"
-        - "Single-file FastAPI + single-file handlers raise merge-conflict risk as the MCP surface grows"
-        - "Embeddings backend default is offline-friendly but binds the bundle to one model family"
+        - "**Bundle-format drift** between tool versions (0.5.0 today) and stored bundles — no version-pinned migration path is visible"
+        - "Reliance on **tree-sitter grammars**: per-language adapter rot if grammars move upstream"
+        - "Single-file FastAPI + single-file handlers raise **merge-conflict risk** as the MCP surface grows"
+        - "Embeddings backend default is offline-friendly but **binds the bundle to one model family**"
 
   # ── Slide 2 — Diagnostic Summary by architectural dimension ──────────
   - id: 02-diagnostic
     slide: 2
     use: 111
     title: "Diagnostic summary — five architectural dimensions"
-    synthesis: "Three Greens (layered model, public surfaces, adapter breadth) carry the architecture; one Red (test traceability) and one Amber (vocab coverage) are the next-quarter targets."
+    synthesis: "Three **Greens** (layered model, public surfaces, adapter breadth) carry the architecture; one **Red** (test traceability) and one **Amber** (vocab coverage) are the next-quarter targets."
     fill:
       dimensions:
         - "Layered model integrity"
@@ -162,7 +162,7 @@ slides:
     slide: 3
     use: 183
     title: "Layered RDF model — L1 host / L2 chunks / L3 concepts"
-    synthesis: "Each layer has a distinct namespace, owning module, key predicates, and backing tech — clean separation that lets each tier evolve without breaking the others."
+    synthesis: "Each layer has a **distinct namespace**, owning module, key predicates, and backing tech — **clean separation** that lets each tier evolve without breaking the others."
     fill:
       data_domains:
         - "L1 — Host facts (cbm:)"
@@ -208,7 +208,7 @@ slides:
     slide: 4
     use: 122
     title: "Best-practice gap — five concrete divergences"
-    synthesis: "All five gaps are single-file or single-module problems with bounded blast radius — none require cross-cutting redesign."
+    synthesis: "All five gaps are **single-file or single-module** problems with **bounded blast radius** — none require cross-cutting redesign."
     fill:
       practice_areas:
         title: "Architectural practices under review"
@@ -243,77 +243,77 @@ slides:
     slide: 5
     use: 280
     title: "Unknowns map — known facts, known unknowns, assumptions, open risks"
-    synthesis: "What we measured (181 files, 968 chunks, 1 427 concepts) gives a strong baseline; what we have not measured (coverage %, scale headroom) is the next instrumentation backlog."
+    synthesis: "What we **measured** (181 files, 968 chunks, 1 427 concepts) gives a strong baseline; what we have **not measured** (coverage %, scale headroom) is the next instrumentation backlog."
     fill:
       known_facts:
-        - "181 files (Py 103, TS 21, Proto 5); 968 chunks; 1 427 concepts; SHACL conforms"
-        - "Embeddings backend: sentence-transformers/all-MiniLM-L6-v2 at 384 dims"
-        - "Two surfaces (REST FastAPI + MCP) backed by one bundle store"
-        - "Recent commits add static fixtures: XSD (5f478c7) + proto v2 (715de92)"
-        - "L3 controlled vocabulary v1 is 'default on' (commit 41e9423)"
+        - "**181 files** (Py 103, TS 21, Proto 5); **968 chunks**; **1 427 concepts**; SHACL conforms"
+        - "Embeddings backend: `sentence-transformers/all-MiniLM-L6-v2` at **384 dims**"
+        - "Two surfaces (REST FastAPI + MCP) backed by **one bundle store**"
+        - "Recent commits add static fixtures: **XSD** (5f478c7) + **proto v2** (715de92)"
+        - "L3 controlled vocabulary v1 is **'default on'** (commit 41e9423)"
       known_unknowns:
-        - "Actual test-coverage % (only 0.47 file-ratio reported; 8 tests-edges is unreliable)"
-        - "Bundle-format compatibility window across tool_version bumps"
-        - "Throughput / latency of repository_summary on 10× larger bundles"
-        - "OAuth / auth posture of the MCP HTTP transport at production load"
-        - "Concrete kind-coverage target for the controlled vocabulary"
+        - "Actual **test-coverage %** (only 0.47 file-ratio reported; 8 tests-edges is unreliable)"
+        - "**Bundle-format compatibility window** across `tool_version` bumps"
+        - "**Throughput / latency** of `repository_summary` on 10× larger bundles"
+        - "OAuth / **auth posture** of the MCP HTTP transport at production load"
+        - "Concrete **kind-coverage target** for the controlled vocabulary"
       assumptions:
-        - "Per-language adapters can be extended without touching pipeline.py orchestration"
-        - "MCP handlers will continue to import frontend/backend/app.py rather than fork its impl"
-        - "rdf_emit.py output is byte-stable across runs at the same commit"
-        - "MiniLM-L6-v2 embeddings remain serviceable; no upgrade pressure in next quarter"
-        - "Plugin registration via register_builtins() is sufficient for all future emitters"
+        - "Per-language adapters can be extended **without touching** `pipeline.py` orchestration"
+        - "MCP handlers will continue to **import** `frontend/backend/app.py` rather than fork its impl"
+        - "`rdf_emit.py` output is **byte-stable** across runs at the same commit"
+        - "MiniLM-L6-v2 embeddings remain serviceable; **no upgrade pressure** in next quarter"
+        - "Plugin registration via `register_builtins()` is **sufficient** for all future emitters"
       open_risks:
-        - "tests_edges under-counting creates false confidence in coverage reports"
-        - "Single-file handlers.py / app.py become merge-conflict hotspots as MCP surface grows"
-        - "Vocab v1 default-on with near-zero kind yield is a silent-no-op risk for L3 consumers"
-        - "AST_summary_total_bytes (6.05 MB) on 181 files — scaling to 10k files is unverified"
-        - "Tree-sitter grammar version drift could silently change parse output between bundles"
+        - "`tests_edges` under-counting creates **false confidence** in coverage reports"
+        - "Single-file `handlers.py` / `app.py` become **merge-conflict hotspots** as MCP surface grows"
+        - "Vocab v1 default-on with **near-zero kind yield** is a silent-no-op risk for L3 consumers"
+        - "AST_summary_total_bytes (6.05 MB) on 181 files — scaling to **10k files is unverified**"
+        - "**Tree-sitter grammar version drift** could silently change parse output between bundles"
 
   # ── Slide 6 — RAID Log (Risks / Assumptions / Issues / Dependencies) ─
   - id: 06-raid
     slide: 6
     use: 93
     title: "RAID log — risks, assumptions, issues, dependencies"
-    synthesis: "Two open issues (handlers.py size, tests-edges under-firing) and one assumption (MCP-as-thin-adapter) are the items most worth verifying before the next bundle revision."
+    synthesis: "Two **open issues** (`handlers.py` size, `tests-edges` under-firing) and one **assumption** (MCP-as-thin-adapter) are the items most worth verifying before the next bundle revision."
     fill:
       risks:
-        - "R1: Bundle drift across tool_version — no migration path visible"
-        - "R2: handlers.py (29.3 KB) merge conflicts as MCP tools grow"
-        - "R3: tests_edges under-fires → coverage claims under-grounded"
-        - "R4: Vocab kinding stays at 1/1 427 → L3 typing loses value"
-        - "R5: Embeddings backend single-source (MiniLM-L6-v2)"
+        - "**R1**: Bundle drift across `tool_version` — no migration path visible"
+        - "**R2**: `handlers.py` (29.3 KB) merge conflicts as MCP tools grow"
+        - "**R3**: `tests_edges` under-fires → coverage claims under-grounded"
+        - "**R4**: Vocab kinding stays at 1/1 427 → L3 typing loses value"
+        - "**R5**: Embeddings backend single-source (MiniLM-L6-v2)"
       assumptions:
-        - "A1: MCP handlers stay as thin adapters over REST app.py"
-        - "A2: SHACL conformance is enforced on every emitted bundle"
-        - "A3: Plugin registration is the only emitter wiring path"
-        - "A4: Tree-sitter grammars remain backward-compatible"
-        - "A5: 384-dim MiniLM vectors are enough for semantic_neighbors"
+        - "**A1**: MCP handlers stay as **thin adapters** over REST `app.py`"
+        - "**A2**: SHACL conformance is **enforced** on every emitted bundle"
+        - "**A3**: Plugin registration is the **only** emitter wiring path"
+        - "**A4**: Tree-sitter grammars remain **backward-compatible**"
+        - "**A5**: 384-dim MiniLM vectors are **enough** for `semantic_neighbors`"
       issues:
-        - "I1: Only 8 tests-edges across 42 test files (cbm: tests heuristic too narrow)"
-        - "I2: 1/1 427 concepts kinded despite vocab-v1 default-on"
-        - "I3: frontend/backend/app.py at 39.7 KB — largest single source file"
-        - "I4: handlers.py at 29.3 KB with 22 tool handlers in-file"
-        - "I5: tests/verify_xrefs.py at 50.9 KB — test-of-record but unwieldy"
+        - "**I1**: Only **8 tests-edges** across 42 test files (`cbm:tests` heuristic too narrow)"
+        - "**I2**: **1/1 427** concepts kinded despite vocab-v1 default-on"
+        - "**I3**: `frontend/backend/app.py` at **39.7 KB** — largest single source file"
+        - "**I4**: `handlers.py` at **29.3 KB** with 22 tool handlers in-file"
+        - "**I5**: `tests/verify_xrefs.py` at **50.9 KB** — test-of-record but unwieldy"
       dependencies:
-        - "D1: tree-sitter grammars per supported language"
-        - "D2: sentence-transformers (MiniLM-L6-v2) + Python ML stack"
-        - "D3: rdflib for emit + SHACL validation"
-        - "D4: FastAPI for REST surface; MCP SDK for tool transport"
-        - "D5: React + Vite + Cytoscape for the UI tier"
+        - "**D1**: `tree-sitter` grammars per supported language"
+        - "**D2**: `sentence-transformers` (MiniLM-L6-v2) + Python ML stack"
+        - "**D3**: `rdflib` for emit + SHACL validation"
+        - "**D4**: **FastAPI** for REST surface; **MCP SDK** for tool transport"
+        - "**D5**: **React + Vite + Cytoscape** for the UI tier"
 
   # ── Slide 7 — Decision Log: recent commits as architectural decisions ─
   - id: 07-decisions
     slide: 7
     use: 219
     title: "Architectural decisions — five recent commits, what they imply"
-    synthesis: "Four of five recent decisions broaden classifier reach (proto v2, XSD, vocab v1, animation schema); the fifth — repository_summary — consolidates the read path. Net direction: more breadth in, fewer hops to insight."
+    synthesis: "Four of five recent decisions **broaden classifier reach** (proto v2, XSD, vocab v1, animation schema); the fifth — `repository_summary` — **consolidates the read path**. Net direction: more breadth in, fewer hops to insight."
     fill:
       decision_items:
-        - "Vendor proto/dsl/v2 fixture + classifier coverage"
-        - "Add repository_summary MCP tool (one-shot executive read)"
-        - "Vendor static/schemas/ XSD fixture + classifier coverage"
-        - "L3 controlled vocabulary v1: typed concepts, default on"
+        - "Vendor `proto/dsl/v2` fixture + classifier coverage"
+        - "Add `repository_summary` MCP tool (**one-shot** executive read)"
+        - "Vendor `static/schemas/` XSD fixture + classifier coverage"
+        - "L3 controlled vocabulary v1: **typed concepts, default on**"
         - "Add pedagogical strategies + animation script schema"
       decision_owner:
         headers: [Decision, Commit]
@@ -353,7 +353,7 @@ slides:
     slide: 8
     use: 297
     title: "Early-warning indicators — five drift signals"
-    synthesis: "Two indicators (test-edge ratio, vocab kind coverage) are already past their threshold and need active remediation; the other three give us monitoring runway as the codebase scales."
+    synthesis: "Two indicators (**test-edge ratio**, **vocab kind coverage**) are already **past their threshold** and need active remediation; the other three give us monitoring runway as the codebase scales."
     fill:
       indicators:
         title: "Drift signals to monitor"
@@ -711,7 +711,7 @@ slides:
           z: 30
           objects:
             - {type: text, id: cap, decorative: true,
-               text: "UML legend: solid open-arrow = synchronous «uses» · dashed open-arrow = optional «uses» · filled-triangle = «writes» to artifact · «delegate» on REST↔MCP edge reflects the actual code dependency (frontend/mcp_server/handlers.py → frontend/backend/app.py) verified via cbm file_detail.",
+               text: "**UML legend**: solid open-arrow = synchronous «uses» · dashed open-arrow = optional «uses» · filled-triangle = «writes» to artifact · **«delegate»** on REST↔MCP edge reflects the actual code dependency (`frontend/mcp_server/handlers.py` → `frontend/backend/app.py`) verified via `cbm file_detail`.",
                box: [60,956,1800,72], style: uml_caption}
 
   # ── Slide 10 — UML Class diagram of host-layer dataclasses ───────────
@@ -870,7 +870,7 @@ slides:
           z: 25
           objects:
             - {type: text, id: lg, decorative: true,
-               text: "◇ hollow diamond = aggregation  (FileRecord is whole, *Edge is part — no lifetime coupling)     ◆ filled diamond = composition  (xrefs/unresolved are owned by their source FileRecord)",
+               text: "◇ **hollow diamond** = aggregation  (`FileRecord` is whole, each `*Edge` is part — no lifetime coupling)     ◆ **filled diamond** = composition  (xrefs/unresolved are owned by their source `FileRecord`)",
                box: [80,170,1750,18],
                style: {font: primary, size: 11, weight: 400, color: text_muted, align: left}}
 
@@ -878,7 +878,7 @@ slides:
           z: 30
           objects:
             - {type: text, id: cap, decorative: true,
-               text: "Source: codebase_mapper/models.py chunks 169–176 (cbm file_detail). FileRecord, ImportEdge, ImportExternalEdge, DeclaresDependencyEdge, PinsDependencyEdge, TestsEdge, SymbolXrefEdge, UnresolvedSymbolRef. Attribute names are illustrative of the dataclass field names visible in the chunks; full signatures are in models.py L20–L93.",
+               text: "**Source**: `codebase_mapper/models.py` chunks 169–176 (`cbm file_detail`). `FileRecord`, `ImportEdge`, `ImportExternalEdge`, `DeclaresDependencyEdge`, `PinsDependencyEdge`, `TestsEdge`, `SymbolXrefEdge`, `UnresolvedSymbolRef`. Attribute names are illustrative of the dataclass field names visible in the chunks; full signatures are in `models.py` L20–L93.",
                box: [60,956,1800,72], style: uml_caption}
 
   # ── Slide 11 — UML Sequence diagram: repository_summary call path ────
@@ -1039,5 +1039,5 @@ slides:
           z: 30
           objects:
             - {type: text, id: cap, decorative: true,
-               text: "Filled-triangle arrows = synchronous call (sync semantics); dashed open-arrow = reply. The handler is the single hot spot — it owns ranking and entry-point classification. Replacing this one tool with the prior 3-call chain (bundle_summary + list_files + concept_detail) is the design rationale behind commit 6d919f6.",
+               text: "**Filled-triangle arrows** = synchronous call (sync semantics); **dashed open-arrow** = reply. The handler is the **single hot spot** — it owns ranking and entry-point classification. Replacing this one tool with the prior 3-call chain (`bundle_summary` + `list_files` + `concept_detail`) is the design rationale behind commit **6d919f6**.",
                box: [60,956,1800,72], style: uml_caption}
