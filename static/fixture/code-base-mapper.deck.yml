@@ -10,6 +10,12 @@ kind: presentation-deck
 # ─────────────────────────────────────────────────────────────────────────
 
 $theme: mckinsey
+# Slide-grade stylesheet: clone of bundled default.yml with card_body /
+# card_label / card_title / table_cell / synthesis bumped to sizes
+# readable on a 1920×1080 screen. The bundled `default.yml` is tuned
+# for letter-size consulting print at Big-4 density (10pt body) — too
+# small for screen-slide use. Chrome / treatments / roles are unchanged.
+stylesheet: static/fixture/code-base-mapper.style.yml
 brand_text: "code-base-mapper · Architecture Report · 715de92"
 
 deck:
@@ -18,6 +24,13 @@ deck:
 
   # Bespoke UML slides reference these; theme tokens are still available
   # because deck.tokens is *merged* with the library $theme tokens.
+  #
+  # Pattern-slide typography overrides:
+  # The bundled `default.yml` stylesheet is tuned for letter-size
+  # consulting reports (10pt body, 8pt label, 12pt title — "Big-4
+  # density"). At a 1920×1080 screen canvas viewed at presentation
+  # distance, those sizes are unreadable. The overrides below bump
+  # card text to slide-grade while keeping the structured-card layout.
   tokens:
     colors:
       uml_panel:        "#FFFFFF"
@@ -36,6 +49,7 @@ deck:
       uml_edge_muted:   "#6B6B6B"
       uml_caption:      "#6B6B6B"
     text_styles:
+      # ── UML bespoke styles (slides 9–11) ──────────────────────
       uml_title:    {font: heading, size: 32, weight: 700, color: primary,   align: left,   line_height: 38}
       uml_subtitle: {font: primary, size: 14, weight: 400, color: text_muted, align: left,  line_height: 18, italic: true}
       uml_caption:  {font: primary, size: 12, weight: 400, color: uml_caption, align: left, line_height: 16, italic: true, wrap: true}
@@ -44,6 +58,12 @@ deck:
       uml_msg:      {font: primary, size: 12, weight: 400, color: text,      align: left,   line_height: 16}
       uml_reply:    {font: primary, size: 12, weight: 400, color: text_muted, align: left,  line_height: 16, italic: true}
       uml_step:     {font: primary, size: 10, weight: 700, color: accent,    align: left,   line_height: 13}
+
+      # Pattern-slide card / table / synthesis typography lives in the
+      # deck-level stylesheet (static/fixture/code-base-mapper.style.yml),
+      # NOT here. `deck.tokens.text_styles` flows into per-slide token
+      # resolution but is not what the pattern emitter reads — it reads
+      # from `stylesheet.text_styles`. Keep both layers honest.
 
   symbols:
     # Bespoke chrome for the UML slides. Bespoke and patterned slides
@@ -70,7 +90,10 @@ deck:
 slides:
   # ── Slide 1 — SWOT: overall architectural posture ─────────────────────
   - id: 01-swot
+    slide: 1
     use: 10
+    title: "Architectural SWOT — code-base-mapper @ 715de92"
+    synthesis: "Strong layered model and dual REST/MCP surface, but test↔subject traceability and vocab kinding are the load-bearing weaknesses to close before the next release."
     fill:
       strengths:
         - "Layered RDF model: L1 host facts, L2 chunks+embeddings, L3 SKOS concepts — cleanly separated"
@@ -98,7 +121,10 @@ slides:
 
   # ── Slide 2 — Diagnostic Summary by architectural dimension ──────────
   - id: 02-diagnostic
+    slide: 2
     use: 111
+    title: "Diagnostic summary — five architectural dimensions"
+    synthesis: "Three Greens (layered model, public surfaces, adapter breadth) carry the architecture; one Red (test traceability) and one Amber (vocab coverage) are the next-quarter targets."
     fill:
       dimensions:
         - "Layered model integrity"
@@ -133,7 +159,10 @@ slides:
 
   # ── Slide 3 — Layer / Operating Model view (repurposes 183) ──────────
   - id: 03-layers
+    slide: 3
     use: 183
+    title: "Layered RDF model — L1 host / L2 chunks / L3 concepts"
+    synthesis: "Each layer has a distinct namespace, owning module, key predicates, and backing tech — clean separation that lets each tier evolve without breaking the others."
     fill:
       data_domains:
         - "L1 — Host facts (cbm:)"
@@ -176,7 +205,10 @@ slides:
 
   # ── Slide 4 — Best Practice Gap (current vs desired) ─────────────────
   - id: 04-gap
+    slide: 4
     use: 122
+    title: "Best-practice gap — five concrete divergences"
+    synthesis: "All five gaps are single-file or single-module problems with bounded blast radius — none require cross-cutting redesign."
     fill:
       practice_areas:
         title: "Architectural practices under review"
@@ -208,7 +240,10 @@ slides:
 
   # ── Slide 5 — Unknowns Map ───────────────────────────────────────────
   - id: 05-unknowns
+    slide: 5
     use: 280
+    title: "Unknowns map — known facts, known unknowns, assumptions, open risks"
+    synthesis: "What we measured (181 files, 968 chunks, 1 427 concepts) gives a strong baseline; what we have not measured (coverage %, scale headroom) is the next instrumentation backlog."
     fill:
       known_facts:
         - "181 files (Py 103, TS 21, Proto 5); 968 chunks; 1 427 concepts; SHACL conforms"
@@ -237,7 +272,10 @@ slides:
 
   # ── Slide 6 — RAID Log (Risks / Assumptions / Issues / Dependencies) ─
   - id: 06-raid
+    slide: 6
     use: 93
+    title: "RAID log — risks, assumptions, issues, dependencies"
+    synthesis: "Two open issues (handlers.py size, tests-edges under-firing) and one assumption (MCP-as-thin-adapter) are the items most worth verifying before the next bundle revision."
     fill:
       risks:
         - "R1: Bundle drift across tool_version — no migration path visible"
@@ -266,7 +304,10 @@ slides:
 
   # ── Slide 7 — Decision Log: recent commits as architectural decisions ─
   - id: 07-decisions
+    slide: 7
     use: 219
+    title: "Architectural decisions — five recent commits, what they imply"
+    synthesis: "Four of five recent decisions broaden classifier reach (proto v2, XSD, vocab v1, animation schema); the fifth — repository_summary — consolidates the read path. Net direction: more breadth in, fewer hops to insight."
     fill:
       decision_items:
         - "Vendor proto/dsl/v2 fixture + classifier coverage"
@@ -309,7 +350,10 @@ slides:
 
   # ── Slide 8 — Early Warning Indicators (drift signals) ───────────────
   - id: 08-ewi
+    slide: 8
     use: 297
+    title: "Early-warning indicators — five drift signals"
+    synthesis: "Two indicators (test-edge ratio, vocab kind coverage) are already past their threshold and need active remediation; the other three give us monitoring runway as the codebase scales."
     fill:
       indicators:
         title: "Drift signals to monitor"
