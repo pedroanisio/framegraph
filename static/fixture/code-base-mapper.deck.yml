@@ -66,28 +66,90 @@ deck:
       # from `stylesheet.text_styles`. Keep both layers honest.
 
   symbols:
-    # Bespoke chrome for the UML slides. Bespoke and patterned slides
-    # can coexist because each slide draws its own chrome.
+    # Unified chrome — visually identical to the stylesheet's
+    # `slide_chrome` block applied to pattern slides 1–8 + 13. Used by
+    # the bespoke UML slides 10–12 (and section divider + cover, where
+    # the chrome is inlined directly because they need bespoke titles).
+    # Geometry mirrors `code-base-mapper.style.yml:slide_chrome` so the
+    # whole deck reads as one visual identity:
+    #   - 4 px top stripe in `accent`
+    #   - 52 px title band, 22 px bold heading in `primary`
+    #   - 0.5 px separator at y = 56
+    #   - 24 px footer band: brand mark left, page number top-right
     uml_chrome:
       box: [0, 0, 1920, 1080]
       slots: [slide_title, slide_subtitle, slide_num]
       objects:
         - {type: rect, id: bg,         box: [0,0,1920,1080], fill: white}
-        - {type: rect, id: top_rule,   box: [0,0,1920,8],    fill: primary}
-        - {type: text, id: title_text, box: [60,36,1500,42], text: "$slide_title",    style: uml_title}
-        - {type: text, id: subtitle,   box: [60,82,1500,22], text: "$slide_subtitle", style: uml_subtitle}
-        - {type: text, id: snum,       box: [1760,40,120,22], text: "$slide_num",
-           style: {font: primary, size: 12, weight: 700, color: text_muted, align: right}}
-        - {type: line, id: title_rule, from: [60,120], to: [1860,120], stroke: {color: border, width: 0.6}}
-        - {type: line, id: foot_rule,  from: [60,1040], to: [1860,1040], stroke: {color: border, width: 0.6}}
-        - {type: text, id: brand,      box: [60,1050,1200,20],
-           text: "code-base-mapper · Architecture Report · 715de92 · UML",
-           style: {font: primary, size: 11, weight: 400, color: text_muted, align: left}}
-        - {type: text, id: src,        box: [1260,1050,600,20],
-           text: "Source: cbm MCP — facts cited from bundle queries (see report)",
-           style: {font: primary, size: 11, weight: 400, color: text_muted, align: right}}
+        - {type: rect, id: top_stripe, box: [0,0,1920,4],    fill: accent}
+        - {type: text, id: title_text, box: [32,12,1640,40], text: "$slide_title",
+           style: {font: heading, size: 22, weight: 700, color: primary, align: left, v_align: middle, line_height: 26, wrap: true}}
+        - {type: text, id: snum,       box: [1740,16,148,22], text: "$slide_num",
+           style: {font: primary, size: 14, weight: 400, color: text_muted, align: right}}
+        - {type: line, id: title_rule, from: [0,56], to: [1920,56], stroke: {color: border, width: 0.5}}
+        - {type: text, id: subtitle,   box: [32,68,1640,22], text: "$slide_subtitle",
+           style: {font: primary, size: 14, weight: 400, color: text_muted, align: left, italic: true, wrap: true}}
+        - {type: line, id: foot_rule,  from: [32,1056], to: [1888,1056], stroke: {color: border, width: 0.5}}
+        - {type: text, id: brand,      box: [32,1064,1200,20],
+           text: "code-base-mapper · Architecture Report · 715de92",
+           style: {font: primary, size: 13, weight: 700, color: text_muted, align: left}}
 
 slides:
+  # ── Slide 0 — Cover ───────────────────────────────────────────────────
+  - id: 00-cover
+    slide: 0
+    title: "code-base-mapper — Architecture Report"
+    description: "Cover slide. Subject, source bundle, audience, and date."
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: rect, id: bg,        decorative: true, box: [0,0,1920,1080], fill: white}
+            - {type: rect, id: top_rule,  decorative: true, box: [0,0,1920,4],    fill: accent}
+        - id: cover
+          z: 10
+          objects:
+            # Accent bar + title panel — anchored centrally with breathing room.
+            - {type: rect, id: panel,     decorative: true, box: [240,300,1440,440],
+               fill: surface, stroke: {color: border, width: 0.6}, radius: 8}
+            - {type: rect, id: panel_bar, decorative: true, box: [240,300,6,440], fill: accent}
+            - {type: text, id: kicker, decorative: true,
+               text: "ARCHITECTURE REPORT  ·  cbm @ 715de92  ·  tool 0.5.0",
+               box: [280,344,1360,22],
+               style: {font: primary, size: 14, weight: 700, color: accent, align: left}}
+            - {type: text, id: title, decorative: true,
+               text: "**code-base-mapper**—a forensic look",
+               box: [280,376,1360,116],
+               style: {font: heading, size: 78, weight: 700, color: primary, align: left, line_height: 90, wrap: true}}
+            - {type: text, id: rule, decorative: true,
+               text: "",
+               box: [280,506,1360,2],
+               style: {font: primary, size: 1, weight: 400, color: accent}}
+            - {type: line, id: hr, decorative: true, from: [280,512], to: [400,512],
+               stroke: {color: accent, width: 2}}
+            - {type: text, id: tagline, decorative: true,
+               text: "**Layered RDF model**, **dual REST/MCP surface**, **9 language adapters** —\nstrengths and the four weaknesses worth closing before the next release.",
+               box: [280,532,1360,80],
+               style: {font: primary, size: 22, weight: 400, color: text, align: left, line_height: 30, wrap: true}}
+            - {type: text, id: meta, decorative: true,
+               text: "Source: cbm MCP bundle  ·  Composed in FrameGraph  ·  2026-05-14",
+               box: [280,690,1360,22],
+               style: {font: primary, size: 14, weight: 400, color: text_muted, align: left, italic: true}}
+        - id: footer
+          z: 20
+          objects:
+            - {type: line, id: f_rule, decorative: true, from: [32,1056], to: [1888,1056],
+               stroke: {color: border, width: 0.5}}
+            - {type: text, id: f_brand, decorative: true,
+               text: "code-base-mapper · Architecture Report · 715de92",
+               box: [32,1064,1200,20],
+               style: {font: primary, size: 13, weight: 700, color: text_muted, align: left}}
+            - {type: text, id: f_pn, decorative: true,
+               text: "00 / 13",
+               box: [1700,1064,180,20],
+               style: {font: primary, size: 14, weight: 400, color: text_muted, align: right}}
+
   # ── Slide 1 — SWOT: overall architectural posture ─────────────────────
   - id: 01-swot
     slide: 1
@@ -390,9 +452,55 @@ slides:
   # patterns. Every line/box position is verified against the cbm bundle.
   # ─────────────────────────────────────────────────────────────────────
 
+  # ── Section divider — Part II: structural views (UML) ────────────────
+  - id: 08b-section-uml
+    slide: 9
+    title: "Part II — Structural views (UML)"
+    description: "Bridge slide between the diagnostic patterns (Part I) and the UML diagrams (Part II)."
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: rect, id: bg,       decorative: true, box: [0,0,1920,1080], fill: white}
+            - {type: rect, id: top_rule, decorative: true, box: [0,0,1920,4],    fill: accent}
+        - id: section
+          z: 10
+          objects:
+            - {type: rect, id: panel,    decorative: true, box: [120,360,1680,360],
+               fill: surface, stroke: {color: border, width: 0.6}, radius: 8}
+            - {type: rect, id: panel_b,  decorative: true, box: [120,360,8,360], fill: accent}
+            - {type: text, id: part_kicker, decorative: true,
+               text: "PART II",
+               box: [160,400,1600,28],
+               style: {font: primary, size: 18, weight: 700, color: accent, align: left}}
+            - {type: text, id: part_title, decorative: true,
+               text: "Structural views — UML",
+               box: [160,432,1600,108],
+               style: {font: heading, size: 72, weight: 700, color: primary, align: left, line_height: 84, wrap: true}}
+            - {type: line, id: rule, decorative: true, from: [160,560], to: [280,560],
+               stroke: {color: accent, width: 2}}
+            - {type: text, id: part_body, decorative: true,
+               text: "Three diagrams — **component view**, **host-layer classes**, **`repository_summary` sequence** — drawn directly from `codebase_mapper` source. Each box and edge is grounded in a `cbm` query.",
+               box: [160,580,1600,128],
+               style: {font: primary, size: 22, weight: 400, color: text, align: left, line_height: 32, wrap: true}}
+        - id: footer
+          z: 20
+          objects:
+            - {type: line, id: f_rule, decorative: true, from: [32,1056], to: [1888,1056],
+               stroke: {color: border, width: 0.5}}
+            - {type: text, id: f_brand, decorative: true,
+               text: "code-base-mapper · Architecture Report · 715de92",
+               box: [32,1064,1200,20],
+               style: {font: primary, size: 13, weight: 700, color: text_muted, align: left}}
+            - {type: text, id: f_pn, decorative: true,
+               text: "09 / 13",
+               box: [1700,1064,180,20],
+               style: {font: primary, size: 14, weight: 400, color: text_muted, align: right}}
+
   # ── Slide 9 — UML Component diagram ──────────────────────────────────
   - id: 09-uml-component
-    slide: 9
+    slide: 10
     title: "Component view (UML)"
     description: "UML component diagram of code-base-mapper's seven swimlanes."
     visual:
@@ -716,7 +824,7 @@ slides:
 
   # ── Slide 10 — UML Class diagram of host-layer dataclasses ───────────
   - id: 10-uml-class
-    slide: 10
+    slide: 11
     title: "Host-layer class diagram (UML)"
     description: "codebase_mapper/models.py: the pure data hub (deg 25, 0 out, 25 in)."
     visual:
@@ -727,8 +835,8 @@ slides:
           objects:
             - {type: use, id: ch, decorative: true, symbol: uml_chrome, box: [0,0,1920,1080],
                slide_title: "Host-layer class diagram (UML)",
-               slide_subtitle: "models.py — pure dataclasses; FileRecord is the aggregate root, every *Edge references files by path",
-               slide_num: "10"}
+               slide_subtitle: "models.py — pure dataclasses; FileRecord is the aggregate root, every `*Edge` references files by path",
+               slide_num: "11"}
 
         - id: panel
           z: 5
@@ -881,9 +989,9 @@ slides:
                text: "**Source**: `codebase_mapper/models.py` chunks 169–176 (`cbm file_detail`). `FileRecord`, `ImportEdge`, `ImportExternalEdge`, `DeclaresDependencyEdge`, `PinsDependencyEdge`, `TestsEdge`, `SymbolXrefEdge`, `UnresolvedSymbolRef`. Attribute names are illustrative of the dataclass field names visible in the chunks; full signatures are in `models.py` L20–L93.",
                box: [60,956,1800,72], style: uml_caption}
 
-  # ── Slide 11 — UML Sequence diagram: repository_summary call path ────
+  # ── Slide 12 — UML Sequence diagram: repository_summary call path ────
   - id: 11-uml-sequence
-    slide: 11
+    slide: 12
     title: "repository_summary — sequence diagram (UML)"
     description: "Actual call path of the most useful one-shot MCP tool. Replaces a chain of bundle_summary + list_files + concept_detail."
     visual:
@@ -895,7 +1003,7 @@ slides:
             - {type: use, id: ch, decorative: true, symbol: uml_chrome, box: [0,0,1920,1080],
                slide_title: "repository_summary — sequence diagram (UML)",
                slide_subtitle: "MCP tool dispatch · handlers.py L284–L394 · delegates into frontend/backend/app.py:load_bundle  (verified via cbm file_detail)",
-               slide_num: "11"}
+               slide_num: "12"}
 
         - id: panel
           z: 5
@@ -1041,3 +1149,104 @@ slides:
             - {type: text, id: cap, decorative: true,
                text: "**Filled-triangle arrows** = synchronous call (sync semantics); **dashed open-arrow** = reply. The handler is the **single hot spot** — it owns ranking and entry-point classification. Replacing this one tool with the prior 3-call chain (`bundle_summary` + `list_files` + `concept_detail`) is the design rationale behind commit **6d919f6**.",
                box: [60,956,1800,72], style: uml_caption}
+
+  # ── Slide 13 — Closing: three actions for next quarter ───────────────
+  - id: 13-closing
+    slide: 13
+    title: "Next quarter — three actions"
+    description: "Closing slide. The three load-bearing fixes drawn from the SWOT, gap, and EWI slides."
+    visual:
+      layers:
+        - id: chrome
+          z: 0
+          objects:
+            - {type: rect, id: bg,       decorative: true, box: [0,0,1920,1080], fill: white}
+            - {type: rect, id: top_rule, decorative: true, box: [0,0,1920,4],    fill: accent}
+        - id: title
+          z: 10
+          objects:
+            - {type: text, id: kicker, decorative: true,
+               text: "CLOSING  ·  three concrete actions",
+               box: [60,80,1800,22],
+               style: {font: primary, size: 16, weight: 700, color: accent, align: left}}
+            - {type: text, id: title, decorative: true,
+               text: "What to fix before the next bundle revision.",
+               box: [60,110,1800,52],
+               style: {font: heading, size: 40, weight: 700, color: primary, align: left, line_height: 48, wrap: true}}
+            - {type: line, id: r, decorative: true, from: [60,180], to: [180,180],
+               stroke: {color: accent, width: 2}}
+        - id: cards
+          z: 20
+          objects:
+            # Card 1
+            - {type: rect, id: c1_bg,   decorative: true, box: [60,220,580,560],
+               fill: surface, stroke: {color: border, width: 0.6}, radius: 8}
+            - {type: rect, id: c1_bar,  decorative: true, box: [60,220,6,560], fill: accent}
+            - {type: text, id: c1_n,    decorative: true,
+               text: "01",
+               box: [90,238,520,72],
+               style: {font: heading, size: 64, weight: 700, color: accent, align: left, line_height: 70}}
+            - {type: text, id: c1_t,    decorative: true,
+               text: "Rebuild `tests_edges.py`",
+               box: [90,316,520,52],
+               style: {font: heading, size: 28, weight: 700, color: primary, align: left, line_height: 32, wrap: true}}
+            - {type: text, id: c1_b,    decorative: true,
+               text: "**Today**: 8 edges across 42 test files (ratio 0.19).\n**Target**: imports-based binding **OR** coverage.py ingest.\n**Why**: graph cannot answer 'tests cover X?' until this is real.",
+               box: [90,380,520,400],
+               style: {font: primary, size: 18, weight: 400, color: text, align: left, line_height: 28, wrap: true}}
+
+            # Card 2
+            - {type: rect, id: c2_bg,   decorative: true, box: [670,220,580,560],
+               fill: surface, stroke: {color: border, width: 0.6}, radius: 8}
+            - {type: rect, id: c2_bar,  decorative: true, box: [670,220,6,560], fill: accent}
+            - {type: text, id: c2_n,    decorative: true,
+               text: "02",
+               box: [700,238,520,72],
+               style: {font: heading, size: 64, weight: 700, color: accent, align: left, line_height: 70}}
+            - {type: text, id: c2_t,    decorative: true,
+               text: "Grow vocab kinding",
+               box: [700,316,520,52],
+               style: {font: heading, size: 28, weight: 700, color: primary, align: left, line_height: 32, wrap: true}}
+            - {type: text, id: c2_b,    decorative: true,
+               text: "**Today**: 1 / 1 427 concepts kinded (0.07 %).\n**Target**: > 30 % of frequency-top concepts; CI guard against regressions.\n**Why**: vocab v1 is default-on; near-zero yield is a silent no-op.",
+               box: [700,380,520,400],
+               style: {font: primary, size: 18, weight: 400, color: text, align: left, line_height: 28, wrap: true}}
+
+            # Card 3
+            - {type: rect, id: c3_bg,   decorative: true, box: [1280,220,580,560],
+               fill: surface, stroke: {color: border, width: 0.6}, radius: 8}
+            - {type: rect, id: c3_bar,  decorative: true, box: [1280,220,6,560], fill: accent}
+            - {type: text, id: c3_n,    decorative: true,
+               text: "03",
+               box: [1310,238,520,72],
+               style: {font: heading, size: 64, weight: 700, color: accent, align: left, line_height: 70}}
+            - {type: text, id: c3_t,    decorative: true,
+               text: "Split `handlers.py`",
+               box: [1310,316,520,52],
+               style: {font: heading, size: 28, weight: 700, color: primary, align: left, line_height: 32, wrap: true}}
+            - {type: text, id: c3_b,    decorative: true,
+               text: "**Today**: 22 MCP tools in one 29.3 KB file.\n**Target**: one module per tool group (bundle / file / chunk / concept / sparql).\n**Why**: blast radius and merge-conflict risk grow with every new tool.",
+               box: [1310,380,520,400],
+               style: {font: primary, size: 18, weight: 400, color: text, align: left, line_height: 28, wrap: true}}
+        - id: synthesis
+          z: 25
+          objects:
+            - {type: rect, id: s_bg, decorative: true, box: [60,810,1800,140], fill: text, radius: 6}
+            - {type: rect, id: s_ba, decorative: true, box: [60,810,4,140],    fill: accent}
+            - {type: text, id: s_t, decorative: true,
+               text: "Each action is **bounded** — single file or single module. None of the three require cross-cutting redesign.",
+               box: [90,830,1740,100],
+               style: {font: primary, size: 22, weight: 700, color: white, align: left, line_height: 32, wrap: true}}
+        - id: footer
+          z: 30
+          objects:
+            - {type: line, id: f_rule, decorative: true, from: [32,1056], to: [1888,1056],
+               stroke: {color: border, width: 0.5}}
+            - {type: text, id: f_brand, decorative: true,
+               text: "code-base-mapper · Architecture Report · 715de92",
+               box: [32,1064,1200,20],
+               style: {font: primary, size: 13, weight: 700, color: text_muted, align: left}}
+            - {type: text, id: f_pn, decorative: true,
+               text: "13 / 13",
+               box: [1700,1064,180,20],
+               style: {font: primary, size: 14, weight: 400, color: text_muted, align: right}}
