@@ -37,6 +37,15 @@ slide_template_patterns:
       regular body (22px) for the subtitle; small italic muted for the
       metadata. Three zones, hand-tuned coordinates so the title sits
       visually above center and breathes against the chrome.
+
+      Chrome suppression: covers don't show the small chrome title,
+      the separator rule, or the page number — the body draws the
+      display title and the cover is implicitly slide 00. A slide
+      author can override any of these per-slide via `chrome: {...}`.
+    canvas_overrides:
+      title: ""
+      title_rule: false
+      page_number: false
     zones:
       title:
         box: [120, 360, 1680, 180]
@@ -69,7 +78,7 @@ slide_template_patterns:
                 wrap: true
         label_text: ""
       subtitle:
-        box: [120, 580, 1680, 100]
+        box: [120, 580, 1680, 80]
         treatment:
           fill_color: none
           stroke_color: none
@@ -103,7 +112,11 @@ slide_template_patterns:
                 wrap: true
         label_text: ""
       metadata:
-        box: [120, 920, 1680, 60]
+        # Sits above the synthesis-band reservation (band occupies
+        # y≈948–1020 when present, plus the 24px footer band below).
+        # Box top is calibrated so a 2–3 line key/value list breathes
+        # without ever colliding with the band.
+        box: [120, 820, 1680, 96]
         treatment:
           fill_color: none
           stroke_color: none
@@ -114,8 +127,9 @@ slide_template_patterns:
           weight: 400
           color: text_muted
           align: left
-          v_align: middle
+          v_align: top
           italic: true
+          line_height: 22
         label_text: ""
 - id: 2
   name: Section Divider
@@ -143,6 +157,79 @@ slide_template_patterns:
         v: middle
     content_type: decorative
   category: generic
+  # Enterprise-polished section divider (1920×1080). Large display
+  # part-number label in muted serif; massive display title; subtle
+  # accent rule below. Decorative zone is suppressed.
+  enterprise_layout:
+    notes: |
+      Section divider. Part-number renders as a small kicker (label
+      = "PART") above a 64px display title with a thin accent rule
+      below. Body text sits underneath in regular weight.
+    zones:
+      section_number:
+        box: [120, 340, 1680, 96]
+        treatment:
+          fill_color: none
+          stroke_color: none
+          padding: 0
+          slots:
+            kpi_value:
+              height: 96
+              typography:
+                font: heading
+                size: 96
+                weight: 700
+                color: accent
+                align: left
+                v_align: top
+                line_height: 100
+            kpi_label:
+              typography:
+                font: primary
+                size: 16
+                weight: 700
+                color: accent
+                align: left
+                v_align: top
+                line_height: 20
+        label_text: ""
+      section_title:
+        box: [120, 460, 1680, 320]
+        treatment:
+          fill_color: none
+          stroke_color: none
+          padding: 0
+          accent_bar:
+            side: left
+            width: 4
+            color: accent
+          slots:
+            title:
+              height: 80
+              gap_below: 16
+              typography:
+                font: heading
+                size: 64
+                weight: 700
+                color: primary
+                align: left
+                v_align: top
+                line_height: 76
+                wrap: true
+            body:
+              typography:
+                font: primary
+                size: 22
+                weight: 400
+                color: text
+                align: left
+                v_align: top
+                line_height: 32
+                wrap: true
+        label_text: ""
+      decorative_element:
+        box: [0, 0, 0, 0]
+        label_text: ""
 - id: 3
   name: Agenda Slide
   layout_disposition: Vertical numbered list of topics, often with the current section highlighted.
@@ -338,6 +425,108 @@ slide_template_patterns:
         v: bottom
     content_type: list_items
   category: generic
+  # SWOT polish — four labelled quadrants. Boxes come from the
+  # layout planner (4-corner equal split). Each quadrant carries a
+  # tinted accent bar and a clear LABEL band so readers can scan
+  # strengths/weaknesses/opportunities/threats at a glance.
+  enterprise_layout:
+    notes: |
+      Four-quadrant SWOT. Strengths/Opportunities use a positive
+      accent (green/accent); Weaknesses/Threats use a warning accent
+      (warm). Label bands are 16px bold uppercase.
+    zones:
+      strengths:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar:
+            side: left
+            width: 4
+            color: data_3
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: data_3
+                align: left
+                v_align: middle
+                line_height: 16
+      weaknesses:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar:
+            side: left
+            width: 4
+            color: accent_warm
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: accent_warm
+                align: left
+                v_align: middle
+                line_height: 16
+      opportunities:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar:
+            side: left
+            width: 4
+            color: accent
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: accent
+                align: left
+                v_align: middle
+                line_height: 16
+      threats:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar:
+            side: left
+            width: 4
+            color: text
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: text
+                align: left
+                v_align: middle
+                line_height: 16
 - id: 11
   name: Roadmap
   layout_disposition: Horizontal or vertical sequence of phases over time.
@@ -1405,6 +1594,169 @@ slide_template_patterns:
     shape: list
     content_type: list_items
   category: generic
+  # Recommendations polish — hand-tuned 1920×1080 layout. Headline
+  # spans the top; below: a wide recommendation panel (left ~60 %),
+  # a priority sidebar (right ~36 %); rationale callout below the
+  # panel; next-steps strip across the footer. Each zone carries a
+  # labelled accent card.
+  enterprise_layout:
+    notes: |
+      Closing / recommendations slide. Headline card + 3-up content
+      columns + dark next-steps strip. Tuned for 1920×1080.
+    zones:
+      recommendation_cards:
+        box: [60, 140, 1180, 540]
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [28, 36, 28, 36]
+          accent_bar:
+            side: left
+            width: 6
+            color: accent
+          slots:
+            label:
+              height: 18
+              gap_below: 12
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: accent
+                align: left
+                v_align: middle
+                line_height: 18
+            title:
+              height: 56
+              gap_below: 14
+              typography:
+                font: heading
+                size: 36
+                weight: 700
+                color: primary
+                align: left
+                v_align: top
+                line_height: 44
+                wrap: true
+            body:
+              typography:
+                font: primary
+                size: 18
+                weight: 400
+                color: text
+                align: left
+                v_align: top
+                line_height: 28
+                wrap: true
+      priority_labels:
+        box: [1260, 140, 600, 240]
+        treatment:
+          fill_color: text
+          stroke_color: none
+          corner_radius: 6
+          padding: [24, 32, 24, 32]
+          accent_bar:
+            side: left
+            width: 4
+            color: accent
+          slots:
+            label:
+              height: 18
+              gap_below: 12
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: accent
+                align: left
+                v_align: middle
+                line_height: 18
+        typography:
+          font: primary
+          size: 18
+          weight: 400
+          color: white
+          align: left
+          v_align: top
+          line_height: 26
+      rationale:
+        box: [1260, 400, 600, 280]
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [28, 32, 28, 32]
+          accent_bar:
+            side: left
+            width: 4
+            color: data_3
+          slots:
+            label:
+              height: 18
+              gap_below: 12
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: data_3
+                align: left
+                v_align: middle
+                line_height: 18
+            title:
+              height: 32
+              gap_below: 10
+              typography:
+                font: heading
+                size: 22
+                weight: 700
+                color: primary
+                align: left
+                v_align: top
+                line_height: 28
+            body:
+              typography:
+                font: primary
+                size: 16
+                weight: 400
+                color: text
+                align: left
+                v_align: top
+                line_height: 24
+                wrap: true
+      next_steps:
+        box: [60, 700, 1800, 220]
+        treatment:
+          fill_color: panel
+          stroke_color: none
+          corner_radius: 6
+          padding: [24, 36, 24, 36]
+          accent_bar:
+            side: top
+            width: 3
+            color: accent
+          slots:
+            label:
+              height: 18
+              gap_below: 14
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: accent
+                align: left
+                v_align: middle
+                line_height: 18
+        typography:
+          font: primary
+          size: 18
+          weight: 400
+          color: text
+          align: left
+          v_align: top
+          line_height: 28
 - id: 50
   name: Closing / Thank You Slide
   layout_disposition: Minimal closing slide with thank-you message, contact details, and optional call to action.
@@ -2625,6 +2977,106 @@ slide_template_patterns:
     placement: *id052
     content_type: list_items
   use_case: Tracks risks, assumptions, issues, and dependencies.
+  # RAID polish — four labelled quadrants with color-coded accents.
+  # Risks=warm, Assumptions=accent, Issues=text, Dependencies=data_3.
+  enterprise_layout:
+    notes: |
+      RAID 4-quadrant layout. Each card has a tinted accent bar and
+      a clear LABEL band so readers can identify the category at a
+      glance. Uses planner boxes (4-corner equal split).
+    zones:
+      risks:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [18, 24, 18, 24]
+          accent_bar:
+            side: left
+            width: 4
+            color: accent_warm
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: accent_warm
+                align: left
+                v_align: middle
+                line_height: 16
+      assumptions:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [18, 24, 18, 24]
+          accent_bar:
+            side: left
+            width: 4
+            color: accent
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: accent
+                align: left
+                v_align: middle
+                line_height: 16
+      issues:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [18, 24, 18, 24]
+          accent_bar:
+            side: left
+            width: 4
+            color: text
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: text
+                align: left
+                v_align: middle
+                line_height: 16
+      dependencies:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [18, 24, 18, 24]
+          accent_bar:
+            side: left
+            width: 4
+            color: data_3
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography:
+                font: primary
+                size: 14
+                weight: 700
+                color: data_3
+                align: left
+                v_align: middle
+                line_height: 16
 - id: 94
   name: Dependency Map
   layout_disposition: Network or timeline-based dependency diagram.
@@ -6145,6 +6597,129 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Tracks key decisions, owners, dates, and implications.
+  # Decision-log polish — five zones share a common card chrome with
+  # accent labels and panel backgrounds. Uses planner boxes.
+  enterprise_layout:
+    notes: |
+      Decision log. Five zones (decision items + four table columns)
+      sharing one polished card treatment so the page reads as a
+      coherent grid. Each label band is small accent caps.
+    zones:
+      decision_items:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [18, 22, 18, 22]
+          accent_bar:
+            side: left
+            width: 4
+            color: accent
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography:
+                font: primary
+                size: 12
+                weight: 700
+                color: accent
+                align: left
+                v_align: middle
+                line_height: 14
+      decision_owner:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar:
+            side: top
+            width: 3
+            color: data_3
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography:
+                font: primary
+                size: 12
+                weight: 700
+                color: data_3
+                align: left
+                v_align: middle
+                line_height: 14
+      decision_date:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar:
+            side: top
+            width: 3
+            color: accent
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography:
+                font: primary
+                size: 12
+                weight: 700
+                color: accent
+                align: left
+                v_align: middle
+                line_height: 14
+      implications:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar:
+            side: top
+            width: 3
+            color: text
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography:
+                font: primary
+                size: 12
+                weight: 700
+                color: text
+                align: left
+                v_align: middle
+                line_height: 14
+      follow_up_actions:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar:
+            side: top
+            width: 3
+            color: accent_warm
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography:
+                font: primary
+                size: 12
+                weight: 700
+                color: accent_warm
+                align: left
+                v_align: middle
+                line_height: 14
 - id: 220
   name: Executive Escalation Slide
   layout_disposition: Issue framing with options, recommendation, impact, and required decision.

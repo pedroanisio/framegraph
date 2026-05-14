@@ -31,7 +31,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from framegraph._helpers import attrs, box, esc, fmt, fnum
+from framegraph._helpers import attrs, box, esc, fmt, fnum, pt
 from framegraph._types import RendererContext
 
 # UML visibility → glyph prefix per UML 2.5 §7.5.4.4.
@@ -151,6 +151,98 @@ def _line_decoration(member: Mapping[str, Any]) -> tuple[bool, bool]:
     return italic, underline
 
 
+def _render_note(
+    r: RendererContext,
+    obj: Mapping[str, Any],
+    bx: float,
+    by: float,
+    bw: float,
+    style: Mapping[str, Any],
+    name: str,
+    attributes: list[Any],
+) -> str:
+    """Render a UML note — folded-corner rectangle (annotation glyph).
+
+    Per UML 2.5.1 §A.7 a Comment / note is drawn as a rectangle with one
+    corner (conventionally the upper-right) bent inward like a turned-up
+    page. We emit the outline as a 6-vertex polygon (rectangle minus
+    one corner) plus a small triangle showing the underside of the
+    fold. Free-form text (the note body) is rendered as the `name`
+    plus an optional list of `attributes` rows for compactness — a
+    note has no compartments, no header band, no italic stereotype
+    line under the title.
+    """
+    obj_box = obj.get("box")
+    line_height = fnum(style.get("member_size"), 11) + 8
+    name_size = fnum(style.get("name_size"), 14)
+    border_color = r.color(style.get("border_color", "#1A1A1A"), "#1A1A1A")
+    border_width = fnum(style.get("border_width"), 1.0)
+    body_fill = r.fill_value(style.get("body_fill", "#FFFFFF"), "#FFFFFF")
+    fold_fill = r.fill_value(style.get("fold_fill", "#F0EDE6"), "#F0EDE6")
+    text_color = r.color(style.get("text_color", "#1A1A1A"), "#1A1A1A")
+    font_family = "Helvetica, Arial, sans-serif"
+    fold = fnum(style.get("fold_size"), 14.0)
+
+    # Height: explicit when supplied, else fit content (title + rows).
+    auto_h = name_size + 14 + len(attributes) * line_height + 12
+    if isinstance(obj_box, (list, tuple)) and len(obj_box) == 4 and fnum(obj_box[3]) > 0:
+        bh = fnum(obj_box[3])
+    else:
+        bh = max(auto_h, fold + 24)
+
+    out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
+    # Outer outline (rect minus the upper-right corner, traced
+    # clockwise from the upper-left).
+    outline = (
+        f"M {fmt(bx)} {fmt(by)} "
+        f"L {fmt(bx + bw - fold)} {fmt(by)} "
+        f"L {fmt(bx + bw)} {fmt(by + fold)} "
+        f"L {fmt(bx + bw)} {fmt(by + bh)} "
+        f"L {fmt(bx)} {fmt(by + bh)} Z"
+    )
+    out.append(
+        f'<path d="{outline}" fill="{body_fill}" '
+        f'stroke="{border_color}" stroke-width="{fmt(border_width)}" '
+        f'stroke-linejoin="miter"/>'
+    )
+    # The fold triangle (a small filled triangle showing the underside
+    # of the turned-up page corner). Its hypotenuse joins the two
+    # cut-corner endpoints; the fold colour is conventionally a
+    # slightly muted shade of the body fill.
+    fold_path = (
+        f"M {fmt(bx + bw - fold)} {fmt(by)} "
+        f"L {fmt(bx + bw - fold)} {fmt(by + fold)} "
+        f"L {fmt(bx + bw)} {fmt(by + fold)} Z"
+    )
+    out.append(
+        f'<path d="{fold_path}" fill="{fold_fill}" '
+        f'stroke="{border_color}" stroke-width="{fmt(border_width)}" '
+        f'stroke-linejoin="miter"/>'
+    )
+    # Title (bold-ish) plus row-style attributes if any.
+    text_x = bx + 10
+    cursor_y = by + 10 + name_size * 0.78
+    out.append(
+        f'<text x="{fmt(text_x)}" y="{fmt(cursor_y)}" '
+        f'font-family="{font_family}" font-size="{fmt(name_size)}" '
+        f'font-weight="700" fill="{text_color}" text-anchor="start">'
+        f"{esc(name)}</text>"
+    )
+    cursor_y += line_height + 2
+    member_size = fnum(style.get("member_size"), 11)
+    for a in attributes:
+        line_text = _format_attribute(a)
+        out.append(
+            f'<text x="{fmt(text_x)}" y="{fmt(cursor_y)}" '
+            f'font-family="{font_family}" font-size="{fmt(member_size)}" '
+            f'fill="{text_color}" text-anchor="start">'
+            f"{esc(line_text)}</text>"
+        )
+        cursor_y += line_height
+    out.append("</g>")
+    return "\n".join(out)
+
+
 def render_classifier_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
     """Render a UML classifier (class/interface/enumeration) box.
 
@@ -205,6 +297,14 @@ def render_classifier_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
     attributes = obj.get("attributes") or []
     operations = obj.get("operations") or []
 
+    # `«note»` stereotype is a UML note (annotation), not a classifier.
+    # Per UML 2.5.1 §A.7 it renders as a folded-corner rectangle. We
+    # delegate to a dedicated path that draws the right shape and skips
+    # the three-compartment chrome (header band, separators) — notes
+    # carry free-form text, not typed members.
+    if stereotype == "note":
+        return _render_note(r, obj, bx, by, bw, style, name, attributes)
+
     # ── Defaults ──
     border_color = r.color(style.get("border_color", "#1A1A1A"), "#1A1A1A")
     border_width = fnum(style.get("border_width"), 1.0)
@@ -232,8 +332,33 @@ def render_classifier_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
 
     # By default the inner separator is drawn between the attribute and
     # operation compartments. The compressor below may suppress it when
-    # the explicit height leaves no room for an operation band.
+    # the explicit height leaves no room for an operation band, AND the
+    # block below suppresses it when the operations compartment is
+    # entirely empty (UML 2.5.1 §9.5.4: empty compartments may be
+    # elided). Suppressing the separator here lets the attribute band
+    # absorb the would-be operation band and keeps the box visually
+    # tight rather than padded with an empty stripe at the bottom.
     draw_inner_separator = True
+    if not operations and attributes:
+        # Move the empty-band space into the attrs compartment so the
+        # outer box height is preserved when an explicit height is set;
+        # otherwise the attrs band shrinks to its natural extent.
+        attrs_h = attrs_h + ops_h
+        ops_h = 0.0
+        total_h = header_h + attrs_h
+        draw_inner_separator = False
+    elif not attributes and operations:
+        # Symmetric collapse when only operations are declared.
+        ops_h = attrs_h + ops_h
+        attrs_h = 0.0
+        total_h = header_h + ops_h
+        draw_inner_separator = False
+    elif not attributes and not operations:
+        # Name-only classifier — collapse both bands.
+        attrs_h = attrs_h + ops_h
+        ops_h = 0.0
+        total_h = header_h + attrs_h
+        draw_inner_separator = False
 
     # Override with explicit height when supplied (composer-driven sizing)
     obj_box = obj.get("box")
@@ -1683,6 +1808,69 @@ def render_timing_lane(r: RendererContext, obj: Mapping[str, Any]) -> str:
     return "\n".join(out)
 
 
+def render_marker_glyph(r: RendererContext, obj: Mapping[str, Any]) -> str:
+    """Render an inline UML marker glyph (diamond, triangle, arrowhead).
+
+    Used in legends and inline prose where the diagram's own arrow
+    markers must appear next to descriptive text. Without this, decks
+    fall back to embedding the Unicode glyphs (◇ ◆ △ ▲) directly into
+    `<text>`, which renders as missing-glyph tofu when the rasteriser's
+    fallback chain doesn't include a font that ships those code points
+    (DejaVu Sans on stock Debian, for example).
+
+    YAML surface
+    ------------
+        type: uml.marker_glyph
+        kind: hollow_diamond | filled_diamond | hollow_triangle |
+              filled_triangle | open_arrow
+        position: [x, y]                 # baseline-aligned anchor
+        size: 12                         # glyph height in px (default 12)
+        color: "#1A1A1A"                 # outline / fill colour
+        rotation: 0                      # degrees, optional
+    """
+    kind = str(obj.get("kind", "filled_triangle"))
+    px, py = pt(obj.get("position", [0, 0]))
+    size = fnum(obj.get("size"), 12.0)
+    color = r.color(obj.get("color"), "#1A1A1A")
+    rotation = fnum(obj.get("rotation"), 0.0)
+
+    # Each glyph is a small polygon centred on its (x, y) anchor.
+    # Coordinates are in the glyph's own local space and then
+    # translated/scaled into canvas space via the wrapping <g>.
+    if kind == "hollow_diamond":
+        path_d = "M -0.5,0 L 0,-0.4 L 0.5,0 L 0,0.4 Z"
+        fill, stroke = "#FFFFFF", color
+    elif kind == "filled_diamond":
+        path_d = "M -0.5,0 L 0,-0.4 L 0.5,0 L 0,0.4 Z"
+        fill, stroke = color, color
+    elif kind == "hollow_triangle":
+        path_d = "M -0.5,0.4 L 0.5,0 L -0.5,-0.4 Z"
+        fill, stroke = "#FFFFFF", color
+    elif kind == "filled_triangle":
+        path_d = "M -0.5,0.4 L 0.5,0 L -0.5,-0.4 Z"
+        fill, stroke = color, color
+    elif kind == "open_arrow":
+        path_d = "M -0.5,0.4 L 0.5,0 L -0.5,-0.4"
+        fill, stroke = "none", color
+    else:
+        # Unknown kind: emit a small filled square so the glyph slot
+        # is still visible (fail-loud rather than silent-no-render).
+        path_d = "M -0.4,-0.4 L 0.4,-0.4 L 0.4,0.4 L -0.4,0.4 Z"
+        fill, stroke = color, color
+
+    transform = f"translate({fmt(px)},{fmt(py)}) scale({fmt(size)})"
+    if rotation:
+        transform += f" rotate({fmt(rotation)})"
+    stroke_width = 1.0 / size  # 1 px in canvas space
+    return (
+        f'<g {attrs(r.group_attrs(obj))}>'
+        f'<g transform="{transform}">'
+        f'<path d="{path_d}" fill="{fill}" stroke="{stroke}" '
+        f'stroke-width="{fmt(stroke_width)}" stroke-linejoin="miter"/>'
+        f"</g></g>"
+    )
+
+
 RENDERERS = {
     "uml.classifier_box": render_classifier_box,
     "uml.actor": render_actor,
@@ -1700,4 +1888,5 @@ RENDERERS = {
     "uml.activation_bar": render_activation_bar,
     "uml.fragment_frame": render_fragment_frame,
     "uml.timing_lane": render_timing_lane,
+    "uml.marker_glyph": render_marker_glyph,
 }

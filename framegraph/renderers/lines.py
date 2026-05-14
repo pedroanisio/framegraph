@@ -113,8 +113,9 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
 
     Emits an inner label via `r.text_svg` when `obj.label` is a mapping.
     """
-    start = r.endpoint(obj.get("from"))
-    end = r.endpoint(obj.get("to"))
+    conn_id = obj.get("id")
+    start = r.endpoint(obj.get("from"), _connector_id=conn_id, _end_label="from")
+    end = r.endpoint(obj.get("to"), _connector_id=conn_id, _end_label="to")
     from_ep = obj.get("from")
     to_ep = obj.get("to")
     route = obj.get("route", {}) or {}

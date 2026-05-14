@@ -778,10 +778,31 @@ class FrameGraphDeckRenderer:
             doc["scene"]["description"] = slide["description"]
 
         # Build chrome + synthesis layers and prepend so they paint
-        # behind the content.
+        # behind the content. The pattern's `enterprise_layout` may
+        # carry chrome-level overrides (e.g. cover slides suppress the
+        # chrome title + separator + page number to give the body
+        # display type full vertical space). Slide-level `chrome:`
+        # still wins on conflict — the catalog ships defaults, the
+        # author can override per-slide.
         layers = list(doc["visual"].get("layers") or [])
+        slide_for_chrome = slide
+        ent_canvas = (
+            pattern.enterprise_layout.canvas_overrides
+            if pattern.enterprise_layout is not None
+            else None
+        )
+        if ent_canvas:
+            existing = slide.get("chrome", {})
+            if isinstance(existing, dict):
+                merged_chrome = {**ent_canvas, **existing}
+                slide_for_chrome = {**slide, "chrome": merged_chrome}
+            elif existing is False or existing == 0:
+                # author explicitly disabled chrome — honor that
+                pass
+            else:
+                slide_for_chrome = {**slide, "chrome": dict(ent_canvas)}
         chrome_layer = self._build_chrome_layer_v2(
-            slide=slide,
+            slide=slide_for_chrome,
             chrome_cfg=chrome_cfg,
             canvas_w=canvas_w,
             canvas_h=canvas_h,
@@ -877,7 +898,14 @@ class FrameGraphDeckRenderer:
             band_y = float(title_band.get("y_offset", 0))
             margin_l = float(title_band.get("margin_left", 32))
             margin_r = float(title_band.get("margin_right", 80))
-            title_text = overrides.get("title") or slide.get("title", "") or ""
+            # An explicit `chrome.title: ""` suppresses the chrome title
+            # (used by cover/divider patterns whose body draws the
+            # display title instead). Falls back to slide.title only
+            # when the override key is absent.
+            if "title" in overrides:
+                title_text = overrides["title"] or ""
+            else:
+                title_text = slide.get("title", "") or ""
             if title_text:
                 objects.append(
                     {
@@ -895,9 +923,9 @@ class FrameGraphDeckRenderer:
                     }
                 )
 
-        # 3. Title separator rule
+        # 3. Title separator rule (suppress with `chrome.title_rule: false`)
         sep = chrome_cfg.get("title_separator") or {}
-        if sep:
+        if sep and overrides.get("title_rule", True):
             sep_y = float(sep.get("y_offset", 56))
             margin_l = float((title_band or {}).get("margin_left", 32))
             margin_r = float((title_band or {}).get("margin_right", 80))
@@ -915,10 +943,14 @@ class FrameGraphDeckRenderer:
                 }
             )
 
-        # 4. Page number — top-right
+        # 4. Page number — top-right (suppress with `chrome.page_number: false`)
         page_num_cfg = chrome_cfg.get("page_number") or {}
         slide_num = slide.get("slide")
-        if page_num_cfg and slide_num is not None:
+        if (
+            page_num_cfg
+            and slide_num is not None
+            and overrides.get("page_number", True)
+        ):
             x_from_right = float(page_num_cfg.get("x_from_right", 32))
             y = float(page_num_cfg.get("y", 18))
             fmt = page_num_cfg.get("format", "{n:02d}")

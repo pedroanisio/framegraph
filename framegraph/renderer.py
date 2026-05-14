@@ -199,6 +199,12 @@ class FrameGraphRenderer:
         self._build_gradients()  # must come before _build_markers (may add colors)
         self._build_markers()
         self.index_objects()
+        # Auto-distribute connector endpoints that pile up on a single
+        # side. Populated lazily; populated entries take precedence
+        # over the per-endpoint default that resolves to the side
+        # midpoint. See `_assign_side_ports` for the policy.
+        self._side_port_assignments: dict[str, tuple[int, int]] = {}
+        self._assign_side_ports()
 
     # ------------------------------------------------------------------
     # Construction
@@ -682,6 +688,99 @@ class FrameGraphRenderer:
             for name, p in explicit.items():
                 ports[str(name)] = pt(p)
         return ports
+
+    def _assign_side_ports(self) -> None:
+        """Pre-pass: detect connector endpoints that pile up on a side
+        and auto-assign distributed port positions.
+
+        Walks every connector in z-order. For each `from`/`to` endpoint
+        of the form ``{object: X, side: Y}`` *without* an explicit
+        ``offset`` or ``port_index``, the connector is registered as a
+        candidate for the ``(X, Y)`` collision bucket. After the walk,
+        any bucket with two or more candidates gets each endpoint
+        assigned ``(port_index, port_total)`` evenly along that side.
+
+        The assignments are keyed on the connector's ``id`` plus the
+        side label (``"from"`` / ``"to"``) and consumed by
+        :meth:`endpoint` when the endpoint resolves.
+
+        This makes "many edges to one hub" produce a clean fan-out of
+        attachment points instead of a marker pile-up at the side
+        midpoint — without requiring the deck author to compute and
+        write per-edge port indices by hand.
+        """
+        # bucket: (oid, side) → list of (assignment_key, sort_key)
+        buckets: dict[tuple[str, str], list[tuple[str, float]]] = {}
+        # When a connector explicitly specifies a port_index/port_total
+        # we record the *total* the author committed to so the
+        # auto-assigner respects it (no surprise reflows of decks
+        # that already use the explicit form).
+        committed_totals: dict[tuple[str, str], int] = {}
+        for layer in self.sorted_layers():
+            for obj in layer.get("objects", []) or []:
+                if not isinstance(obj, Mapping) or obj.get("type") != "connector":
+                    continue
+                conn_id = obj.get("id")
+                if conn_id is None:
+                    continue
+                for end_label in ("from", "to"):
+                    ep = obj.get(end_label)
+                    if not isinstance(ep, Mapping):
+                        continue
+                    oid = ep.get("object")
+                    side = ep.get("side")
+                    if oid is None or side is None:
+                        continue
+                    if "offset" in ep:
+                        continue  # author chose a literal anchor → respect it
+                    if "port_total" in ep:
+                        committed_totals[(str(oid), str(side))] = int(ep["port_total"])
+                        continue
+                    bucket_key = (str(oid), str(side))
+                    sort_key = self._port_sort_key(obj, end_label)
+                    buckets.setdefault(bucket_key, []).append(
+                        (f"{conn_id}::{end_label}", sort_key)
+                    )
+
+        for bucket_key, members in buckets.items():
+            if len(members) < 2:
+                continue  # single edge — midpoint anchor is fine
+            committed = committed_totals.get(bucket_key)
+            total = committed if committed and committed >= len(members) else len(members)
+            members.sort(key=lambda m: m[1])
+            for i, (assign_key, _) in enumerate(members, start=1):
+                self._side_port_assignments[assign_key] = (i, total)
+
+    def _port_sort_key(self, conn: Mapping[str, Any], end_label: str) -> float:
+        """Tangent-direction coordinate of the *other* endpoint.
+
+        Sorting auto-distributed ports by the source's projection along
+        the target side keeps semantically related edges visually
+        adjacent (e.g. a left-row source ends up on the left port).
+        Falls back to ``0.0`` when the other endpoint can't be
+        resolved (e.g. literal coordinate or unknown reference).
+        """
+        other_label = "from" if end_label == "to" else "to"
+        other = conn.get(other_label)
+        if not isinstance(other, Mapping):
+            return 0.0
+        oid = other.get("object")
+        if oid is None or str(oid) not in self.object_index:
+            return 0.0
+        rec = self.object_index[str(oid)]
+        b = rec.get("box")
+        if not b:
+            return 0.0
+        x, y, w, h = b
+        # The endpoint we're placing is on its own object's `side`;
+        # we use the x-centre of the *other* endpoint when distributing
+        # along a horizontal (north/south) side, and the y-centre for
+        # vertical (east/west) sides.
+        ep = conn.get(end_label)
+        side = ep.get("side") if isinstance(ep, Mapping) else None
+        if str(side).lower() in ("east", "right", "west", "left"):
+            return float(y + h / 2)
+        return float(x + w / 2)
 
     # ------------------------------------------------------------------
     # Validation
@@ -1400,7 +1499,8 @@ class FrameGraphRenderer:
     # the correct absolute coordinates.
     # ------------------------------------------------------------------
 
-    def endpoint(self, ep: Any) -> Point:
+    def endpoint(self, ep: Any, *, _connector_id: str | None = None,
+                 _end_label: str | None = None) -> Point:
         """Resolve a connector endpoint to a canvas-space (x, y) point.
 
         Accepted forms:
@@ -1446,13 +1546,64 @@ class FrameGraphRenderer:
                     raise ValueError(f"object {oid!r} has no port {port!r}")
                 return cast(Point, rec["ports"][port])
             if ep.get("side") is not None:
+                # Distributed-port form: {side, port_index, port_total}
+                # spaces port `i` evenly along the chosen side. Lets a
+                # single-target hub (e.g. a UML aggregate-root receiving
+                # five aggregation arrows) declare attachment points
+                # that don't cluster at the centre. `port_inset`
+                # controls the margin from each box corner; defaults
+                # to 24 px so glyphs don't touch the corner.
+                if ep.get("port_total") is not None:
+                    return self.side_anchor(
+                        rec,
+                        str(ep["side"]),
+                        port_index=int(ep.get("port_index", 1)),
+                        port_total=int(ep["port_total"]),
+                        port_inset=fnum(ep.get("port_inset"), 24.0),
+                    )
+                # Auto-distribution: the pre-pass found ≥2 connectors
+                # converging on this side without explicit offsets,
+                # so each gets a port assignment that fans out the
+                # attachment points. An explicit offset on the
+                # endpoint short-circuits this — the author wins.
+                if "offset" not in ep and _connector_id is not None and _end_label is not None:
+                    auto_key = f"{_connector_id}::{_end_label}"
+                    auto = self._side_port_assignments.get(auto_key)
+                    if auto is not None:
+                        idx, total = auto
+                        return self.side_anchor(
+                            rec, str(ep["side"]),
+                            port_index=idx, port_total=total,
+                        )
                 return self.side_anchor(rec, str(ep["side"]), fnum(ep.get("offset"), 0))
             return cast(Point, rec["ports"].get("center", (0.0, 0.0)))
         # ── coordinate pair ───────────────────────────────────────────────
         return pt(ep)
 
-    def side_anchor(self, rec: Mapping[str, Any], side: str, offset: float = 0.0) -> Point:
+    def side_anchor(
+        self,
+        rec: Mapping[str, Any],
+        side: str,
+        offset: float = 0.0,
+        *,
+        port_index: int | None = None,
+        port_total: int | None = None,
+        port_inset: float = 24.0,
+    ) -> Point:
         """Return a point on a named side of an indexed object.
+
+        Two anchoring modes:
+
+          - **Offset** (default) — anchor at the side's midpoint shifted
+            by `offset` along the side's tangent. Backwards-compatible
+            with all existing decks.
+          - **Distributed port** — when `port_total` is set, the anchor
+            is the `port_index`-th evenly spaced port along the side
+            (1-indexed). The first and last ports sit `port_inset` px
+            from the box corners. Resolves the "many edges to one
+            hub" cluster that produces overlapping arrowhead markers
+            on aggregate-root nodes (UML class diagrams), routing
+            sources (sequence diagrams), and bus-style adapters.
 
         Args:
             rec: An entry from `self.object_index` (must have a
@@ -1462,7 +1613,14 @@ class FrameGraphRenderer:
                 the box center.
             offset: Tangential offset along the chosen side (positive
                 in the canvas-x direction for top/bottom, in the
-                canvas-y direction for left/right).
+                canvas-y direction for left/right). Ignored when
+                `port_total` is set.
+            port_index: 1-indexed position of this port among
+                `port_total`. Out-of-range values clamp to the
+                nearest endpoint port.
+            port_total: Number of evenly spaced ports the side hosts.
+            port_inset: Margin from each box corner reserved before
+                the first / after the last port.
 
         Raises:
             ValueError: If `rec["box"]` is missing or falsy.
@@ -1472,6 +1630,28 @@ class FrameGraphRenderer:
         if not b:
             raise ValueError("side_anchor requires object box")
         x, y, w, h = b
+
+        if port_total is not None and port_total > 0:
+            idx = max(1, min(int(port_index or 1), port_total))
+            # Available span along the side's tangent direction.
+            tangent_len = (w if side in ("north", "top", "south", "bottom") else h)
+            inset = min(port_inset, max(0.0, (tangent_len - 1) / 2))
+            usable = max(0.0, tangent_len - 2 * inset)
+            if port_total == 1:
+                # Single port → centred on the side.
+                tangent_offset = tangent_len / 2.0
+            else:
+                tangent_offset = inset + usable * (idx - 1) / (port_total - 1)
+            if side in ("north", "top"):
+                return x + tangent_offset, y
+            if side in ("south", "bottom"):
+                return x + tangent_offset, y + h
+            if side in ("east", "right"):
+                return x + w, y + tangent_offset
+            if side in ("west", "left"):
+                return x, y + tangent_offset
+            return x + w / 2, y + h / 2
+
         if side in ("north", "top"):
             return x + w / 2 + offset, y
         if side in ("south", "bottom"):

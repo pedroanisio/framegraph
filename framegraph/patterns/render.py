@@ -206,8 +206,9 @@ def _emit_card(
         if has_fill:
             bg["fill"] = fill_color
         if has_stroke:
-            bg["stroke"] = stroke_color
-            bg["stroke_width"] = stroke_width
+            # `stroke` is a mapping here so the renderer's stroke_style
+            # picks up the declared width (rather than defaulting to 1).
+            bg["stroke"] = {"color": stroke_color, "width": stroke_width}
         if corner_radius:
             bg["corner_radius"] = corner_radius
         objects.append(bg)
@@ -322,28 +323,85 @@ def _emit_card(
 def _body_title_body(
     role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
 ) -> list[dict[str, Any]]:
-    """`title_body` body slot: bold title + body text, both wrapped."""
-    typography = _resolve_typography_ref(
-        (style.get("slots") or {}).get("body", {}).get("typography") or "card_body",
-        stylesheet,
+    """`title_body` body slot: bold title + body text, both wrapped.
+
+    Two rendering modes:
+
+    - **Combined** (default): title + body rendered as bold-leading
+      text spans inside the same text object, sharing typography.
+    - **Slotted** (preset-driven): when the resolved treatment carries
+      a ``slots.title.typography`` with its own size/weight/color, the
+      title and body render as **separate** text objects at the slot's
+      declared height/typography. Used by enterprise presets that need
+      display-grade title typography distinct from body type.
+    """
+    treatment = _resolve_treatment(style, stylesheet)
+    slots = treatment.get("slots") or {}
+    title_slot = slots.get("title") or {}
+    title_typo_ref = title_slot.get("typography")
+
+    # Typography precedence for body:
+    #   1. preset's per-zone `typography` (top-level, applies to body)
+    #   2. treatment.slots.body.typography
+    #   3. fallback: stylesheet's `card_body` text style
+    body_typo_ref = (
+        style.get("typography")
+        or (slots.get("body") or {}).get("typography")
+        or "card_body"
     )
-    title = getattr(value, "title", None) or ""
-    body = getattr(value, "body", None) or ""
+    body_typo = _resolve_typography_ref(body_typo_ref, stylesheet)
+    title_text = getattr(value, "title", None) or ""
+    body_text = getattr(value, "body", None) or ""
+
+    bx, by, bw, bh = body_box
+
+    # Slotted mode — when the treatment declares a title typography,
+    # split the box: title at the top, body below.
+    if title_typo_ref and (title_text or body_text):
+        title_typo = _resolve_typography_ref(title_typo_ref, stylesheet)
+        title_h = float(title_slot.get("height", title_typo.get("line_height", 32) if title_typo else 32))
+        gap_below = float(title_slot.get("gap_below", 6))
+        objects: list[dict[str, Any]] = []
+        if title_text:
+            objects.append(
+                {
+                    "id": f"zone_{role}_title",
+                    "type": "text",
+                    "box": [bx, by, bw, title_h],
+                    "text": title_text,
+                    "style": title_typo or {},
+                }
+            )
+        body_y = by + title_h + gap_below if title_text else by
+        body_h = max(0.0, bh - (body_y - by))
+        if body_text:
+            objects.append(
+                {
+                    "id": f"zone_{role}_body",
+                    "type": "text",
+                    "box": [bx, body_y, bw, body_h],
+                    "text": body_text,
+                    "style": body_typo or {},
+                }
+            )
+        return objects
+
+    # Combined mode — original behavior.
     spans: list[dict[str, Any]] = []
-    if title:
-        spans.append({"text": title, "weight": "bold"})
-    if body:
-        if title:
+    if title_text:
+        spans.append({"text": title_text, "weight": "bold"})
+    if body_text:
+        if title_text:
             spans.append({"text": "\n"})
-        spans.append({"text": body})
+        spans.append({"text": body_text})
     obj: dict[str, Any] = {
         "id": f"zone_{role}",
         "type": "text",
         "box": list(body_box),
         "spans": spans or [{"text": ""}],
     }
-    if typography:
-        obj["style"] = typography
+    if body_typo:
+        obj["style"] = body_typo
     return [obj]
 
 
@@ -370,7 +428,13 @@ def _body_list_items(
     else is treated as a string.
     """
     items = list(value or [])
-    typography = _resolve_typography_ref("card_body", stylesheet)
+    treatment = _resolve_treatment(style, stylesheet)
+    typo_ref = (
+        style.get("typography")
+        or (treatment.get("slots") or {}).get("body", {}).get("typography")
+        or "card_body"
+    )
+    typography = _resolve_typography_ref(typo_ref, stylesheet)
 
     # Detect object items by checking the first one. The fill schema
     # builder constrains a sidecar-overridden list zone to a single
@@ -418,7 +482,16 @@ def _body_key_value(
     role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
 ) -> list[dict[str, Any]]:
     items = [] if value is None else [f"{k}: {v}" for k, v in value.items()]
-    typography = _resolve_typography_ref("card_body_small", stylesheet)
+    treatment = _resolve_treatment(style, stylesheet)
+    # Preset's zone-level `typography` wins; otherwise the
+    # treatment may carry slots.body.typography; otherwise the
+    # stylesheet's `card_body_small` is the legacy default.
+    typo_ref = (
+        style.get("typography")
+        or (treatment.get("slots") or {}).get("body", {}).get("typography")
+        or "card_body_small"
+    )
+    typography = _resolve_typography_ref(typo_ref, stylesheet)
     obj: dict[str, Any] = {
         "id": f"zone_{role}",
         "type": "bullet_list",
@@ -529,7 +602,9 @@ def _body_metric(
     value_typo = _resolve_typography_ref(
         (slots.get("kpi_value") or {}).get("typography") or "kpi_value", stylesheet
     )
-    label_typo = _resolve_typography_ref("kpi_label", stylesheet)
+    label_typo = _resolve_typography_ref(
+        (slots.get("kpi_label") or {}).get("typography") or "kpi_label", stylesheet
+    )
 
     val = getattr(value, "value", None) or ""
     label = getattr(value, "label", None) or ""
@@ -664,12 +739,19 @@ def compose_document(
     objects: list[dict[str, Any]] = []
     label_cfg = stylesheet.model_dump().get("zone_labels", {}) if stylesheet else {}
 
-    # Pattern-level enterprise polish presets — applied per-zone under
-    # the active stylesheet (stylesheet still wins on conflict). When
-    # the pattern declares no `enterprise_layout`, this dict is empty
-    # and the code path is byte-identical to the pre-preset behavior.
-    ent_layout = pattern.enterprise_layout
-    ent_zones = ent_layout.zones if ent_layout is not None else {}
+    # Pattern-level enterprise polish presets — applied per-zone over
+    # the active stylesheet. Presets are calibrated for **slide-grade
+    # canvases** (≥ 1280 px wide). On legacy print-density canvases
+    # (e.g. 960×540) presets opt out so existing print stylesheets
+    # remain in control — print and slide are different design
+    # languages and shouldn't share a single set of pixel coordinates.
+    # When the pattern declares no `enterprise_layout`, this dict is
+    # empty regardless of canvas.
+    ENTERPRISE_PRESET_MIN_WIDTH = 1280.0
+    if canvas_w >= ENTERPRISE_PRESET_MIN_WIDTH and pattern.enterprise_layout is not None:
+        ent_zones = pattern.enterprise_layout.zones
+    else:
+        ent_zones = {}
 
     for zone in pattern.zones:
         if zone.role not in layout:

@@ -912,47 +912,39 @@ slides:
           z: 20
           objects:
             # FileRecord ◇— ImportEdge ... (aggregation, hollow diamond at FileRecord).
-            # Distributed-port form spreads the seven incoming edges
-            # evenly along FileRecord's south face so the diamond
-            # markers no longer cluster within a 240 px span.
+            # No port indices needed — the renderer's collision-detection
+            # pre-pass spots the seven endpoints converging on
+            # FileRecord's south face and auto-fans them out, sorted
+            # by source x so semantically adjacent edges stay
+            # visually adjacent.
             - {type: connector, id: a_ie,
-               from: {object: ImportEdge, side: north},
-               to:   {object: FileRecord, side: south, port_index: 1, port_total: 7},
+               from: {object: ImportEdge, side: north}, to: {object: FileRecord, side: south},
                route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_iee,
-               from: {object: ImportExternalEdge, side: north},
-               to:   {object: FileRecord, side: south, port_index: 2, port_total: 7},
+               from: {object: ImportExternalEdge, side: north}, to: {object: FileRecord, side: south},
                route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_dde,
-               from: {object: DeclaresDependencyEdge, side: north},
-               to:   {object: FileRecord, side: south, port_index: 3, port_total: 7},
+               from: {object: DeclaresDependencyEdge, side: north}, to: {object: FileRecord, side: south},
                route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_pde,
-               from: {object: PinsDependencyEdge, side: north},
-               to:   {object: FileRecord, side: south, port_index: 5, port_total: 7},
+               from: {object: PinsDependencyEdge, side: north}, to: {object: FileRecord, side: south},
                route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_te,
-               from: {object: TestsEdge, side: north},
-               to:   {object: FileRecord, side: south, port_index: 7, port_total: 7},
+               from: {object: TestsEdge, side: north}, to: {object: FileRecord, side: south},
                route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
 
-            # FileRecord ◆— SymbolXrefEdge / UnresolvedSymbolRef
-            # (composition, filled diamond) — ports 4 and 6 on the
-            # same 7-port distribution, interleaved with the
-            # aggregations to keep semantically related edges visible.
+            # FileRecord ◆— SymbolXrefEdge / UnresolvedSymbolRef (composition, filled diamond).
             - {type: connector, id: c_sxe,
-               from: {object: SymbolXrefEdge, side: north},
-               to:   {object: FileRecord, side: south, port_index: 4, port_total: 7},
+               from: {object: SymbolXrefEdge, side: north}, to: {object: FileRecord, side: south},
                route: {type: orthogonal},
                stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_diamond}}
             - {type: connector, id: c_usr,
-               from: {object: UnresolvedSymbolRef, side: north},
-               to:   {object: FileRecord, side: south, port_index: 6, port_total: 7},
+               from: {object: UnresolvedSymbolRef, side: north}, to: {object: FileRecord, side: south},
                route: {type: orthogonal},
                stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_diamond}}
 

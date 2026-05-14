@@ -476,6 +476,32 @@ class UMLComponentBoxObject(_ObjectBase):
     style: dict[str, Any] | None = None
 
 
+class UMLMarkerGlyphObject(_ObjectBase):
+    """Inline UML marker glyph (diamond/triangle/arrow) for legends.
+
+    Renders the same shape used by a connector's `arrow_end_kind` as a
+    free-standing glyph at a chosen position. The motivating use case
+    is the legend block of a class diagram: `◇ hollow diamond` and
+    `◆ filled diamond` rendered as text characters fall back to the
+    missing-glyph box on rasterisers whose default font lacks
+    U+25C7 / U+25C6. This object emits the actual SVG polygon, so the
+    legend always matches the diagram's markers byte-for-byte.
+    """
+
+    type: Literal["uml.marker_glyph"]
+    kind: Literal[
+        "hollow_diamond",
+        "filled_diamond",
+        "hollow_triangle",
+        "filled_triangle",
+        "open_arrow",
+    ]
+    position: list[float]
+    size: float | None = None
+    color: str | None = None
+    rotation: float | None = None
+
+
 class UMLLollipopObject(_ObjectBase):
     """UML provided-interface lollipop — circle on a stem.
 
@@ -725,6 +751,7 @@ KnownObject = Annotated[
     | UMLComponentBoxObject
     | UMLLollipopObject
     | UMLSocketObject
+    | UMLMarkerGlyphObject
     | UMLNodeBoxObject
     | UMLArtifactBoxObject
     | UMLActivityNodeObject
