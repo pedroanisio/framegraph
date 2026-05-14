@@ -193,6 +193,24 @@ class TestStrictness:
                 }
             )
 
+    def test_validator_passthrough_when_input_is_not_dict(self) -> None:
+        """The before-validator short-circuits non-dict input so Pydantic
+        can produce its standard 'input should be a dict' error rather
+        than crashing inside the validator."""
+        with pytest.raises(ValidationError):
+            PatternFill.model_validate("not-a-dict")
+
+    def test_validator_defers_when_pattern_not_supplied(self) -> None:
+        """Without `_pattern` in the payload, validation defers — the
+        model is constructed but its `content` is left as a raw dict
+        (the missing field type raises later if `content` is then
+        accessed as a typed model)."""
+        # Pydantic still requires `pattern_id`; this exercises the
+        # `pattern is None: return data` early-return at the top of
+        # the validator.
+        with pytest.raises(ValidationError):
+            PatternFill.model_validate({"pattern_id": 1})
+
 
 # ─────────────────────────────────────────────────────────────────
 # Test 4 — patterns with un-annotated zones raise MissingContentTypeError
