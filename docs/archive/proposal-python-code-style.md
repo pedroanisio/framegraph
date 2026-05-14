@@ -6,12 +6,32 @@ disclaimer:
     or verifiable reference may be invalid, erroneous, or a hallucination.
   generated_by: "Claude Opus 4.7 (1M context) via Claude Code"
   date: "2026-05-07"
+status: archived
+archived_on: "2026-05-14"
+archive_reason: >-
+  Substantially fulfilled at HEAD 3dd5570 — mypy strict=true enforced in
+  pyproject.toml; ruff failures dropped from 443 to 17 (96% reduction);
+  CI mypy/ruff steps no longer continue-on-error; ruff `D` ruleset enforces
+  docstring presence on the public surface. Step 6 of the original plan
+  (flip CI to enforcing) is substantially landed. Preserved for
+  institutional memory of which rules were considered, the per-file-ignores
+  reasoning, and the "Step 6 must come last" sequencing decision.
+superseded_by:
+  - "pyproject.toml [tool.ruff.lint] select / per-file-ignores (curated ruleset)"
+  - "pyproject.toml [tool.mypy] strict = true (enforced)"
+  - ".github/workflows/ci.yml lint job (enforcing)"
 ---
+
+> ⚠ **Archived 2026-05-14.** This proposal is preserved as historical
+> planning context. It is not the current source of truth for the
+> repository's style/typing/docstring posture. The work it proposed is
+> substantially complete — see the `archive_reason` field above for the
+> verification anchors.
 
 # Proposal — Python Code-Style & Documentation Enhancement
 
 **Scope.** `framegraph/` package (3,029 LOC across 13 files), test harness, CI, and contributor tooling.
-**Goal.** Bring style, typing, and docstring hygiene to a level that matches the project's stated maturity (Beta, v2.0.0-dev) and supports the public-API contract advertised in [framegraph/__init__.py](../framegraph/__init__.py) and [pyproject.toml](../pyproject.toml).
+**Goal.** Bring style, typing, and docstring hygiene to a level that matches the project's stated maturity (Beta, v2.0.0-dev) and supports the public-API contract advertised in [framegraph/__init__.py](../../framegraph/__init__.py) and [pyproject.toml](../../pyproject.toml).
 
 ---
 
@@ -24,11 +44,11 @@ disclaimer:
 | Tracked Python LOC | 3,029 | `wc -l` over `framegraph/**/*.py` |
 | Functions | 140 | `grep '^def\|^    def'` |
 | Docstrings (`"""`) | 68 occurrences (≈34 docstrings) | `grep '"""'` |
-| Mypy job in CI | runs with `continue-on-error: true` | [.github/workflows/ci.yml:75](../.github/workflows/ci.yml#L75) |
-| Mypy strict mode | **off** (`strict = false`) | [pyproject.toml:115](../pyproject.toml#L115) |
-| Ruff line-length | 100 | [pyproject.toml:105](../pyproject.toml#L105) |
-| Target Python | 3.10 | [pyproject.toml:106](../pyproject.toml#L106) |
-| Pre-commit config | present; mirrors CI with advisory mypy | [.pre-commit-config.yaml](../.pre-commit-config.yaml) |
+| Mypy job in CI | runs with `continue-on-error: true` | [.github/workflows/ci.yml:75](../../.github/workflows/ci.yml#L75) |
+| Mypy strict mode | **off** (`strict = false`) | [pyproject.toml:115](../../pyproject.toml#L115) |
+| Ruff line-length | 100 | [pyproject.toml:105](../../pyproject.toml#L105) |
+| Target Python | 3.10 | [pyproject.toml:106](../../pyproject.toml#L106) |
+| Pre-commit config | present; mirrors CI with advisory mypy | [.pre-commit-config.yaml](../../.pre-commit-config.yaml) |
 
 ### Ruff failures by class (top offenders)
 
@@ -51,9 +71,9 @@ disclaimer:
 Concrete examples worth flagging:
 
 - Bare excepts that swallow type errors silently:
-  - `except: return default` at [_helpers.py:32, 37, 156, 161](../framegraph/_helpers.py#L32) and [renderer.py:93](../framegraph/renderer.py#L93)
-- Duplicate type aliases (cause of `F811`): `Box`/`Point` defined twice in [_helpers.py:10-11 & 18-19](../framegraph/_helpers.py#L10).
-- Untyped first argument across the renderer plug-in API: `def render_rect(r, obj: …)` etc. in [renderers/shapes.py](../framegraph/renderers/shapes.py), [renderers/layout.py:14, 147, 192, 221](../framegraph/renderers/layout.py#L14), [renderers/text_objects.py:9](../framegraph/renderers/text_objects.py#L9). `r` is the renderer instance; this is the public extension surface and should be typed.
+  - `except: return default` at [_helpers.py:32, 37, 156, 161](../../framegraph/_helpers.py#L32) and [renderer.py:93](../../framegraph/renderer.py#L93)
+- Duplicate type aliases (cause of `F811`): `Box`/`Point` defined twice in [_helpers.py:10-11 & 18-19](../../framegraph/_helpers.py#L10).
+- Untyped first argument across the renderer plug-in API: `def render_rect(r, obj: …)` etc. in [renderers/shapes.py](../../framegraph/renderers/shapes.py), [renderers/layout.py:14, 147, 192, 221](../../framegraph/renderers/layout.py#L14), [renderers/text_objects.py:9](../../framegraph/renderers/text_objects.py#L9). `r` is the renderer instance; this is the public extension surface and should be typed.
 - One remaining proposal gap worth preserving: mypy is still advisory in CI and pre-commit, so type-safety remains weaker than the intended target state.
 
 > ⚠ Note: `F821` (undefined name) is a real correctness signal, not a style issue. It must be triaged before any blanket "auto-fix everything" pass.
@@ -62,7 +82,7 @@ Concrete examples worth flagging:
 
 ## 2. Gap Analysis vs. Stated Standards
 
-The project already declares the right tools (ruff, mypy, pre-commit) in [pyproject.toml](../pyproject.toml#L62) but the configuration and enforcement are weaker than CLAUDE.md's "production-ready code only" core principle requires.
+The project already declares the right tools (ruff, mypy, pre-commit) in [pyproject.toml](../../pyproject.toml#L62) but the configuration and enforcement are weaker than CLAUDE.md's "production-ready code only" core principle requires.
 
 | Axis | Current | Target |
 |---|---|---|
@@ -97,7 +117,7 @@ Triage in this order:
 
 1. `F821` (undefined name) — possible real bug, fix first.
 2. `F811` (redefined-while-unused) — collapse the duplicate `Box`/`Point` aliases in `_helpers.py`.
-3. `E722` bare excepts — replace with `except (TypeError, ValueError)` in [_helpers.py](../framegraph/_helpers.py) and [renderer.py:93](../framegraph/renderer.py#L93). Bare `except:` also catches `KeyboardInterrupt` and `SystemExit`, which is a real defect in CLI tooling.
+3. `E722` bare excepts — replace with `except (TypeError, ValueError)` in [_helpers.py](../../framegraph/_helpers.py) and [renderer.py:93](../../framegraph/renderer.py#L93). Bare `except:` also catches `KeyboardInterrupt` and `SystemExit`, which is a real defect in CLI tooling.
 4. `B904` — add `raise X from exc`.
 5. `E701`/`E702` (135 instances) — split single-line ifs and semicolon chains. Mostly mechanical, large diff but no behavior change. Goldens are the safety net.
 6. `E402`, `E741` — case-by-case; `E741` (`l`, `I`, `O` names) likely needs renaming.
@@ -135,7 +155,7 @@ Mandatory docstrings (Google style, per CLAUDE.md "Markdown over DOCX; TS over J
 - All three classes in `__init__.py` (`FrameGraphRenderer`, `FrameGraphLibrary`, `FrameGraphDeckRenderer`) — already partial in `__init__.py` module docstring; needs class- and method-level coverage.
 - Every function listed in a `RENDERERS` dict (currently 14 object types).
 - Every method on `FrameGraphRenderer` that the `RendererContext` Protocol exposes.
-- The CLI subcommand handlers in [cli.py](../framegraph/cli.py).
+- The CLI subcommand handlers in [cli.py](../../framegraph/cli.py).
 
 Template (matches Google style):
 
@@ -160,7 +180,7 @@ Out of scope for this step: private helpers (`_lorem`, `_expand_lorem`) and `_he
 
 ### Step 5 — Tighten config + wire pre-commit + flip CI to enforcing — **S**
 
-**5a. Update [pyproject.toml](../pyproject.toml):**
+**5a. Update [pyproject.toml](../../pyproject.toml):**
 
 ```toml
 [tool.ruff.lint]
@@ -210,7 +230,7 @@ repos:
         additional_dependencies: [types-PyYAML]
 ```
 
-**5c. Flip [.github/workflows/ci.yml](../.github/workflows/ci.yml) lint job to enforcing:**
+**5c. Flip [.github/workflows/ci.yml](../../.github/workflows/ci.yml) lint job to enforcing:**
 
 ```yaml
 - name: mypy
@@ -222,7 +242,7 @@ This step **must come last**. Flipping CI to enforcing before Steps 1–4 are me
 
 ### Step 6 (optional, follow-up) — Test typing & coverage gate — **L**
 
-CLAUDE.md mandates 80 % library coverage. The current suite is **golden-snapshot only** ([tests/run_tests.py](../tests/run_tests.py)) — strong for visual regression, weak for branch coverage of error paths. Add unit tests for `_helpers.py` invariants (`box`, `pt`, `fmt`, `attrs`) and assert coverage in CI via `coverage.py`.
+CLAUDE.md mandates 80 % library coverage. The current suite is **golden-snapshot only** ([tests/run_tests.py](../../tests/run_tests.py)) — strong for visual regression, weak for branch coverage of error paths. Add unit tests for `_helpers.py` invariants (`box`, `pt`, `fmt`, `attrs`) and assert coverage in CI via `coverage.py`.
 
 Treat Step 6 as a separate proposal — listed here for completeness, not bundled.
 
@@ -232,7 +252,7 @@ Treat Step 6 as a separate proposal — listed here for completeness, not bundle
 
 | Risk | Mitigation |
 |---|---|
-| Mechanical reformat (E701/E702 split) breaks a golden | Run [tests/run_tests.py](../tests/run_tests.py) after every commit; tolerance is 1 % per [tests/tolerance.cfg](../tests/tolerance.cfg) |
+| Mechanical reformat (E701/E702 split) breaks a golden | Run [tests/run_tests.py](../../tests/run_tests.py) after every commit; tolerance is 1 % per [tests/tolerance.cfg](../../tests/tolerance.cfg) |
 | `strict=true` mypy reveals deep dynamic-typing patterns the renderer relies on | Type the `RendererContext` Protocol first (Step 3); allow `Any` in narrow, justified spots with `# type: ignore[reason]` |
 | Public-API drift: tightening signatures breaks downstream `register(...)` users | None known yet — v2.0.0-dev is unreleased. Document the typed protocol in CHANGELOG as the v2.0 contract |
 | `from __future__ import annotations` already present in most files; the codebase is ready for PEP 604 unions | No mitigation needed — confirms `UP006`/`UP007`/`UP035`/`UP045` auto-fixes are safe |

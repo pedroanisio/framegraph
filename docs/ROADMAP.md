@@ -197,9 +197,13 @@ to that lane.
   prevent silent recurrence — they assert on string presence
   (`"Foundation Model"`, `"Reasoning & Planning"`, etc.) rather than
   pixels, so any future failure is diagnostic.
-- [x] **Reconcile golden snapshots (final pass)** — *Done.*
-  `python tests/run_tests.py` exits 0 with **35/35 slides passing**.
-  The release checklist's "all goldens must pass" gate is satisfied.
+- [~] **Reconcile golden snapshots (final pass)** — *Done at the time
+  of the 2026-05-07 entry (35/35 slides passing). **Regression detected
+  2026-05-14**: 11 of 35 goldens now fail on `main` (`python tests/run_tests.py`
+  reports `FAILED 24/35 slides`). The release checklist's "all goldens
+  must pass" gate is **no longer satisfied** and must be re-reconciled
+  before tagging the next release. Tracked as a follow-up item below.*
+- [ ] **Re-reconcile broken goldens (2026-05-14 regression)** — `python tests/run_tests.py` is at 24/35 passing on `main`. 11 fixtures regressed: `debug_overflow`, `framegraph_genai_mediated_system_v2{,.1}`, `ginga_one.deck` (`s1_opening`), `ginga_one_full.deck` (`s3_patterns`, `s6_track_record`, `s8_model`), `sp2_bullet_list`, `sp2_spans`, `sp_outer_ring`, `sp_placeholders`. Diagnose root cause and either re-bless or revert the causing change. **Blocks the next release** — the "all goldens must pass" gate is documented in [pyproject.toml release checklist](../pyproject.toml#L134-L139) and [docs/PUBLISHING.md](PUBLISHING.md).
 - [ ] **Re-enable mypy strict mode** — possible now that the modular-split regression is gone. Update [pyproject.toml](../pyproject.toml#L156-L168) and remove the explanatory comment block.
 - [ ] **JSON Schema export from `framegraph._schema`** — Pydantic v2 produces JSON Schema via `Document.model_json_schema()`. Wire that into a `framegraph schema export` CLI command (or commit the artefact at `framegraph.schema.json`) so VS Code's YAML LSP can pick it up. The Pydantic schema migration in [`101ae61`](#) means the contract is already authoritative; this is just exporting it.
 - [ ] `grid` container — `layout.kind: grid` with `columns: N`, `gap`, `align`, `padding`. Currently rejected at [framegraph/renderers/layout.py:188](../framegraph/renderers/layout.py#L188) with a `not yet implemented` comment.
@@ -307,7 +311,7 @@ playground is essentially free once the MCP HTTP endpoint exists.
 | Item | Strategic value | Effort | Do when | Status |
 |---|---|---|---|---|
 | Repair modular-split regression (`text_svg`, `render_rect`, `eval_length` on `FrameGraphRenderer`) | Very high (silent corruption) | Low–medium | v2.0 | ✅ done in `1bc5547` (2026-05-07) |
-| Diagnose remaining golden failures + re-bless | Very high (blocked stable tag) | Trivial after diagnosis | v2.0 | ✅ done in `58a1894` + `843c2c4` (35/35 goldens passing) |
+| Diagnose remaining golden failures + re-bless | Very high (blocked stable tag) | Trivial after diagnosis | v2.0 | ⚠ regressed — was 35/35 in `58a1894` + `843c2c4`; now 24/35 on `main` as of 2026-05-14. Re-bless required before next tag |
 | Pydantic v2 schema migration (replaces EBNF as normative contract) | High | Medium | v2.0 / v2.1 prereq | ✅ done in `101ae61` |
 | **Re-enable mypy strict mode** | Medium (catches future drift) | Low | v2.0 — next | — |
 | **Export `framegraph.schema.json` from `_schema.py`** | Medium–high (LSP autocomplete; v2.1 `validate` endpoint reuses it) | Low (Pydantic emits JSON Schema natively) | v2.0 — next | — |

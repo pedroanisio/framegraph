@@ -101,12 +101,14 @@ deck.render_all(Path("output/"))
 ```
 framegraph render   diagram.yml [-o output.svg] [--pdf] [--4k]
 framegraph deck     deck.yml    [-o output_dir/] [--pdf] [--4k]
+framegraph validate input.yml   [--kind=auto|framegraph|pattern-sidecar|pattern-catalog]
 framegraph patterns list [--has-sidecar] [--json]
 framegraph patterns show    <id>
 framegraph patterns example <id> [-o fill.yml]
 framegraph patterns build   <id> --fill content.yml [-o out.svg]
 framegraph patterns deck    [-o output_dir/] [--ids=10,44,91] [--pdf]
 framegraph docs     [-o catalog.json]   # machine-readable API for agents
+framegraph sitemap  input.yml   --base-url https://example.com [-o sitemap.xml]
 framegraph version
 ```
 

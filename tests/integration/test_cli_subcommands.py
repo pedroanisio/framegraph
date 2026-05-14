@@ -87,6 +87,56 @@ def test_build_parser_docstring_lists_nested_patterns_subcommands() -> None:
     )
 
 
+def test_readme_cli_section_lists_every_subcommand() -> None:
+    """`README.md`'s `### CLI` block must mention every live top-level subcommand.
+
+    Doc-hygiene Finding #1 (DRIFT): the CLI surface block in README.md
+    was missing `validate` and `sitemap` even though they have been live
+    subcommands since the parser was extended. The `build_parser()` docstring
+    is regression-guarded above; this test closes the same gap for the
+    README, which is the surface most human readers encounter first.
+
+    The check scans the section between the `### CLI` heading and the next
+    `##`/`###` heading. Each top-level subcommand (except `patterns`, which
+    is documented as a separate command family with its own block) must
+    appear as `framegraph <name>` somewhere in that section.
+    """
+    readme = (Path(__file__).resolve().parents[2] / "README.md").read_text(encoding="utf-8")
+
+    # Slice out the CLI section.
+    lines = readme.splitlines()
+    start: int | None = None
+    for i, line in enumerate(lines):
+        if line.strip().lower() in {"### cli", "### command-line", "### command line"}:
+            start = i + 1
+            break
+    assert start is not None, "README.md has no `### CLI` heading"
+    end = len(lines)
+    for j in range(start, len(lines)):
+        if lines[j].startswith("## ") or lines[j].startswith("### "):
+            end = j
+            break
+    section = "\n".join(lines[start:end])
+
+    # `patterns` has its own surface in the section (5 nested subcommands);
+    # the rest must each appear as `framegraph <name>`.
+    missing = [
+        name
+        for name in LIVE_TOP_LEVEL_SUBCOMMANDS - {"patterns"}
+        if f"framegraph {name}" not in section
+    ]
+    assert not missing, (
+        f"README.md `### CLI` section is missing `framegraph <{sorted(missing)}>` "
+        f"line(s). Add a usage line for each — the live parser dispatches them "
+        f"(framegraph/cli.py main() dispatch table)."
+    )
+
+    # `patterns` family — at least one nested form must appear.
+    assert "framegraph patterns" in section, (
+        "README.md `### CLI` section does not mention `framegraph patterns`."
+    )
+
+
 def test_docs_catalog_renders_without_error(tmp_path: Path) -> None:
     """`framegraph docs` must produce a non-empty catalog with module entries.
 

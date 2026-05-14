@@ -6,9 +6,27 @@ disclaimer:
     or verifiable reference may be invalid, erroneous, or a hallucination.
   generated_by: "Claude Opus 4.7 via Claude Code"
   date: "2026-05-08"
+snapshot:
+  date: "2026-05-08"
+  type: "frozen-snapshot"
+  notice: >-
+    Numeric figures in this document (LOC counts, test counts, file counts,
+    subsystem sizes) are accurate AS OF the snapshot date above. They are
+    NOT live values and will diverge from the working tree as the codebase
+    evolves. Treat figures as anchored evidence for the analysis written
+    on that date; for current numbers, re-run the verification commands in
+    the methodology section.
 ---
 
 # Repository architecture and algorithmic analysis
+
+> ⚠ **Frozen snapshot dated 2026-05-08.** All numeric figures below
+> (LOC, test counts, file counts) reflect the codebase state on that
+> date and are not updated as the tree changes. The qualitative
+> analysis (subsystem responsibilities, design choices, competitor
+> framing) remains useful; the numbers are anchored evidence, not
+> live counters. For current numbers, run the commands at the bottom
+> of the methodology section.
 
 ## Disclaimer
 
