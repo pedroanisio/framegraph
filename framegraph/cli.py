@@ -1325,9 +1325,14 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the top-level `framegraph` argparse parser with all subcommands.
 
     Returns:
-        Configured `ArgumentParser`. Subcommands: `render`, `deck`,
-        `version`. The returned parser requires a subcommand
-        (`required=True`); calling it without one exits with usage.
+        Configured `ArgumentParser`. Top-level subcommands: `render`,
+        `deck`, `validate`, `docs`, `sitemap`, `version`, `patterns`
+        (with nested `list`, `show`, `example`, `build`, `deck`).
+        The returned parser requires a subcommand (`required=True`);
+        calling it without one exits with usage. The authoritative list
+        is the dispatch table at the bottom of `main()` — keep this
+        docstring in sync with it (regression-guarded by
+        `tests/integration/test_cli_subcommands.py`).
 
     """
     p = argparse.ArgumentParser(

@@ -51,6 +51,41 @@ jobs:
           path: tests/goldens/
           retention-days: 7
 
+  # ── Pytest contract suite ──────────────────────────────────────────────────
+  # Runs the unit + integration suite configured in [tool.pytest.ini_options].
+  # The configured `--cov-fail-under=90` gate becomes a real CI guard here,
+  # not just a local convention. Golden snapshots run in their own job above;
+  # this job covers the public CLI/API contract surface that golden PNGs do
+  # not exercise.
+  pytest:
+    name: Pytest (Py ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install system deps (cairo)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libcairo2-dev libpango1.0-dev libglib2.0-dev pkg-config
+
+      - name: Install framegraph + test extras
+        run: pip install -e ".[test]"
+
+      - name: Run pytest (unit + integration, coverage-gated)
+        run: python -m pytest
+
   # ── Lint ───────────────────────────────────────────────────────────────────
   lint:
     name: Lint (ruff + mypy)
@@ -86,7 +121,7 @@ jobs:
   # ── Build + publish (tag-triggered) ────────────────────────────────────────
   publish:
     name: Publish to PyPI
-    needs: [golden-snapshots, lint]
+    needs: [golden-snapshots, pytest, lint]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     environment:

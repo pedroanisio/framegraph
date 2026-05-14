@@ -17,8 +17,19 @@ Public API
     deck.render_all(Path("output/"))
 """
 
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
+
+from ._version import resolve_version
 from .library import FrameGraphDeckRenderer, FrameGraphLibrary
 from .renderer import FrameGraphRenderer
 
-__version__ = "0.1.0"
+try:
+    __version__ = _pkg_version("framegraph")
+except PackageNotFoundError:
+    # Source-tree fallback for environments where the package is not installed.
+    # Reads the version directly from pyproject.toml so there is still exactly
+    # one source of truth — pyproject — rather than a stale literal here.
+    __version__ = resolve_version()
+
 __all__ = ["FrameGraphRenderer", "FrameGraphLibrary", "FrameGraphDeckRenderer"]

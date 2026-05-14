@@ -9,7 +9,6 @@ PYTHON ?= python
 PIP    ?= $(PYTHON) -m pip
 
 PACKAGE      := framegraph
-VERSION_FILE := framegraph/__init__.py
 PYPROJECT    := pyproject.toml
 
 # Examples are versioned `.yml` sources with committed `.svg`/`.pdf` siblings.
@@ -122,13 +121,12 @@ release:
 ifndef VERSION
 	$(error VERSION is required, e.g. `make release VERSION=0.2.0`)
 endif
-	@echo "Bumping to $(VERSION) in $(PYPROJECT) and $(VERSION_FILE)"
+	@echo "Bumping to $(VERSION) in $(PYPROJECT) (single source of truth)"
 	sed -i.bak -E 's/^version( *)= "[0-9]+\.[0-9]+\.[0-9]+"/version\1= "$(VERSION)"/' $(PYPROJECT)
-	sed -i.bak -E 's/^__version__ = "[0-9]+\.[0-9]+\.[0-9]+"/__version__ = "$(VERSION)"/' $(VERSION_FILE)
-	rm -f $(PYPROJECT).bak $(VERSION_FILE).bak
+	rm -f $(PYPROJECT).bak
 	$(MAKE) check
 	$(MAKE) build
-	git add $(PYPROJECT) $(VERSION_FILE)
+	git add $(PYPROJECT)
 	git commit -m "release: v$(VERSION)"
 	git tag -a "v$(VERSION)" -m "framegraph v$(VERSION)"
 	@echo ""
