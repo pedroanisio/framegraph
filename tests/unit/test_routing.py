@@ -14,12 +14,105 @@ from framegraph._routing import (
     normalize_side,
     route_orthogonal,
     segment_intersects_box,
+    simplify_polyline,
 )
 
 
 # ─────────────────────────────────────────────────────────────────
 # normalize_side
 # ─────────────────────────────────────────────────────────────────
+
+
+class TestSimplifyPolyline:
+    """`simplify_polyline` collapses three classes of visual defect:
+    duplicate consecutive points, micro-jogs (segments below the
+    visibility threshold), and collinear runs (three consecutive
+    horizontal or vertical points). Endpoints are always preserved.
+    """
+
+    def test_endpoints_preserved(self) -> None:
+        path = [(0.0, 0.0), (10.0, 0.0), (10.0, 10.0)]
+        out = simplify_polyline(path)
+        assert out[0] == (0.0, 0.0)
+        assert out[-1] == (10.0, 10.0)
+
+    def test_drops_micro_zigzag(self) -> None:
+        """The exact pathology from `t_delegate` in the deployment slide:
+        five points all on the same y, oscillating left-right by 4 px.
+        After simplification it becomes the start-to-end segment."""
+        path = [(1086, 381), (1102, 381), (1098, 381), (1094, 381), (1110, 381)]
+        out = simplify_polyline(path)
+        assert out == [(1086.0, 381.0), (1110.0, 381.0)]
+
+    def test_collapses_collinear_horizontal_run(self) -> None:
+        """Three points on the same y → collapses to two."""
+        path = [(0, 100), (50, 100), (200, 100)]
+        out = simplify_polyline(path)
+        assert out == [(0.0, 100.0), (200.0, 100.0)]
+
+    def test_collapses_collinear_vertical_run(self) -> None:
+        path = [(50, 0), (50, 30), (50, 100)]
+        out = simplify_polyline(path)
+        assert out == [(50.0, 0.0), (50.0, 100.0)]
+
+    def test_preserves_real_corner(self) -> None:
+        """A genuine L-bend must NOT be flattened — the corner point
+        sits between segments of different cardinal directions."""
+        path = [(0, 0), (100, 0), (100, 50)]
+        out = simplify_polyline(path)
+        assert out == [(0.0, 0.0), (100.0, 0.0), (100.0, 50.0)]
+
+    def test_drops_consecutive_duplicates(self) -> None:
+        path = [(10, 10), (10, 10), (10, 10), (50, 10)]
+        out = simplify_polyline(path)
+        assert out == [(10.0, 10.0), (50.0, 10.0)]
+
+    def test_short_path_passes_through(self) -> None:
+        assert simplify_polyline([(0.0, 0.0)]) == [(0.0, 0.0)]
+        assert simplify_polyline([(0.0, 0.0), (10.0, 0.0)]) == [(0.0, 0.0), (10.0, 0.0)]
+
+    def test_min_segment_threshold_is_configurable(self) -> None:
+        """Setting `min_segment` to 0 disables the jog-collapse pass
+        but still merges collinear runs and dedupes."""
+        path = [(0, 0), (1, 0), (10, 0)]
+        out_default = simplify_polyline(path)
+        out_zero = simplify_polyline(path, min_segment=0)
+        # Default threshold drops the (1,0) jog; with 0 the collinear
+        # merge still removes it because all three are on y=0.
+        assert out_default == [(0.0, 0.0), (10.0, 0.0)]
+        assert out_zero == [(0.0, 0.0), (10.0, 0.0)]
+
+    def test_t_http_api_pathology(self) -> None:
+        """Second pathology from the deployment slide:
+        `M 1438 441 L 1422 441 L 1426 441 L 1426 381 L 1430 381 L 1414 381`
+        — two horizontal jogs (4 px each) flanking a vertical bend.
+        Start (x=1438) and end (x=1414) are at different x AND
+        different y, so the genuine simplified shape is a Z (4 points),
+        not an L (3 points). The micro-jogs at y=441 and y=381 must
+        be gone."""
+        path = [
+            (1438, 441), (1422, 441), (1426, 441),
+            (1426, 381), (1430, 381), (1414, 381),
+        ]
+        out = simplify_polyline(path)
+        assert out[0] == (1438.0, 441.0)
+        assert out[-1] == (1414.0, 381.0)
+        # No segment shorter than 2 px should survive.
+        for i in range(len(out) - 1):
+            seg_len = abs(out[i + 1][0] - out[i][0]) + abs(out[i + 1][1] - out[i][1])
+            assert seg_len >= 2.0, (
+                f"micro-segment of {seg_len}px between "
+                f"{out[i]} and {out[i + 1]}"
+            )
+        # No two consecutive segments should reverse direction along
+        # the same axis (the "zigzag" symptom).
+        for i in range(1, len(out) - 1):
+            prev = (out[i][0] - out[i - 1][0], out[i][1] - out[i - 1][1])
+            nxt = (out[i + 1][0] - out[i][0], out[i + 1][1] - out[i][1])
+            assert not (
+                (prev[0] * nxt[0] < 0 and abs(prev[1]) < 0.5 and abs(nxt[1]) < 0.5)
+                or (prev[1] * nxt[1] < 0 and abs(prev[0]) < 0.5 and abs(nxt[0]) < 0.5)
+            ), f"direction reversal at index {i}: {out[i - 1]}→{out[i]}→{out[i + 1]}"
 
 
 class TestNormalizeSide:

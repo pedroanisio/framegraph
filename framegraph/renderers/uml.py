@@ -514,8 +514,59 @@ def render_classifier_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
         f'fill="none" stroke="{border_color}" stroke-width="{fmt(border_width)}"/>'
     )
 
+    # ── «artifact» glyph overlay ──
+    # UML 2.5.1 §A.4: an artifact uses the standard rectangle
+    # decorated with a folded-document icon in the upper-right corner.
+    # Existing decks that declared `stereotype: "artifact"` on a
+    # uml.classifier_box previously got just the «artifact» text
+    # label and no glyph. Adding the icon here means those decks
+    # become standards-conformant on re-render with no YAML changes.
+    if stereotype == "artifact":
+        out.append(_artifact_icon_svg(bx, by, bw, border_color, body_fill))
+
     out.append("</g>")
     return "\n".join(out)
+
+
+def _artifact_icon_svg(
+    bx: float,
+    by: float,
+    bw: float,
+    border_color: str,
+    fill: str,
+    *,
+    icon_w: float = 14.0,
+    icon_h: float = 16.0,
+    fold: float = 5.0,
+    pad: float = 6.0,
+) -> str:
+    """Folded-document icon for the «artifact» stereotype overlay.
+
+    Sits in the upper-right corner of the host rectangle, leaving
+    `pad` px of clearance from the top and right edges. The icon
+    is a 5-vertex polygon (rect with the upper-right corner cut)
+    plus a short polyline showing the fold.
+    """
+    ix = bx + bw - icon_w - pad
+    iy = by + pad
+    icon_pts = (
+        f"{fmt(ix)},{fmt(iy)} "
+        f"{fmt(ix + icon_w - fold)},{fmt(iy)} "
+        f"{fmt(ix + icon_w)},{fmt(iy + fold)} "
+        f"{fmt(ix + icon_w)},{fmt(iy + icon_h)} "
+        f"{fmt(ix)},{fmt(iy + icon_h)}"
+    )
+    fold_pts = (
+        f"{fmt(ix + icon_w - fold)},{fmt(iy)} "
+        f"{fmt(ix + icon_w - fold)},{fmt(iy + fold)} "
+        f"{fmt(ix + icon_w)},{fmt(iy + fold)}"
+    )
+    return (
+        f'<polygon points="{icon_pts}" fill="{fill}" '
+        f'stroke="{border_color}" stroke-width="0.75"/>'
+        f'<polyline points="{fold_pts}" fill="none" '
+        f'stroke="{border_color}" stroke-width="0.75"/>'
+    )
 
 
 def render_actor(r: RendererContext, obj: Mapping[str, Any]) -> str:

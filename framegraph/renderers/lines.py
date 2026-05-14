@@ -16,7 +16,7 @@ from framegraph._helpers import (
     fmt,
     pt,
 )
-from framegraph._routing import normalize_side, route_orthogonal
+from framegraph._routing import normalize_side, route_orthogonal, simplify_polyline
 from framegraph._types import RendererContext
 
 
@@ -179,6 +179,12 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
     else:
         raise ValueError(f"unsupported route type '{rtype}'")
     if rtype != "bezier":
+        # Simplify the polyline before emission. Collapses author-supplied
+        # waypoints that produce micro-zigzags after stub addition (e.g.
+        # `M A L B L A' L B' L C` where A/A' and B/B' differ by 4 px),
+        # and merges collinear runs into single segments. Pure visual
+        # polish — endpoints and bend semantics are preserved.
+        points = simplify_polyline(points)
         d = r.path_d(points)
     st = r.stroke_style(
         obj.get("stroke_style"),
@@ -195,15 +201,77 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
     out = [f"<g {attrs(r.group_attrs(obj))}>", f"<path {attrs(a)}/>"]
     label = obj.get("label")
     if isinstance(label, Mapping):
+        # Box: explicit `box` wins; otherwise compute a position that
+        # sits beside the path's longest segment so the text never
+        # overprints the line. The path simplifier above means
+        # `points` is the polyline that actually gets drawn.
+        label_box = label.get("box")
+        if label_box is None:
+            label_box = _auto_label_box(points, label)
         out.append(
             r.text_svg(
                 label.get("text", ""),
-                box(label.get("box", [0, 0, 0, 0])),
+                box(label_box),
                 r.text_style(label.get("style", "tiny")),
             )
         )
     out.append("</g>")
     return "\n".join(out)
+
+
+def _auto_label_box(
+    points: list[tuple[float, float]],
+    label: Mapping[str, Any],
+) -> list[float]:
+    """Compute an [x, y, w, h] for a connector label that does not
+    overlap the connector's own path.
+
+    Strategy: pick the longest segment of the polyline. For a
+    horizontal segment, place the label above it (or below if the
+    caller passed `placement: below`); for a vertical segment, place
+    the label to the right (or left). The offset is computed from
+    the label's text-style font size so descenders/ascenders never
+    cross the path. Falls back to the start point when the polyline
+    is empty.
+    """
+    if len(points) < 2:
+        x, y = (points[0] if points else (0.0, 0.0))
+        return [float(x), float(y), 100.0, 16.0]
+
+    # Find the longest segment.
+    longest_idx = 0
+    longest_len = 0.0
+    for i in range(len(points) - 1):
+        seg_len = abs(points[i + 1][0] - points[i][0]) + abs(points[i + 1][1] - points[i][1])
+        if seg_len > longest_len:
+            longest_len = seg_len
+            longest_idx = i
+    p0 = points[longest_idx]
+    p1 = points[longest_idx + 1]
+
+    # Best-effort font-size lookup; any sane default works.
+    style = label.get("style") or {}
+    font_size = float(style.get("size", 11)) if isinstance(style, Mapping) else 11.0
+    placement = str(label.get("placement", "auto")).lower()
+    horizontal = abs(p0[1] - p1[1]) < 0.5
+    label_w = float(label.get("width", 200))
+    label_h = float(label.get("height", font_size + 4))
+    pad = max(6.0, font_size * 0.5)  # gap between line and label baseline
+
+    if horizontal:
+        cx = (p0[0] + p1[0]) / 2.0
+        if placement == "below":
+            y = p0[1] + pad
+        else:
+            y = p0[1] - pad - label_h
+        return [cx - label_w / 2.0, y, label_w, label_h]
+    # Vertical segment.
+    cy = (p0[1] + p1[1]) / 2.0
+    if placement == "left":
+        x = p0[0] - pad - label_w
+    else:
+        x = p0[0] + pad
+    return [x, cy - label_h / 2.0, label_w, label_h]
 
 
 def render_legend(r: RendererContext, obj: Mapping[str, Any]) -> str:

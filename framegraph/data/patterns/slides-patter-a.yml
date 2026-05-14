@@ -1444,6 +1444,139 @@ slide_template_patterns:
     placement: *id026
     content_type: list_items
   category: generic
+  # BMC polish — nine-block canvas. Three color families:
+  #   left column (infra): text muted (operational, internal)
+  #   center (value): accent (the hero — value props connect both sides)
+  #   right column (customer): data_3 sage (positive, market-facing)
+  #   bottom strip: warm (costs) | sage (revenue)
+  # Boxes come from the layout planner (9-cell grid). Treatments
+  # carry LABEL bands and accent bars so each block reads as a
+  # distinct, role-coded card.
+  enterprise_layout:
+    notes: |
+      Business Model Canvas. 9 zones, 3 color families:
+      - Left (infra/operations) → muted text
+      - Center (value propositions) → accent (hero)
+      - Right (customer-facing) → sage green
+      - Bottom strip → warm (cost) / sage (revenue)
+    zones:
+      key_partners:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 3, color: text_muted}
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}
+      key_activities:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 3, color: text_muted}
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}
+      key_resources:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 3, color: text_muted}
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}
+      value_propositions:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.8
+          corner_radius: 6
+          padding: [18, 20, 18, 20]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography: {font: primary, size: 14, weight: 700, color: accent, align: left, v_align: middle, line_height: 16}
+      customer_relationships:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 3, color: data_3}
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}
+      channels:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 3, color: data_3}
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}
+      customer_segments:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 3, color: data_3}
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}
+      cost_structure:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: top, width: 3, color: accent_warm}
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}
+      revenue_streams:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}
 - id: 45
   name: Pricing Table
   layout_disposition: Columns for pricing plans with features, price, and recommended option highlight.
@@ -3558,6 +3691,69 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Summarizes what was found in a business or operational diagnostic.
+  # Table-stack polish. Defines the canonical treatments for this
+  # archetype (1 anchor list column + N table columns) as YAML
+  # anchors so the other 10 table-stack patterns can `*reference`
+  # them without re-typing 40 lines each.
+  enterprise_layout: &ts_layout_diagnostic
+    notes: |
+      Table-stack archetype: one anchor `list_items` column (subjects)
+      + several `table_data` columns (per-subject attributes). Anchor
+      column carries an accent-bar card; data columns get a thin
+      top-bar header treatment.
+    zones:
+      dimensions: &ts_anchor_zone
+        treatment: &ts_anchor_treatment
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label: &ts_anchor_label
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}
+      status: &ts_data_zone
+        treatment: &ts_data_treatment
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: &ts_data_label
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}
+      findings:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent}
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}
+      implications:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text}
+          slots:
+            label:
+              height: 14
+              gap_below: 8
+              typography: {font: primary, size: 12, weight: 700, color: text, align: left, v_align: middle, line_height: 14}
 - id: 112
   name: Root Cause Analysis
   layout_disposition: Problem statement connected to cause categories and root causes.
@@ -3870,6 +4066,54 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Shows gaps between current practice and leading practice.
+  # Best-practice-gap polish — left anchor column carries the practice
+  # subject; the three data columns map to today (muted), leading
+  # (sage), required-change (warm action).
+  enterprise_layout:
+    notes: Best-practice-gap. Anchor=practice; data columns=today/leading/required.
+    zones:
+      practice_areas:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+            title: {height: 22, gap_below: 6, typography: {font: heading, size: 16, weight: 700, color: primary, align: left, v_align: top, line_height: 20, wrap: true}}
+            body: {typography: {font: primary, size: 13, weight: 400, color: text, align: left, v_align: top, line_height: 18, wrap: true}}
+      current_practice:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text_muted}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}}
+      leading_practice:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}}
+      required_change:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent_warm}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}}
 - id: 123
   name: Competitive Positioning Map
   layout_disposition: 2x2 or perceptual map with competitors plotted as logos or bubbles.
@@ -4508,6 +4752,51 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Identifies gaps between current and required skills.
+  enterprise_layout:
+    notes: Skills-gap. Anchor=skill subject; columns=current (muted) / target (sage) / closure (warm action).
+    zones:
+      skills:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+            title: {height: 22, gap_below: 6, typography: {font: heading, size: 16, weight: 700, color: primary, align: left, v_align: top, line_height: 20, wrap: true}}
+            body: {typography: {font: primary, size: 13, weight: 400, color: text, align: left, v_align: top, line_height: 18, wrap: true}}
+      current_level:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text_muted}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}}
+      target_level:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}}
+      gap_closure_plan:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent_warm}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}}
 - id: 146
   name: Technology Debt Assessment
   layout_disposition: Portfolio view of debt items grouped by system or capability.
@@ -5587,6 +5876,59 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Defines data ownership, stewardship, governance, architecture, and delivery.
+  enterprise_layout:
+    notes: Data operating model. Anchor=domain; columns=owners/forums/platforms/use_cases.
+    zones:
+      data_domains:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+      domain_owners:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}}
+      governance_forums:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+      platform_capabilities:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text_muted}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}}
+      priority_use_cases:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text, align: left, v_align: middle, line_height: 14}}
 - id: 184
   name: Data Governance Framework
   layout_disposition: Framework wheel or layered model with governance domains around data assets.
@@ -8565,6 +8907,67 @@ slide_template_patterns:
     placement: *id052
     content_type: list_items
   use_case: Separates known facts, known unknowns, assumptions, and open risks.
+  # Unknowns-map polish — four labelled quadrants. Color-coded by
+  # epistemic status: facts=sage (verified), unknowns=accent (open
+  # question), assumptions=text (working belief), risks=warm (danger).
+  enterprise_layout:
+    notes: |
+      Four-quadrant epistemic-status map. Each quadrant card carries a
+      tinted accent bar + LABEL band so readers identify the category
+      at a glance. Uses planner boxes (4-corner equal split).
+    zones:
+      known_facts:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar: {side: left, width: 4, color: data_3}
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography: {font: primary, size: 14, weight: 700, color: data_3, align: left, v_align: middle, line_height: 16}
+      known_unknowns:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography: {font: primary, size: 14, weight: 700, color: accent, align: left, v_align: middle, line_height: 16}
+      assumptions:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar: {side: left, width: 4, color: text}
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography: {font: primary, size: 14, weight: 700, color: text, align: left, v_align: middle, line_height: 16}
+      open_risks:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar: {side: left, width: 4, color: accent_warm}
+          slots:
+            label:
+              height: 16
+              gap_below: 10
+              typography: {font: primary, size: 14, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 16}
 - id: 281
   name: Evidence Confidence Ladder
   layout_disposition: Vertical ladder with evidence items placed by strength.
@@ -8835,6 +9238,90 @@ slide_template_patterns:
     placement: *id058
     content_type: title_body
   use_case: Separates immediate bets from options worth preserving.
+  # Optionality polish — four labelled quadrants. Each is a title+body
+  # card; semantically: commit=sage (active), preserve=accent (open
+  # question), defer=muted text (paused), abandon=warm (discarded).
+  enterprise_layout:
+    notes: |
+      Optionality portfolio. Title slot above body per quadrant.
+      Color-coded by disposition (commit/preserve/defer/abandon).
+    zones:
+      commit_now:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar: {side: left, width: 4, color: data_3}
+          slots:
+            label:
+              height: 16
+              gap_below: 8
+              typography: {font: primary, size: 14, weight: 700, color: data_3, align: left, v_align: middle, line_height: 16}
+            title:
+              height: 28
+              gap_below: 8
+              typography: {font: heading, size: 20, weight: 700, color: primary, align: left, v_align: top, line_height: 26, wrap: true}
+            body:
+              typography: {font: primary, size: 15, weight: 400, color: text, align: left, v_align: top, line_height: 22, wrap: true}
+      preserve_option:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label:
+              height: 16
+              gap_below: 8
+              typography: {font: primary, size: 14, weight: 700, color: accent, align: left, v_align: middle, line_height: 16}
+            title:
+              height: 28
+              gap_below: 8
+              typography: {font: heading, size: 20, weight: 700, color: primary, align: left, v_align: top, line_height: 26, wrap: true}
+            body:
+              typography: {font: primary, size: 15, weight: 400, color: text, align: left, v_align: top, line_height: 22, wrap: true}
+      defer:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar: {side: left, width: 4, color: text_muted}
+          slots:
+            label:
+              height: 16
+              gap_below: 8
+              typography: {font: primary, size: 14, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 16}
+            title:
+              height: 28
+              gap_below: 8
+              typography: {font: heading, size: 20, weight: 700, color: text, align: left, v_align: top, line_height: 26, wrap: true}
+            body:
+              typography: {font: primary, size: 15, weight: 400, color: text_muted, align: left, v_align: top, line_height: 22, wrap: true}
+      abandon:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [20, 24, 20, 24]
+          accent_bar: {side: left, width: 4, color: accent_warm}
+          slots:
+            label:
+              height: 16
+              gap_below: 8
+              typography: {font: primary, size: 14, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 16}
+            title:
+              height: 28
+              gap_below: 8
+              typography: {font: heading, size: 20, weight: 700, color: primary, align: left, v_align: top, line_height: 26, wrap: true}
+            body:
+              typography: {font: primary, size: 15, weight: 400, color: text, align: left, v_align: top, line_height: 22, wrap: true}
 - id: 291
   name: Bet Portfolio Slide
   layout_disposition: Three-zone portfolio by certainty and upside.

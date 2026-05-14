@@ -23,7 +23,12 @@ from collections.abc import Sequence
 from framegraph._helpers import Box, Point
 
 
-__all__ = ["route_orthogonal", "segment_intersects_box", "normalize_side"]
+__all__ = [
+    "route_orthogonal",
+    "segment_intersects_box",
+    "normalize_side",
+    "simplify_polyline",
+]
 
 
 _SIDE_ALIASES: dict[str, str] = {
@@ -127,6 +132,153 @@ def _dedupe(points: Sequence[Point]) -> list[Point]:
     for p in points:
         if not out or abs(p[0] - out[-1][0]) > 0.5 or abs(p[1] - out[-1][1]) > 0.5:
             out.append((float(p[0]), float(p[1])))
+    return out
+
+
+def simplify_polyline(
+    points: Sequence[Point],
+    *,
+    min_segment: float = 2.0,
+) -> list[Point]:
+    """Simplify an axis-aligned polyline by collapsing visual artefacts.
+
+    Three passes are applied in sequence:
+
+      1. **Dedupe** consecutive duplicate points (within 0.5 px).
+      2. **Drop near-zero-length segments** (`< min_segment` px). When
+         the path has a ``A → B → C`` triple where ``A → B`` is shorter
+         than the threshold, ``B`` is dropped — the tiny jog disappears
+         and the segment becomes ``A → C``.
+      3. **Merge collinear segments**. Three consecutive horizontal
+         (or three consecutive vertical) points collapse to two: the
+         middle vertex is redundant when both adjacent segments share
+         the same cardinal direction.
+
+    The motivating defect: author-supplied ``route.points`` waypoints
+    plus a 16 px stub from the side-aware router can produce paths
+    like ``M 1086 381 L 1102 381 L 1098 381 L 1094 381 L 1110 381``
+    — five points all on the same y, oscillating left/right by tiny
+    amounts. After simplification this becomes ``M 1086 381 L 1110 381``,
+    a single segment.
+
+    Args:
+        points: An axis-aligned polyline (collinear-or-perpendicular
+            adjacent segments). Diagonal segments are passed through
+            untouched — collinearity is only tested on the cardinal
+            axes.
+        min_segment: Minimum visual length (px) below which a segment
+            is treated as a jog and absorbed into its neighbour. The
+            default of 2 px is roughly one rendered pixel at typical
+            slide-grade DPI; below this no human reads the segment.
+
+    Returns:
+        A new polyline with the same start and end points but with
+        collinear runs collapsed and micro-jogs removed.
+    """
+    if len(points) < 2:
+        return [(float(p[0]), float(p[1])) for p in points]
+
+    # Pass 1 — dedupe.
+    pts = _dedupe(points)
+    if len(pts) <= 2:
+        return pts
+
+    # Pass 2 — drop jogs shorter than `min_segment`. Walk forwards
+    # and look at the segment leaving the current vertex; if it's too
+    # short, fold the next vertex out by skipping it. We loop because
+    # each fold can expose a new short segment.
+    changed = True
+    while changed and len(pts) > 2:
+        changed = False
+        out: list[Point] = [pts[0]]
+        i = 1
+        while i < len(pts) - 1:
+            prev = out[-1]
+            cur = pts[i]
+            seg_len = abs(cur[0] - prev[0]) + abs(cur[1] - prev[1])
+            if seg_len < min_segment:
+                # Drop `cur` — the previous vertex links straight to
+                # the next. Don't re-add `prev`; it stays on top of
+                # `out`. Skip past `cur`.
+                changed = True
+                i += 1
+                continue
+            out.append(cur)
+            i += 1
+        out.append(pts[-1])
+        # Tail-cleanup: if the very last segment is shorter than the
+        # threshold, drop the penultimate vertex (preserve end).
+        if len(out) >= 3:
+            seg = abs(out[-1][0] - out[-2][0]) + abs(out[-1][1] - out[-2][1])
+            if seg < min_segment:
+                out = out[:-2] + [out[-1]]
+                changed = True
+        pts = out
+
+    # Pass 2.5 — cancellation pass for micro-zigzag triples. When
+    # three consecutive points share an axis and the segment reverses
+    # direction (forward then back), the smaller-magnitude move is
+    # treated as overshoot and collapsed. Distinguishes from genuine
+    # U-turns (both segments well above the cancel threshold) which
+    # the monotone-merge pass below preserves.
+    cancel_threshold = 10.0
+    if len(pts) > 2:
+        changed = True
+        while changed and len(pts) > 2:
+            changed = False
+            out2: list[Point] = [pts[0]]
+            i = 1
+            while i < len(pts) - 1:
+                a, b, c = out2[-1], pts[i], pts[i + 1]
+                same_y = abs(a[1] - b[1]) < 0.5 and abs(b[1] - c[1]) < 0.5
+                same_x = abs(a[0] - b[0]) < 0.5 and abs(b[0] - c[0]) < 0.5
+                if same_y:
+                    d1, d2 = b[0] - a[0], c[0] - b[0]
+                    if d1 * d2 < 0 and min(abs(d1), abs(d2)) < cancel_threshold:
+                        # Micro-jog → drop b; a links straight to c.
+                        changed = True
+                        i += 1
+                        continue
+                if same_x:
+                    d1, d2 = b[1] - a[1], c[1] - b[1]
+                    if d1 * d2 < 0 and min(abs(d1), abs(d2)) < cancel_threshold:
+                        changed = True
+                        i += 1
+                        continue
+                out2.append(b)
+                i += 1
+            out2.append(pts[-1])
+            pts = out2
+
+    # Pass 3 — merge collinear MONOTONE runs. Three consecutive points
+    # on the same horizontal (or vertical) line collapse to two ONLY
+    # when they progress in the same direction along the shared axis.
+    # A "U-turn" triple like (220,130) → (236,130) → (210,130) shares
+    # y=130 but goes east-then-west; collapsing it would draw a straight
+    # line from the start to the end and lose the visual fact that the
+    # path leaves perpendicular to its source side. Monotone-only
+    # merging keeps the U-turn vertex.
+    if len(pts) <= 2:
+        return pts
+    out = [pts[0]]
+    for i in range(1, len(pts) - 1):
+        a, b, c = out[-1], pts[i], pts[i + 1]
+        same_y = abs(a[1] - b[1]) < 0.5 and abs(b[1] - c[1]) < 0.5
+        same_x = abs(a[0] - b[0]) < 0.5 and abs(b[0] - c[0]) < 0.5
+        if same_y:
+            # Monotone in x?
+            d1 = b[0] - a[0]
+            d2 = c[0] - b[0]
+            if d1 * d2 > 0 or abs(d1) < 0.5 or abs(d2) < 0.5:
+                # Same sign (or one is zero) → monotone → merge.
+                continue
+        if same_x:
+            d1 = b[1] - a[1]
+            d2 = c[1] - b[1]
+            if d1 * d2 > 0 or abs(d1) < 0.5 or abs(d2) < 0.5:
+                continue
+        out.append(b)
+    out.append(pts[-1])
     return out
 
 

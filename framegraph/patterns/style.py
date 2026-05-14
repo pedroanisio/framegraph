@@ -150,14 +150,25 @@ def _resolve_typography(typo: Any, text_styles: dict[str, dict[str, Any]]) -> An
 
     Accepts:
       - a string token name → looked up in `text_styles`.
-      - a dict — leaves dict-shape (for content_types like `metric`
-        whose typography has multiple roles); each value is recursively
-        resolved.
+      - an inline style dict (all primitive values like ``font: primary``,
+        ``size: 18``) → returned as-is. These are typography literals,
+        not multi-role maps.
+      - a role-map dict (e.g. ``{kpi_value: {...}, kpi_label: {...}}`` for
+        the ``metric`` content_type) → each value recursively resolved.
+        Detected by the presence of at least one nested-dict value.
       - any other shape → returned unchanged.
     """
     if isinstance(typo, str):
         return dict(text_styles.get(typo, {}))
     if isinstance(typo, dict):
+        # Inline-style dict: all values are scalars/primitives. Treat
+        # as a literal style — don't try to recursively look up each
+        # value as a text-style name (`color: white` is not a text
+        # style; `font: primary` is a font token, resolved later).
+        if not any(isinstance(v, (dict, list)) for v in typo.values()):
+            return dict(typo)
+        # Role-map dict: at least one nested mapping (e.g. metric's
+        # `{kpi_value: {...}, kpi_label: {...}}`). Recurse into each.
         return {k: _resolve_typography(v, text_styles) for k, v in typo.items()}
     return typo
 

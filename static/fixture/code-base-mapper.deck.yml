@@ -4,8 +4,9 @@ kind: presentation-deck
 
 # ─────────────────────────────────────────────────────────────────────────
 # code-base-mapper — Architecture Report (FrameGraph deck)
-# Source of facts: cbm MCP bundle `code-base-mapper` @ 715de92, tool 0.5.0.
-# Generated 2026-05-14 by Claude Opus 4.7.
+# Source of facts: cbm MCP bundle `code-base-mapper` @ d6ad22c, tool 0.5.0.
+# Refreshed 2026-05-14 by Claude Opus 4.7 against the rebuilt bundle
+# (226 files / 1 268 chunks / 1 768 concepts — was 181 / 968 / 1 427).
 # Composed entirely from sidecared FrameGraph patterns (no bespoke SVG).
 # ─────────────────────────────────────────────────────────────────────────
 
@@ -15,7 +16,7 @@ $theme: mckinsey
 # readable on a 1920×1080 screen. The bundled `default.yml` is tuned
 # for letter-size consulting print at Big-4 density (10pt body) — too
 # small for screen-slide use. Chrome / treatments / roles are unchanged.
-brand_text: "code-base-mapper · Architecture Report · 715de92"
+brand_text: "code-base-mapper · Architecture Report · d6ad22c"
 
 deck:
   canvas:
@@ -110,7 +111,7 @@ deck:
            style: {font: primary, size: 14, weight: 400, color: text_muted, align: left, italic: true, wrap: true}}
         - {type: line, id: foot_rule,  from: [32,1056], to: [1888,1056], stroke: {color: border, width: 0.5}}
         - {type: text, id: brand,      box: [32,1064,1200,20],
-           text: "code-base-mapper · Architecture Report · 715de92",
+           text: "code-base-mapper · Architecture Report · d6ad22c",
            style: {font: primary, size: 13, weight: 700, color: text_muted, align: left}}
 
 slides:
@@ -120,7 +121,7 @@ slides:
     use: 1
     title: "code-base-mapper — Architecture Report"
     description: "Cover slide. Subject, source bundle, audience, and date."
-    synthesis: "A forensic look — **layered RDF model**, **dual REST/MCP surface**, **9 language adapters** — strengths and the four weaknesses worth closing before the next release."
+    synthesis: "A forensic look — **layered RDF model**, **dual REST/MCP surface**, **9 language adapters now including first-class Rust**, and a **new `llm_enrich` plugin** — strengths and the weaknesses worth closing before the next release."
     labels:
       title: ""
       subtitle: ""
@@ -130,7 +131,7 @@ slides:
         title: "code-base-mapper"
         body: "A forensic look at the architecture"
       subtitle:
-        title: "Architecture Report @ 715de92 · tool 0.5.0"
+        title: "Architecture Report @ d6ad22c · tool 0.5.0"
         body: "Composed in FrameGraph · sourced from the cbm MCP bundle"
       metadata:
         Date:   "2026-05-14"
@@ -141,39 +142,41 @@ slides:
   - id: 01-swot
     slide: 1
     use: 10
-    title: "Architectural SWOT — code-base-mapper @ 715de92"
-    synthesis: "Strong **layered model** and **dual REST/MCP surface**, but **test↔subject traceability** and **vocab kinding** are the load-bearing weaknesses to close before the next release."
+    title: "Architectural SWOT — code-base-mapper @ d6ad22c"
+    synthesis: "**Test-edge ratio recovered** (0.47 → **0.68**) and **first-class Rust + an `llm_enrich` plugin** landed; **vocab kinding stayed near zero** (1/1 427 → 2/1 768) and `handlers.py` size is still the largest blast-radius file."
     fill:
       strengths:
-        - "**Layered RDF model**: L1 host facts, L2 chunks+embeddings, L3 SKOS concepts — cleanly separated"
-        - "**SHACL conformance = true**; 179 unique blobs; deterministic, content-addressed bundle"
-        - "`models.py` is a **pure data hub**: 25 inbound / 0 outbound — acyclic root for the host layer"
+        - "**Layered RDF model**: L1 host · L2 chunks+embeddings · L3 SKOS concepts — cleanly separated (226 files · 1 268 chunks · **1 768 concepts**)"
+        - "**SHACL conformance = true**; 224 unique blobs; deterministic, content-addressed bundle"
+        - "`models.py` is a **pure data hub**: now **28 inbound / 0 outbound** (was 25/0) — acyclic root for the host layer"
         - "Two surfaces (REST FastAPI + MCP stdio/HTTP) share **one bundle store**; MCP imports REST — no duplicate impl"
-        - "**9 language adapters** + dedicated Python/TS-JS symbol resolvers (20.7 KB + 23.0 KB)"
+        - "**First-class Rust adapter** (`languages/rust.py` 16.7 KB) + the existing 8 adapters; symbol resolvers Python 20.7 KB / TS 23.0 KB"
+        - "**New `plugins/llm_enrich/`**: 8 modules + 3 versioned prompts — LLM-derived enrichment with on-disk `cache.py` (deg 10)"
       weaknesses:
-        - "**tests-edges heuristic under-fires**: only 8 edges for 42 test files (ratio 0.47) — graph can't answer 'tests cover X?'"
-        - "**Controlled-vocab coverage**: 1 / 1 427 concepts kinded (only `import_statement`) despite v1-default-on commit"
-        - "`handlers.py` concentrates **22 MCP tools** in one 29.3 KB file — **large blast radius**"
-        - "`frontend/backend/app.py` is a single **39.7 KB** FastAPI file (largest source file in the repo)"
-        - "`__init__.py` fan-out (**deg 30**, 26 outbound) — package surface change touches every adapter"
+        - "**tests-edges still under-fires**: 13 edges across 67 test files (test/source ratio 0.68 ✓ but edge-graph 0.19) — graph still can't answer 'tests cover X?'"
+        - "**Controlled-vocab coverage**: **2 / 1 768 concepts** kinded (`import_statement` structural + new `edge` relational) — moved the needle from 1 but still ≈0.1 %"
+        - "`handlers.py` concentrates **22 MCP tools** in one 29.3 KB file — **largest blast radius**"
+        - "`frontend/backend/app.py` is a single **39.7 KB** FastAPI file"
+        - "`__init__.py` fan-out (**deg 30**, 26 outbound) — package-surface change touches every language adapter"
       opportunities:
-        - "Extend `tests_edges.py` (2.8 KB — small) to **bind tests to subjects** via imports or coverage hooks"
-        - "Grow `software_primitives.yaml` to lift more concepts into **kinded** domain/structural/relational categories"
-        - "**Per-tool split** of `handlers.py` to scope blast radius and shrink `test_handlers.py` (15.0 KB)"
-        - "Re-use the L2 embeddings (MiniLM-L6-v2, 384-dim) for **cross-bundle semantic search**"
-        - "Vendor schema fixtures already underway (XSD, proto v2) — **pattern** for codifying language quirks"
+        - "Extend `tests_edges.py` to **bind tests to subjects** via imports — Rust now has 5 dedicated `verify_rust_*` tests but only 13 total edges land"
+        - "Grow `software_primitives.yaml` — the new `edge` kinding proves the matcher *works* on more than one concept"
+        - "**Per-tool split** of `handlers.py` to scope blast radius and shrink `test_handlers.py`"
+        - "Re-use the L2 embeddings (MiniLM-L6-v2, 384-dim) for **cross-bundle semantic search** — `llm_enrich/cache.py` already does on-disk caching"
+        - "Wire `llm_enrich/prompts/*.v1.txt` versioning into a CI assertion so prompt evolution stays auditable"
       threats:
         - "**Bundle-format drift** between tool versions (0.5.0 today) and stored bundles — no version-pinned migration path is visible"
         - "Reliance on **tree-sitter grammars**: per-language adapter rot if grammars move upstream"
         - "Single-file FastAPI + single-file handlers raise **merge-conflict risk** as the MCP surface grows"
         - "Embeddings backend default is offline-friendly but **binds the bundle to one model family**"
+        - "**LLM enrichment introduces unverified content into the bundle** — PALS's Law (CLAUDE.md) demands schema validation at the `llm_enrich/graph_writer` seam"
 
   # ── Slide 2 — Diagnostic Summary by architectural dimension ──────────
   - id: 02-diagnostic
     slide: 2
     use: 111
     title: "Diagnostic summary — five architectural dimensions"
-    synthesis: "Three **Greens** (layered model, public surfaces, adapter breadth) carry the architecture; one **Red** (test traceability) and one **Amber** (vocab coverage) are the next-quarter targets."
+    synthesis: "Three **Greens** (layered model, public surfaces, adapter breadth) carry the architecture; **test traceability** was Red — file-ratio recovered to 0.68 but the edge-graph stayed at 0.19, so it's now **Amber**; **vocab kinding** moved 1→2 (the matcher works), still **Amber**."
     fill:
       dimensions:
         - "Layered model integrity"
@@ -186,17 +189,17 @@ slides:
         rows:
           - [Layered model, "Green"]
           - [Public surfaces, "Green"]
-          - [Test traceability, "Red"]
+          - [Test traceability, "Amber"]
           - [Vocab coverage, "Amber"]
           - [Adapter breadth, "Green"]
       findings:
         headers: [Dimension, Finding]
         rows:
-          - [Layered model, "L1/L2/L3 are physically separate; SHACL conforms; 968 chunks, 1 427 concepts"]
+          - [Layered model, "L1/L2/L3 are physically separate; SHACL conforms; 1 268 chunks, 1 768 concepts"]
           - [Public surfaces, "MCP handlers.py imports REST app.py — one impl, two adapters"]
-          - [Test traceability, "8 tests-edges for 42 test files — heuristic in tests_edges.py underfires"]
-          - [Vocab coverage, "Only import_statement is kinded; loader+yaml wired but yield ≈ 0"]
-          - [Adapter breadth, "9 language adapters under codebase_mapper/languages/, Python+TS first-class"]
+          - [Test traceability, "13 tests-edges for 67 test files — file-ratio 0.68 ✓ but edge-graph 0.19 ✗"]
+          - [Vocab coverage, "import_statement (structural) + edge (relational) kinded; 2 / 1 768 — matcher proven on >1"]
+          - [Adapter breadth, "9 adapters; Python · TS · Rust first-class (Rust 16.7 KB + 5 verify_rust_* tests)"]
       implications:
         headers: [Dimension, Implication]
         rows:
@@ -211,21 +214,23 @@ slides:
     slide: 3
     use: 183
     title: "Layered RDF model — L1 host / L2 chunks / L3 concepts"
-    synthesis: "Each layer has a **distinct namespace**, owning module, key predicates, and backing tech — **clean separation** that lets each tier evolve without breaking the others."
+    synthesis: "Each layer has a **distinct namespace**, owning module, key predicates, and backing tech — **clean separation** that lets each tier evolve without breaking the others. The new `llm_enrich` plugin **augments** L1 + L3 rather than introducing an L4 namespace."
     fill:
       data_domains:
         - "L1 — Host facts (cbm:)"
         - "L2 — Chunks + embeddings (cbml2:)"
         - "L3 — Concept graph (cbml3:/skos:)"
         - "Symbol cross-references"
+        - "LLM enrichment (new)"
         - "Bundle envelope + SHACL"
       domain_owners:
         headers: [Layer, Owning module]
         rows:
-          - ["L1 host", "codebase_mapper/ (pipeline.py, models.py, languages/*)"]
+          - ["L1 host", "codebase_mapper/ (pipeline.py, models.py, languages/* — incl. rust.py 16.7 KB)"]
           - ["L2 chunks", "plugins/chunks_embeddings/ (chunker, backends, embedder)"]
           - ["L3 concepts", "plugins/concept_graph/ (splitter, concepts, graph_writer)"]
           - ["Xrefs", "plugins/symbol_xrefs/ (python_resolver 20.7 KB, tsjs_resolver 23.0 KB)"]
+          - ["LLM enrich", "plugins/llm_enrich/ (8 modules — enricher, client, cache, aggregator, prompts)"]
           - ["Envelope", "rdf_emit.py + emit_bundle.py + reconstruct.py"]
       governance_forums:
         headers: [Layer, Key predicates]
@@ -234,14 +239,16 @@ slides:
           - ["L2 chunks", "cbml2:inFile, cbml2:beginIndex, cbml2:endIndex, cbml2:embeddingRow"]
           - ["L3 concepts", "cbml3:lexicalizes, cbml3:composedOf, skos:related, skos:prefLabel"]
           - ["Xrefs", "SymbolXrefEdge, UnresolvedSymbolRef (from models.py)"]
+          - ["LLM enrich", "llm_enrich/graph_writer → augments L1/L3 with LLM summaries; cached"]
           - ["Envelope", "build_inventory_graph, build_shacl_graph, build_ontology_mapping_graph"]
       platform_capabilities:
         headers: [Layer, Backing tech]
         rows:
-          - ["L1 host", "tree-sitter (ts_setup.py) + per-language adapters"]
+          - ["L1 host", "tree-sitter (ts_setup.py) + 9 per-language adapters (Py · TS · Rust first-class)"]
           - ["L2 chunks", "sentence-transformers/all-MiniLM-L6-v2 (384-dim)"]
-          - ["L3 concepts", "Identifier splitter + co-occurrence (SKOS-compatible)"]
+          - ["L3 concepts", "Identifier splitter + co-occurrence; vocab kinding (import_statement, edge)"]
           - ["Xrefs", "Python/TS resolvers + aggregator"]
+          - ["LLM enrich", "external LLM client + on-disk cache.py + versioned prompts (v1.txt)"]
           - ["Envelope", "rdflib turtle/json-ld emitters; SHACL validator"]
       priority_use_cases:
         headers: [Layer, Primary consumer]
@@ -250,6 +257,7 @@ slides:
           - ["L2 chunks", "semantic_neighbors, chunk_detail, chunk_blob"]
           - ["L3 concepts", "concept_detail, concept_neighborhood"]
           - ["Xrefs", "/symbol_graph endpoint + UI SymbolGraph view"]
+          - ["LLM enrich", "concept_detail summary fields, file_summary, schema_purpose"]
           - ["Envelope", "orient_bundle, bundle_summary, repository_summary"]
 
   # ── Slide 4 — Best Practice Gap (current vs desired) ─────────────────
@@ -265,11 +273,11 @@ slides:
       current_practice:
         headers: [Area, Today]
         rows:
-          - ["Test-edge graph", "Heuristic in tests_edges.py emits 8 edges for 42 test files"]
-          - ["Vocab kinding", "1 / 1 427 concepts kinded; loader wired but matcher near-empty"]
+          - ["Test-edge graph", "13 edges for 67 test files (was 8/42); file-ratio 0.68 ✓ but edge-graph 0.19 ✗"]
+          - ["Vocab kinding", "2 / 1 768 concepts kinded (import_statement + edge); matcher proven on >1"]
           - ["MCP handlers", "22 tools in one 29.3 KB handlers.py"]
           - ["FastAPI backend", "Single 39.7 KB app.py — all 12 endpoints in one module"]
-          - ["LLM output trust", "Not visibly applied to the embedding/concept pipeline"]
+          - ["LLM output trust", "**Now actively used** by plugins/llm_enrich/ — graph_writer emits enriched triples"]
       leading_practice:
         headers: [Area, Leading practice]
         rows:
@@ -285,33 +293,34 @@ slides:
           - ["Vocab kinding", "Expand software_primitives.yaml; add lexical-match CI assertion"]
           - ["MCP handlers", "Split handlers.py along the 22-tool boundary; preserve dispatch table"]
           - ["FastAPI backend", "Extract APIRouter modules per resource; thin app.py to wiring"]
-          - ["LLM output trust", "Add PALS-law contract block + validator at every LLM seam (per CLAUDE.md)"]
+          - ["LLM output trust", "Wire a PALS-law validator at llm_enrich/graph_writer.py before triples land in the bundle"]
 
   # ── Slide 5 — Unknowns Map ───────────────────────────────────────────
   - id: 05-unknowns
     slide: 5
     use: 280
     title: "Unknowns map — known facts, known unknowns, assumptions, open risks"
-    synthesis: "What we **measured** (181 files, 968 chunks, 1 427 concepts) gives a strong baseline; what we have **not measured** (coverage %, scale headroom) is the next instrumentation backlog."
+    synthesis: "What we **measured** (226 files, 1 268 chunks, 1 768 concepts) is the new baseline; **scale headroom**, **LLM-cache hit-rate**, and **bundle-format compat across `tool_version` bumps** remain unmeasured."
     fill:
       known_facts:
-        - "**181 files** (Py 103, TS 21, Proto 5); **968 chunks**; **1 427 concepts**; SHACL conforms"
-        - "Embeddings backend: `sentence-transformers/all-MiniLM-L6-v2` at **384 dims**"
+        - "**226 files** (Py 128, TS 22, Rust 9, Proto 5); **1 268 chunks**; **1 768 concepts**; SHACL ✓"
+        - "Embeddings backend: `sentence-transformers/all-MiniLM-L6-v2` at **384 dims**; 224 unique blobs"
         - "Two surfaces (REST FastAPI + MCP) backed by **one bundle store**"
-        - "Recent commits add static fixtures: **XSD** (5f478c7) + **proto v2** (715de92)"
-        - "L3 controlled vocabulary v1 is **'default on'** (commit 41e9423)"
+        - "**Rust ingestion landed**: `languages/rust.py` 16.7 KB + 5 `verify_rust_*` integration tests"
+        - "**`plugins/llm_enrich/` landed**: 8 modules + 3 versioned prompts (`*.v1.txt`) + on-disk `cache.py`"
+        - "**L1 / L2 / L3 are the only RDF layers** — orient_bundle confirms; no L4 namespace exists"
       known_unknowns:
-        - "Actual **test-coverage %** (only 0.47 file-ratio reported; 8 tests-edges is unreliable)"
-        - "**Bundle-format compatibility window** across `tool_version` bumps"
+        - "Actual **test-coverage %** (file-ratio recovered to 0.68 but the 13-edge graph still under-grounds the claim)"
+        - "**Bundle-format compatibility window** across `tool_version` bumps (still 0.5.0)"
+        - "**LLM-cache hit-rate** in `plugins/llm_enrich/cache.py` — how much enrichment is amortised?"
         - "**Throughput / latency** of `repository_summary` on 10× larger bundles"
         - "OAuth / **auth posture** of the MCP HTTP transport at production load"
-        - "Concrete **kind-coverage target** for the controlled vocabulary"
       assumptions:
-        - "Per-language adapters can be extended **without touching** `pipeline.py` orchestration"
+        - "Per-language adapters can be extended **without touching** `pipeline.py` orchestration (Rust proved this)"
         - "MCP handlers will continue to **import** `frontend/backend/app.py` rather than fork its impl"
         - "`rdf_emit.py` output is **byte-stable** across runs at the same commit"
         - "MiniLM-L6-v2 embeddings remain serviceable; **no upgrade pressure** in next quarter"
-        - "Plugin registration via `register_builtins()` is **sufficient** for all future emitters"
+        - "`llm_enrich` triples remain **opt-in** and don't change SHACL conformance"
       open_risks:
         - "`tests_edges` under-counting creates **false confidence** in coverage reports"
         - "Single-file `handlers.py` / `app.py` become **merge-conflict hotspots** as MCP surface grows"
@@ -324,7 +333,7 @@ slides:
     slide: 6
     use: 93
     title: "RAID log — risks, assumptions, issues, dependencies"
-    synthesis: "Two **open issues** (`handlers.py` size, `tests-edges` under-firing) and one **assumption** (MCP-as-thin-adapter) are the items most worth verifying before the next bundle revision."
+    synthesis: "**Tests-edge gap persists** (13/67 = 0.19) and **vocab kinding** is still ≈0.1 % despite v1-default-on; **MCP-as-thin-adapter** assumption holds (verified — handlers.py still imports app.py). New entry: LLM-enrichment trust (PALS's Law)."
     fill:
       risks:
         - "**R1**: Bundle drift across `tool_version` — no migration path visible"
@@ -339,8 +348,8 @@ slides:
         - "**A4**: Tree-sitter grammars remain **backward-compatible**"
         - "**A5**: 384-dim MiniLM vectors are **enough** for `semantic_neighbors`"
       issues:
-        - "**I1**: Only **8 tests-edges** across 42 test files (`cbm:tests` heuristic too narrow)"
-        - "**I2**: **1/1 427** concepts kinded despite vocab-v1 default-on"
+        - "**I1**: **13 tests-edges** across 67 test files (`cbm:tests` heuristic still too narrow despite +5 from prior bundle)"
+        - "**I2**: **2/1 768** concepts kinded — matcher works on >1 but coverage is ≈0.1 %"
         - "**I3**: `frontend/backend/app.py` at **39.7 KB** — largest single source file"
         - "**I4**: `handlers.py` at **29.3 KB** with 22 tool handlers in-file"
         - "**I5**: `tests/verify_xrefs.py` at **50.9 KB** — test-of-record but unwieldy"
@@ -402,7 +411,7 @@ slides:
     slide: 8
     use: 297
     title: "Early-warning indicators — five drift signals"
-    synthesis: "Two indicators (**test-edge ratio**, **vocab kind coverage**) are already **past their threshold** and need active remediation; the other three give us monitoring runway as the codebase scales."
+    synthesis: "Same two indicators (**test-edge ratio**, **vocab kind coverage**) are still past threshold one bundle-cycle later; absolute numbers grew (8→13 edges, 1→2 kinded concepts) but the **denominators grew faster** — instrumentation is the right backlog."
     fill:
       indicators:
         title: "Drift signals to monitor"
@@ -419,8 +428,8 @@ slides:
         headers: [Indicator, Today]
         rows:
           - ["SHACL conformance", "true ✓"]
-          - ["Test-edge ratio", "8 / 42 = 0.19 ✗"]
-          - ["Vocab kind coverage", "1 / 1 427 = 0.0007 ✗"]
+          - ["Test-edge ratio", "13 / 67 = 0.19 ✗  (file-count grew, edge-count grew, ratio unchanged)"]
+          - ["Vocab kind coverage", "2 / 1 768 = 0.0011 ✗  (matcher works, coverage still ≈0)"]
           - ["handlers.py size", "29.3 KB, 22 handlers — within"]
           - ["app.py size", "39.7 KB, ~12 endpoints — within"]
       response_action:
@@ -633,10 +642,13 @@ slides:
               name: "self_test"
               stereotype: component
 
-            # ── plugins row
+            # ── plugins row.
+            # Five cards now (chunks · concepts · xrefs · llm_enrich · vocab);
+            # each width 340 with 16 px gutters fits the package frame.
+            # Geometry: x = 80, 436, 792, 1148, 1504 (all 340 wide).
             - type: uml.classifier_box
               id: p_chunks
-              box: [90, 542, 380, 80]
+              box: [80, 542, 340, 80]
               name: "chunks_embeddings"
               stereotype: component
               attributes:
@@ -644,7 +656,7 @@ slides:
                 - {name: "artifact · graph_writer", type: "→ cbml2:"}
             - type: uml.classifier_box
               id: p_concepts
-              box: [500, 542, 380, 80]
+              box: [436, 542, 340, 80]
               name: "concept_graph"
               stereotype: component
               attributes:
@@ -652,20 +664,31 @@ slides:
                 - {name: "artifact · graph_writer", type: "→ cbml3: / skos:"}
             - type: uml.classifier_box
               id: p_xrefs
-              box: [910, 542, 380, 80]
+              box: [792, 542, 340, 80]
               name: "symbol_xrefs"
               stereotype: component
               attributes:
                 - {name: "python_resolver", type: "20.7 KB"}
                 - {name: "tsjs_resolver · aggregator", type: "23.0 KB"}
+            # ── NEW plugin (commit d6ad22c): LLM-based enrichment of the
+            # bundle. 8 modules + 3 versioned prompts; writes through
+            # graph_writer back into cbm:/cbml3: with cached LLM calls.
+            - type: uml.classifier_box
+              id: p_llm
+              box: [1148, 542, 340, 80]
+              name: "llm_enrich (new)"
+              stereotype: component
+              attributes:
+                - {name: "enricher · client · cache", type: "8 modules"}
+                - {name: "prompts/*.v1.txt", type: "concept · file · schema"}
             - type: uml.classifier_box
               id: p_vocab
-              box: [1320, 542, 380, 80]
+              box: [1504, 542, 340, 80]
               name: "vocab application"
               stereotype: component
               attributes:
                 - {name: "loader", type: "software_primitives.yaml"}
-                - {name: "kind coverage", type: "1 / 1 427"}
+                - {name: "kind coverage", type: "2 / 1 768"}
 
             # ── bundle store (datastore-styled lozenges)
             - type: uml.classifier_box
@@ -771,6 +794,12 @@ slides:
             - {type: connector, id: e_w2, from: {object: p_concepts, side: south}, to: {object: bnd_l3, side: north}, route: {type: orthogonal},
                stroke: {color: primary, width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
             - {type: connector, id: e_w3, from: {object: p_xrefs,    side: south}, to: {object: bnd_x,  side: north}, route: {type: orthogonal},
+               stroke: {color: primary, width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+            # NEW: llm_enrich augments L1 (file summaries) and L3 (concept
+            # descriptions). Solid filled-triangle = «writes»; the edge
+            # back-fills enrichment triples after the synchronous build
+            # pass, so it sits semantically alongside the other writers.
+            - {type: connector, id: e_w_llm, from: {object: p_llm, side: south}, to: {object: bnd_l1, side: north, offset: 60}, route: {type: orthogonal},
                stroke: {color: primary, width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
             - {type: connector, id: e_w4, from: {object: p_vocab,    side: south}, to: {object: bnd_s,  side: north}, route: {type: orthogonal},
                stroke: {color: primary, width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
@@ -957,11 +986,11 @@ slides:
                box: [420, 696, 1060, 18],
                style: {font: primary, size: 13, weight: 700, color: uml_db_b, align: left}}
             - {type: text, id: vol_meta, decorative: true,
-               text: "181 files  ·  968 chunks  ·  1 427 concepts  ·  179 unique blobs  ·  generated by codebase_mapper.cli",
+               text: "226 files  ·  1 268 chunks  ·  1 768 concepts  ·  224 unique blobs  ·  generated by codebase_mapper.cli",
                box: [420, 722, 1060, 18],
                style: {font: primary, size: 12, weight: 400, color: text, align: left}}
             - {type: text, id: vol_paths, decorative: true,
-               text: "files.ttl · imports.ttl · chunks.ttl · embeddings.npy · concepts.ttl · xrefs.ttl · shacl.ttl · manifest.json",
+               text: "files.ttl · imports.ttl · chunks.ttl · embeddings.npy · concepts.ttl · xrefs.ttl · llm_enrich.ttl · shacl.ttl · manifest.json",
                box: [420, 748, 1060, 18],
                style: {font: mono, size: 11, weight: 400, color: text_muted, align: left}}
             - {type: text, id: vol_addr, decorative: true,
@@ -1480,7 +1509,7 @@ slides:
                box: [32,8,1200,44],
                style: {font: heading, size: 24, weight: 700, color: white, align: left, v_align: middle}}
             - {type: text, id: subtitle, decorative: true,
-               text: "Bundle 715de92 · tool 0.5.0 · 181 files (Py 103, TS 21, Proto 5) · 968 chunks · 1 427 concepts · SHACL ✓ · MiniLM-L6-v2 (384d)",
+               text: "Bundle d6ad22c · tool 0.5.0 · 226 files (Py 128, TS 22, Rust 9, Proto 5) · 1 268 chunks · 1 768 concepts · SHACL ✓ · MiniLM-L6-v2 (384d)",
                box: [32,32,1200,22],
                style: {font: primary, size: 12, weight: 400, color: panel, align: left, v_align: middle}}
             - {type: text, id: src_meta, decorative: true,
@@ -1548,7 +1577,7 @@ slides:
             - {type: text, id: b_src_t, decorative: true, text: "Source tree (any language)",
                box: [230, 102, 180, 16],
                style: {font: primary, size: 11, weight: 700, color: "#7C2D12", align: left}}
-            - {type: text, id: b_src_b, decorative: true, text: "Py · TS · Rust · Go · C · Ruby · Kotlin · Swift · Dart",
+            - {type: text, id: b_src_b, decorative: true, text: "Py · TS · Rust (★ first-class) · Go · C · Ruby · Kotlin · Swift · Dart",
                box: [230, 122, 180, 28],
                style: {font: primary, size: 10, weight: 400, color: "#9A3412", align: left, wrap: true}}
 
@@ -1782,44 +1811,57 @@ slides:
                box: [56, 424, 1000, 16],
                style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left}}
 
-            - {type: rect, id: p_chk, decorative: true, box: [220, 440, 360, 110], radius: 8,
+            # ── Five plugin cards (chunks · concepts · xrefs · llm_enrich · vocab)
+            # Width 308, gutter 16 → x = 220, 544, 868, 1192, 1516
+            - {type: rect, id: p_chk, decorative: true, box: [220, 440, 308, 110], radius: 8,
                fill: white, stroke: {color: "#22C55E", width: 0.8}}
             - {type: text, id: p_chk_t, decorative: true, text: "plugins/chunks_embeddings/",
-               box: [230, 446, 340, 18],
+               box: [228, 446, 290, 18],
                style: {font: primary, size: 12, weight: 700, color: "#166534", align: left}}
             - {type: text, id: p_chk_b, decorative: true,
-               text: "chunker.py (12.9 KB) — fn/class/file chunks\nbackends.py — sbert / dummy\nembedder.py — encode(texts) → vec\nartifact.py — npy + manifest\ngraph_writer.py — cbml2: triples",
-               box: [230, 466, 340, 82],
+               text: "chunker.py (12.9 KB) — chunks\nbackends.py — sbert / dummy\nembedder.py — encode → vec\nartifact.py — npy + manifest\ngraph_writer.py — cbml2: triples",
+               box: [228, 466, 290, 82],
                style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left, line_height: 14, wrap: true}}
 
-            - {type: rect, id: p_con, decorative: true, box: [600, 440, 360, 110], radius: 8,
+            - {type: rect, id: p_con, decorative: true, box: [544, 440, 308, 110], radius: 8,
                fill: white, stroke: {color: "#22C55E", width: 0.8}}
             - {type: text, id: p_con_t, decorative: true, text: "plugins/concept_graph/",
-               box: [610, 446, 340, 18],
+               box: [552, 446, 290, 18],
                style: {font: primary, size: 12, weight: 700, color: "#166534", align: left}}
             - {type: text, id: p_con_b, decorative: true,
-               text: "splitter.py — identifier → tokens\nconcepts.py (15.4 KB) — SKOS build\ngraph_writer.py — cbml3: + skos:related\nartifact.py — concept index\n1 427 concepts emitted",
-               box: [610, 466, 340, 82],
+               text: "splitter.py — identifier → tokens\nconcepts.py (15.4 KB) — SKOS\ngraph_writer.py — cbml3: / skos:\nartifact.py — concept index\n1 768 concepts emitted",
+               box: [552, 466, 290, 82],
                style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left, line_height: 14, wrap: true}}
 
-            - {type: rect, id: p_xr, decorative: true, box: [980, 440, 360, 110], radius: 8,
+            - {type: rect, id: p_xr, decorative: true, box: [868, 440, 308, 110], radius: 8,
                fill: white, stroke: {color: "#22C55E", width: 0.8}}
             - {type: text, id: p_xr_t, decorative: true, text: "plugins/symbol_xrefs/",
-               box: [990, 446, 340, 18],
+               box: [876, 446, 290, 18],
                style: {font: primary, size: 12, weight: 700, color: "#166534", align: left}}
             - {type: text, id: p_xr_b, decorative: true,
-               text: "python_resolver.py (20.7 KB)\ntsjs_resolver.py (23.0 KB)\naggregator.py · graph_writer.py\nartifact.py — xref index\nSymbolXref + Unresolved",
-               box: [990, 466, 340, 82],
+               text: "python_resolver.py (20.7 KB)\ntsjs_resolver.py (23.0 KB)\naggregator · graph_writer\nartifact.py — xref index\nSymbolXref + Unresolved",
+               box: [876, 466, 290, 82],
                style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left, line_height: 14, wrap: true}}
 
-            - {type: rect, id: p_vc, decorative: true, box: [1360, 440, 380, 110], radius: 8,
+            # NEW plugin (commit d6ad22c): LLM-based enrichment.
+            - {type: rect, id: p_llm, decorative: true, box: [1192, 440, 308, 110], radius: 8,
+               fill: white, stroke: {color: "#22C55E", width: 1.4}}
+            - {type: text, id: p_llm_t, decorative: true, text: "plugins/llm_enrich/ ★ new",
+               box: [1200, 446, 290, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#166534", align: left}}
+            - {type: text, id: p_llm_b, decorative: true,
+               text: "enricher · client · aggregator\ncache.py (deg 10) — on-disk\ngraph_writer.py — augments L1+L3\nprompts/*.v1.txt — 3 templates\n8 modules total",
+               box: [1200, 466, 290, 82],
+               style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left, line_height: 14, wrap: true}}
+
+            - {type: rect, id: p_vc, decorative: true, box: [1516, 440, 308, 110], radius: 8,
                fill: white, stroke: {color: "#22C55E", width: 0.8, dash: [4,3]}}
             - {type: text, id: p_vc_t, decorative: true, text: "codebase_mapper/vocab/",
-               box: [1370, 446, 360, 18],
+               box: [1524, 446, 290, 18],
                style: {font: primary, size: 12, weight: 700, color: "#166534", align: left}}
             - {type: text, id: p_vc_b, decorative: true,
-               text: "loader.py — read software_primitives.yaml\napplies kind: domain- / structural- / relational-\n+ broader (e.g. code_structure)\nL3 controlled-vocab v1 default-on (41e9423)\n⚠ kind coverage today: 1 / 1 427",
-               box: [1370, 466, 360, 82],
+               text: "loader.py — read primitives YAML\napplies kind: domain / structural / relational\n+ broader (e.g. code_structure)\nL3 controlled-vocab v1 default-on\n⚠ kind coverage: 2 / 1 768",
+               box: [1524, 466, 290, 82],
                style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left, line_height: 14, wrap: true}}
 
         # ── Row 4: EMITTERS band + content
@@ -1932,7 +1974,7 @@ slides:
             - {type: text, id: bn_l2_t, decorative: true, text: "L2 chunks + embeddings (cbml2:)",
                box: [530, 757, 280, 16],
                style: {font: primary, size: 11, weight: 700, color: "#92400E", align: left}}
-            - {type: text, id: bn_l2_b, decorative: true, text: "968 chunks · NIF spans · 384-dim vec",
+            - {type: text, id: bn_l2_b, decorative: true, text: "1 268 chunks · NIF spans · 384-dim vec",
                box: [530, 776, 280, 14],
                style: {font: primary, size: 10, weight: 400, color: "#B45309", align: left}}
 
@@ -1941,7 +1983,7 @@ slides:
             - {type: text, id: bn_l3_t, decorative: true, text: "L3 concept graph (cbml3:/skos:)",
                box: [850, 757, 260, 16],
                style: {font: primary, size: 11, weight: 700, color: "#92400E", align: left}}
-            - {type: text, id: bn_l3_b, decorative: true, text: "1 427 concepts · co-occurrence",
+            - {type: text, id: bn_l3_b, decorative: true, text: "1 768 concepts · co-occurrence",
                box: [850, 776, 260, 14],
                style: {font: primary, size: 10, weight: 400, color: "#B45309", align: left}}
 
@@ -2217,15 +2259,16 @@ slides:
     fill:
       recommendation_cards:
         title: "Three load-bearing fixes for next quarter"
-        body: "1. Rebuild `tests_edges.py` — imports-based binding or coverage.py ingest. Today: 8 edges across 42 test files (ratio 0.19).  2. Grow vocab kinding — target >30 % of frequency-top concepts; CI guard against regressions. Today: 1 / 1 427.  3. Split `handlers.py` — one module per tool group (bundle / file / chunk / concept / sparql). Today: 22 tools in one 29.3 KB file."
+        body: "1. Rebuild `tests_edges.py` — imports-based binding or coverage.py ingest. Today: **13 edges across 67 test files (ratio still 0.19)** despite file-ratio recovering to 0.68.  2. Grow vocab kinding — target >30 % of frequency-top concepts; CI guard against regressions. Today: **2 / 1 768** (matcher proven on >1).  3. Split `handlers.py` — one module per tool group (bundle / file / chunk / concept / sparql / **llm_enrich**). Today: 22 tools in one 29.3 KB file."
       priority_labels:
         P1: "tests_edges rewrite"
         P1b: "vocab kinding"
         P2: "handlers split"
       rationale:
         title: "Why now"
-        body: "Two EWI tripwires (test-edge ratio 0.19, vocab kind coverage 0.07 %) are already past threshold. Bundle drift across `tool_version` is the next failure mode if `repository_summary` widens before the migration path is pinned."
+        body: "Two EWI tripwires (test-edge ratio 0.19, vocab kind coverage 0.11 %) are still past threshold one bundle-cycle later — absolute numbers grew but denominators grew faster. `plugins/llm_enrich/` is now writing into the bundle: PALS's Law demands a validator at that seam before unverified LLM content propagates."
       next_steps:
         - "Open tracking issue per action; assign owner and ETA"
         - "Set kind-coverage SLO and surface in `repository_summary`"
         - "Pin a bundle-format migration path before 0.6.0"
+        - "Wire PALS-law validator at `plugins/llm_enrich/graph_writer.py` before merge"

@@ -83,10 +83,13 @@ def _path_points(d: str) -> list[tuple[float, float]]:
 
 
 class TestSideAwareWiring:
-    def test_side_endpoints_produce_stub_segments(self) -> None:
-        """Endpoints with `side` produce a stub perpendicular to the
-        side as the second point of the path (the renderer routes the
-        connector through `route_orthogonal`)."""
+    def test_side_endpoints_route_perpendicular_to_anchors(self) -> None:
+        """Endpoints with `side` produce a path that leaves and enters
+        perpendicular to the declared face. After the renderer's
+        polyline simplifier collapses collinear stub vertices, the
+        important visual invariants are that endpoints match the
+        anchors AND the first/last segments depart along the
+        cardinal direction implied by the `side`."""
         a = _classifier("a", 100, 100)  # box covers x=100..220, y=100..160
         b = _classifier("b", 400, 200)  # box covers x=400..520, y=200..260
         edge = _connector(
@@ -97,32 +100,35 @@ class TestSideAwareWiring:
         doc = _doc_with([a, b, edge])
         svg = FrameGraphRenderer(doc).render_svg()
         pts = _path_points(_path_d(svg, "e"))
-        # Start at a's east anchor (x=220, y=130).
+        # Endpoints lock to the side anchors.
         assert pts[0] == (220.0, 130.0)
-        # First stub: 16 px east of the start.
-        assert pts[1] == (236.0, 130.0)
-        # Last point at b's west anchor (x=400, y=230).
         assert pts[-1] == (400.0, 230.0)
-        # Penultimate stub: 16 px west of the end.
-        assert pts[-2] == (384.0, 230.0)
+        # First move is east (a.east → outward); last move is east
+        # (approaching b.west from west).
+        assert pts[1][0] > pts[0][0], (
+            f"first segment did not depart east of {pts[0]}: {pts[1]}"
+        )
+        assert pts[-2][0] < pts[-1][0], (
+            f"last segment did not approach west of {pts[-1]}: {pts[-2]}"
+        )
 
     def test_legacy_centred_endpoint_keeps_z_route(self) -> None:
         """A connector with no side declarations preserves the legacy
-        4-point Z route (centred bend at midpoint) — backward
-        compatibility for decks that route between point objects."""
+        Z route. After polyline simplification a centre-to-centre
+        link between two boxes at the same y collapses to a single
+        flat segment — visually identical, fewer vertices."""
         a = _classifier("a", 100, 100)
         b = _classifier("b", 400, 100)
         edge = _connector("e", {"object": "a"}, {"object": "b"})
         doc = _doc_with([a, b, edge])
         svg = FrameGraphRenderer(doc).render_svg()
         pts = _path_points(_path_d(svg, "e"))
-        # Centre-to-centre with mid_x bend: 4 distinct points.
-        assert len(pts) == 4
-        # Centres: a=(160,130), b=(460,130). mid_x = 310.
+        # Centres: a=(160,130), b=(460,130) — both on y=130.
         assert pts[0] == (160.0, 130.0)
-        assert pts[1] == (310.0, 130.0)
-        assert pts[2] == (310.0, 130.0)
-        assert pts[3] == (460.0, 130.0)
+        assert pts[-1] == (460.0, 130.0)
+        # Every point lies on y=130 (collinear → simplified flat).
+        for x, y in pts:
+            assert y == 130.0
 
     def test_explicit_route_points_bypass_side_routing(self) -> None:
         """When the user supplies `route.points`, the explicit polyline
@@ -198,10 +204,14 @@ class TestObstacleIntegration:
         doc = _doc_with([a, b, edge])
         svg = FrameGraphRenderer(doc).render_svg()
         pts = _path_points(_path_d(svg, "e"))
-        # Path is a clean H-V-H without any "fallback" markers — the
-        # endpoints' own boxes were correctly excluded from obstacles.
-        # Six points total: start, s_stub, bend1, bend2, e_stub, end.
-        assert len(pts) == 6
+        # Endpoints lock; first move east of source, last move east
+        # toward destination. After polyline simplification, the
+        # collinear stub vertices (s_stub, e_stub) collapse — the
+        # remaining vertices describe the visible H-V-H corners.
+        assert pts[0] == (300.0, 140.0)  # a.east at (100+200, 100+80/2)
+        assert pts[-1] == (500.0, 240.0)  # b.west at (500, 200+80/2)
+        assert pts[1][0] > pts[0][0]
+        assert pts[-2][0] < pts[-1][0]
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -215,12 +225,11 @@ class TestVisualHygiene:
         could bend back through the source box when the bend lane
         landed inside it. Side-aware routing emits a stub first, so
         the first move is always perpendicular outward from the
-        source side."""
-        # Source east anchor at x=220; without a stub, the legacy
-        # routing's first segment would jog left to mid_x=210 — INSIDE
-        # the source box. The new router must move RIGHT first.
+        source side. After polyline simplification the stub may be
+        collapsed if collinear with the next segment, but the first
+        visible move must still be east of the source anchor."""
         a = _classifier("a", 100, 100, w=120, h=60)
-        b = _classifier("b", 200, 200, w=120, h=60)  # end's centre west of start's east
+        b = _classifier("b", 200, 200, w=120, h=60)
         edge = _connector(
             "e",
             {"object": "a", "side": "east"},
@@ -229,15 +238,15 @@ class TestVisualHygiene:
         doc = _doc_with([a, b, edge])
         svg = FrameGraphRenderer(doc).render_svg()
         pts = _path_points(_path_d(svg, "e"))
-        # Start at (220, 130). Stub must move east → x increases.
+        # Start at (220, 130). First move must be east → x increases,
+        # AND must clear the source box's east edge (x=220).
         assert pts[1][0] > pts[0][0], (
-            f"stub at {pts[1]} did not extend east of start at {pts[0]}"
+            f"first move at {pts[1]} did not extend east of start at {pts[0]}"
         )
 
     def test_dot_notation_endpoint_routes_with_side(self) -> None:
         """The shorthand `"obj.east"` must produce the same routing as
-        the equivalent `{object: "obj", side: "east"}` form. Covers the
-        string-split branch of `_endpoint_side`."""
+        the equivalent `{object: "obj", side: "east"}` form."""
         a = _classifier("a", 100, 100)
         b = _classifier("b", 400, 200)
         edge = _connector("e", "a.east", "b.west")
@@ -245,8 +254,9 @@ class TestVisualHygiene:
         svg = FrameGraphRenderer(doc).render_svg()
         pts = _path_points(_path_d(svg, "e"))
         assert pts[0] == (220.0, 130.0)
-        assert pts[1] == (236.0, 130.0)
         assert pts[-1] == (400.0, 230.0)
+        # First move east of source.
+        assert pts[1][0] > pts[0][0]
 
     def test_decorative_classifier_is_not_an_obstacle(self) -> None:
         """`decorative: true` classifier boxes must NOT be treated as
@@ -288,6 +298,157 @@ class TestVisualHygiene:
         # Centre Z bend at mid_x=325.
         assert len(pts) == 4
         assert pts[1][0] == pytest.approx(325.0)
+
+class TestAutoLabelPlacement:
+    """When a connector declares an inline `label` without an explicit
+    `box`, the renderer must compute a label position that does NOT
+    overlap the connector's own path. The deployment-slide defects
+    that motivated this — three connector labels sitting directly on
+    their lines — would have been caught by this rule."""
+
+    def test_horizontal_segment_label_sits_above_path(self) -> None:
+        a = _classifier("a", 100, 100)  # box (100,100,120,60)
+        b = _classifier("b", 400, 100)  # box (400,100,120,60)
+        edge = {
+            "type": "connector",
+            "id": "e",
+            "from": {"object": "a", "side": "east"},
+            "to": {"object": "b", "side": "west"},
+            "route": {"type": "orthogonal"},
+            "stroke": {"color": "#1A1A1A", "width": 1, "arrow_end": True},
+            "label": {"text": "uses", "style": {"size": 12}},
+        }
+        doc = _doc_with([a, b, edge])
+        svg = FrameGraphRenderer(doc).render_svg()
+        # Path is a flat horizontal line at y=130 (anchors share y).
+        # Label baseline must sit above y=130 with a clearance gap.
+        m = re.search(
+            r'<g id="e"[^>]*>.*?<text[^>]*y="([0-9.\-]+)"',
+            svg, re.DOTALL,
+        )
+        assert m, "label not emitted"
+        label_y = float(m.group(1))
+        assert label_y < 130 - 4, (
+            f"label baseline y={label_y} should sit at least 4px "
+            "above the path at y=130"
+        )
+
+    def test_vertical_segment_label_sits_beside_path(self) -> None:
+        a = _classifier("a", 100, 100)
+        b = _classifier("b", 100, 400)  # b directly below a
+        edge = {
+            "type": "connector",
+            "id": "e",
+            "from": {"object": "a", "side": "south"},
+            "to": {"object": "b", "side": "north"},
+            "route": {"type": "orthogonal"},
+            "stroke": {"color": "#1A1A1A", "width": 1, "arrow_end": True},
+            "label": {"text": "calls", "style": {"size": 12}},
+        }
+        doc = _doc_with([a, b, edge])
+        svg = FrameGraphRenderer(doc).render_svg()
+        m = re.search(
+            r'<g id="e"[^>]*>.*?<text[^>]*x="([0-9.\-]+)"',
+            svg, re.DOTALL,
+        )
+        assert m, "label not emitted"
+        label_x = float(m.group(1))
+        # The path's vertical segment is at x=160 (a.south = b.north
+        # when boxes share the same x). Label x should sit to the
+        # right of that line by the configured gap.
+        assert label_x > 160 + 4, (
+            f"label x={label_x} should sit at least 4px right of the "
+            "vertical path at x=160"
+        )
+
+    def test_explicit_label_box_wins(self) -> None:
+        """When the author supplies `label.box`, the auto-placement
+        is bypassed — explicit positioning is always honoured."""
+        a = _classifier("a", 100, 100)
+        b = _classifier("b", 400, 100)
+        edge = {
+            "type": "connector",
+            "id": "e",
+            "from": {"object": "a", "side": "east"},
+            "to": {"object": "b", "side": "west"},
+            "route": {"type": "orthogonal"},
+            "stroke": {"color": "#1A1A1A", "width": 1, "arrow_end": True},
+            "label": {"text": "uses", "box": [200, 200, 100, 14]},
+        }
+        doc = _doc_with([a, b, edge])
+        svg = FrameGraphRenderer(doc).render_svg()
+        # The text element must use the explicit y=200-ish coordinate.
+        m = re.search(
+            r'<g id="e"[^>]*>.*?<text[^>]*y="([0-9.\-]+)"',
+            svg, re.DOTALL,
+        )
+        assert m and 195 < float(m.group(1)) < 215
+
+
+class TestAutoPortDistribution:
+    """When multiple connectors target the same `(object, side)` without
+    explicit `offset` or `port_index`, the renderer's pre-pass must
+    auto-fan their attachment points along the side instead of letting
+    every connector terminate at the same midpoint. Resolves the
+    "many edges to one hub" marker pile-up that the original
+    classifier-box class diagrams suffered from."""
+
+    def test_two_edges_to_same_side_get_distributed(self) -> None:
+        """Two `north` connectors converging on a hub get ports 1 and 2
+        of 2 — the midpoint anchor is replaced with two evenly spaced
+        attachment points."""
+        hub = _classifier("hub", 200, 100, w=200, h=60)
+        a = _classifier("a", 100, 300)
+        b = _classifier("b", 400, 300)
+        e1 = _connector("e1", {"object": "a", "side": "north"},
+                              {"object": "hub", "side": "south"})
+        e2 = _connector("e2", {"object": "b", "side": "north"},
+                              {"object": "hub", "side": "south"})
+        doc = _doc_with([hub, a, b, e1, e2])
+        svg = FrameGraphRenderer(doc).render_svg()
+        e1_end = _path_points(_path_d(svg, "e1"))[-1]
+        e2_end = _path_points(_path_d(svg, "e2"))[-1]
+        # Both end at the hub's south edge (y=160) but at different x.
+        assert e1_end[1] == 160.0 and e2_end[1] == 160.0
+        assert e1_end[0] != e2_end[0], (
+            f"both connectors landed at the same x={e1_end[0]} — "
+            "auto-distribution did not fire"
+        )
+        # And the leftmost source (a, x=100) lands left of the
+        # rightmost source (b, x=400) — sort order preserves visual
+        # adjacency.
+        assert e1_end[0] < e2_end[0]
+
+    def test_explicit_offset_wins_over_auto_distribution(self) -> None:
+        """When the author commits to a specific `offset`, the
+        pre-pass leaves that endpoint alone and only auto-distributes
+        the siblings that don't have offsets."""
+        hub = _classifier("hub", 200, 100, w=200, h=60)
+        a = _classifier("a", 100, 300)
+        b = _classifier("b", 400, 300)
+        # e1 explicitly anchors at hub.south + offset=80 (x=380).
+        e1 = _connector("e1", {"object": "a", "side": "north"},
+                              {"object": "hub", "side": "south", "offset": 80})
+        e2 = _connector("e2", {"object": "b", "side": "north"},
+                              {"object": "hub", "side": "south"})
+        doc = _doc_with([hub, a, b, e1, e2])
+        svg = FrameGraphRenderer(doc).render_svg()
+        e1_end = _path_points(_path_d(svg, "e1"))[-1]
+        # Hub south midpoint = (300, 160); explicit offset → x = 380.
+        assert e1_end == (380.0, 160.0)
+
+    def test_single_connector_to_a_side_is_not_distributed(self) -> None:
+        """A lone connector keeps the side-midpoint anchor."""
+        hub = _classifier("hub", 200, 100, w=200, h=60)
+        a = _classifier("a", 100, 300)
+        e1 = _connector("e1", {"object": "a", "side": "north"},
+                              {"object": "hub", "side": "south"})
+        doc = _doc_with([hub, a, e1])
+        svg = FrameGraphRenderer(doc).render_svg()
+        e1_end = _path_points(_path_d(svg, "e1"))[-1]
+        # Hub.south midpoint x = 200 + 200/2 = 300.
+        assert e1_end == (300.0, 160.0)
+
 
     def test_path_endpoints_match_resolved_anchors(self) -> None:
         """Routing must never alter the anchor coordinates — the

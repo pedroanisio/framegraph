@@ -452,6 +452,119 @@ class TestClassifierBoxRender:
         assert height > 28 + 19 + 19
 
 
+class TestArtifactStereotypeOverlay:
+    """`stereotype: "artifact"` on a classifier_box must overlay the
+    UML 2.5.1 §A.4 folded-document icon in the upper-right corner.
+    Decks that previously rendered «artifact» as just a text label
+    now get the proper glyph automatically."""
+
+    def _render_artifact(self, **overrides: Any) -> str:
+        base: dict[str, Any] = {
+            "type": "uml.classifier_box",
+            "id": "A",
+            "box": [0, 0, 200, 80],
+            "name": "MyArtifact",
+            "stereotype": "artifact",
+        }
+        base.update(overrides)
+        doc = _doc_with_classifier(base)
+        r = FrameGraphRenderer(doc)
+        svg = r.render_svg()
+        assert r.warnings == []
+        return svg
+
+    def test_artifact_emits_folded_document_polygon(self) -> None:
+        svg = self._render_artifact()
+        # The icon polygon has 5 points (rect with the upper-right
+        # corner cut). Search inside the artifact's <g>.
+        m = re.search(
+            r'<g id="A"[^>]*>(.*?)</g>',
+            svg, re.DOTALL,
+        )
+        assert m
+        body = m.group(1)
+        polygons = re.findall(r"<polygon points=\"([^\"]+)\"", body)
+        assert polygons, "no polygon emitted for «artifact» icon"
+        # Pick the polygon with exactly 5 vertices (the icon).
+        five_pt = [p for p in polygons if len(p.split()) == 5]
+        assert five_pt, "no 5-vertex icon polygon found"
+
+    def test_artifact_icon_sits_in_upper_right(self) -> None:
+        svg = self._render_artifact(box=[10, 20, 200, 80])
+        m = re.search(
+            r'<g id="A"[^>]*>.*?<polygon points="([0-9.,\- ]+)"',
+            svg, re.DOTALL,
+        )
+        # First polygon in the box is the artifact icon. Its first
+        # vertex should be near the upper-right corner of the box
+        # (right=210, top=20). The icon has padding so x≈190, y≈26.
+        assert m
+        first_pt = m.group(1).split()[0]
+        ix, iy = (float(v) for v in first_pt.split(","))
+        # Icon spans x in [right - icon_w - pad, right - pad]; for
+        # box right=210, that's roughly [190, 204].
+        assert 185 < ix < 205, f"icon x={ix} not in upper-right band"
+        assert 20 < iy < 40, f"icon y={iy} not in upper-right band"
+
+    def test_non_artifact_stereotypes_get_no_icon(self) -> None:
+        svg = self._render_artifact(stereotype="component")
+        m = re.search(
+            r'<g id="A"[^>]*>(.*?)</g>',
+            svg, re.DOTALL,
+        )
+        assert m
+        polygons = re.findall(r"<polygon", m.group(1))
+        assert not polygons, "non-artifact stereotype emitted unexpected polygon"
+
+
+class TestUMLNodeBoxShape:
+    """`uml.node_box` must produce a real UML 3D node (front face +
+    parallelogram top + parallelogram right side), per UML 2.5.1
+    §19.3.3 — not the 2D-rect-with-drop-shadow hack the deployment
+    deck previously used."""
+
+    def _render_node(self, **overrides: Any) -> str:
+        base: dict[str, Any] = {
+            "type": "uml.node_box",
+            "id": "N",
+            "box": [100, 100, 300, 180],
+            "name": "AppServer",
+            "kind": "device",
+        }
+        base.update(overrides)
+        doc = _doc_with_classifier(base)
+        r = FrameGraphRenderer(doc)
+        svg = r.render_svg()
+        assert r.warnings == []
+        return svg
+
+    def test_node_emits_three_3d_faces(self) -> None:
+        svg = self._render_node()
+        m = re.search(r'<g id="N"[^>]*>(.*?)</g>', svg, re.DOTALL)
+        assert m
+        body = m.group(1)
+        # Two parallelogram polygons (top + right) plus one front rect.
+        polygons = re.findall(r"<polygon", body)
+        rects = re.findall(r"<rect", body)
+        assert len(polygons) >= 2, (
+            f"expected ≥2 parallelograms (top + right face); got {len(polygons)}"
+        )
+        assert len(rects) >= 1, "expected at least one front-face rect"
+
+    def test_node_emits_implicit_device_keyword(self) -> None:
+        svg = self._render_node(kind="device")
+        assert "«device»" in svg
+
+    def test_node_emits_execution_environment_keyword(self) -> None:
+        svg = self._render_node(kind="execution_environment")
+        assert "«executionEnvironment»" in svg
+
+    def test_node_explicit_stereotype_overrides_kind(self) -> None:
+        svg = self._render_node(stereotype="container", kind="device")
+        assert "«container»" in svg
+        assert "«device»" not in svg
+
+
 class TestFullClassifierBoxOutput:
     """End-to-end realistic rendering — the kind of input Phase A.3 will produce."""
 
