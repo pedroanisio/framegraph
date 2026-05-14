@@ -15,7 +15,6 @@ $theme: mckinsey
 # readable on a 1920×1080 screen. The bundled `default.yml` is tuned
 # for letter-size consulting print at Big-4 density (10pt body) — too
 # small for screen-slide use. Chrome / treatments / roles are unchanged.
-stylesheet: static/fixture/code-base-mapper.style.yml
 brand_text: "code-base-mapper · Architecture Report · 715de92"
 
 deck:
@@ -477,43 +476,58 @@ slides:
                slide_num: "09"}
 
         # Package frames (UML packages).
+        # Labels follow the UML 2.5.1 "tabbed-folder" convention: short
+        # «stereotype» + name on the first line, optional one-line
+        # subtitle in muted text. Long compound labels were splitting
+        # awkwardly; both lines now stay under 70 chars.
         - id: packages
           z: 5
           objects:
-            # Ingest
+            # ── Ingest
             - {type: rect, id: pkg_ingest, decorative: true, box: [60,150,1800,90],
                fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}, radius: 6}
+            - {type: rect, id: pkg_ingest_tab, decorative: true, box: [60,138,260,14],
+               fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}}
             - {type: text, id: pkg_ingest_l, decorative: true,
-               text: "«package»  ingest (source tree · manifests · git · vocab · tree-sitter)",
-               box: [78,158,1000,16], style: uml_pkg_lbl}
+               text: "«package»  ingest",
+               box: [70,138,250,14], style: uml_pkg_lbl}
 
-            # Core pipeline
+            # ── Core pipeline
             - {type: rect, id: pkg_core, decorative: true, box: [60,260,1800,210],
                fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}, radius: 6}
+            - {type: rect, id: pkg_core_tab, decorative: true, box: [60,248,320,14],
+               fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}}
             - {type: text, id: pkg_core_l, decorative: true,
-               text: "«package»  codebase_mapper  (L1 host facts · pipeline orchestrator · per-language adapters)",
-               box: [78,268,1100,16], style: uml_pkg_lbl}
+               text: "«package»  codebase_mapper",
+               box: [70,248,310,14], style: uml_pkg_lbl}
 
-            # Plugins
+            # ── Plugins
             - {type: rect, id: pkg_plug, decorative: true, box: [60,490,1800,150],
                fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}, radius: 6}
+            - {type: rect, id: pkg_plug_tab, decorative: true, box: [60,478,220,14],
+               fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}}
             - {type: text, id: pkg_plug_l, decorative: true,
-               text: "«package»  plugins  (L2 chunks+embeddings · L3 concept graph · symbol xrefs)",
-               box: [78,498,1100,16], style: uml_pkg_lbl}
+               text: "«package»  plugins",
+               box: [70,478,210,14], style: uml_pkg_lbl}
 
-            # Bundle store
+            # ── Bundle store
             - {type: rect, id: pkg_bnd, decorative: true, box: [60,660,1800,90],
                fill: uml_db, stroke: {color: uml_db_b, width: 0.8}, radius: 6}
+            - {type: rect, id: pkg_bnd_tab, decorative: true, box: [60,648,440,14],
+               fill: uml_db, stroke: {color: uml_db_b, width: 0.8}}
             - {type: text, id: pkg_bnd_l, decorative: true,
-               text: "«datastore»  _tmp/<bundle>/  · turtle/json-ld · npy · SHACL ✓ · 179 unique blobs",
-               box: [78,668,1100,16], style: uml_pkg_lbl}
+               text: "«datastore»  _tmp/<bundle>/   ·   SHACL ✓   ·   179 blobs",
+               box: [70,648,430,14],
+               style: {font: primary, size: 12, weight: 700, color: uml_db_b, align: left}}
 
-            # Serve
+            # ── Serve
             - {type: rect, id: pkg_srv, decorative: true, box: [60,770,1800,170],
                fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}, radius: 6}
+            - {type: rect, id: pkg_srv_tab, decorative: true, box: [60,758,460,14],
+               fill: uml_pkg, stroke: {color: uml_pkg_b, width: 0.8}}
             - {type: text, id: pkg_srv_l, decorative: true,
-               text: "«package»  serve  (REST FastAPI + MCP stdio/HTTP — two adapters, one bundle store)",
-               box: [78,778,1100,16], style: uml_pkg_lbl}
+               text: "«package»  serve   ·   REST + MCP (two adapters, one store)",
+               box: [70,758,450,14], style: uml_pkg_lbl}
 
         # UML components inside the packages.
         - id: components
@@ -728,11 +742,14 @@ slides:
             - {type: connector, id: e_pipe3, from: {object: ts_setup,  side: south}, to: {object: langs,   side: north}, route: {type: orthogonal},
                stroke: {color: uml_edge_muted, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
 
-            # facade → builtins (registers analyzers/resolvers)
+            # facade → builtins (registers analyzers/resolvers).
+            # Label widened to 110 px so the «…» chevrons aren't clipped
+            # at 9pt italic; nudged 3 px above the connector line so it
+            # reads as an edge label, not as classifier content.
             - {type: connector, id: e_reg, from: {object: facade, side: east}, to: {object: builtins, side: west},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: open_arrow}}
-            - {type: text, id: e_reg_l, decorative: true, text: "«register»", box: [646,335,80,14],
-               style: {font: primary, size: 9, weight: 400, color: text_muted, align: left, italic: true}}
+            - {type: text, id: e_reg_l, decorative: true, text: "«register»", box: [650,326,110,14],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: left, italic: true}}
 
             # pipeline → models (uses)
             - {type: connector, id: e_pm, from: {object: pipeline, side: east, offset: 25}, to: {object: models, side: west},
@@ -764,12 +781,19 @@ slides:
             - {type: connector, id: e_r2, from: {object: bnd_l2, side: south}, to: {object: mcp_srv, side: north}, route: {type: orthogonal},
                stroke: {color: primary, width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
 
-            # MCP handlers «delegate» to REST (handlers imports app.py — verified via cbm file_detail)
+            # MCP handlers «delegate» to REST (handlers imports app.py —
+            # verified via cbm file_detail). The two boxes touch (x=630
+            # east of `rest`, x=660 west of `mcp_srv`) so there's no
+            # room to label the arrow inline. The label sits in the
+            # narrow band between the package header (y=778) and the
+            # component boxes (y=810); we mark it as a *line label*
+            # by adding the small connector glyph in the centerline.
             - {type: connector, id: e_d,  from: {object: mcp_srv, side: west}, to: {object: rest, side: east},
                stroke: {color: primary, width: 1.2, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
-            - {type: text, id: e_d_l, decorative: true, text: "«delegate»  (handlers ⇢ app.load_bundle)",
-               box: [640,790,420,14],
-               style: {font: primary, size: 10, weight: 400, color: text_muted, align: left, italic: true}}
+            - {type: text, id: e_d_l, decorative: true,
+               text: "«delegate»  (handlers ⇢ app.load_bundle  ·  verified via cbm file_detail)",
+               box: [475,795,720,14],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true}}
 
             # serve → UI / agents
             - {type: connector, id: e_ui1, from: {object: rest,    side: east}, to: {object: ui,     side: west},
@@ -784,9 +808,274 @@ slides:
                text: "**UML legend**: solid open-arrow = synchronous «uses» · dashed open-arrow = optional «uses» · filled-triangle = «writes» to artifact · **«delegate»** on REST↔MCP edge reflects the actual code dependency (`frontend/mcp_server/handlers.py` → `frontend/backend/app.py`) verified via `cbm file_detail`.",
                box: [60,956,1800,72], style: uml_caption}
 
-  # ── Slide 10 — UML Class diagram of host-layer dataclasses ───────────
-  - id: 10-uml-class
+  # ── Slide 10 — UML Deployment diagram ────────────────────────────────
+  # Physical view: who runs where, what reads what, which transports
+  # connect which processes. All node/component/edge facts are sourced
+  # from the bundle's actual file layout and the import edges between
+  # `frontend/mcp_server/handlers.py` and `frontend/backend/app.py`.
+  - id: 10-uml-deployment
     slide: 11
+    title: "Deployment view (UML)"
+    description: "Physical processes, the bundle volume, and the wire transports between them."
+    visual:
+      layers:
+
+        - id: chrome
+          z: 0
+          objects:
+            - {type: use, id: ch, decorative: true, symbol: uml_chrome, box: [0,0,1920,1080],
+               slide_title: "Deployment view (UML)",
+               slide_subtitle: "Processes (3D nodes) · bundle volume (datastore) · transports (stdio · HTTP · disk)",
+               slide_num: "11"}
+
+        - id: panel
+          z: 5
+          objects:
+            - {type: rect, id: bg, decorative: true, box: [60,140,1800,810],
+               fill: uml_panel, stroke: {color: uml_panel_border, width: 0.6}, radius: 6}
+
+        # ── UML nodes (rendered as 3D-extruded boxes via two stacked rects).
+        # Each node has:
+        #   - shadow rect (offset +10/+10) for the back face
+        #   - main rect with «device» / «execution environment» label
+        #   - inner component rectangle for the running artifact
+        - id: nodes
+          z: 10
+          objects:
+
+            # ── Developer workstation (left node)
+            - {type: rect, id: ws_back, decorative: true,
+               box: [110, 210, 540, 320],
+               fill: "#F0EDE6", stroke: {color: text_muted, width: 0.6}}
+            - {type: rect, id: ws,
+               box: [100, 200, 540, 320],
+               fill: "#FFFFFF", stroke: {color: uml_classifier_b, width: 1.0}}
+            # Node label band
+            - {type: text, id: ws_l, decorative: true,
+               text: "«device»  Developer workstation",
+               box: [116, 212, 510, 18],
+               style: {font: primary, size: 13, weight: 700, color: primary, align: left}}
+            - {type: line, id: ws_rule, decorative: true,
+               from: [108, 240], to: [632, 240], stroke: {color: uml_panel_border, width: 0.5}}
+
+            # ── Browser (component inside workstation)
+            - type: uml.classifier_box
+              id: dep_browser
+              box: [122, 256, 224, 110]
+              name: "browser (Chrome / Firefox)"
+              stereotype: artifact
+              attributes:
+                - {name: "loads", type: "vite dev server"}
+                - {name: "Cytoscape graph render", type: ""}
+
+            # ── Claude Code agent (component inside workstation)
+            - type: uml.classifier_box
+              id: dep_agent
+              box: [380, 256, 244, 110]
+              name: "claude-code  (agent process)"
+              stereotype: artifact
+              attributes:
+                - {name: "spawns", type: "mcp_server via stdio"}
+                - {name: "consumes", type: "22 cbm tools"}
+
+            # ── CLI (component inside workstation, lower row)
+            - type: uml.classifier_box
+              id: dep_cli
+              box: [122, 386, 502, 90]
+              name: "python -m codebase_mapper   ·   cli.py"
+              stereotype: artifact
+              attributes:
+                - {name: "writes", type: "→ _tmp/<bundle>/  (subcmd: map)"}
+
+            # ── Server host (right node)
+            - {type: rect, id: srv_back, decorative: true,
+               box: [770, 210, 980, 320],
+               fill: "#F0EDE6", stroke: {color: text_muted, width: 0.6}}
+            - {type: rect, id: srv,
+               box: [760, 200, 980, 320],
+               fill: "#FFFFFF", stroke: {color: uml_classifier_b, width: 1.0}}
+            - {type: text, id: srv_l, decorative: true,
+               text: "«execution environment»  Server host (laptop / container)",
+               box: [776, 212, 950, 18],
+               style: {font: primary, size: 13, weight: 700, color: primary, align: left}}
+            - {type: line, id: srv_rule, decorative: true,
+               from: [768, 240], to: [1740, 240], stroke: {color: uml_panel_border, width: 0.5}}
+
+            # ── MCP server process
+            - type: uml.classifier_box
+              id: dep_mcp
+              box: [782, 256, 304, 250]
+              name: "mcp_server  (Python process)"
+              stereotype: artifact
+              attributes:
+                - {name: "transports",       type: "stdio · HTTP"}
+                - {name: "auth",             type: "OAuth (HTTP only)"}
+                - {name: "module",           type: "python -m frontend.mcp_server"}
+                - {name: "imports",          type: "frontend/backend/app.py"}
+                - {name: "exposes",          type: "22 MCP tools"}
+                - {name: "handlers.py",      type: "29.3 KB"}
+
+            # ── REST backend (Uvicorn)
+            - type: uml.classifier_box
+              id: dep_rest
+              box: [1110, 256, 304, 250]
+              name: "uvicorn  (FastAPI)"
+              stereotype: artifact
+              attributes:
+                - {name: "listens", type: ":8000"}
+                - {name: "owns",    type: "load_bundle + @lru_cache"}
+                - {name: "module",  type: "frontend.backend.app"}
+                - {name: "size",    type: "app.py 39.7 KB"}
+                - {name: "endpts",  type: "/summary · /file_graph · /symbol_graph"}
+                - {name: "         ", type: "/concept_graph · /chunks · /impact"}
+
+            # ── Vite dev server
+            - type: uml.classifier_box
+              id: dep_vite
+              box: [1438, 256, 296, 250]
+              name: "vite dev server"
+              stereotype: artifact
+              attributes:
+                - {name: "listens", type: ":5173"}
+                - {name: "serves",  type: "React UI (App.tsx + 7 views)"}
+                - {name: "module",  type: "frontend.ui"}
+                - {name: "build",   type: "tsc + vite"}
+                - {name: "deps",    type: "cytoscape · react-cytoscapejs"}
+
+        # ── Bundle volume (datastore at bottom — shared between all readers)
+        - id: volume
+          z: 12
+          objects:
+            - {type: rect, id: vol_back, decorative: true,
+               box: [410, 690, 1100, 130],
+               fill: "#F4E2C6", stroke: {color: uml_db_b, width: 0.6}}
+            - {type: rect, id: vol,
+               box: [400, 680, 1100, 130],
+               fill: uml_db, stroke: {color: uml_db_b, width: 1.0}, radius: 4}
+            - {type: text, id: vol_l, decorative: true,
+               text: "«datastore»  _tmp/<bundle>/   ·   turtle + json-ld + npy + manifest   ·   SHACL ✓",
+               box: [420, 696, 1060, 18],
+               style: {font: primary, size: 13, weight: 700, color: uml_db_b, align: left}}
+            - {type: text, id: vol_meta, decorative: true,
+               text: "181 files  ·  968 chunks  ·  1 427 concepts  ·  179 unique blobs  ·  generated by codebase_mapper.cli",
+               box: [420, 722, 1060, 18],
+               style: {font: primary, size: 12, weight: 400, color: text, align: left}}
+            - {type: text, id: vol_paths, decorative: true,
+               text: "files.ttl · imports.ttl · chunks.ttl · embeddings.npy · concepts.ttl · xrefs.ttl · shacl.ttl · manifest.json",
+               box: [420, 748, 1060, 18],
+               style: {font: mono, size: 11, weight: 400, color: text_muted, align: left}}
+            - {type: text, id: vol_addr, decorative: true,
+               text: "content-addressed via SHA-256 ·  read by REST  ·  read by MCP  ·  written by CLI",
+               box: [420, 774, 1060, 18],
+               style: {font: primary, size: 11, weight: 400, color: text_muted, align: left, italic: true}}
+
+        # ── Transports (UML «communication path»)
+        - id: paths
+          z: 20
+          objects:
+
+            # claude-code ⇆ mcp_server  (stdio)
+            - {type: connector, id: t_stdio,
+               from: {object: dep_agent, side: east},
+               to:   {object: dep_mcp,   side: west},
+               stroke: {color: primary, width: 1.6, arrow_end: false}}
+            - {type: text, id: t_stdio_l, decorative: true,
+               text: "«stdio»",
+               box: [638, 298, 130, 16],
+               style: {font: primary, size: 12, weight: 700, color: primary, align: center, italic: true}}
+            - {type: text, id: t_stdio_l2, decorative: true,
+               text: "JSON-RPC over pipes",
+               box: [638, 316, 130, 14],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: center, italic: true}}
+
+            # browser → vite  (HTTP)
+            - {type: connector, id: t_http_ui,
+               from: {object: dep_browser, side: east},
+               to:   {object: dep_vite,    side: west, offset: -30},
+               route: {type: orthogonal},
+               stroke: {color: primary, width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: t_http_ui_l, decorative: true,
+               text: "«http»  GET / · :5173",
+               box: [350, 240, 200, 14],
+               style: {font: primary, size: 10, weight: 700, color: primary, align: left, italic: true}}
+
+            # vite UI → REST backend  (HTTP fetch from browser at runtime)
+            - {type: connector, id: t_http_api,
+               from: {object: dep_vite, side: west, offset: 60},
+               to:   {object: dep_rest, side: east},
+               stroke: {color: primary, width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: t_http_api_l, decorative: true,
+               text: "«http»  fetch /summary · :8000",
+               box: [1418, 416, 250, 14],
+               style: {font: primary, size: 10, weight: 700, color: primary, align: left, italic: true}}
+
+            # mcp_server → REST backend  («delegate» — handlers imports app)
+            - {type: connector, id: t_delegate,
+               from: {object: dep_mcp,  side: east},
+               to:   {object: dep_rest, side: west},
+               stroke: {color: primary, width: 1.4, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: t_delegate_l, decorative: true,
+               text: "«delegate»  in-process call",
+               box: [1082, 380, 50, 14],
+               style: {font: primary, size: 10, weight: 700, color: primary, align: center, italic: true}}
+
+            # REST → bundle volume (disk read)
+            - {type: connector, id: t_disk_rest,
+               from: {object: dep_rest, side: south},
+               to:   {object: vol,      side: north, offset: -200},
+               route: {type: orthogonal},
+               stroke: {color: uml_db_b, width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: t_disk_rest_l, decorative: true,
+               text: "«disk read»",
+               box: [950, 584, 100, 14],
+               style: {font: primary, size: 10, weight: 700, color: uml_db_b, align: center, italic: true}}
+
+            # mcp_server → bundle volume (disk read, via REST in practice, but also direct for orient_bundle)
+            - {type: connector, id: t_disk_mcp,
+               from: {object: dep_mcp, side: south},
+               to:   {object: vol,     side: north, offset: -400},
+               route: {type: orthogonal},
+               stroke: {color: uml_db_b, width: 1.0, dash: [5,3], arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # CLI → bundle volume (disk write)
+            - {type: connector, id: t_disk_cli,
+               from: {object: dep_cli, side: east},
+               to:   {object: vol,     side: north, offset: -540},
+               route: {type: orthogonal},
+               stroke: {color: uml_db_b, width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: text, id: t_disk_cli_l, decorative: true,
+               text: "«disk write»",
+               box: [635, 510, 100, 14],
+               style: {font: primary, size: 10, weight: 700, color: uml_db_b, align: center, italic: true}}
+
+        - id: legend
+          z: 25
+          objects:
+            - {type: rect, id: lg_bg, decorative: true, box: [60,890,1800,52],
+               fill: "#F8F6F2", stroke: {color: uml_panel_border, width: 0.4}, radius: 3}
+            - {type: text, id: lg_t, decorative: true,
+               text: "Edge legend",
+               box: [76, 894, 200, 16],
+               style: {font: primary, size: 11, weight: 700, color: primary, align: left}}
+            - {type: text, id: lg_a, decorative: true,
+               text: "▶ solid open-arrow  =  «http» / «uses»   ·   ▸ dashed open-arrow  =  «delegate» (in-process import)   ·   ▶ filled-triangle  =  «disk write»",
+               box: [76, 912, 1750, 16],
+               style: {font: primary, size: 11, weight: 400, color: text, align: left}}
+            - {type: text, id: lg_b, decorative: true,
+               text: "3-D node boxes  =  «device» / «execution environment»   ·   inner classifier boxes  =  «artifact» (deployable, running)   ·   tinted lozenge  =  «datastore» (the bundle on disk)",
+               box: [76, 928, 1750, 14],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: left, italic: true}}
+
+        - id: caption
+          z: 30
+          objects:
+            - {type: text, id: cap, decorative: true,
+               text: "**Source**: bundle file layout + `frontend/mcp_server/handlers.py` import of `frontend/backend/app.py` (cbm `file_detail`). The bundle volume is the **single source of truth**; both adapter processes (REST :8000 and MCP via stdio) read it through `load_bundle` — there is no parallel reader implementation.",
+               box: [60,956,1800,72], style: uml_caption}
+
+  # ── Slide 11 — UML Class diagram of host-layer dataclasses ───────────
+  - id: 11-uml-class
+    slide: 12
     title: "Host-layer class diagram (UML)"
     description: "codebase_mapper/models.py: the pure data hub (deg 25, 0 out, 25 in)."
     visual:
@@ -798,7 +1087,7 @@ slides:
             - {type: use, id: ch, decorative: true, symbol: uml_chrome, box: [0,0,1920,1080],
                slide_title: "Host-layer class diagram (UML)",
                slide_subtitle: "models.py — pure dataclasses; FileRecord is the aggregate root, every `*Edge` references files by path",
-               slide_num: "11"}
+               slide_num: "12"}
 
         - id: panel
           z: 5
@@ -896,57 +1185,77 @@ slides:
                 - {name: name,          type: str}
                 - {name: language,      type: str}
 
-            # ── Side note about purity
-            - type: uml.classifier_box
-              id: NoteCard
-              box: [1340, 720, 480, 160]
-              name: "models.py  (note)"
-              stereotype: note
-              attributes:
-                - {name: "import degree", type: "25"}
-                - {name: "imports out",   type: "0  (pure data hub)"}
-                - {name: "imports in",    type: "25  (every adapter + plugin)"}
-                - {name: "loc",           type: "2 525 B"}
+            # ── UML note (paper-fold "callout" rect, not a classifier).
+            # Renders as a yellow sticky-note panel so it reads as
+            # commentary rather than as another dataclass.
+            - {type: rect, id: NoteCard_bg, decorative: true,
+               box: [1340, 720, 480, 160],
+               fill: "#FEF6E8", stroke: {color: "#9A4D2C", width: 0.8},
+               radius: 2}
+            - {type: rect, id: NoteCard_fold, decorative: true,
+               box: [1796, 720, 24, 24],
+               fill: "#F4E2C6", stroke: {color: "#9A4D2C", width: 0.8}}
+            - {type: text, id: NoteCard_title, decorative: true,
+               text: "note ▸  models.py",
+               box: [1356, 732, 460, 20],
+               style: {font: heading, size: 14, weight: 700, color: "#9A4D2C", align: left}}
+            - {type: text, id: NoteCard_body, decorative: true,
+               text: "import degree   25 \nimports out     0   (pure data hub)\nimports in     25   (every adapter + plugin reads it)\nsize           2 525 B / 93 LOC\nshape          dataclasses only — no behavior",
+               box: [1356, 762, 450, 110],
+               style: {font: mono, size: 12, weight: 400, color: "#1A1A1A", align: left, line_height: 17, wrap: true}}
 
         - id: edges
           z: 20
           objects:
-            # FileRecord ◇— ImportEdge ... (aggregation, hollow diamond at FileRecord).
-            # No port indices needed — the renderer's collision-detection
-            # pre-pass spots the seven endpoints converging on
-            # FileRecord's south face and auto-fans them out, sorted
-            # by source x so semantically adjacent edges stay
-            # visually adjacent.
+            # ── Aggregation edges (◇ hollow diamond at FileRecord).
+            # All 5 aggregation children sit in the MIDDLE row
+            # (y=470–580). They route up to FileRecord's south face,
+            # distributed across 5 evenly spaced ports so the diamonds
+            # don't pile up. Port spacing along the 360 px south face:
+            #   x ≈ 780 + i*60  (i=1..5)  →  840, 900, 960, 1020, 1080.
             - {type: connector, id: a_ie,
-               from: {object: ImportEdge, side: north}, to: {object: FileRecord, side: south},
+               from: {object: ImportEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 1, port_total: 5},
                route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_iee,
-               from: {object: ImportExternalEdge, side: north}, to: {object: FileRecord, side: south},
+               from: {object: ImportExternalEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 2, port_total: 5},
                route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_dde,
-               from: {object: DeclaresDependencyEdge, side: north}, to: {object: FileRecord, side: south},
+               from: {object: DeclaresDependencyEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 3, port_total: 5},
                route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_pde,
-               from: {object: PinsDependencyEdge, side: north}, to: {object: FileRecord, side: south},
+               from: {object: PinsDependencyEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 4, port_total: 5},
                route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_te,
-               from: {object: TestsEdge, side: north}, to: {object: FileRecord, side: south},
+               from: {object: TestsEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 5, port_total: 5},
                route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
 
-            # FileRecord ◆— SymbolXrefEdge / UnresolvedSymbolRef (composition, filled diamond).
+            # ── Composition edges (◆ filled diamond).
+            # The xref family lives in the BOTTOM row (y=720+) — routing
+            # them to FileRecord's south face would cross every aggregation
+            # edge above. Anchoring them to FileRecord's WEST face (for
+            # SymbolXrefEdge) and EAST face (for UnresolvedSymbolRef)
+            # eliminates crossings: composition edges leave horizontally
+            # from FileRecord's sides, then route down to the bottom row.
             - {type: connector, id: c_sxe,
-               from: {object: SymbolXrefEdge, side: north}, to: {object: FileRecord, side: south},
+               from: {object: SymbolXrefEdge, side: north},
+               to:   {object: FileRecord, side: west, offset: 60},
                route: {type: orthogonal},
-               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_diamond}}
+               stroke: {color: primary, width: 1.4, arrow_end: true, arrow_end_kind: filled_diamond}}
             - {type: connector, id: c_usr,
-               from: {object: UnresolvedSymbolRef, side: north}, to: {object: FileRecord, side: south},
+               from: {object: UnresolvedSymbolRef, side: north},
+               to:   {object: FileRecord, side: east, offset: 60},
                route: {type: orthogonal},
-               stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_diamond}}
+               stroke: {color: primary, width: 1.4, arrow_end: true, arrow_end_kind: filled_diamond}}
 
         - id: legend
           z: 25
@@ -977,9 +1286,9 @@ slides:
                text: "**Source**: `codebase_mapper/models.py` chunks 169–176 (`cbm file_detail`). `FileRecord`, `ImportEdge`, `ImportExternalEdge`, `DeclaresDependencyEdge`, `PinsDependencyEdge`, `TestsEdge`, `SymbolXrefEdge`, `UnresolvedSymbolRef`. Attribute names are illustrative of the dataclass field names visible in the chunks; full signatures are in `models.py` L20–L93.",
                box: [60,956,1800,72], style: uml_caption}
 
-  # ── Slide 12 — UML Sequence diagram: repository_summary call path ────
-  - id: 11-uml-sequence
-    slide: 12
+  # ── Slide 13 — UML Sequence diagram: repository_summary call path ────
+  - id: 12-uml-sequence
+    slide: 13
     title: "repository_summary — sequence diagram (UML)"
     description: "Actual call path of the most useful one-shot MCP tool. Replaces a chain of bundle_summary + list_files + concept_detail."
     visual:
@@ -991,7 +1300,7 @@ slides:
             - {type: use, id: ch, decorative: true, symbol: uml_chrome, box: [0,0,1920,1080],
                slide_title: "repository_summary — sequence diagram (UML)",
                slide_subtitle: "MCP tool dispatch · handlers.py L284–L394 · delegates into frontend/backend/app.py:load_bundle  (verified via cbm file_detail)",
-               slide_num: "12"}
+               slide_num: "13"}
 
         - id: panel
           z: 5
@@ -1023,13 +1332,20 @@ slides:
                box: [1440, 170, 320, 720],
                name: "bnd", type_name: "_tmp/<bundle>/", head_height: 56}
 
-        # Activation bars
+        # Activation bars.
+        # ab_srv  : entered at message 1 (y=290), exits after reply m11 (y=830)
+        # ab_hnd  : entered at message 2 (y=330), exits after reply m10 (y=790)
+        # ab_app  : entered at message 3 (y=380), exits after reply m9  (y=740)
+        # The bar lengths now match the actual call/return semantics —
+        # the previous ab_app stopped at y=700 (just at message 8 entry)
+        # which is the bug: messages 8 (call) and 9 (return) need the bar
+        # to still be active. Heights extended accordingly.
         - id: activations
           z: 15
           objects:
-            - {type: uml.activation_bar, id: ab_srv, box: [535, 290, 12, 530]}
-            - {type: uml.activation_bar, id: ab_hnd, box: [875, 330, 12, 450]}
-            - {type: uml.activation_bar, id: ab_app, box: [1215, 380, 12, 320]}
+            - {type: uml.activation_bar, id: ab_srv, box: [535, 290, 12, 540]}
+            - {type: uml.activation_bar, id: ab_hnd, box: [875, 330, 12, 460]}
+            - {type: uml.activation_bar, id: ab_app, box: [1215, 380, 12, 360]}
 
         - id: messages
           z: 20
@@ -1138,9 +1454,757 @@ slides:
                text: "**Filled-triangle arrows** = synchronous call (sync semantics); **dashed open-arrow** = reply. The handler is the **single hot spot** — it owns ranking and entry-point classification. Replacing this one tool with the prior 3-call chain (`bundle_summary` + `list_files` + `concept_detail`) is the design rationale behind commit **6d919f6**.",
                box: [60,956,1800,72], style: uml_caption}
 
-  # ── Slide 13 — Closing (pattern 49: Recommendations) ─────────────────
-  - id: 13-closing
-    slide: 13
+  # ── Slide 14 — One-page architecture diagram (bespoke, parity with
+  # _tmp/code-base-mapper.architecture.svg). The original SVG was
+  # 1480 × 1040; this slide reproduces it on the deck's 1920 × 1080
+  # canvas with a horizontal margin so the diagram reads as a clean
+  # "figure" inside the deck's chrome. All swimlanes, boxes, arrows,
+  # gradients, and the legend are present.
+  - id: 14-arch-onepager
+    slide: 14
+    title: "One-page architecture — all swimlanes on a single canvas"
+    description: "Bespoke slide reproducing the standalone architecture SVG inside the deck."
+    visual:
+      layers:
+
+        # ── Inline chrome (no shared symbol). Uses the deck's tokens so
+        # palette stays consistent; geometry mirrors the standalone SVG.
+        - id: chrome
+          z: 0
+          objects:
+            - {type: rect, id: page_bg, decorative: true, box: [0,0,1920,1080], fill: white}
+            # Dark title strip (matches the navy bar at top of the original SVG)
+            - {type: rect, id: title_bar, decorative: true, box: [0,0,1920,60], fill: primary}
+            - {type: text, id: title, decorative: true,
+               text: "code-base-mapper — Architecture",
+               box: [32,8,1200,44],
+               style: {font: heading, size: 24, weight: 700, color: white, align: left, v_align: middle}}
+            - {type: text, id: subtitle, decorative: true,
+               text: "Bundle 715de92 · tool 0.5.0 · 181 files (Py 103, TS 21, Proto 5) · 968 chunks · 1 427 concepts · SHACL ✓ · MiniLM-L6-v2 (384d)",
+               box: [32,32,1200,22],
+               style: {font: primary, size: 12, weight: 400, color: panel, align: left, v_align: middle}}
+            - {type: text, id: src_meta, decorative: true,
+               text: "Source: cbm MCP — orient / repository_summary / file_detail / list_files",
+               box: [1240,12,656,18],
+               style: {font: primary, size: 11, weight: 400, color: panel, align: right}}
+            - {type: text, id: disclaim, decorative: true,
+               text: "No statement should be taken for granted — see DISCLAIMER.md",
+               box: [1240,32,656,18],
+               style: {font: primary, size: 10, weight: 400, color: panel, align: right, italic: true}}
+
+        # ── Vertical swimlane labels (90° rotated, left margin).
+        - id: swimlanes
+          z: 1
+          objects:
+            - {type: text, id: lane1, decorative: true, text: "INGEST",
+               box: [0, 100, 32, 22], rotation: -90,
+               style: {font: primary, size: 11, weight: 700, color: text_muted, align: center}}
+            - {type: text, id: lane2, decorative: true, text: "CORE PIPELINE",
+               box: [0, 230, 32, 22], rotation: -90,
+               style: {font: primary, size: 11, weight: 700, color: text_muted, align: center}}
+            - {type: text, id: lane3, decorative: true, text: "L2 / L3 PLUGINS",
+               box: [0, 420, 32, 22], rotation: -90,
+               style: {font: primary, size: 11, weight: 700, color: text_muted, align: center}}
+            - {type: text, id: lane4, decorative: true, text: "EMITTERS",
+               box: [0, 590, 32, 22], rotation: -90,
+               style: {font: primary, size: 11, weight: 700, color: text_muted, align: center}}
+            - {type: text, id: lane5, decorative: true, text: "BUNDLE STORE",
+               box: [0, 720, 32, 22], rotation: -90,
+               style: {font: primary, size: 11, weight: 700, color: text_muted, align: center}}
+            - {type: text, id: lane6, decorative: true, text: "SERVE",
+               box: [0, 860, 32, 22], rotation: -90,
+               style: {font: primary, size: 11, weight: 700, color: text_muted, align: center}}
+            - {type: text, id: lane7, decorative: true, text: "UI / CLIENTS",
+               box: [0, 990, 32, 22], rotation: -90,
+               style: {font: primary, size: 11, weight: 700, color: text_muted, align: center}}
+
+        # ── Row 1: INGEST band + content
+        - id: row_ingest
+          z: 2
+          objects:
+            - type: rect
+              id: ingest_bg
+              decorative: true
+              box: [40, 76, 1840, 90]
+              radius: 10
+              stroke: {color: "#FDBA74", width: 0.8}
+              fill:
+                type: linear_gradient
+                from: [0, 0]
+                to: [0, 1]
+                stops:
+                  - {offset: 0,  color: "#FFF7ED"}
+                  - {offset: 1,  color: "#FFEDD5"}
+            - {type: text, id: ingest_t, decorative: true, text: "Sources",
+               box: [56, 84, 200, 18],
+               style: {font: heading, size: 14, weight: 700, color: "#9A3412", align: left}}
+            - {type: text, id: ingest_st, decorative: true, text: "file system + manifests + git + vocab + tree-sitter",
+               box: [56, 104, 400, 16],
+               style: {font: primary, size: 10, weight: 400, color: "#7C2D12", align: left}}
+
+            # boxes
+            - {type: rect, id: b_src, decorative: true, box: [220, 96, 200, 56], radius: 6,
+               fill: white, stroke: {color: "#FB923C", width: 0.8}}
+            - {type: text, id: b_src_t, decorative: true, text: "Source tree (any language)",
+               box: [230, 102, 180, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#7C2D12", align: left}}
+            - {type: text, id: b_src_b, decorative: true, text: "Py · TS · Rust · Go · C · Ruby · Kotlin · Swift · Dart",
+               box: [230, 122, 180, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#9A3412", align: left, wrap: true}}
+
+            - {type: rect, id: b_man, decorative: true, box: [440, 96, 200, 56], radius: 6,
+               fill: white, stroke: {color: "#FB923C", width: 0.8}}
+            - {type: text, id: b_man_t, decorative: true, text: "Manifests + lockfiles",
+               box: [450, 102, 180, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#7C2D12", align: left}}
+            - {type: text, id: b_man_b, decorative: true, text: "manifests.py · lockfiles.py — 39 declares · 368 pins",
+               box: [450, 122, 180, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#9A3412", align: left, wrap: true}}
+
+            - {type: rect, id: b_git, decorative: true, box: [660, 96, 180, 56], radius: 6,
+               fill: white, stroke: {color: "#FB923C", width: 0.8}}
+            - {type: text, id: b_git_t, decorative: true, text: "Git plumbing",
+               box: [670, 102, 160, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#7C2D12", align: left}}
+            - {type: text, id: b_git_b, decorative: true, text: "git_plumbing.py · commit_sha · provenance",
+               box: [670, 122, 160, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#9A3412", align: left, wrap: true}}
+
+            - {type: rect, id: b_voc, decorative: true, box: [860, 96, 220, 56], radius: 6,
+               fill: white, stroke: {color: "#FB923C", width: 0.8}}
+            - {type: text, id: b_voc_t, decorative: true, text: "Controlled vocabulary",
+               box: [870, 102, 200, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#7C2D12", align: left}}
+            - {type: text, id: b_voc_b, decorative: true, text: "vocab/loader.py · software_primitives.yaml",
+               box: [870, 122, 200, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#9A3412", align: left, wrap: true}}
+
+            - {type: rect, id: b_cls, decorative: true, box: [1100, 96, 180, 56], radius: 6,
+               fill: white, stroke: {color: "#FB923C", width: 0.8}}
+            - {type: text, id: b_cls_t, decorative: true, text: "classify.py",
+               box: [1110, 102, 160, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#7C2D12", align: left}}
+            - {type: text, id: b_cls_b, decorative: true, text: "type histogram · source / test / data / …",
+               box: [1110, 122, 160, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#9A3412", align: left, wrap: true}}
+
+            - {type: rect, id: b_ts, decorative: true, box: [1300, 96, 180, 56], radius: 6,
+               fill: white, stroke: {color: "#FB923C", width: 0.8}}
+            - {type: text, id: b_ts_t, decorative: true, text: "ts_setup.py",
+               box: [1310, 102, 160, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#7C2D12", align: left}}
+            - {type: text, id: b_ts_b, decorative: true, text: "tree-sitter loader · cache (9 inbound)",
+               box: [1310, 122, 160, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#9A3412", align: left, wrap: true}}
+
+            - {type: rect, id: b_reg, decorative: true, box: [1500, 96, 200, 56], radius: 6,
+               fill: white, stroke: {color: "#FB923C", width: 0.8}}
+            - {type: text, id: b_reg_t, decorative: true, text: "register_builtins",
+               box: [1510, 102, 180, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#7C2D12", align: left}}
+            - {type: text, id: b_reg_b, decorative: true, text: "_builtins.py — 9 Analyzers + 9 Resolvers",
+               box: [1510, 122, 180, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#9A3412", align: left, wrap: true}}
+
+        # ── Row 2: CORE PIPELINE band + content
+        - id: row_core
+          z: 2
+          objects:
+            - type: rect
+              id: core_bg
+              decorative: true
+              box: [40, 186, 1840, 190]
+              radius: 10
+              stroke: {color: "#22D3EE", width: 0.8}
+              fill:
+                type: linear_gradient
+                from: [0, 0]
+                to: [0, 1]
+                stops:
+                  - {offset: 0, color: "#ECFEFF"}
+                  - {offset: 1, color: "#CFFAFE"}
+            - {type: text, id: core_t, decorative: true, text: "codebase_mapper/  (L1 host facts — cbm:)",
+               box: [56, 194, 600, 18],
+               style: {font: heading, size: 14, weight: 700, color: "#155E75", align: left}}
+            - {type: text, id: core_st, decorative: true, text: "__init__ deg 30 · models.py 25 in / 0 out · pipeline.map_codebase() L30–L217",
+               box: [56, 214, 700, 16],
+               style: {font: primary, size: 10, weight: 400, color: "#0E7490", align: left}}
+
+            # pipeline
+            - {type: rect, id: c_pipe, decorative: true, box: [220, 228, 220, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 1.4}}
+            - {type: text, id: c_pipe_t, decorative: true, text: "pipeline.py",
+               box: [230, 234, 200, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_pipe_b1, decorative: true, text: "map_codebase (orchestrator)",
+               box: [230, 254, 200, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+            - {type: text, id: c_pipe_b2, decorative: true, text: "deg 23 · 15 out · 8 in",
+               box: [230, 270, 200, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+
+            - {type: rect, id: c_fac, decorative: true, box: [460, 228, 200, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 0.8}}
+            - {type: text, id: c_fac_t, decorative: true, text: "__init__.py (façade)",
+               box: [470, 234, 180, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_fac_b1, decorative: true, text: "register_builtins · entrypoints",
+               box: [470, 254, 180, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+            - {type: text, id: c_fac_b2, decorative: true, text: "deg 30 · 26 out / 4 in",
+               box: [470, 270, 180, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+
+            - {type: rect, id: c_ext, decorative: true, box: [680, 228, 200, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 0.8}}
+            - {type: text, id: c_ext_t, decorative: true, text: "extensions.py",
+               box: [690, 234, 180, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_ext_b1, decorative: true, text: "plugin/extension contract",
+               box: [690, 254, 180, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+            - {type: text, id: c_ext_b2, decorative: true, text: "deg 20 · 19 inbound",
+               box: [690, 270, 180, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+
+            - {type: rect, id: c_bi, decorative: true, box: [900, 228, 220, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 0.8}}
+            - {type: text, id: c_bi_t, decorative: true, text: "_builtins.py",
+               box: [910, 234, 200, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_bi_b1, decorative: true, text: "PythonAnalyzer · TsJsAnalyzer · …",
+               box: [910, 254, 200, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+            - {type: text, id: c_bi_b2, decorative: true, text: "9 Analyzers + 9 Resolvers",
+               box: [910, 270, 200, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+
+            - {type: rect, id: c_mod, decorative: true, box: [1140, 228, 200, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 0.8}}
+            - {type: text, id: c_mod_t, decorative: true, text: "models.py",
+               box: [1150, 234, 180, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_mod_b1, decorative: true, text: "FileRecord · *Edge · *Ref",
+               box: [1150, 254, 180, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+            - {type: text, id: c_mod_b2, decorative: true, text: "deg 25 · 0 out / 25 in (pure)",
+               box: [1150, 270, 180, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+
+            - {type: rect, id: c_lng, decorative: true, box: [1360, 228, 220, 60], radius: 8,
+               fill: white, stroke: {color: "#0891B2", width: 0.8}}
+            - {type: text, id: c_lng_t, decorative: true, text: "languages/* (9 adapters)",
+               box: [1370, 234, 200, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_lng_b1, decorative: true, text: "AST summaries (6.05 MB total)",
+               box: [1370, 254, 200, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+            - {type: text, id: c_lng_b2, decorative: true, text: "→ FileRecord, *Edge",
+               box: [1370, 270, 200, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+
+            - {type: rect, id: c_emit, decorative: true, box: [1600, 228, 160, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 0.8}}
+            - {type: text, id: c_emit_t, decorative: true, text: "rdf_emit.py",
+               box: [1610, 234, 140, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_emit_b, decorative: true, text: "turtle / json-ld",
+               box: [1610, 254, 140, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left}}
+
+            # lower row
+            - {type: rect, id: c_cli, decorative: true, box: [220, 300, 220, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 0.8}}
+            - {type: text, id: c_cli_t, decorative: true, text: "cli.py · __main__.py",
+               box: [230, 306, 200, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_cli_b, decorative: true, text: "python -m codebase_mapper · subcmds",
+               box: [230, 326, 200, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left, wrap: true}}
+
+            - {type: rect, id: c_rs, decorative: true, box: [460, 300, 200, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 0.8}}
+            - {type: text, id: c_rs_t, decorative: true, text: "repo_source.py",
+               box: [470, 306, 180, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_rs_b, decorative: true, text: "discovery · excludes · git or file walk",
+               box: [470, 326, 180, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left, wrap: true}}
+
+            - {type: rect, id: c_te, decorative: true, box: [680, 300, 200, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 0.8}}
+            - {type: text, id: c_te_t, decorative: true, text: "tests_edges.py",
+               box: [690, 306, 180, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_te_b, decorative: true, text: "heuristic test → subject  (8 edges)",
+               box: [690, 326, 180, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left, wrap: true}}
+
+            - {type: rect, id: c_bl, decorative: true, box: [900, 300, 220, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 0.8}}
+            - {type: text, id: c_bl_t, decorative: true, text: "blobs.py",
+               box: [910, 306, 200, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_bl_b, decorative: true, text: "content-addressed · 179 unique blobs",
+               box: [910, 326, 200, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left, wrap: true}}
+
+            - {type: rect, id: c_ct, decorative: true, box: [1140, 300, 200, 60], radius: 8,
+               fill: white, stroke: {color: "#06B6D4", width: 0.8}}
+            - {type: text, id: c_ct_t, decorative: true, text: "constants.py",
+               box: [1150, 306, 180, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#0E7490", align: left}}
+            - {type: text, id: c_ct_b, decorative: true, text: "tags · IRI bases — deg 16",
+               box: [1150, 326, 180, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#155E75", align: left, wrap: true}}
+
+        # ── Row 3: PLUGINS band + content
+        - id: row_plug
+          z: 2
+          objects:
+            - type: rect
+              id: plug_bg
+              decorative: true
+              box: [40, 396, 1840, 170]
+              radius: 10
+              stroke: {color: "#86EFAC", width: 0.8}
+              fill:
+                type: linear_gradient
+                from: [0, 0]
+                to: [0, 1]
+                stops:
+                  - {offset: 0, color: "#F0FDF4"}
+                  - {offset: 1, color: "#DCFCE7"}
+            - {type: text, id: plug_t, decorative: true, text: "plugins/  (L2 chunks+embeddings · L3 concepts · symbol xrefs)",
+               box: [56, 404, 800, 18],
+               style: {font: heading, size: 14, weight: 700, color: "#166534", align: left}}
+            - {type: text, id: plug_st, decorative: true, text: "register_builtins() wires analyzers/resolvers; plugin packages own artifact + graph_writer",
+               box: [56, 424, 1000, 16],
+               style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left}}
+
+            - {type: rect, id: p_chk, decorative: true, box: [220, 440, 360, 110], radius: 8,
+               fill: white, stroke: {color: "#22C55E", width: 0.8}}
+            - {type: text, id: p_chk_t, decorative: true, text: "plugins/chunks_embeddings/",
+               box: [230, 446, 340, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#166534", align: left}}
+            - {type: text, id: p_chk_b, decorative: true,
+               text: "chunker.py (12.9 KB) — fn/class/file chunks\nbackends.py — sbert / dummy\nembedder.py — encode(texts) → vec\nartifact.py — npy + manifest\ngraph_writer.py — cbml2: triples",
+               box: [230, 466, 340, 82],
+               style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left, line_height: 14, wrap: true}}
+
+            - {type: rect, id: p_con, decorative: true, box: [600, 440, 360, 110], radius: 8,
+               fill: white, stroke: {color: "#22C55E", width: 0.8}}
+            - {type: text, id: p_con_t, decorative: true, text: "plugins/concept_graph/",
+               box: [610, 446, 340, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#166534", align: left}}
+            - {type: text, id: p_con_b, decorative: true,
+               text: "splitter.py — identifier → tokens\nconcepts.py (15.4 KB) — SKOS build\ngraph_writer.py — cbml3: + skos:related\nartifact.py — concept index\n1 427 concepts emitted",
+               box: [610, 466, 340, 82],
+               style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left, line_height: 14, wrap: true}}
+
+            - {type: rect, id: p_xr, decorative: true, box: [980, 440, 360, 110], radius: 8,
+               fill: white, stroke: {color: "#22C55E", width: 0.8}}
+            - {type: text, id: p_xr_t, decorative: true, text: "plugins/symbol_xrefs/",
+               box: [990, 446, 340, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#166534", align: left}}
+            - {type: text, id: p_xr_b, decorative: true,
+               text: "python_resolver.py (20.7 KB)\ntsjs_resolver.py (23.0 KB)\naggregator.py · graph_writer.py\nartifact.py — xref index\nSymbolXref + Unresolved",
+               box: [990, 466, 340, 82],
+               style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left, line_height: 14, wrap: true}}
+
+            - {type: rect, id: p_vc, decorative: true, box: [1360, 440, 380, 110], radius: 8,
+               fill: white, stroke: {color: "#22C55E", width: 0.8, dash: [4,3]}}
+            - {type: text, id: p_vc_t, decorative: true, text: "codebase_mapper/vocab/",
+               box: [1370, 446, 360, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#166534", align: left}}
+            - {type: text, id: p_vc_b, decorative: true,
+               text: "loader.py — read software_primitives.yaml\napplies kind: domain- / structural- / relational-\n+ broader (e.g. code_structure)\nL3 controlled-vocab v1 default-on (41e9423)\n⚠ kind coverage today: 1 / 1 427",
+               box: [1370, 466, 360, 82],
+               style: {font: primary, size: 10, weight: 400, color: "#15803D", align: left, line_height: 14, wrap: true}}
+
+        # ── Row 4: EMITTERS band + content
+        - id: row_emit
+          z: 2
+          objects:
+            - type: rect
+              id: emit_bg
+              decorative: true
+              box: [40, 586, 1840, 110]
+              radius: 10
+              stroke: {color: "#5EEAD4", width: 0.8}
+              fill:
+                type: linear_gradient
+                from: [0, 0]
+                to: [0, 1]
+                stops:
+                  - {offset: 0, color: "#F0FDFA"}
+                  - {offset: 1, color: "#CCFBF1"}
+            - {type: text, id: emit_t, decorative: true, text: "Emitters",
+               box: [56, 594, 300, 18],
+               style: {font: heading, size: 14, weight: 700, color: "#115E59", align: left}}
+            - {type: text, id: emit_st, decorative: true, text: "rdf_emit.py + emit_bundle.py + reconstruct.py + regenerate.py",
+               box: [56, 614, 700, 16],
+               style: {font: primary, size: 10, weight: 400, color: "#0F766E", align: left}}
+
+            - {type: rect, id: e_rdf, decorative: true, box: [220, 630, 320, 56], radius: 8,
+               fill: white, stroke: {color: "#14B8A6", width: 0.8}}
+            - {type: text, id: e_rdf_t, decorative: true, text: "rdf_emit.py",
+               box: [230, 636, 300, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#115E59", align: left}}
+            - {type: text, id: e_rdf_b, decorative: true,
+               text: "build_inventory_graph · build_shacl_graph · build_ontology_mapping_graph",
+               box: [230, 656, 300, 24],
+               style: {font: primary, size: 10, weight: 400, color: "#0F766E", align: left, wrap: true}}
+
+            - {type: rect, id: e_eb, decorative: true, box: [560, 630, 260, 56], radius: 8,
+               fill: white, stroke: {color: "#14B8A6", width: 0.8}}
+            - {type: text, id: e_eb_t, decorative: true, text: "emit_bundle.py",
+               box: [570, 636, 240, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#115E59", align: left}}
+            - {type: text, id: e_eb_b, decorative: true,
+               text: "turtle / json-ld / npy / manifest · deterministic",
+               box: [570, 656, 240, 24],
+               style: {font: primary, size: 10, weight: 400, color: "#0F766E", align: left, wrap: true}}
+
+            - {type: rect, id: e_rc, decorative: true, box: [840, 630, 260, 56], radius: 8,
+               fill: white, stroke: {color: "#14B8A6", width: 0.8}}
+            - {type: text, id: e_rc_t, decorative: true, text: "reconstruct.py",
+               box: [850, 636, 240, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#115E59", align: left}}
+            - {type: text, id: e_rc_b, decorative: true,
+               text: "bundle → source tree (round-trip)",
+               box: [850, 656, 240, 24],
+               style: {font: primary, size: 10, weight: 400, color: "#0F766E", align: left, wrap: true}}
+
+            - {type: rect, id: e_re, decorative: true, box: [1120, 630, 240, 56], radius: 8,
+               fill: white, stroke: {color: "#14B8A6", width: 0.8}}
+            - {type: text, id: e_re_t, decorative: true, text: "regenerate.py",
+               box: [1130, 636, 220, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#115E59", align: left}}
+            - {type: text, id: e_re_b, decorative: true,
+               text: "refresh existing bundle",
+               box: [1130, 656, 220, 24],
+               style: {font: primary, size: 10, weight: 400, color: "#0F766E", align: left, wrap: true}}
+
+            - {type: rect, id: e_st, decorative: true, box: [1380, 630, 220, 56], radius: 8,
+               fill: white, stroke: {color: "#14B8A6", width: 0.8}}
+            - {type: text, id: e_st_t, decorative: true, text: "self_test.py",
+               box: [1390, 636, 200, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#115E59", align: left}}
+            - {type: text, id: e_st_b, decorative: true,
+               text: "end-to-end smoke · cbm self-test",
+               box: [1390, 656, 200, 24],
+               style: {font: primary, size: 10, weight: 400, color: "#0F766E", align: left, wrap: true}}
+
+        # ── Row 5: BUNDLE STORE band + content
+        - id: row_bnd
+          z: 2
+          objects:
+            - type: rect
+              id: bnd_bg
+              decorative: true
+              box: [40, 716, 1840, 90]
+              radius: 10
+              stroke: {color: "#FCD34D", width: 0.8}
+              fill:
+                type: linear_gradient
+                from: [0, 0]
+                to: [0, 1]
+                stops:
+                  - {offset: 0, color: "#FEF3C7"}
+                  - {offset: 1, color: "#FDE68A"}
+            - {type: text, id: bnd_t, decorative: true,
+               text: "_tmp/<bundle>/  — on-disk artifact  (SHACL ✓ · 179 unique blobs)",
+               box: [56, 724, 1000, 22],
+               style: {font: heading, size: 14, weight: 700, color: "#92400E", align: left}}
+
+            - {type: rect, id: bn_l1, decorative: true, box: [220, 752, 280, 46], radius: 6,
+               fill: white, stroke: {color: "#F59E0B", width: 0.8}}
+            - {type: text, id: bn_l1_t, decorative: true, text: "L1 host RDF (cbm:)",
+               box: [230, 757, 260, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#92400E", align: left}}
+            - {type: text, id: bn_l1_b, decorative: true, text: "files · imports · phases · tests",
+               box: [230, 776, 260, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#B45309", align: left}}
+
+            - {type: rect, id: bn_l2, decorative: true, box: [520, 752, 300, 46], radius: 6,
+               fill: white, stroke: {color: "#F59E0B", width: 0.8}}
+            - {type: text, id: bn_l2_t, decorative: true, text: "L2 chunks + embeddings (cbml2:)",
+               box: [530, 757, 280, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#92400E", align: left}}
+            - {type: text, id: bn_l2_b, decorative: true, text: "968 chunks · NIF spans · 384-dim vec",
+               box: [530, 776, 280, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#B45309", align: left}}
+
+            - {type: rect, id: bn_l3, decorative: true, box: [840, 752, 280, 46], radius: 6,
+               fill: white, stroke: {color: "#F59E0B", width: 0.8}}
+            - {type: text, id: bn_l3_t, decorative: true, text: "L3 concept graph (cbml3:/skos:)",
+               box: [850, 757, 260, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#92400E", align: left}}
+            - {type: text, id: bn_l3_b, decorative: true, text: "1 427 concepts · co-occurrence",
+               box: [850, 776, 260, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#B45309", align: left}}
+
+            - {type: rect, id: bn_x, decorative: true, box: [1140, 752, 280, 46], radius: 6,
+               fill: white, stroke: {color: "#F59E0B", width: 0.8}}
+            - {type: text, id: bn_x_t, decorative: true, text: "Symbol xrefs index",
+               box: [1150, 757, 260, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#92400E", align: left}}
+            - {type: text, id: bn_x_b, decorative: true, text: "resolved + unresolved refs",
+               box: [1150, 776, 260, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#B45309", align: left}}
+
+            - {type: rect, id: bn_s, decorative: true, box: [1440, 752, 280, 46], radius: 6,
+               fill: white, stroke: {color: "#F59E0B", width: 0.8}}
+            - {type: text, id: bn_s_t, decorative: true, text: "SHACL + ontology mapping",
+               box: [1450, 757, 260, 16],
+               style: {font: primary, size: 11, weight: 700, color: "#92400E", align: left}}
+            - {type: text, id: bn_s_b, decorative: true, text: "conforms = true · run manifest",
+               box: [1450, 776, 260, 14],
+               style: {font: primary, size: 10, weight: 400, color: "#B45309", align: left}}
+
+        # ── Row 6: SERVE band + content
+        - id: row_srv
+          z: 2
+          objects:
+            - type: rect
+              id: srv_bg
+              decorative: true
+              box: [40, 826, 1840, 110]
+              radius: 10
+              stroke: {color: "#C4B5FD", width: 0.8}
+              fill:
+                type: linear_gradient
+                from: [0, 0]
+                to: [0, 1]
+                stops:
+                  - {offset: 0, color: "#FAF5FF"}
+                  - {offset: 1, color: "#EDE9FE"}
+            - {type: text, id: srv_t, decorative: true, text: "Serve layer — frontend/",
+               box: [56, 834, 500, 18],
+               style: {font: heading, size: 14, weight: 700, color: "#5B21B6", align: left}}
+            - {type: text, id: srv_st, decorative: true,
+               text: "REST backend and MCP server are two adapters over the same bundle store",
+               box: [56, 854, 1000, 16],
+               style: {font: primary, size: 10, weight: 400, color: "#6D28D9", align: left, italic: true}}
+
+            - {type: rect, id: s_rest, decorative: true, box: [220, 872, 440, 56], radius: 8,
+               fill: white, stroke: {color: "#8B5CF6", width: 0.8}}
+            - {type: text, id: s_rest_t, decorative: true, text: "frontend/backend/app.py  (FastAPI, 39.7 KB)",
+               box: [230, 878, 420, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#5B21B6", align: left}}
+            - {type: text, id: s_rest_b, decorative: true,
+               text: "load_bundle · /bundles · /summary · /file_graph · /symbol_graph · /concept_graph · /chunks · /impact · /healthz",
+               box: [230, 898, 420, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#6D28D9", align: left, wrap: true}}
+
+            - {type: rect, id: s_mcp, decorative: true, box: [680, 872, 500, 56], radius: 8,
+               fill: white, stroke: {color: "#8B5CF6", width: 1.4}}
+            - {type: text, id: s_mcp_t, decorative: true, text: "frontend/mcp_server/  (stdio + HTTP)",
+               box: [690, 878, 480, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#5B21B6", align: left}}
+            - {type: text, id: s_mcp_b, decorative: true,
+               text: "server.build_server · handlers (22 tools) · resources · prompts · subscriptions · validators · OAuth · observability",
+               box: [690, 898, 480, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#6D28D9", align: left, wrap: true}}
+
+            - {type: rect, id: s_tools, decorative: true, box: [1200, 872, 520, 56], radius: 8,
+               fill: white, stroke: {color: "#8B5CF6", width: 0.8}}
+            - {type: text, id: s_tools_t, decorative: true, text: "MCP tools (selected)",
+               box: [1210, 878, 500, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#5B21B6", align: left}}
+            - {type: text, id: s_tools_b, decorative: true,
+               text: "orient · bundle_summary · repository_summary · list/select_bundle · list/file_detail/file_impact · chunk_* · concept_* · semantic_neighbors · sparql",
+               box: [1210, 898, 500, 28],
+               style: {font: primary, size: 10, weight: 400, color: "#6D28D9", align: left, wrap: true}}
+
+        # ── Row 7: UI / CLIENTS band + content
+        - id: row_ui
+          z: 2
+          objects:
+            - type: rect
+              id: ui_bg
+              decorative: true
+              box: [40, 956, 1840, 92]
+              radius: 10
+              stroke: {color: "#93C5FD", width: 0.8}
+              fill:
+                type: linear_gradient
+                from: [0, 0]
+                to: [0, 1]
+                stops:
+                  - {offset: 0, color: "#EFF6FF"}
+                  - {offset: 1, color: "#DBEAFE"}
+            - {type: text, id: ui_t, decorative: true, text: "UI & Clients",
+               box: [56, 964, 400, 18],
+               style: {font: heading, size: 14, weight: 700, color: "#1E3A8A", align: left}}
+
+            - {type: rect, id: u_react, decorative: true, box: [220, 988, 320, 50], radius: 8,
+               fill: white, stroke: {color: "#3B82F6", width: 0.8}}
+            - {type: text, id: u_react_t, decorative: true, text: "frontend/ui/  (React + Vite)",
+               box: [230, 994, 300, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#1E3A8A", align: left}}
+            - {type: text, id: u_react_b, decorative: true,
+               text: "App.tsx · api.ts · bundle-context · 7 views",
+               box: [230, 1014, 300, 20],
+               style: {font: primary, size: 10, weight: 400, color: "#1E40AF", align: left}}
+
+            - {type: rect, id: u_cyt, decorative: true, box: [560, 988, 260, 50], radius: 8,
+               fill: white, stroke: {color: "#3B82F6", width: 0.8}}
+            - {type: text, id: u_cyt_t, decorative: true, text: "CytoscapeGraph.tsx",
+               box: [570, 994, 240, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#1E3A8A", align: left}}
+            - {type: text, id: u_cyt_b, decorative: true,
+               text: "graph rendering component",
+               box: [570, 1014, 240, 20],
+               style: {font: primary, size: 10, weight: 400, color: "#1E40AF", align: left}}
+
+            - {type: rect, id: u_ag, decorative: true, box: [840, 988, 300, 50], radius: 8,
+               fill: white, stroke: {color: "#3B82F6", width: 0.8}}
+            - {type: text, id: u_ag_t, decorative: true, text: "MCP-aware AI agents",
+               box: [850, 994, 280, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#1E3A8A", align: left}}
+            - {type: text, id: u_ag_b, decorative: true,
+               text: "Claude Code · IDE · cron — stdio or HTTP",
+               box: [850, 1014, 280, 20],
+               style: {font: primary, size: 10, weight: 400, color: "#1E40AF", align: left}}
+
+            - {type: rect, id: u_rc, decorative: true, box: [1160, 988, 260, 50], radius: 8,
+               fill: white, stroke: {color: "#3B82F6", width: 0.8}}
+            - {type: text, id: u_rc_t, decorative: true, text: "REST clients",
+               box: [1170, 994, 240, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#1E3A8A", align: left}}
+            - {type: text, id: u_rc_b, decorative: true,
+               text: "curl · scripts · dashboards",
+               box: [1170, 1014, 240, 20],
+               style: {font: primary, size: 10, weight: 400, color: "#1E40AF", align: left}}
+
+            - {type: rect, id: u_cli, decorative: true, box: [1440, 988, 280, 50], radius: 8,
+               fill: white, stroke: {color: "#3B82F6", width: 0.8}}
+            - {type: text, id: u_cli_t, decorative: true, text: "CLI consumer",
+               box: [1450, 994, 260, 18],
+               style: {font: primary, size: 12, weight: 700, color: "#1E3A8A", align: left}}
+            - {type: text, id: u_cli_b, decorative: true,
+               text: "python -m codebase_mapper map …",
+               box: [1450, 1014, 260, 20],
+               style: {font: primary, size: 10, weight: 400, color: "#1E40AF", align: left}}
+
+        # ── Flow arrows (vertical between rows; mirrors the original SVG).
+        # Each lane is colour-coded:
+        #   gray   = build flow (ingest → core → plugins)
+        #   teal   = emit → bundle store
+        #   purple = serve → UI / agents / clients
+        - id: arrows_build
+          z: 5
+          objects:
+            - {type: line, id: a_ic1, from: [320, 152], to: [320, 228],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_ic2, from: [540, 152], to: [540, 228],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_ic3, from: [750, 152], to: [750, 228],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_ic4, from: [970, 152], to: [970, 228],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_ic5, from: [1190, 152], to: [1190, 228],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_ic6, from: [1390, 152], to: [1390, 228],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_ic7, from: [1600, 152], to: [1600, 228],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # core → plugins
+            - {type: line, id: a_cp1, from: [330, 360], to: [330, 440],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_cp2, from: [560, 360], to: [560, 440],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_cp3, from: [780, 360], to: [780, 440],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_cp4, from: [1010, 360], to: [1010, 440],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+
+        - id: arrows_emit
+          z: 5
+          objects:
+            # plugins → emitters
+            - {type: line, id: a_pe1, from: [400, 550], to: [400, 630],
+               stroke: {color: "#0D9488", width: 1.6, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_pe2, from: [780, 550], to: [780, 630],
+               stroke: {color: "#0D9488", width: 1.6, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_pe3, from: [1160, 550], to: [1160, 630],
+               stroke: {color: "#0D9488", width: 1.6, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_pe4, from: [1500, 550], to: [1500, 630],
+               stroke: {color: "#0D9488", width: 1.6, arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # emitters → bundle store
+            - {type: line, id: a_eb1, from: [360, 686], to: [360, 752],
+               stroke: {color: "#0D9488", width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: line, id: a_eb2, from: [680, 686], to: [680, 752],
+               stroke: {color: "#0D9488", width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: line, id: a_eb3, from: [970, 686], to: [970, 752],
+               stroke: {color: "#0D9488", width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: line, id: a_eb4, from: [1240, 686], to: [1240, 752],
+               stroke: {color: "#0D9488", width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+            - {type: line, id: a_eb5, from: [1490, 686], to: [1490, 752],
+               stroke: {color: "#0D9488", width: 1.6, arrow_end: true, arrow_end_kind: filled_triangle}}
+
+        - id: arrows_serve
+          z: 5
+          objects:
+            # bundle → REST + MCP
+            - {type: line, id: a_bs1, from: [440, 798], to: [440, 872],
+               stroke: {color: "#7C3AED", width: 1.6, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_bs2, from: [930, 798], to: [930, 872],
+               stroke: {color: "#7C3AED", width: 1.6, arrow_end: true, arrow_end_kind: open_arrow}}
+
+            # REST ↔ MCP (handlers imports app — dashed)
+            - {type: line, id: a_rm, from: [660, 900], to: [680, 900],
+               stroke: {color: "#7C3AED", width: 1.4, dash: [4,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: a_rm_l, decorative: true, text: "imports",
+               box: [660, 884, 60, 14],
+               style: {font: primary, size: 9, weight: 400, color: "#5B21B6", align: center, italic: true}}
+
+            # serve → UI / agents / clients / CLI
+            - {type: line, id: a_sui1, from: [380, 928], to: [380, 988],
+               stroke: {color: "#7C3AED", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_sui2, from: [930, 928], to: [930, 988],
+               stroke: {color: "#7C3AED", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_sui3, from: [1290, 928], to: [1290, 988],
+               stroke: {color: "#7C3AED", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: line, id: a_sui4, from: [1580, 928], to: [1580, 988],
+               stroke: {color: "#7C3AED", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+
+        # ── Legend (matches the original SVG's bottom legend).
+        - id: legend
+          z: 10
+          objects:
+            - {type: line, id: lg_a1, from: [60, 1060], to: [100, 1060],
+               stroke: {color: "#334155", width: 1.4, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: lg_a1_t, decorative: true, text: "build flow",
+               box: [106, 1053, 100, 14],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: left}}
+            - {type: line, id: lg_a2, from: [220, 1060], to: [260, 1060],
+               stroke: {color: "#0D9488", width: 1.6, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: lg_a2_t, decorative: true, text: "emit → bundle",
+               box: [266, 1053, 130, 14],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: left}}
+            - {type: line, id: lg_a3, from: [410, 1060], to: [450, 1060],
+               stroke: {color: "#7C3AED", width: 1.6, arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: lg_a3_t, decorative: true, text: "serve / consume",
+               box: [456, 1053, 140, 14],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: left}}
+            - {type: line, id: lg_a4, from: [610, 1060], to: [650, 1060],
+               stroke: {color: "#7C3AED", width: 1.4, dash: [4,3], arrow_end: true, arrow_end_kind: open_arrow}}
+            - {type: text, id: lg_a4_t, decorative: true, text: "code dependency (handlers ⇢ app.py)",
+               box: [656, 1053, 320, 14],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: left}}
+            - {type: text, id: lg_note, decorative: true,
+               text: "Box subtitle conventions: file size · import degree · key symbols",
+               box: [1000, 1053, 900, 14],
+               style: {font: primary, size: 10, weight: 400, color: text_muted, align: right, italic: true}}
+
+  # ── Slide 15 — Closing (pattern 49: Recommendations) ─────────────────
+  - id: 15-closing
+    slide: 15
     use: 49
     title: "Next quarter — three actions"
     description: "Closing slide. The three load-bearing fixes drawn from the SWOT, gap, and EWI slides."
