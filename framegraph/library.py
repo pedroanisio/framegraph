@@ -158,6 +158,17 @@ class FrameGraphLibrary:
         """Return the sorted ids of every discovered token pack."""
         return sorted(self._token_packs)
 
+    def list_themes(self) -> list[str]:
+        """Return the sorted ids of every discovered theme (token pack).
+
+        Themes and token packs are the same thing — a theme *is* a bundled
+        token pack such as `mckinsey`, `bain`, or `deloitte`. This is the
+        documented public method referenced from README.md, AGENTS.md, and
+        docs/MANUAL.md; it forwards to `token_ids()` for the canonical
+        implementation.
+        """
+        return self.token_ids()
+
     def symbol_ids(self) -> list[str]:
         """Return the sorted ids of every discovered symbol pack."""
         return sorted(self._symbol_packs)

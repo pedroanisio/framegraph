@@ -181,7 +181,7 @@ content. Default content shapes per content_type:
 
 For richer per-zone shapes (e.g. BMC's `revenue_streams` is
 `list[{label, metric}]` rather than `list[str]`), patterns ship a
-**sidecar** under `static/refs/fills/` that overrides the default
+**sidecar** under `framegraph/data/fills/` that overrides the default
 schema. See [`AUTHORING-FILLS.md`](AUTHORING-FILLS.md) for the
 sidecar mini-DSL.
 

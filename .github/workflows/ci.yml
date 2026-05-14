@@ -118,10 +118,67 @@ jobs:
       - name: mypy (strict)
         run: mypy framegraph/
 
+  # ── PR-time wheel smoke ────────────────────────────────────────────────────
+  # Drift-risk-map Finding #7: package-data drift only fails the publish job,
+  # which runs on tag push. By then the regression has merged. This job builds
+  # the wheel on every push/PR and installs it into a clean venv, then runs a
+  # CLI smoke command that exercises the packaged-data loaders. Failures here
+  # are caught at PR time, not at release time.
+  wheel-smoke:
+    name: Wheel install smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install system deps (cairo)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libcairo2-dev libpango1.0-dev libglib2.0-dev pkg-config
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Build sdist + wheel
+        run: python -m build
+
+      - name: Install wheel into a clean venv
+        run: |
+          python -m venv /tmp/fg-smoke-venv
+          /tmp/fg-smoke-venv/bin/pip install --upgrade pip
+          # Install from the freshly-built wheel — not the source tree —
+          # so packaged data inclusion is genuinely exercised.
+          /tmp/fg-smoke-venv/bin/pip install dist/*.whl
+
+      - name: Smoke — patterns list (exercises packaged catalog)
+        run: |
+          /tmp/fg-smoke-venv/bin/framegraph patterns list --has-sidecar --json \
+            | python -c "import json, sys; d = json.load(sys.stdin); assert isinstance(d, list) and len(d) > 0, 'patterns list returned no items'; print(f'OK: {len(d)} sidecared patterns from installed wheel')"
+
+      - name: Smoke — render a packaged example (exercises packaged fills)
+        run: |
+          /tmp/fg-smoke-venv/bin/framegraph patterns example 10 -o /tmp/swot.fill.yml
+          /tmp/fg-smoke-venv/bin/framegraph patterns build 10 --fill /tmp/swot.fill.yml -o /tmp/swot.svg
+          test -s /tmp/swot.svg || (echo "rendered SVG is empty" && exit 1)
+          echo "OK: rendered $(wc -c < /tmp/swot.svg) bytes from installed wheel"
+
+      - name: Smoke — version subcommand matches wheel metadata
+        run: |
+          INSTALLED=$(/tmp/fg-smoke-venv/bin/framegraph version)
+          echo "$INSTALLED"
+          # `framegraph version` prints "framegraph X.Y.Z"; verify it parses.
+          test "$(echo "$INSTALLED" | awk '{print $1}')" = "framegraph"
+
   # ── Build + publish (tag-triggered) ────────────────────────────────────────
   publish:
     name: Publish to PyPI
-    needs: [golden-snapshots, pytest, lint]
+    needs: [golden-snapshots, pytest, lint, wheel-smoke]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     environment:

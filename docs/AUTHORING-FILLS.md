@@ -70,7 +70,7 @@ A fill file is a **flat top-level mapping** from zone role to
 content. It is *not* a sidecar — it has no `pattern_id`, no
 `zones:` wrapper, no `example_fill:` key.
 
-Sidecar (lives in `static/refs/fills/`):
+Sidecar (lives in `framegraph/data/fills/`):
 
 ```yaml
 pattern_id: 10
@@ -126,7 +126,7 @@ framegraph patterns list --has-sidecar --json | jq '.[].id'
 ## Section B — Authoring a sidecar (maintainer workflow)
 
 The rest of this document covers when and how to add a sidecar
-under `static/refs/fills/`. This is rare: only do it when the
+under `framegraph/data/fills/`. This is rare: only do it when the
 default content_type-derived schema is genuinely too loose for
 agents to produce useful content, or when a worked example would
 help agents understand the pattern.
@@ -135,10 +135,10 @@ help agents understand the pattern.
 
 | | |
 |---|---|
-| **Pattern** | A named slide template in the bundled catalog (`static/refs/slides-patter-a.yml`). 375 of them, ids 1–375. Each declares zones (named regions) with size, placement, optional shape, and a `content_type`. |
+| **Pattern** | A named slide template in the bundled catalog (`framegraph/data/patterns/slides-patter-a.yml`). 375 of them, ids 1–375. Each declares zones (named regions) with size, placement, optional shape, and a `content_type`. |
 | **Fill** | The content payload an author supplies — one entry per zone, keyed by role. Validated against the pattern's *effective* fill schema. |
 | **Default fill schema** | Auto-derived from each zone's `content_type` literal. Ten content types map to ten default Pydantic shapes (see [`framegraph.patterns.fill`](../framegraph/patterns/fill.py)). |
-| **Sidecar** | A YAML file at `static/refs/fills/<id>-<slug>.yml` that overrides the default schema for specific zones of one pattern. Used when richer content shapes are needed than the defaults provide. |
+| **Sidecar** | A YAML file at `framegraph/data/fills/<id>-<slug>.yml` that overrides the default schema for specific zones of one pattern. Used when richer content shapes are needed than the defaults provide. |
 | **Effective schema** | What you actually fill against: the default schema, with any sidecar overrides applied. Computed by `derive_fill_schema_with_sidecar(pattern, sidecar)`. |
 
 ## Default content shapes
@@ -218,7 +218,7 @@ later phases.
 
 ### Example 1 — Simple (no overrides): SWOT Analysis (#10)
 
-[`static/refs/fills/010-swot-analysis.yml`](../static/refs/fills/010-swot-analysis.yml)
+[`framegraph/data/fills/010-swot-analysis.yml`](../framegraph/data/fills/010-swot-analysis.yml)
 
 SWOT has four `list_items` zones — one per quadrant. The default
 `list[str]` shape is exactly right; the sidecar exists only to
@@ -255,7 +255,7 @@ framegraph patterns build 10 --fill swot.yml -o swot.svg
 
 ### Example 2 — Medium (defaults + example_fill): Communications Plan (#91)
 
-[`static/refs/fills/091-communications-plan.yml`](../static/refs/fills/091-communications-plan.yml)
+[`framegraph/data/fills/091-communications-plan.yml`](../framegraph/data/fills/091-communications-plan.yml)
 
 This is a member of the 17-pattern comparison-table family — left
 column is `list_items` (audience labels); the next 3 columns are
@@ -291,7 +291,7 @@ example_fill:
 
 ### Example 3 — Complex (real overrides): Business Model Canvas (#44)
 
-[`static/refs/fills/044-business-model-canvas.yml`](../static/refs/fills/044-business-model-canvas.yml)
+[`framegraph/data/fills/044-business-model-canvas.yml`](../framegraph/data/fills/044-business-model-canvas.yml)
 
 BMC has 9 `list_items` zones. Seven are short-bullet lists
 (default `list[str]`); two — `revenue_streams` and `cost_structure`
@@ -358,7 +358,7 @@ python3 scripts/validate_fills.py
 ```
 
 The script:
-1. Parses every `*.yml` in `static/refs/fills/`.
+1. Parses every `*.yml` in `framegraph/data/fills/`.
 2. Resolves the corresponding pattern from the bundled catalog.
 3. Builds the effective schema.
 4. Validates the `example_fill` against the schema.
@@ -401,7 +401,7 @@ match its declared shape.
   Phase 4 pattern-to-SVG renderer bridge.
 - [`framegraph/cli.py`](../framegraph/cli.py) — `patterns list / show /
   example / build / deck` agent surface.
-- [`static/refs/fills/`](../static/refs/fills/) — the 17 shipped
+- [`framegraph/data/fills/`](../framegraph/data/fills/) — the 17 shipped
   sidecars.
 
 ## Demonstrating the end-to-end flow
