@@ -20,6 +20,7 @@ from framegraph._helpers import (
     fnum,
     sid,
 )
+from framegraph._inline_markdown import has_inline_markdown, parse_inline_markdown
 from framegraph._types import RendererContext
 
 
@@ -42,7 +43,14 @@ def render_text_object(r: RendererContext, obj: Mapping[str, Any]) -> str:
         text_node = spans_svg(r, spans_raw, b, base_style, rotation=rot)
     else:
         raw = obj.get("text", obj.get("value", ""))
-        text_node = text_svg(r, _expand_lorem(raw), b, base_style, rotation=rot)
+        expanded = _expand_lorem(raw)
+        # Inline-markdown auto-routing: when the plain text contains
+        # `**bold**` / `*italic*` / `` `code` `` runs, parse into a
+        # span list so the rich-text path applies per-run typography.
+        if isinstance(expanded, str) and has_inline_markdown(expanded):
+            text_node = spans_svg(r, parse_inline_markdown(expanded), b, base_style, rotation=rot)
+        else:
+            text_node = text_svg(r, expanded, b, base_style, rotation=rot)
     if rot is not None:
         x, y, w, h = b
         text_node = (
@@ -461,19 +469,57 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
         # safety margin remains as a belt-and-suspenders cushion against
         # the per-class fallback path on systems without `fontTools`.
         safe_body_w = body_w * 0.92
-        wrapped = []
-        line_buf = ""
-        for word in item_text.split():
-            test = (line_buf + " " + word).strip()
-            if line_buf and r._str_width(test, fs, bold, bullet_font) > safe_body_w:
+
+        # Inline-markdown awareness. When the item text contains
+        # `**bold**` / `*italic*` / `` `code` `` runs, parse into spans
+        # and wrap word-by-word with span tags so per-word typography
+        # survives the wrap. Plain items keep the cheap string path.
+        md_spans: list[dict[str, Any]] | None = (
+            parse_inline_markdown(item_text) if has_inline_markdown(item_text) else None
+        )
+
+        wrapped: list[str] = []
+        wrapped_spans: list[list[tuple[str, dict[str, Any]]]] = []
+        if md_spans is not None:
+            # Flatten to (word, span_attrs) pairs preserving run typography.
+            flat: list[tuple[str, dict[str, Any]]] = []
+            for sp in md_spans:
+                sp_attrs = {k: v for k, v in sp.items() if k != "text"}
+                for word in str(sp.get("text", "")).split(" "):
+                    if word:
+                        flat.append((word, sp_attrs))
+            cur_line: list[tuple[str, dict[str, Any]]] = []
+            cur_text = ""
+            for word, sp_attrs in flat:
+                sp_bold = bool(
+                    str(sp_attrs.get("weight", "")) in ("700", "bold", "bolder")
+                ) or bold
+                space = " " if cur_text else ""
+                test = cur_text + space + word
+                if cur_line and r._str_width(test, fs, sp_bold, bullet_font) > safe_body_w:
+                    wrapped_spans.append(cur_line)
+                    cur_line = [(word, sp_attrs)]
+                    cur_text = word
+                else:
+                    cur_line.append((word, sp_attrs))
+                    cur_text = test
+            if cur_line:
+                wrapped_spans.append(cur_line)
+            if not wrapped_spans:
+                wrapped_spans = [[("", {})]]
+        else:
+            line_buf = ""
+            for word in item_text.split():
+                test = (line_buf + " " + word).strip()
+                if line_buf and r._str_width(test, fs, bold, bullet_font) > safe_body_w:
+                    wrapped.append(line_buf)
+                    line_buf = word
+                else:
+                    line_buf = test
+            if line_buf:
                 wrapped.append(line_buf)
-                line_buf = word
-            else:
-                line_buf = test
-        if line_buf:
-            wrapped.append(line_buf)
-        if not wrapped:
-            wrapped = [""]
+            if not wrapped:
+                wrapped = [""]
 
         # Emit marker on first line. Honor `marker_color` (token or
         # literal hex) so accent-styled bullets work universally.
@@ -487,18 +533,51 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
         parts.append(f"<text {attrs(mark_attrs)}><tspan>{esc(mark_str)}</tspan></text>")
 
         # Emit body lines
-        for li, line in enumerate(wrapped):
-            line_y = cur_y + li * lh
-            line_attrs = dict(fa)
-            line_attrs["x"] = fmt(body_x)
-            line_attrs["y"] = fmt(line_y)
-            parts.append(f"<text {attrs(line_attrs)}><tspan>{esc(line)}</tspan></text>")
+        n_body_lines = len(wrapped_spans) if md_spans is not None else len(wrapped)
+        if md_spans is not None:
+            for li, line_words in enumerate(wrapped_spans):
+                line_y = cur_y + li * lh
+                line_attrs = dict(fa)
+                line_attrs["x"] = fmt(body_x)
+                line_attrs["y"] = fmt(line_y)
+                # Group consecutive words sharing the same attrs to keep
+                # the tspan count low and preserve spacing semantics.
+                groups: list[tuple[dict[str, Any], list[str]]] = []
+                for word, sp_attrs in line_words:
+                    if groups and groups[-1][0] == sp_attrs:
+                        groups[-1][1].append(word)
+                    else:
+                        groups.append((sp_attrs, [word]))
+                tspans = []
+                for gi, (sp_attrs, words) in enumerate(groups):
+                    txt = " ".join(words)
+                    if gi > 0:
+                        txt = " " + txt
+                    span_a: dict[str, Any] = {}
+                    if "weight" in sp_attrs:
+                        span_a["font-weight"] = sp_attrs["weight"]
+                    if sp_attrs.get("italic"):
+                        span_a["font-style"] = "italic"
+                    if "font" in sp_attrs:
+                        span_a["font-family"] = sp_attrs["font"]
+                    if "color" in sp_attrs:
+                        span_a["fill"] = r.color(sp_attrs["color"], fa.get("fill", "#000000"))
+                    attr_str = (" " + attrs(span_a)) if span_a else ""
+                    tspans.append(f"<tspan{attr_str}>{esc(txt)}</tspan>")
+                parts.append(f"<text {attrs(line_attrs)}>{''.join(tspans)}</text>")
+        else:
+            for li, line in enumerate(wrapped):
+                line_y = cur_y + li * lh
+                line_attrs = dict(fa)
+                line_attrs["x"] = fmt(body_x)
+                line_attrs["y"] = fmt(line_y)
+                parts.append(f"<text {attrs(line_attrs)}><tspan>{esc(line)}</tspan></text>")
 
         # Advance cursor past this item.
         # Render is faithful: every item is drawn, even if the stack
         # extends past the box. Auto-shrink above already attempted
         # to fit; remaining overflow is reported, not hidden.
-        cur_y += len(wrapped) * lh + gap
+        cur_y += n_body_lines * lh + gap
 
     return f"<g {attrs(r.group_attrs(obj))}>{''.join(parts)}</g>"
 

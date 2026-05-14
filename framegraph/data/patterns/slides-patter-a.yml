@@ -26,6 +26,97 @@ slide_template_patterns:
         v: bottom
     content_type: key_value
   category: generic
+  # Enterprise-polished layout (calibrated for a 1920×1080 canvas;
+  # absolute boxes). Display-grade title in the upper-middle, a single
+  # accent rule, body subtitle below, and footer metadata in muted
+  # italic small caps along the bottom-left. The user's stylesheet
+  # roles[] still override on conflict.
+  enterprise_layout:
+    notes: |
+      Cover slide. Display typography (heading 72px) for the title;
+      regular body (22px) for the subtitle; small italic muted for the
+      metadata. Three zones, hand-tuned coordinates so the title sits
+      visually above center and breathes against the chrome.
+    zones:
+      title:
+        box: [120, 360, 1680, 180]
+        treatment:
+          fill_color: none
+          stroke_color: none
+          padding: 0
+          slots:
+            title:
+              height: 90
+              gap_below: 12
+              typography:
+                font: heading
+                size: 72
+                weight: 700
+                color: primary
+                align: left
+                v_align: top
+                line_height: 84
+                wrap: true
+            body:
+              typography:
+                font: primary
+                size: 26
+                weight: 400
+                color: text
+                align: left
+                v_align: top
+                line_height: 36
+                wrap: true
+        label_text: ""
+      subtitle:
+        box: [120, 580, 1680, 100]
+        treatment:
+          fill_color: none
+          stroke_color: none
+          padding: 0
+          accent_bar:
+            side: left
+            width: 4
+            color: accent
+          slots:
+            title:
+              height: 32
+              gap_below: 6
+              typography:
+                font: primary
+                size: 20
+                weight: 700
+                color: accent
+                align: left
+                v_align: top
+                line_height: 26
+            body:
+              typography:
+                font: primary
+                size: 18
+                weight: 400
+                color: text_muted
+                align: left
+                v_align: top
+                line_height: 26
+                italic: true
+                wrap: true
+        label_text: ""
+      metadata:
+        box: [120, 920, 1680, 60]
+        treatment:
+          fill_color: none
+          stroke_color: none
+          padding: 0
+        typography:
+          font: primary
+          size: 14
+          weight: 400
+          color: text_muted
+          align: left
+          v_align: middle
+          italic: true
+        label_text: ""
 - id: 2
   name: Section Divider
   layout_disposition: Minimal slide separating major sections, usually with a large section number and title.

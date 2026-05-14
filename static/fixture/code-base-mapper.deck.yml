@@ -93,7 +93,7 @@ deck:
       box: [0, 0, 1920, 1080]
       slots: [slide_title, slide_subtitle, slide_num]
       objects:
-        - {type: rect, id: bg,         box: [0,0,1920,1080], fill: white}
+        - {type: rect, id: bg,         box: [0,0,1920,1080], fill: surface}
         - {type: rect, id: top_stripe, box: [0,0,1920,4],    fill: accent}
         # Title box matches the stylesheet's `title_band` exactly:
         # y=8, height=52, margins 32/80 — pixel-aligned with pattern slides.
@@ -911,37 +911,71 @@ slides:
         - id: edges
           z: 20
           objects:
-            # FileRecord ◇— ImportEdge   (aggregation, hollow diamond at FileRecord)
+            # FileRecord ◇— ImportEdge ... (aggregation, hollow diamond at FileRecord).
+            # Distributed-port form spreads the seven incoming edges
+            # evenly along FileRecord's south face so the diamond
+            # markers no longer cluster within a 240 px span.
             - {type: connector, id: a_ie,
-               from: {object: ImportEdge, side: north}, to: {object: FileRecord, side: south, offset: -120}, route: {type: orthogonal},
+               from: {object: ImportEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 1, port_total: 7},
+               route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_iee,
-               from: {object: ImportExternalEdge, side: north}, to: {object: FileRecord, side: south, offset: -60}, route: {type: orthogonal},
+               from: {object: ImportExternalEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 2, port_total: 7},
+               route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_dde,
-               from: {object: DeclaresDependencyEdge, side: north}, to: {object: FileRecord, side: south}, route: {type: orthogonal},
+               from: {object: DeclaresDependencyEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 3, port_total: 7},
+               route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_pde,
-               from: {object: PinsDependencyEdge, side: north}, to: {object: FileRecord, side: south, offset: 60}, route: {type: orthogonal},
+               from: {object: PinsDependencyEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 5, port_total: 7},
+               route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
             - {type: connector, id: a_te,
-               from: {object: TestsEdge, side: north}, to: {object: FileRecord, side: south, offset: 120}, route: {type: orthogonal},
+               from: {object: TestsEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 7, port_total: 7},
+               route: {type: orthogonal},
                stroke: {color: uml_edge, width: 1.0, arrow_end: true, arrow_end_kind: hollow_diamond}}
 
-            # FileRecord ◆— SymbolXrefEdge / UnresolvedSymbolRef (composition, filled diamond)
+            # FileRecord ◆— SymbolXrefEdge / UnresolvedSymbolRef
+            # (composition, filled diamond) — ports 4 and 6 on the
+            # same 7-port distribution, interleaved with the
+            # aggregations to keep semantically related edges visible.
             - {type: connector, id: c_sxe,
-               from: {object: SymbolXrefEdge, side: north}, to: {object: FileRecord, side: south, offset: -30}, route: {type: orthogonal},
+               from: {object: SymbolXrefEdge, side: north},
+               to:   {object: FileRecord, side: south, port_index: 4, port_total: 7},
+               route: {type: orthogonal},
                stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_diamond}}
             - {type: connector, id: c_usr,
-               from: {object: UnresolvedSymbolRef, side: north}, to: {object: FileRecord, side: south, offset: 30}, route: {type: orthogonal},
+               from: {object: UnresolvedSymbolRef, side: north},
+               to:   {object: FileRecord, side: south, port_index: 6, port_total: 7},
+               route: {type: orthogonal},
                stroke: {color: primary, width: 1.2, arrow_end: true, arrow_end_kind: filled_diamond}}
 
         - id: legend
           z: 25
           objects:
-            - {type: text, id: lg, decorative: true,
-               text: "◇ **hollow diamond** = aggregation  (`FileRecord` is whole, each `*Edge` is part — no lifetime coupling)     ◆ **filled diamond** = composition  (xrefs/unresolved are owned by their source `FileRecord`)",
-               box: [80,170,1750,18],
+            # Legend moved below the bottom row of classes (which ends
+            # at y=880) and above the caption (y=956). The previous
+            # placement at y=170 overlapped FileRecord's header band.
+            # Diamond glyphs use uml.marker_glyph so the legend's
+            # symbols match the diagram's markers exactly — no Unicode
+            # font fallback can produce missing-glyph tofu.
+            - {type: uml.marker_glyph, id: lg_hollow, decorative: true,
+               kind: hollow_diamond, position: [86, 902], size: 12, color: uml_edge}
+            - {type: text, id: lg_hollow_text, decorative: true,
+               text: "**hollow diamond** = aggregation  (`FileRecord` is whole, each `*Edge` is part — no lifetime coupling)",
+               box: [100, 894, 800, 18],
+               style: {font: primary, size: 11, weight: 400, color: text_muted, align: left}}
+            - {type: uml.marker_glyph, id: lg_filled, decorative: true,
+               kind: filled_diamond, position: [916, 902], size: 12, color: primary}
+            - {type: text, id: lg_filled_text, decorative: true,
+               text: "**filled diamond** = composition  (xrefs/unresolved are owned by their source `FileRecord`)",
+               box: [930, 894, 770, 18],
                style: {font: primary, size: 11, weight: 400, color: text_muted, align: left}}
 
         - id: caption

@@ -393,6 +393,36 @@ def test_render_bullet_list_renders_bullets() -> None:
     assert "Alpha" in out and "Beta" in out and "Gamma" in out
 
 
+def test_render_bullet_list_inline_bold_emits_bold_tspan() -> None:
+    out = text_objects.render_bullet_list(
+        _ctx(),
+        {
+            "type": "bullet_list",
+            "id": "bl_md",
+            "box": [0, 0, 400, 200],
+            "items": ["Plain item", "Item with **bold word** inside"],
+        },
+    )
+    # Plain item keeps a single tspan; the markdown item carries a
+    # weighted tspan around the bolded word.
+    assert "Plain item" in out
+    assert 'font-weight="bold"' in out
+    # The bolded run lives inside a font-weight="bold" tspan; group
+    # joining may prepend a space ("bold word" vs " bold word").
+    assert 'font-weight="bold">' in out and "bold word</tspan>" in out
+
+
+def test_render_text_object_inline_markdown_routes_to_spans() -> None:
+    out = text_objects.render_text_object(
+        _ctx(),
+        {"type": "text", "box": [0, 0, 400, 100], "text": "lead **bold** tail"},
+    )
+    # spans_svg emits a single <text> with grouped <tspan> children;
+    # presence of a weighted child proves the auto-routing fired.
+    assert 'font-weight="bold"' in out
+    assert 'font-weight="bold">' in out and "bold</tspan>" in out
+
+
 def test_render_bullet_list_with_empty_items_emits_group() -> None:
     out = text_objects.render_bullet_list(
         _ctx(),

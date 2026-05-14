@@ -220,22 +220,70 @@ def render_classifier_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
     line_height = member_size + 8  # 8px leading
     # Header height — depends on stereotype presence
     header_h = 36 if stereotype else 28
-    attrs_h = max(line_height, len(attributes) * line_height + 8)
-    ops_h = max(line_height, len(operations) * line_height + 8)
+    # Text-extent (only the bands that actually carry content). Empty
+    # compartments collapse to a single line-height "blank band" by
+    # default, but can collapse further when the explicit height
+    # forces compression.
+    attrs_text_h = (len(attributes) * line_height + 8) if attributes else 0
+    ops_text_h = (len(operations) * line_height + 8) if operations else 0
+    attrs_h = max(line_height, attrs_text_h)
+    ops_h = max(line_height, ops_text_h)
     total_h = header_h + attrs_h + ops_h
+
+    # By default the inner separator is drawn between the attribute and
+    # operation compartments. The compressor below may suppress it when
+    # the explicit height leaves no room for an operation band.
+    draw_inner_separator = True
 
     # Override with explicit height when supplied (composer-driven sizing)
     obj_box = obj.get("box")
     if isinstance(obj_box, (list, tuple)) and len(obj_box) == 4 and fnum(obj_box[3]) > 0:
         explicit_h = fnum(obj_box[3])
-        # Distribute extra space proportionally if explicit > total
         if explicit_h > total_h:
+            # Distribute extra space proportionally (header stays fixed).
             extra = explicit_h - total_h
-            # Half to attrs, half to ops (header stays fixed)
             attrs_h += extra / 2
             ops_h += extra / 2
             total_h = explicit_h
-        else:
+        elif explicit_h < total_h:
+            # Compress: header_h is fixed. Honour the actual text extent
+            # of each compartment first, then suppress (rather than
+            # overlap into) any band that would otherwise force the
+            # inner separator through visible text. UML 2.5.1 §9.5.4
+            # allows omitting empty compartments.
+            body_avail = max(0.0, explicit_h - header_h)
+            collapse_threshold = line_height * 0.6  # below this → suppress
+            if attrs_text_h > 0 and ops_text_h > 0:
+                # Both compartments carry content — scale proportionally.
+                total_text = attrs_text_h + ops_text_h
+                ratio = body_avail / total_text if total_text > 0 else 0.0
+                attrs_h = attrs_text_h * ratio
+                ops_h = body_avail - attrs_h
+            elif attrs_text_h > 0:
+                # Only attributes carry content — give them priority.
+                attrs_h = min(body_avail, attrs_text_h)
+                ops_h = max(0.0, body_avail - attrs_h)
+                if ops_h < collapse_threshold:
+                    # No room for a meaningful operation band; let the
+                    # attrs band absorb the remainder so the inner
+                    # separator doesn't crowd the bottom edge or the
+                    # last attribute row.
+                    attrs_h = body_avail
+                    ops_h = 0.0
+                    draw_inner_separator = False
+            elif ops_text_h > 0:
+                ops_h = min(body_avail, ops_text_h)
+                attrs_h = max(0.0, body_avail - ops_h)
+                if attrs_h < collapse_threshold:
+                    ops_h = body_avail
+                    attrs_h = 0.0
+                    draw_inner_separator = False
+            else:
+                # Both compartments are empty placeholders. UML allows a
+                # name-only classifier; collapse to a single blank band.
+                attrs_h = body_avail
+                ops_h = 0.0
+                draw_inner_separator = False
             total_h = explicit_h
 
     out: list[str] = [f"<g {attrs(r.group_attrs(obj))}>"]
@@ -310,10 +358,11 @@ def render_classifier_box(r: RendererContext, obj: Mapping[str, Any]) -> str:
 
     # ── Attribute/operation rule ──
     ops_top = attr_top + attrs_h
-    out.append(
-        f'<line x1="{fmt(bx)}" y1="{fmt(ops_top)}" x2="{fmt(bx + bw)}" y2="{fmt(ops_top)}" '
-        f'stroke="{border_color}" stroke-width="{fmt(border_width)}"/>'
-    )
+    if draw_inner_separator:
+        out.append(
+            f'<line x1="{fmt(bx)}" y1="{fmt(ops_top)}" x2="{fmt(bx + bw)}" y2="{fmt(ops_top)}" '
+            f'stroke="{border_color}" stroke-width="{fmt(border_width)}"/>'
+        )
 
     # ── Operation compartment ──
     cursor_y = ops_top + line_height - 2

@@ -1023,10 +1023,17 @@ class FrameGraphRenderer:
             if st.get("arrow_start"):
                 if kind_start != "filled_triangle":
                     self.register_marker_kind(color, kind_start)
+                elif color not in self.marker_colors:
+                    # Inline-color strokes never reach `_build_markers`;
+                    # ensure the filled-triangle marker for this color is
+                    # emitted so `marker-start` URL resolves.
+                    self.marker_colors.append(color)
                 a["marker-start"] = "url(#" + self.marker_id(color, kind_start) + ")"
             if st.get("arrow_end"):
                 if kind_end != "filled_triangle":
                     self.register_marker_kind(color, kind_end)
+                elif color not in self.marker_colors:
+                    self.marker_colors.append(color)
                 a["marker-end"] = "url(#" + self.marker_id(color, kind_end) + ")"
         return a
 

@@ -16,7 +16,64 @@ from framegraph._helpers import (
     fmt,
     pt,
 )
+from framegraph._routing import normalize_side, route_orthogonal
 from framegraph._types import RendererContext
+
+
+def _endpoint_side(ep: Any) -> str | None:
+    """Extract the cardinal `side` declaration from a connector endpoint.
+
+    Endpoints like ``{object: "x", side: "east"}`` or
+    ``"x.east"`` advertise which way the line should leave/enter the
+    object. Returns the canonical side or None when no side was
+    declared (literal coordinate pairs, centred references, etc.).
+    """
+    if isinstance(ep, str):
+        if "." in ep:
+            return normalize_side(ep.split(".", 1)[1])
+        return None
+    if isinstance(ep, Mapping):
+        return normalize_side(ep.get("side") or ep.get("port"))
+    return None
+
+
+def _collect_obstacle_boxes(
+    r: RendererContext,
+    skip_ids: set[str],
+) -> list[tuple[float, float, float, float]]:
+    """Gather classifier-grade obstacle boxes from the renderer's index.
+
+    Only types that represent solid visual containers contribute
+    (UML classifier boxes today; future shape kinds can extend the
+    list). Decorative / packaging containers are excluded so the
+    router doesn't refuse to enter the package band that hosts its
+    own endpoints.
+    """
+    obstacle_types = {"uml.classifier_box"}
+    out: list[tuple[float, float, float, float]] = []
+    for oid, rec in r.object_index.items():
+        if oid in skip_ids:
+            continue
+        raw = rec.get("raw") or {}
+        if raw.get("type") not in obstacle_types:
+            continue
+        if raw.get("decorative") is True:
+            continue
+        b = rec.get("box")
+        if b is None:
+            continue
+        out.append(tuple(float(v) for v in b))
+    return out
+
+
+def _endpoint_object_id(ep: Any) -> str | None:
+    """Return the object id referenced by an endpoint, or None."""
+    if isinstance(ep, str):
+        return ep.split(".", 1)[0].strip() or None
+    if isinstance(ep, Mapping):
+        oid = ep.get("object")
+        return None if oid is None else str(oid)
+    return None
 
 
 def render_line_object(r: RendererContext, obj: Mapping[str, Any]) -> str:
@@ -58,7 +115,22 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
     """
     start = r.endpoint(obj.get("from"))
     end = r.endpoint(obj.get("to"))
-    route = obj.get("route", {}) or {"type": "straight"}
+    from_ep = obj.get("from")
+    to_ep = obj.get("to")
+    route = obj.get("route", {}) or {}
+    # Default routing: straight when no sides are declared; orthogonal
+    # when at least one endpoint specifies a cardinal side. The
+    # side-aware orthogonal router knows how to leave each box
+    # perpendicular to its declared face and how to detour around
+    # other classifier boxes — the legacy straight default would draw
+    # through anything between the two anchors.
+    if "type" not in route:
+        route = dict(route)
+        route["type"] = (
+            "orthogonal"
+            if (_endpoint_side(from_ep) or _endpoint_side(to_ep))
+            else "straight"
+        )
     rtype = str(route.get("type", "straight"))
     if rtype == "straight":
         points = [start, end]
@@ -70,8 +142,34 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
             if points and points[-1] != end:
                 points.append(end)
         else:
-            mid_x = (start[0] + end[0]) / 2
-            points = [start, (mid_x, start[1]), (mid_x, end[1]), end]
+            start_side = _endpoint_side(from_ep)
+            end_side = _endpoint_side(to_ep)
+            if start_side or end_side:
+                # Side-aware obstacle-avoiding routing. Route around
+                # other classifier boxes; never around the connector's
+                # own anchor objects.
+                skip: set[str] = set()
+                for ep in (from_ep, to_ep):
+                    oid = _endpoint_object_id(ep)
+                    if oid:
+                        skip.add(oid)
+                obstacles = _collect_obstacle_boxes(r, skip)
+                stub = float(route.get("stub", 16.0))
+                clearance = float(route.get("clearance", 4.0))
+                points = route_orthogonal(
+                    start,
+                    end,
+                    start_side=start_side,
+                    end_side=end_side,
+                    obstacles=obstacles,
+                    stub=stub,
+                    clearance=clearance,
+                )
+            else:
+                # Legacy Z routing — preserved for endpoints declared
+                # as raw coordinate pairs or centred references.
+                mid_x = (start[0] + end[0]) / 2
+                points = [start, (mid_x, start[1]), (mid_x, end[1]), end]
     elif rtype == "bezier":
         c1 = pt(route.get("control1", route.get("c1", start)))
         c2 = pt(route.get("control2", route.get("c2", end)))

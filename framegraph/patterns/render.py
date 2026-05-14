@@ -95,6 +95,29 @@ def _resolve_typography_ref(ref: Any, stylesheet: Stylesheet | None) -> dict[str
     return {}
 
 
+def _resolve_treatment(
+    style: dict[str, Any] | None, stylesheet: Stylesheet | None
+) -> dict[str, Any]:
+    """Resolve the active treatment props from a zone style.
+
+    Precedence (later wins): stylesheet lookup → inline
+    ``treatment_props`` from the merged style. Inline props are
+    populated by ``resolve_zone_style`` when the pattern's
+    ``enterprise_layout`` carries a treatment, and again when a
+    stylesheet ``RoleRule`` references a named treatment.
+    """
+    if not style:
+        return {}
+    inline_props = style.get("treatment_props")
+    if isinstance(inline_props, dict) and inline_props:
+        return dict(inline_props)
+    treatment_name = style.get("treatment")
+    if isinstance(treatment_name, str) and stylesheet is not None:
+        treatments = stylesheet.model_dump().get("treatments", {})
+        return dict(treatments.get(treatment_name, {}))
+    return {}
+
+
 def _padding_tuple(pad: Any) -> tuple[float, float, float, float]:
     """Normalize a padding spec to ``(top, right, bottom, left)``."""
     if pad is None:
@@ -161,9 +184,7 @@ def _emit_card(
         A list of visual objects (dicts) ready to drop into the
         Document.
     """
-    treatment_name = style.get("treatment") if style else None
-    treatments = stylesheet.model_dump().get("treatments", {}) if stylesheet is not None else {}
-    treatment = treatments.get(treatment_name, {}) if treatment_name else {}
+    treatment = _resolve_treatment(style, stylesheet)
 
     objects: list[dict[str, Any]] = []
     x, y, w, h = zone_box
@@ -444,11 +465,8 @@ def _body_chart_data(
         "box": list(body_box),
         "series": series,
     }
-    treatments = stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
-    treatment_name = style.get("treatment") if style else None
-    palette = (
-        ((treatments.get(treatment_name) or {}).get("slots") or {}).get("chart", {}).get("palette")
-    )
+    treatment = _resolve_treatment(style, stylesheet)
+    palette = (treatment.get("slots") or {}).get("chart", {}).get("palette")
     if palette:
         obj["palette"] = palette
     return [obj]
@@ -459,9 +477,8 @@ def _body_table_data(
 ) -> list[dict[str, Any]]:
     headers = getattr(value, "headers", None) or []
     rows = getattr(value, "rows", None) or []
-    treatments = stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
-    treatment_name = style.get("treatment") if style else None
-    table_slot = (treatments.get(treatment_name) or {}).get("slots", {}).get("table") or {}
+    treatment = _resolve_treatment(style, stylesheet)
+    table_slot = (treatment.get("slots") or {}).get("table") or {}
     obj: dict[str, Any] = {
         "id": f"zone_{role}",
         "type": "table",
@@ -507,9 +524,8 @@ def _body_metric(
     role: str, value: Any, body_box: Box, style: dict[str, Any], stylesheet: Stylesheet | None
 ) -> list[dict[str, Any]]:
     """`metric` body slot: large KPI value above small label/trend."""
-    treatments = stylesheet.model_dump().get("treatments", {}) if stylesheet else {}
-    treatment_name = style.get("treatment") if style else None
-    slots = (treatments.get(treatment_name) or {}).get("slots") or {}
+    treatment = _resolve_treatment(style, stylesheet)
+    slots = treatment.get("slots") or {}
     value_typo = _resolve_typography_ref(
         (slots.get("kpi_value") or {}).get("typography") or "kpi_value", stylesheet
     )
@@ -648,6 +664,13 @@ def compose_document(
     objects: list[dict[str, Any]] = []
     label_cfg = stylesheet.model_dump().get("zone_labels", {}) if stylesheet else {}
 
+    # Pattern-level enterprise polish presets — applied per-zone under
+    # the active stylesheet (stylesheet still wins on conflict). When
+    # the pattern declares no `enterprise_layout`, this dict is empty
+    # and the code path is byte-identical to the pre-preset behavior.
+    ent_layout = pattern.enterprise_layout
+    ent_zones = ent_layout.zones if ent_layout is not None else {}
+
     for zone in pattern.zones:
         if zone.role not in layout:
             raise KeyError(
@@ -661,10 +684,20 @@ def compose_document(
                 f"{zone.role!r} has no content_type; cannot emit"
             )
 
+        zone_preset = ent_zones.get(zone.role)
         zone_box = layout[zone.role]
+        # Coordinate override: when the preset hand-tunes a box (covers,
+        # dividers, full-bleed treatments), it replaces the layout
+        # planner's computed box. The planner result remains the
+        # default — the preset opts in explicitly.
+        if zone_preset is not None and zone_preset.box is not None:
+            zone_box = tuple(zone_preset.box)  # type: ignore[assignment]
+
         zone_style: dict[str, Any] = {}
         if stylesheet is not None:
-            zone_style = resolve_zone_style(zone, stylesheet)
+            zone_style = resolve_zone_style(
+                zone, stylesheet, enterprise_preset=zone_preset
+            )
 
         value = _content_value(fill, zone.role)
         body_emitter = _BODY_EMITTERS[ct]
@@ -674,7 +707,18 @@ def compose_document(
         # disable it.
         label_text: str | None = None
         if ct != "decorative":
-            label_text = _zone_label_text(zone.role, label_overrides, label_cfg)
+            # Preset `label_text` overrides the humanized auto-label,
+            # but a user-supplied `label_overrides[role]` still wins —
+            # `_zone_label_text` checks `label_overrides` first.
+            preset_label = (
+                zone_preset.label_text if zone_preset is not None else None
+            )
+            if (label_overrides or {}).get(zone.role) is not None:
+                label_text = _zone_label_text(zone.role, label_overrides, label_cfg)
+            elif preset_label is not None:
+                label_text = preset_label or None  # empty string suppresses
+            else:
+                label_text = _zone_label_text(zone.role, label_overrides, label_cfg)
 
         number_text = (numbers or {}).get(zone.role)
         title_text = (titles or {}).get(zone.role)

@@ -371,6 +371,67 @@ class TestClassifierBoxRender:
         # The outer frame is the only no-fill rect with a stroke
         assert re.search(r'<rect [^/]*fill="none"[^/]*stroke=', svg) is not None
 
+    def test_compressed_box_with_attributes_does_not_cut_through_text(self) -> None:
+        """When the explicit height is too small to hold both compartments
+        plus the attribute text, the inner separator must NOT land on
+        top of an attribute row. The compressor honours the actual
+        text extent first; the now-empty operation band is suppressed
+        per UML 2.5.1 §9.5.4 (compartments may be omitted)."""
+        svg = self._render(
+            {
+                "stereotype": "component",
+                "box": [0, 0, 380, 80],
+                "attributes": [{"name": "field_a"}, {"name": "field_b"}],
+            }
+        )
+        # Capture the y baseline of every drawn attribute row.
+        attr_ys = [
+            float(m.group(1))
+            for m in re.finditer(
+                r'<text x="8" y="([0-9.]+)"[^>]*>\+ field_', svg
+            )
+        ]
+        assert len(attr_ys) == 2, "both attribute rows must be emitted"
+        # Every horizontal separator <line> must clear the bottom of
+        # the lowest attribute row (text baseline + small descender).
+        for m in re.finditer(r'<line[^>]*y1="([0-9.]+)"', svg):
+            ly = float(m.group(1))
+            for ay in attr_ys:
+                # Allow up to 4px below the baseline for descenders;
+                # the separator must land outside that band.
+                assert not (ay - 12 < ly < ay + 4), (
+                    f"separator at y={ly} cuts through attribute "
+                    f"row baseline y={ay}"
+                )
+
+    def test_compressed_box_keeps_inner_separator_inside_frame(self) -> None:
+        """When the composer supplies an explicit height smaller than the
+        natural sum of compartments, the renderer must compress the
+        attribute and operation compartments rather than letting the
+        inner separator overshoot below the outer frame.
+
+        Reproduction: a small `«component»` box (h=44) with no
+        attributes and no operations was rendering its second separator
+        line at y_box + 55 instead of y_box + 44, leaving a hairline
+        hanging below the box.
+        """
+        svg = self._render(
+            {
+                "stereotype": "component",
+                "box": [10, 20, 240, 44],
+            }
+        )
+        outer_bottom = 20 + 44
+        # All horizontal separator <line>s emitted by the renderer must
+        # have y1 ≤ outer_bottom; the outer frame is the only geometry
+        # that touches that edge.
+        for m in re.finditer(r'<line[^>]*y1="([0-9.]+)"', svg):
+            y = float(m.group(1))
+            assert y <= outer_bottom + 0.5, (
+                f"separator line at y={y} overshoots the outer "
+                f"frame bottom (y={outer_bottom})"
+            )
+
     def test_box_height_zero_auto_computes_total(self) -> None:
         """When height=0, the renderer computes total from compartment counts."""
         svg = self._render(

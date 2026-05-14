@@ -500,6 +500,20 @@ class FrameGraphDeckRenderer:
         self.library = library
         self.deck_config = deck_yaml.get("deck", {}) or {}
         self.slides_raw = deck_yaml.get("slides", []) or []
+
+        # Auto-assign slide numbers when omitted (1-based, declaration
+        # order). Decks frequently omit the per-slide `slide:` field —
+        # without this default every reader (filename builder, chrome
+        # page-number, notes export) falls back to 0 and produces
+        # `slide_00_<id>.svg` filenames plus missing page numbers.
+        # Mutating once here keeps the eight downstream readers
+        # consistent. Explicit `slide:` values are preserved as-is so
+        # operators can use sparse / out-of-order numbering when they
+        # want it.
+        for _i, _slide in enumerate(self.slides_raw):
+            if isinstance(_slide, dict) and "slide" not in _slide:
+                _slide["slide"] = _i + 1
+
         self.global_tokens, self.global_symbols, self.global_cdefs = self._build_globals()
         # Index slides by id for $extends resolution
         self._slide_index: dict[str, Any] = {
@@ -534,9 +548,22 @@ class FrameGraphDeckRenderer:
 
         Reads the top-level ``stylesheet:`` field. Accepts a bundled
         name (string, looked up under ``framegraph/lib/styles/``), a
-        filesystem path, or an inline mapping. Defaults to the
-        bundled ``default`` stylesheet so a deck that omits the
-        field still renders coherently.
+        filesystem path, or an inline mapping.
+
+        When the field is omitted, the stylesheet is auto-selected
+        based on the deck canvas:
+
+        * Canvas width ≥ 1600 px (screen-slide territory: 1600×900,
+          1920×1080, 2560×1440, etc.) → ``default-screen`` (16pt body,
+          13pt label, 18pt title, readable at presentation distance).
+        * Canvas width < 1600 px (letter-size print, 1280×720
+          screencast, web embed) → ``default`` (10pt body, 8pt label,
+          12pt title — Big-4 print density).
+
+        Explicit ``stylesheet:`` declarations always win; the
+        auto-selection only applies when the field is absent. The
+        breakpoint and bundled stylesheet names are stable contract —
+        regression-guarded by ``tests/integration/test_deck_default_stylesheet.py``.
         """
         from framegraph.patterns.style import (
             Stylesheet,
@@ -546,7 +573,18 @@ class FrameGraphDeckRenderer:
 
         ref = self.raw.get("stylesheet")
         if ref is None:
-            return load_bundled_stylesheet("default")
+            # Canvas-aware default selection. Read width from the
+            # deck-level canvas; fall back to a print-grade default
+            # when the canvas is absent or malformed.
+            canvas = self.deck_config.get("canvas") or {}
+            size = canvas.get("size") if isinstance(canvas, dict) else None
+            canvas_w = 0.0
+            if isinstance(size, (list, tuple)) and len(size) >= 1:
+                try:
+                    canvas_w = float(size[0])
+                except (TypeError, ValueError):
+                    canvas_w = 0.0
+            return load_bundled_stylesheet("default-screen" if canvas_w >= 1600 else "default")
         if isinstance(ref, dict):
             return Stylesheet.model_validate(ref)
         if isinstance(ref, str):
@@ -793,6 +831,29 @@ class FrameGraphDeckRenderer:
         overrides = dict(slide_chrome) if isinstance(slide_chrome, dict) else {}
 
         objects: list[dict[str, Any]] = []
+
+        # 0. Page background — full-canvas opaque rect so slides render
+        # with a defined background in every viewer. Without this the
+        # SVG falls back to the viewer's default (often transparent or
+        # checkerboard), which makes pattern slides look unfinished
+        # next to bespoke slides that paint their own background.
+        # Config key: `slide_chrome.page_background.color` (token name
+        # or hex). Defaults to `surface`; pass `null` or omit `color`
+        # to disable. Author can override per slide via
+        # `chrome.page_background_color`.
+        page_bg_cfg = chrome_cfg.get("page_background", {"color": "surface"})
+        if isinstance(page_bg_cfg, dict):
+            page_bg_color = overrides.get("page_background_color") or page_bg_cfg.get("color")
+            if page_bg_color:
+                objects.append(
+                    {
+                        "id": "_chrome.page_bg",
+                        "type": "rect",
+                        "box": [0, 0, canvas_w, canvas_h],
+                        "fill": page_bg_color,
+                        "decorative": True,
+                    }
+                )
 
         # 1. Top stripe (full-bleed band of accent color)
         top_stripe = chrome_cfg.get("top_stripe") or {}

@@ -46,6 +46,8 @@ __all__ = [
     "PATTERN_CATALOG_PATH",
     "Anchor",
     "ContentType",
+    "EnterpriseLayout",
+    "EnterpriseZonePreset",
     "PatternCatalog",
     "PatternCategory",
     "PatternZone",
@@ -377,6 +379,67 @@ Future source files extend this literal as new categories arrive.
 """
 
 
+class EnterpriseZonePreset(BaseModel):
+    """Per-zone enterprise polish preset.
+
+    Each field is optional and merges *underneath* the active
+    stylesheet's role rules — the user's stylesheet still wins on
+    conflict. Identity-neutral: does not participate in structural
+    fingerprinting.
+
+    Attributes:
+        treatment: Named treatment string (resolved against
+            ``stylesheet.treatments``) OR an inline dict of treatment
+            properties (``fill_color``, ``stroke_color``, ``accent_bar``,
+            ``corner_radius``, ``padding``, ``slots``). Inline dicts
+            land directly on the resolved style without a lookup.
+        typography: Named text-style string (resolved against
+            ``stylesheet.text_styles``) for the body of this zone.
+            Card-internal slots (label/title) get typography from the
+            treatment's ``slots`` block.
+        box: Optional ``[x, y, w, h]`` absolute box that overrides the
+            layout planner's computed box. Use sparingly — only when
+            a pattern needs hand-tuned coordinates (covers, dividers,
+            full-bleed treatments). Coordinates are canvas pixels.
+        label_text: Optional override for the zone's auto-label (the
+            humanized role name shown in the card's label slot).
+            Empty string suppresses the label entirely.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    treatment: str | dict[str, Any] | None = None
+    typography: str | dict[str, Any] | None = None
+    box: tuple[float, float, float, float] | None = None
+    label_text: str | None = None
+
+
+class EnterpriseLayout(BaseModel):
+    """Pattern-level enterprise polish preset.
+
+    Carries the *designed* defaults for a pattern: per-zone treatments,
+    typography roles, optional hand-tuned coordinate overrides, and a
+    short authoring note. Applied *before* the active stylesheet's
+    role rules in ``resolve_zone_style``, so user customization still
+    wins on conflict.
+
+    Attributes:
+        zones: Map of zone role → preset. Roles not listed inherit
+            from the stylesheet's matching role rule unchanged.
+        canvas_overrides: Optional canvas-level visual overrides
+            (e.g. ``{"page_background_color": "primary"}``) that the
+            chrome builder may consume. Keys are advisory — unknown
+            keys are ignored by current consumers.
+        notes: Authoring guidance for humans — what makes this layout
+            "enterprise-polished" and what the user is expected to
+            override. Identity-neutral, documentation only.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    zones: dict[str, EnterpriseZonePreset] = Field(default_factory=dict)
+    canvas_overrides: dict[str, Any] = Field(default_factory=dict)
+    notes: str | None = None
+
+
 class SlidePattern(BaseModel):
     """One slide-template pattern in the catalog.
 
@@ -398,6 +461,11 @@ class SlidePattern(BaseModel):
             Defaults to ``"generic"``; set to ``"consulting"`` for
             big-4 patterns and ``"expert"`` for methodological /
             reasoning patterns. Identity-neutral.
+        enterprise_layout: Optional polish preset shipping per-zone
+            treatments, typography, and coordinate overrides. When
+            present, the pattern renders as a designed enterprise
+            layout out of the box; absence falls back to generic
+            chrome + stylesheet defaults. Identity-neutral.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -407,6 +475,7 @@ class SlidePattern(BaseModel):
     zones: list[PatternZone] = Field(..., min_length=1)
     use_case: str | None = None
     category: PatternCategory = "generic"
+    enterprise_layout: EnterpriseLayout | None = None
 
     @model_validator(mode="after")
     def _validate_zone_roles_unique(self) -> SlidePattern:

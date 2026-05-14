@@ -449,6 +449,22 @@ def test_stroke_attrs_no_style_returns_stroke_none() -> None:
     assert a == {"stroke": "none"}
 
 
+def test_stroke_attrs_inline_color_registers_marker_for_filled_triangle() -> None:
+    """A connector with an ad-hoc stroke color and the default
+    `filled_triangle` arrowhead must register that color so
+    `defs_svg()` emits a matching `<marker>`. Otherwise the
+    `marker-end="url(#ah-XXXXXX)"` reference is dangling and the
+    arrowhead disappears at render time.
+    """
+    r = FrameGraphRenderer({})
+    style = {"color": "#E35205", "width": 1.4, "arrow_end": True}
+    a = r.stroke_attrs(style, arrows=True)
+    assert a.get("marker-end") == "url(#ah-E35205)"
+    assert "#E35205" in r.marker_colors
+    defs = r.defs_svg()
+    assert 'id="ah-E35205"' in defs
+
+
 # ── _str_width ──────────────────────────────────────────────────────
 
 

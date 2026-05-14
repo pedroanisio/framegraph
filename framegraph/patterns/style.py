@@ -165,6 +165,8 @@ def _resolve_typography(typo: Any, text_styles: dict[str, dict[str, Any]]) -> An
 def resolve_zone_style(
     zone: PatternZone,
     stylesheet: Stylesheet,
+    *,
+    enterprise_preset: Any = None,
 ) -> dict[str, Any]:
     """Resolve the style for one zone against the stylesheet.
 
@@ -172,15 +174,27 @@ def resolve_zone_style(
     (color/font references) are *not* resolved here — the renderer's
     theme-aware resolvers handle that downstream.
 
+    Resolution order (later layers win on key conflict):
+
+      1. Pattern's `enterprise_layout.zones[role]` preset (catalog default).
+      2. Stylesheet's first matching `roles[]` rule.
+
+    The user's stylesheet therefore overrides the catalog preset.
+    Patterns without an enterprise_layout skip step 1 entirely.
+
     Args:
         zone: The pattern zone (carries content_type, size, placement,
             role).
         stylesheet: The loaded stylesheet.
+        enterprise_preset: Optional `EnterpriseZonePreset` for this
+            zone, supplied by the caller after looking up the
+            pattern's `enterprise_layout.zones[zone.role]`. None when
+            the pattern has no preset or the role isn't covered.
 
     Returns:
         A dict with at least `treatment`, `typography`, and any
-        rule-declared extras. Empty dict when no rule matches (the
-        emitter falls back to renderer defaults).
+        rule-declared extras. Empty dict when no rule matches and no
+        preset applies (the emitter falls back to renderer defaults).
     """
     features: dict[str, Any] = {
         "content_type": zone.content_type,
@@ -190,24 +204,55 @@ def resolve_zone_style(
     }
 
     matched: dict[str, Any] = {}
+
+    # Step 1: stylesheet roles[] match — provides the baseline
+    # treatment/typography for zones the catalog hasn't polished.
     for rule in stylesheet.roles:
         if _matches(rule.match, features):
-            matched = rule.model_dump(exclude={"match"})
+            rule_dump = rule.model_dump(exclude={"match"})
+            matched.update(rule_dump)
             break
+
+    # Step 2: pattern's `enterprise_layout` preset (if any) wins on
+    # conflict. The catalog *is* the design — when a pattern ships
+    # an enterprise_layout, the layout decisions (slot heights,
+    # treatments, typography sizes) are intentional and the user's
+    # generic stylesheet rule shouldn't unintentionally clobber them.
+    # Brand/color tuning still happens via theme tokens (the preset
+    # references token names like `primary`, not literal hex), so
+    # users still swap brands by swapping themes. Per-slide content
+    # overrides (`labels:`, `numbers:`, `titles:`, `fill:`) all
+    # continue to work on top.
+    if enterprise_preset is not None:
+        preset_dump = (
+            enterprise_preset.model_dump(exclude_none=True)
+            if hasattr(enterprise_preset, "model_dump")
+            else dict(enterprise_preset)
+        )
+        matched.update(preset_dump)
 
     # Expand typography references.
     if "typography" in matched:
         matched["typography"] = _resolve_typography(matched["typography"], stylesheet.text_styles)
 
-    # Expand treatment reference.
-    treatment_name = matched.get("treatment")
-    if isinstance(treatment_name, str):
-        treatment_props = dict(stylesheet.treatments.get(treatment_name, {}))
-        # Caller-supplied `treatment_props` field shouldn't pre-exist,
-        # but if it does, the rule's overrides win.
+    # Expand treatment reference. Two shapes are accepted:
+    #   - string  → look up in stylesheet.treatments
+    #   - dict    → inline treatment props (from enterprise_layout);
+    #               used as-is, no lookup.
+    treatment_ref = matched.get("treatment")
+    if isinstance(treatment_ref, str):
+        treatment_props = dict(stylesheet.treatments.get(treatment_ref, {}))
         merged = dict(treatment_props)
         merged.update({k: v for k, v in matched.items() if k not in {"treatment", "typography"}})
         matched["treatment_props"] = treatment_props
         matched.update(merged)
+    elif isinstance(treatment_ref, dict):
+        # Inline treatment props from enterprise_layout. Stash them so
+        # _emit_card finds them under treatment_props (the path it
+        # already consumes), and clear the `treatment` name slot.
+        matched["treatment_props"] = dict(treatment_ref)
+        # When _emit_card later reads `treatment_name` it expects a
+        # string; pop the dict to avoid a lookup crash.
+        matched.pop("treatment", None)
 
     return matched
