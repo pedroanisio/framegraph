@@ -3054,6 +3054,49 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Plans stakeholder messaging across audiences and channels.
+  enterprise_layout:
+    notes: Communications plan. Anchor=audience; columns=messages/channels/owner-timing.
+    zones:
+      audiences:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+      key_messages:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}}
+      channels_frequency:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text_muted}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}}
+      owner_timing:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text, align: left, v_align: middle, line_height: 14}}
 - id: 92
   name: Risk Register Summary
   layout_disposition: Table sorted by severity with color-coded risk status.
@@ -6348,6 +6391,59 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Maps requirements to controls, owners, evidence, and gaps.
+  enterprise_layout:
+    notes: Regulatory compliance. Anchor=requirement; columns=controls/owners/evidence/gaps (warm).
+    zones:
+      requirements:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+      controls:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}}
+      owners:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text_muted}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}}
+      evidence_status:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+      gaps:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent_warm}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}}
 - id: 199
   name: Control Framework
   layout_disposition: Process flow with controls attached at relevant points.
@@ -7855,6 +7951,59 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Assesses evidence for market demand, usage, retention, monetization, and differentiation.
+  enterprise_layout:
+    notes: PMF assessment. Anchor=dimension; columns=evidence/score/gaps/experiments.
+    zones:
+      fit_dimensions:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+      evidence:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}}
+      score:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+      gaps:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent_warm}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}}
+      next_experiments:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text_muted}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}}
 - id: 247
   name: Experiment Backlog
   layout_disposition: Experiment cards or table ranked by impact, confidence, effort, and learning value.
@@ -8526,6 +8675,59 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Defines risk appetite, tolerances, metrics, and escalation thresholds.
+  enterprise_layout:
+    notes: Risk appetite. Anchor=category; columns=appetite/tolerance/monitoring/escalation (warm).
+    zones:
+      risk_categories:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent_warm}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}}
+      appetite_statement:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+      tolerance_thresholds:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}}
+      monitoring_metrics:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text_muted}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}}
+      escalation_actions:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent_warm}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}}
 - id: 268
   name: Third-Party Risk Assessment
   layout_disposition: Vendor table or matrix with risk scoring and remediation priorities.
@@ -9507,6 +9709,51 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Defines signals that strategy or execution is going off-track.
+  enterprise_layout:
+    notes: Early-warning indicators. Anchor=indicator (title+body); columns=threshold/signal/response.
+    zones:
+      indicators:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+            title: {height: 22, gap_below: 6, typography: {font: heading, size: 16, weight: 700, color: primary, align: left, v_align: top, line_height: 20, wrap: true}}
+            body: {typography: {font: primary, size: 13, weight: 400, color: text, align: left, v_align: top, line_height: 18, wrap: true}}
+      thresholds:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text_muted}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}}
+      current_signal:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent_warm}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}}
+      response_action:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}}
 - id: 298
   name: Kill Criteria Slide
   layout_disposition: Criteria table split into scale, continue, pivot, and stop conditions.
@@ -9914,6 +10161,49 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Evaluates the quality of a decision process, not only the outcome.
+  enterprise_layout:
+    notes: Decision quality scorecard. Anchor=dimension; columns=score/evidence/improvement.
+    zones:
+      quality_dimensions:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+      score:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}}
+      evidence:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text_muted}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text_muted, align: left, v_align: middle, line_height: 14}}
+      improvement_action:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent_warm}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}}
 - id: 312
   name: Recommendation Robustness Slide
   layout_disposition: Recommendation at center, stress tests around it.
@@ -10186,6 +10476,59 @@ slide_template_patterns:
     shape: cell
     content_type: table_data
   use_case: Matches governance intensity to risk level.
+  enterprise_layout:
+    notes: Governance by tier. Anchor=tier; columns=controls/approval/monitoring/escalation.
+    zones:
+      risk_tiers:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [16, 18, 16, 18]
+          accent_bar: {side: left, width: 4, color: accent_warm}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}}
+      required_controls:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent, align: left, v_align: middle, line_height: 14}}
+      approval_level:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: text}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: text, align: left, v_align: middle, line_height: 14}}
+      monitoring_frequency:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: data_3}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: data_3, align: left, v_align: middle, line_height: 14}}
+      escalation_rule:
+        treatment:
+          fill_color: surface
+          stroke_color: border
+          stroke_width: 0.6
+          corner_radius: 6
+          padding: [12, 16, 12, 16]
+          accent_bar: {side: top, width: 3, color: accent_warm}
+          slots:
+            label: {height: 14, gap_below: 8, typography: {font: primary, size: 12, weight: 700, color: accent_warm, align: left, v_align: middle, line_height: 14}}
 - id: 321
   name: Operating Cadence Map
   layout_disposition: Cadence calendar with daily, weekly, monthly, quarterly, and annual routines.
