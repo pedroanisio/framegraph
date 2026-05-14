@@ -49,15 +49,28 @@ deck:
       uml_edge_muted:   "#6B6B6B"
       uml_caption:      "#6B6B6B"
     text_styles:
-      # ── UML bespoke styles (slides 9–11) ──────────────────────
-      uml_title:    {font: heading, size: 32, weight: 700, color: primary,   align: left,   line_height: 38}
-      uml_subtitle: {font: primary, size: 14, weight: 400, color: text_muted, align: left,  line_height: 18, italic: true}
-      uml_caption:  {font: primary, size: 12, weight: 400, color: uml_caption, align: left, line_height: 16, italic: true, wrap: true}
-      uml_pkg_lbl:  {font: primary, size: 11, weight: 700, color: primary,   align: left,   line_height: 14}
-      uml_note:     {font: primary, size: 11, weight: 400, color: text,      align: left,   line_height: 15, wrap: true}
-      uml_msg:      {font: primary, size: 12, weight: 400, color: text,      align: left,   line_height: 16}
-      uml_reply:    {font: primary, size: 12, weight: 400, color: text_muted, align: left,  line_height: 16, italic: true}
-      uml_step:     {font: primary, size: 10, weight: 700, color: accent,    align: left,   line_height: 13}
+      # ── UML bespoke styles (slides 10–12) ─────────────────────
+      #
+      # These tokens are referenced ONLY by the bespoke UML slides
+      # via `style: uml_*`. Each is anchored to a corresponding
+      # stylesheet role so the UML slides type-stack the same way
+      # pattern slides do:
+      #
+      #   uml_caption  ←  card_meta      (small italic muted prose)
+      #   uml_pkg_lbl  ←  card_label     (small bold accent text)
+      #   uml_msg      ←  card_body      (regular body text)
+      #   uml_reply    ←  card_body / italic muted (sequence reply)
+      #   uml_step     ←  card_label     (small bold accent badge)
+      #
+      # Sizes are deliberately compact (11–14 px) because the labels
+      # sit inside small diagram boxes. The semantic intent — what
+      # ROLE each label plays — matches the stylesheet roles above.
+      uml_caption:  {font: primary, size: 14, weight: 400, color: text_muted, align: left, line_height: 18, italic: true, wrap: true}
+      uml_pkg_lbl:  {font: primary, size: 13, weight: 700, color: accent,    align: left, line_height: 16}
+      uml_note:     {font: primary, size: 13, weight: 400, color: text,      align: left, line_height: 17, wrap: true}
+      uml_msg:      {font: primary, size: 13, weight: 400, color: text,      align: left, line_height: 17}
+      uml_reply:    {font: primary, size: 13, weight: 400, color: text_muted, align: left, line_height: 17, italic: true}
+      uml_step:     {font: primary, size: 11, weight: 700, color: accent,    align: left, line_height: 14}
 
       # Pattern-slide card / table / synthesis typography lives in the
       # deck-level stylesheet (static/fixture/code-base-mapper.style.yml),
@@ -82,10 +95,17 @@ deck:
       objects:
         - {type: rect, id: bg,         box: [0,0,1920,1080], fill: white}
         - {type: rect, id: top_stripe, box: [0,0,1920,4],    fill: accent}
-        - {type: text, id: title_text, box: [32,12,1640,40], text: "$slide_title",
+        # Title box matches the stylesheet's `title_band` exactly:
+        # y=8, height=52, margins 32/80 — pixel-aligned with pattern slides.
+        - {type: text, id: title_text, box: [32,8,1640,52], text: "$slide_title",
            style: {font: heading, size: 22, weight: 700, color: primary, align: left, v_align: middle, line_height: 26, wrap: true}}
-        - {type: text, id: snum,       box: [1740,16,148,22], text: "$slide_num",
-           style: {font: primary, size: 14, weight: 400, color: text_muted, align: right}}
+        # Page-number baseline matches the stylesheet's `page_num` slot
+        # exactly (y=22.92 in the rendered SVG) so pattern + bespoke
+        # slides align pixel-for-pixel. The text painter centers the
+        # glyph inside the box top-to-bottom, so y=8 here lands the
+        # baseline at the same pixel as stylesheet's y=18 default.
+        - {type: text, id: snum,       box: [1740,8,148,22],  text: "$slide_num",
+           style: {font: primary, size: 14, weight: 400, color: text_muted, align: right, v_align: middle}}
         - {type: line, id: title_rule, from: [0,56], to: [1920,56], stroke: {color: border, width: 0.5}}
         - {type: text, id: subtitle,   box: [32,68,1640,22], text: "$slide_subtitle",
            style: {font: primary, size: 14, weight: 400, color: text_muted, align: left, italic: true, wrap: true}}
@@ -95,60 +115,28 @@ deck:
            style: {font: primary, size: 13, weight: 700, color: text_muted, align: left}}
 
 slides:
-  # ── Slide 0 — Cover ───────────────────────────────────────────────────
+  # ── Slide 0 — Cover (pattern 1: Title Slide) ──────────────────────────
   - id: 00-cover
     slide: 0
+    use: 1
     title: "code-base-mapper — Architecture Report"
     description: "Cover slide. Subject, source bundle, audience, and date."
-    visual:
-      layers:
-        - id: chrome
-          z: 0
-          objects:
-            - {type: rect, id: bg,        decorative: true, box: [0,0,1920,1080], fill: white}
-            - {type: rect, id: top_rule,  decorative: true, box: [0,0,1920,4],    fill: accent}
-        - id: cover
-          z: 10
-          objects:
-            # Accent bar + title panel — anchored centrally with breathing room.
-            - {type: rect, id: panel,     decorative: true, box: [240,300,1440,440],
-               fill: surface, stroke: {color: border, width: 0.6}, radius: 8}
-            - {type: rect, id: panel_bar, decorative: true, box: [240,300,6,440], fill: accent}
-            - {type: text, id: kicker, decorative: true,
-               text: "ARCHITECTURE REPORT  ·  cbm @ 715de92  ·  tool 0.5.0",
-               box: [280,344,1360,22],
-               style: {font: primary, size: 14, weight: 700, color: accent, align: left}}
-            - {type: text, id: title, decorative: true,
-               text: "**code-base-mapper**—a forensic look",
-               box: [280,376,1360,116],
-               style: {font: heading, size: 78, weight: 700, color: primary, align: left, line_height: 90, wrap: true}}
-            - {type: text, id: rule, decorative: true,
-               text: "",
-               box: [280,506,1360,2],
-               style: {font: primary, size: 1, weight: 400, color: accent}}
-            - {type: line, id: hr, decorative: true, from: [280,512], to: [400,512],
-               stroke: {color: accent, width: 2}}
-            - {type: text, id: tagline, decorative: true,
-               text: "**Layered RDF model**, **dual REST/MCP surface**, **9 language adapters** —\nstrengths and the four weaknesses worth closing before the next release.",
-               box: [280,532,1360,80],
-               style: {font: primary, size: 22, weight: 400, color: text, align: left, line_height: 30, wrap: true}}
-            - {type: text, id: meta, decorative: true,
-               text: "Source: cbm MCP bundle  ·  Composed in FrameGraph  ·  2026-05-14",
-               box: [280,690,1360,22],
-               style: {font: primary, size: 14, weight: 400, color: text_muted, align: left, italic: true}}
-        - id: footer
-          z: 20
-          objects:
-            - {type: line, id: f_rule, decorative: true, from: [32,1056], to: [1888,1056],
-               stroke: {color: border, width: 0.5}}
-            - {type: text, id: f_brand, decorative: true,
-               text: "code-base-mapper · Architecture Report · 715de92",
-               box: [32,1064,1200,20],
-               style: {font: primary, size: 13, weight: 700, color: text_muted, align: left}}
-            - {type: text, id: f_pn, decorative: true,
-               text: "00 / 13",
-               box: [1700,1064,180,20],
-               style: {font: primary, size: 14, weight: 400, color: text_muted, align: right}}
+    synthesis: "A forensic look — **layered RDF model**, **dual REST/MCP surface**, **9 language adapters** — strengths and the four weaknesses worth closing before the next release."
+    labels:
+      title: ""
+      subtitle: ""
+      metadata: ""
+    fill:
+      title:
+        title: "code-base-mapper"
+        body: "A forensic look at the architecture"
+      subtitle:
+        title: "Architecture Report @ 715de92 · tool 0.5.0"
+        body: "Composed in FrameGraph · sourced from the cbm MCP bundle"
+      metadata:
+        Date:   "2026-05-14"
+        Source: "cbm MCP bundle"
+        Audience: "engineering leads · architecture review"
 
   # ── Slide 1 — SWOT: overall architectural posture ─────────────────────
   - id: 01-swot
@@ -455,48 +443,22 @@ slides:
   # ── Section divider — Part II: structural views (UML) ────────────────
   - id: 08b-section-uml
     slide: 9
+    use: 2
     title: "Part II — Structural views (UML)"
     description: "Bridge slide between the diagnostic patterns (Part I) and the UML diagrams (Part II)."
-    visual:
-      layers:
-        - id: chrome
-          z: 0
-          objects:
-            - {type: rect, id: bg,       decorative: true, box: [0,0,1920,1080], fill: white}
-            - {type: rect, id: top_rule, decorative: true, box: [0,0,1920,4],    fill: accent}
-        - id: section
-          z: 10
-          objects:
-            - {type: rect, id: panel,    decorative: true, box: [120,360,1680,360],
-               fill: surface, stroke: {color: border, width: 0.6}, radius: 8}
-            - {type: rect, id: panel_b,  decorative: true, box: [120,360,8,360], fill: accent}
-            - {type: text, id: part_kicker, decorative: true,
-               text: "PART II",
-               box: [160,400,1600,28],
-               style: {font: primary, size: 18, weight: 700, color: accent, align: left}}
-            - {type: text, id: part_title, decorative: true,
-               text: "Structural views — UML",
-               box: [160,432,1600,108],
-               style: {font: heading, size: 72, weight: 700, color: primary, align: left, line_height: 84, wrap: true}}
-            - {type: line, id: rule, decorative: true, from: [160,560], to: [280,560],
-               stroke: {color: accent, width: 2}}
-            - {type: text, id: part_body, decorative: true,
-               text: "Three diagrams — **component view**, **host-layer classes**, **`repository_summary` sequence** — drawn directly from `codebase_mapper` source. Each box and edge is grounded in a `cbm` query.",
-               box: [160,580,1600,128],
-               style: {font: primary, size: 22, weight: 400, color: text, align: left, line_height: 32, wrap: true}}
-        - id: footer
-          z: 20
-          objects:
-            - {type: line, id: f_rule, decorative: true, from: [32,1056], to: [1888,1056],
-               stroke: {color: border, width: 0.5}}
-            - {type: text, id: f_brand, decorative: true,
-               text: "code-base-mapper · Architecture Report · 715de92",
-               box: [32,1064,1200,20],
-               style: {font: primary, size: 13, weight: 700, color: text_muted, align: left}}
-            - {type: text, id: f_pn, decorative: true,
-               text: "09 / 13",
-               box: [1700,1064,180,20],
-               style: {font: primary, size: 14, weight: 400, color: text_muted, align: right}}
+    synthesis: "Three diagrams — **component view**, **host-layer classes**, **`repository_summary` sequence** — drawn directly from `codebase_mapper` source."
+    labels:
+      section_number: ""
+      section_title: ""
+      decorative_element: ""
+    fill:
+      section_number:
+        label: "PART"
+        value: "II"
+      section_title:
+        title: "Structural views — UML"
+        body: "Component / class / sequence — each box and edge grounded in a cbm query."
+      decorative_element: null
 
   # ── Slide 9 — UML Component diagram ──────────────────────────────────
   - id: 09-uml-component
@@ -1150,103 +1112,30 @@ slides:
                text: "**Filled-triangle arrows** = synchronous call (sync semantics); **dashed open-arrow** = reply. The handler is the **single hot spot** — it owns ranking and entry-point classification. Replacing this one tool with the prior 3-call chain (`bundle_summary` + `list_files` + `concept_detail`) is the design rationale behind commit **6d919f6**.",
                box: [60,956,1800,72], style: uml_caption}
 
-  # ── Slide 13 — Closing: three actions for next quarter ───────────────
+  # ── Slide 13 — Closing (pattern 49: Recommendations) ─────────────────
   - id: 13-closing
     slide: 13
+    use: 49
     title: "Next quarter — three actions"
     description: "Closing slide. The three load-bearing fixes drawn from the SWOT, gap, and EWI slides."
-    visual:
-      layers:
-        - id: chrome
-          z: 0
-          objects:
-            - {type: rect, id: bg,       decorative: true, box: [0,0,1920,1080], fill: white}
-            - {type: rect, id: top_rule, decorative: true, box: [0,0,1920,4],    fill: accent}
-        - id: title
-          z: 10
-          objects:
-            - {type: text, id: kicker, decorative: true,
-               text: "CLOSING  ·  three concrete actions",
-               box: [60,80,1800,22],
-               style: {font: primary, size: 16, weight: 700, color: accent, align: left}}
-            - {type: text, id: title, decorative: true,
-               text: "What to fix before the next bundle revision.",
-               box: [60,110,1800,52],
-               style: {font: heading, size: 40, weight: 700, color: primary, align: left, line_height: 48, wrap: true}}
-            - {type: line, id: r, decorative: true, from: [60,180], to: [180,180],
-               stroke: {color: accent, width: 2}}
-        - id: cards
-          z: 20
-          objects:
-            # Card 1
-            - {type: rect, id: c1_bg,   decorative: true, box: [60,220,580,560],
-               fill: surface, stroke: {color: border, width: 0.6}, radius: 8}
-            - {type: rect, id: c1_bar,  decorative: true, box: [60,220,6,560], fill: accent}
-            - {type: text, id: c1_n,    decorative: true,
-               text: "01",
-               box: [90,238,520,72],
-               style: {font: heading, size: 64, weight: 700, color: accent, align: left, line_height: 70}}
-            - {type: text, id: c1_t,    decorative: true,
-               text: "Rebuild `tests_edges.py`",
-               box: [90,316,520,52],
-               style: {font: heading, size: 28, weight: 700, color: primary, align: left, line_height: 32, wrap: true}}
-            - {type: text, id: c1_b,    decorative: true,
-               text: "**Today**: 8 edges across 42 test files (ratio 0.19).\n**Target**: imports-based binding **OR** coverage.py ingest.\n**Why**: graph cannot answer 'tests cover X?' until this is real.",
-               box: [90,380,520,400],
-               style: {font: primary, size: 18, weight: 400, color: text, align: left, line_height: 28, wrap: true}}
-
-            # Card 2
-            - {type: rect, id: c2_bg,   decorative: true, box: [670,220,580,560],
-               fill: surface, stroke: {color: border, width: 0.6}, radius: 8}
-            - {type: rect, id: c2_bar,  decorative: true, box: [670,220,6,560], fill: accent}
-            - {type: text, id: c2_n,    decorative: true,
-               text: "02",
-               box: [700,238,520,72],
-               style: {font: heading, size: 64, weight: 700, color: accent, align: left, line_height: 70}}
-            - {type: text, id: c2_t,    decorative: true,
-               text: "Grow vocab kinding",
-               box: [700,316,520,52],
-               style: {font: heading, size: 28, weight: 700, color: primary, align: left, line_height: 32, wrap: true}}
-            - {type: text, id: c2_b,    decorative: true,
-               text: "**Today**: 1 / 1 427 concepts kinded (0.07 %).\n**Target**: > 30 % of frequency-top concepts; CI guard against regressions.\n**Why**: vocab v1 is default-on; near-zero yield is a silent no-op.",
-               box: [700,380,520,400],
-               style: {font: primary, size: 18, weight: 400, color: text, align: left, line_height: 28, wrap: true}}
-
-            # Card 3
-            - {type: rect, id: c3_bg,   decorative: true, box: [1280,220,580,560],
-               fill: surface, stroke: {color: border, width: 0.6}, radius: 8}
-            - {type: rect, id: c3_bar,  decorative: true, box: [1280,220,6,560], fill: accent}
-            - {type: text, id: c3_n,    decorative: true,
-               text: "03",
-               box: [1310,238,520,72],
-               style: {font: heading, size: 64, weight: 700, color: accent, align: left, line_height: 70}}
-            - {type: text, id: c3_t,    decorative: true,
-               text: "Split `handlers.py`",
-               box: [1310,316,520,52],
-               style: {font: heading, size: 28, weight: 700, color: primary, align: left, line_height: 32, wrap: true}}
-            - {type: text, id: c3_b,    decorative: true,
-               text: "**Today**: 22 MCP tools in one 29.3 KB file.\n**Target**: one module per tool group (bundle / file / chunk / concept / sparql).\n**Why**: blast radius and merge-conflict risk grow with every new tool.",
-               box: [1310,380,520,400],
-               style: {font: primary, size: 18, weight: 400, color: text, align: left, line_height: 28, wrap: true}}
-        - id: synthesis
-          z: 25
-          objects:
-            - {type: rect, id: s_bg, decorative: true, box: [60,810,1800,140], fill: text, radius: 6}
-            - {type: rect, id: s_ba, decorative: true, box: [60,810,4,140],    fill: accent}
-            - {type: text, id: s_t, decorative: true,
-               text: "Each action is **bounded** — single file or single module. None of the three require cross-cutting redesign.",
-               box: [90,830,1740,100],
-               style: {font: primary, size: 22, weight: 700, color: white, align: left, line_height: 32, wrap: true}}
-        - id: footer
-          z: 30
-          objects:
-            - {type: line, id: f_rule, decorative: true, from: [32,1056], to: [1888,1056],
-               stroke: {color: border, width: 0.5}}
-            - {type: text, id: f_brand, decorative: true,
-               text: "code-base-mapper · Architecture Report · 715de92",
-               box: [32,1064,1200,20],
-               style: {font: primary, size: 13, weight: 700, color: text_muted, align: left}}
-            - {type: text, id: f_pn, decorative: true,
-               text: "13 / 13",
-               box: [1700,1064,180,20],
-               style: {font: primary, size: 14, weight: 400, color: text_muted, align: right}}
+    synthesis: "Each action is **bounded** — single file or single module. None of the three require cross-cutting redesign."
+    labels:
+      recommendation_cards: "RECOMMENDED FIXES"
+      priority_labels: "PRIORITY"
+      rationale: "RATIONALE"
+      next_steps: "NEXT STEPS"
+    fill:
+      recommendation_cards:
+        title: "Three load-bearing fixes for next quarter"
+        body: "1. Rebuild `tests_edges.py` — imports-based binding or coverage.py ingest. Today: 8 edges across 42 test files (ratio 0.19).  2. Grow vocab kinding — target >30 % of frequency-top concepts; CI guard against regressions. Today: 1 / 1 427.  3. Split `handlers.py` — one module per tool group (bundle / file / chunk / concept / sparql). Today: 22 tools in one 29.3 KB file."
+      priority_labels:
+        P1: "tests_edges rewrite"
+        P1b: "vocab kinding"
+        P2: "handlers split"
+      rationale:
+        title: "Why now"
+        body: "Two EWI tripwires (test-edge ratio 0.19, vocab kind coverage 0.07 %) are already past threshold. Bundle drift across `tool_version` is the next failure mode if `repository_summary` widens before the migration path is pinned."
+      next_steps:
+        - "Open tracking issue per action; assign owner and ETA"
+        - "Set kind-coverage SLO and surface in `repository_summary`"
+        - "Pin a bundle-format migration path before 0.6.0"
