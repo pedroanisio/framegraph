@@ -389,6 +389,39 @@ def test_deck_renderer_extends_inherits_base_slide_tokens(tmp_path: Path) -> Non
     assert doc["visual"]["tokens"]["colors"]["slide_color"] == "#00ff00"
 
 
+def test_deck_renderer_extends_inherits_and_replaces_base_layers(tmp_path: Path) -> None:
+    _, deck = _make_minimal_deck(tmp_path)
+    deck["slides"][0]["visual"]["layers"] = [
+        {
+            "id": "background",
+            "objects": [{"type": "rect", "id": "bg", "box": [0, 0, 800, 600], "fill": "white"}],
+        },
+        {
+            "id": "content",
+            "objects": [{"type": "text", "id": "base_text", "text": "Base", "box": [20, 20, 120, 30]}],
+        },
+    ]
+    deck["slides"][1]["visual"]["layers"] = [
+        {
+            "id": "content",
+            "objects": [{"type": "text", "id": "child_text", "text": "Child", "box": [20, 20, 120, 30]}],
+        },
+        {
+            "id": "footer",
+            "objects": [{"type": "text", "id": "foot", "text": "Footer", "box": [20, 560, 120, 20]}],
+        },
+    ]
+    lib = FrameGraphLibrary(tmp_path / "lib")
+    r = FrameGraphDeckRenderer(deck, library=lib)
+    doc = r.build_slide_doc(deck["slides"][1])
+
+    layers = doc["visual"]["layers"]
+    assert [layer["id"] for layer in layers] == ["background", "content", "footer"]
+    assert layers[0]["objects"][0]["id"] == "bg"
+    assert layers[1]["objects"][0]["id"] == "child_text"
+    assert layers[2]["objects"][0]["id"] == "foot"
+
+
 def test_deck_renderer_extends_unknown_id_warns(tmp_path: Path) -> None:
     _make_lib_tree(tmp_path)
     deck = {

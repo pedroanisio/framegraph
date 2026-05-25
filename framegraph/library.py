@@ -1208,8 +1208,7 @@ class FrameGraphDeckRenderer:
         elif base_visual.get("layers") and not slide_visual.get("layers"):
             slide_visual["layers"] = base_visual.get("layers")
 
-        # visual block: tokens + symbols + component_defs + whatever the slide declares
-        slide_visual = dict(slide.get("visual") or {})
+        # visual block: tokens + symbols + component_defs + merged slide layers
         slide_visual["tokens"] = slide_tokens
         slide_visual["symbols"] = slide_symbols
         if slide_cdefs:

@@ -1,0 +1,100 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Cover / title slide — minimal layout with right-edge color rail.
+#
+# Layout (default canvas 960×540):
+#   • White field, left-aligned title block.
+#   • Thin vertical accent stripe near the right edge.
+#   • Solid color column hugging the far-right edge.
+#   • Centered page-number numeral in the footer band.
+#
+# Use this for workshop / chapter / section covers where the deck wants a
+# quiet, typographic opening — no imagery, no gradient. Reference design:
+#   examples/101-GTDS-CAO_France_Entity_Migration_to_Oracle-Project_Kickoff
+#     /docusign-workshop-1.1 cover slide.
+#
+# Slots (content)
+# ─────────────
+#   title         Required.  Headline, e.g. "Docusign Workshop 1.1".
+#   subtitle      Optional.  One-line tagline below the title.
+#   page_number   Optional.  Footer numeral (e.g. "1" or "01").
+#
+# Params (style + geometry)
+# ─────────────
+#   bg_color              Slide field fill.                   default: #FFFFFF
+#   title_color           Title text color.                   default: #1A2B3E
+#   subtitle_color        Subtitle text color.                default: #8A8A8A
+#   accent_color          Vertical accent stripe color.       default: #E51A4C
+#   right_block_color     Far-right column fill.              default: #1A2B3E
+#   page_number_color     Footer numeral color.               default: #8A8A8A
+#
+# The symbol is canvas-sized at 960×540. Callers that re-render at a
+# different canvas size MUST re-instantiate the symbol with a matching
+# `box:` and recompute the right-rail X coordinates accordingly.
+# ─────────────────────────────────────────────────────────────────────────
+
+_meta:
+  type: symbol_pack
+  id: covers.cover_minimal_sidebar
+  version: 1.0.0
+  description: >-
+    Minimalist title / cover slide. Left-aligned typography on a white
+    field, accented by a thin vertical stripe and a solid color column
+    on the right edge. Optional centered footer page number.
+  slots: [title, subtitle, page_number]
+  params:
+    - bg_color
+    - title_color
+    - subtitle_color
+    - accent_color
+    - right_block_color
+    - page_number_color
+  schema: cover_minimal_sidebar.schema.json
+  canvas:
+    size: [960, 540]
+    units: px
+
+symbols:
+
+  cover_minimal_sidebar:
+    box: [0, 0, 960, 540]
+    slots: [title, subtitle, page_number]
+    objects:
+
+      # Background field
+      - type: rect
+        id: bg
+        box: [0, 0, 960, 540]
+        fill: "$bg_color"
+
+      # Thin vertical accent stripe (crimson) at ~87% of the canvas width
+      - type: rect
+        id: accent_stripe
+        box: [835, 0, 4, 540]
+        fill: "$accent_color"
+
+      # Solid color column on the far-right edge (~8% of width)
+      - type: rect
+        id: right_block
+        box: [884, 0, 76, 540]
+        fill: "$right_block_color"
+
+      # Title — left-aligned, vertically centered on the slide
+      - type: text
+        id: title_text
+        box: [60, 240, 760, 76]
+        text: "$title"
+        style: cover_minimal_title
+
+      # Subtitle — directly under the title
+      - type: text
+        id: subtitle_text
+        box: [60, 322, 760, 36]
+        text: "$subtitle"
+        style: cover_minimal_subtitle
+
+      # Footer page number — centered horizontally on the slide
+      - type: text
+        id: page_number_text
+        box: [0, 510, 960, 18]
+        text: "$page_number"
+        style: cover_minimal_page_number
