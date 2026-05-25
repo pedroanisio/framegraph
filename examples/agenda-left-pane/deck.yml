@@ -1,0 +1,152 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Sample deck — exercises the `agenda_left_pane` template.
+#
+# The template's canonical definition lives at:
+#   framegraph/lib/symbols/sections/agenda_left_pane.sym.yml
+#   framegraph/lib/symbols/sections/agenda_left_pane.schema.json
+#
+# The symbol body is inlined into deck.symbols below so the deck renderer
+# can pick it up directly (the deck pipeline does not yet auto-resolve
+# the `$symbols:` directive — when it does, this block can be replaced
+# with `$symbols: [sections/agenda_left_pane]`).
+#
+# Render:
+#   framegraph deck examples/agenda-left-pane/deck.yml \
+#     -o output/agenda-left-pane
+# ─────────────────────────────────────────────────────────────────────────
+
+dsl: FrameGraph
+version: 1.2
+kind: presentation-deck
+
+deck:
+  canvas:
+    size: [960, 540]
+    units: px
+
+  tokens:
+    colors:
+      bg:            "#FFFFFF"
+      ink_navy:      "#1A2B3E"   # left pane + body text
+      ink_gray:      "#8A8A8A"   # page number
+      accent_red:    "#E51A4C"   # vertical seam stripe
+      white:         "#FFFFFF"   # reverse-out section label
+
+    fonts:
+      primary: "Century Gothic, Avenir Next, Avenir, Futura, Arial, sans-serif"
+
+    text_styles:
+      # Reverse-out section title in the left pane.
+      agenda_section_label:
+        font: primary
+        size: 44
+        weight: 300
+        color: white
+        align: left
+        v_align: top
+        line_height: 52
+        wrap: true
+
+      # Right-field numerals — "1.", "2.", …
+      agenda_item_num:
+        font: primary
+        size: 22
+        weight: 400
+        color: ink_navy
+        align: left
+        v_align: middle
+
+      # Right-field numbered list body.
+      agenda_item:
+        font: primary
+        size: 22
+        weight: 400
+        color: ink_navy
+        align: left
+        v_align: middle
+        wrap: false
+
+      # Centered footer numeral.
+      agenda_page_number:
+        font: primary
+        size: 11
+        weight: 400
+        color: ink_gray
+        align: center
+        v_align: middle
+
+  # ── Template body — mirrors lib/symbols/sections/agenda_left_pane.sym.yml ──
+  symbols:
+    agenda_left_pane:
+      box: [0, 0, 960, 540]
+      slots:
+        - section_label
+        - item_1
+        - item_2
+        - item_3
+        - item_4
+        - item_5
+        - item_6
+        - item_7
+        - page_number
+      objects:
+        - {type: rect, id: left_pane,          box: [  0,   0, 212, 540], fill: "$left_pane_color"}
+        - {type: rect, id: accent_stripe,      box: [212,   0,   4, 540], fill: "$accent_color"}
+        - {type: text, id: section_label_text, box: [ 20,  30, 180,  80], text: "$section_label", style: agenda_section_label}
+
+        - {type: text, id: num_1,  box: [248, 200,  28, 26], text: "1.",       style: agenda_item_num}
+        - {type: text, id: item_1, box: [280, 200, 660, 26], text: "$item_1",  style: agenda_item}
+
+        - {type: text, id: num_2,  box: [248, 246,  28, 26], text: "2.",       style: agenda_item_num}
+        - {type: text, id: item_2, box: [280, 246, 660, 26], text: "$item_2",  style: agenda_item}
+
+        - {type: text, id: num_3,  box: [248, 292,  28, 26], text: "3.",       style: agenda_item_num}
+        - {type: text, id: item_3, box: [280, 292, 660, 26], text: "$item_3",  style: agenda_item}
+
+        - {type: text, id: num_4,  box: [248, 338,  28, 26], text: "4.",       style: agenda_item_num}
+        - {type: text, id: item_4, box: [280, 338, 660, 26], text: "$item_4",  style: agenda_item}
+
+        - {type: text, id: num_5,  box: [248, 384,  28, 26], text: "5.",       style: agenda_item_num}
+        - {type: text, id: item_5, box: [280, 384, 660, 26], text: "$item_5",  style: agenda_item}
+
+        - {type: text, id: num_6,  box: [248, 430,  28, 26], text: "6.",       style: agenda_item_num}
+        - {type: text, id: item_6, box: [280, 430, 660, 26], text: "$item_6",  style: agenda_item}
+
+        - {type: text, id: num_7,  box: [248, 476,  28, 26], text: "7.",       style: agenda_item_num}
+        - {type: text, id: item_7, box: [280, 476, 660, 26], text: "$item_7",  style: agenda_item}
+
+        - {type: text, id: page_number_text, box: [0, 514, 960, 18], text: "$page_number", style: agenda_page_number}
+
+slides:
+
+  # ── SLIDE 02 — Docusign Workshop 1.1 summary ──────────────────────────────
+  - slide: 2
+    id: s02_summary
+    title: "Docusign Workshop 1.1 — Summary"
+    description: "Section opener listing the seven sub-topics of the workshop."
+    notes: |
+      Read the seven section names in order. Do not narrate each one —
+      attendees will see them again as section dividers. Pause once, then
+      advance to slide 3 (Context and Objectives).
+    visual:
+      layers:
+        - id: agenda
+          z: 10
+          objects:
+            - type: use
+              id: v.agenda
+              decorative: true
+              symbol: agenda_left_pane
+              box: [0, 0, 960, 540]
+              section_label: "Summary"
+              item_1: "Context and Objectives"
+              item_2: "Definition of the Financial and Organizational Structure"
+              item_3: "Definition of the Accounting Key"
+              item_4: "Identification of Subledgers by Legal Entity"
+              item_5: "Definition of Tax Management Rules by Legal Entity"
+              item_6: "Collection file"
+              item_7: "Key dates"
+              page_number: "2"
+              params:
+                left_pane_color: ink_navy
+                accent_color:    accent_red

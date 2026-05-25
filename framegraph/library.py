@@ -539,7 +539,10 @@ class FrameGraphDeckRenderer:
         if theme_id and self.library:
             base_tokens = self.library.load_tokens(theme_id)
         deck_tokens = deep_merge(base_tokens, self.deck_config.get("tokens") or {})
-        deck_symbols = {**(self.deck_config.get("symbols") or {})}
+        deck_symbols: dict[str, Any] = {}
+        for ref in self.raw.get("$symbols", []) or []:
+            deck_symbols.update(self.library.load_symbols(str(ref)))
+        deck_symbols.update(self.deck_config.get("symbols") or {})
         deck_cdefs = {**(self.deck_config.get("component_defs") or {})}
         return deck_tokens, deck_symbols, deck_cdefs
 

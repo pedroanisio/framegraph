@@ -37,12 +37,12 @@ deck:
     text_styles:
       cover_minimal_title:
         font: primary
-        size: 64
+        size: 52
         weight: 300
         color: ink_navy
         align: left
         v_align: top
-        line_height: 72
+        line_height: 60
         wrap: true
       cover_minimal_subtitle:
         font: primary
@@ -68,10 +68,10 @@ deck:
       slots: [title, subtitle, page_number]
       objects:
         - {type: rect, id: bg,             box: [  0,   0, 960, 540], fill: "$bg_color"}
-        - {type: rect, id: accent_stripe,  box: [835,   0,   4, 540], fill: "$accent_color"}
-        - {type: rect, id: right_block,    box: [884,   0,  76, 540], fill: "$right_block_color"}
-        - {type: text, id: title_text,     box: [ 60, 240, 760,  76], text: "$title",       style: cover_minimal_title}
-        - {type: text, id: subtitle_text,  box: [ 60, 322, 760,  36], text: "$subtitle",    style: cover_minimal_subtitle}
+        - {type: rect, id: accent_stripe,  box: [744,   0,   4, 540], fill: "$accent_color"}
+        - {type: rect, id: right_pane,     box: [748,   0, 212, 540], fill: "$right_pane_color"}
+        - {type: text, id: title_text,     box: [ 60, 240, 660,  76], text: "$title",       style: cover_minimal_title}
+        - {type: text, id: subtitle_text,  box: [ 60, 322, 660,  36], text: "$subtitle",    style: cover_minimal_subtitle}
         - {type: text, id: page_number_text, box: [0, 510, 960, 18],  text: "$page_number", style: cover_minimal_page_number}
 
 slides:
@@ -102,5 +102,5 @@ slides:
                 title_color:       ink_navy
                 subtitle_color:    ink_gray
                 accent_color:      accent_red
-                right_block_color: ink_navy
+                right_pane_color:  ink_navy
                 page_number_color: ink_gray

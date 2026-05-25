@@ -1,10 +1,12 @@
 # ─────────────────────────────────────────────────────────────────────────
-# Cover / title slide — minimal layout with right-edge color rail.
+# Cover / title slide — minimal layout with a wide RIGHT sidebar.
 #
 # Layout (default canvas 960×540):
-#   • White field, left-aligned title block.
-#   • Thin vertical accent stripe near the right edge.
-#   • Solid color column hugging the far-right edge.
+#   • White field, left-aligned title block on the left ~78% of the slide.
+#   • Thin vertical accent stripe on the seam.
+#   • Wide solid color pane (≈ 22% width) on the RIGHT edge.
+#     Geometric mirror of `sections/agenda_left_pane` — same pane width
+#     and stripe thickness, only the side is flipped.
 #   • Centered page-number numeral in the footer band.
 #
 # Use this for workshop / chapter / section covers where the deck wants a
@@ -24,7 +26,7 @@
 #   title_color           Title text color.                   default: #1A2B3E
 #   subtitle_color        Subtitle text color.                default: #8A8A8A
 #   accent_color          Vertical accent stripe color.       default: #E51A4C
-#   right_block_color     Far-right column fill.              default: #1A2B3E
+#   right_pane_color      Far-right wide pane fill.           default: #1A2B3E
 #   page_number_color     Footer numeral color.               default: #8A8A8A
 #
 # The symbol is canvas-sized at 960×540. Callers that re-render at a
@@ -38,15 +40,18 @@ _meta:
   version: 1.0.0
   description: >-
     Minimalist title / cover slide. Left-aligned typography on a white
-    field, accented by a thin vertical stripe and a solid color column
-    on the right edge. Optional centered footer page number.
+    field, accented by a thin vertical stripe and a wide solid color
+    pane on the right edge. Mirrored sibling of
+    `sections/agenda_left_pane` — same pane width (212 px on a 960 px
+    canvas) and stripe thickness, only the side is flipped. Optional
+    centered footer page number.
   slots: [title, subtitle, page_number]
   params:
     - bg_color
     - title_color
     - subtitle_color
     - accent_color
-    - right_block_color
+    - right_pane_color
     - page_number_color
   schema: cover_minimal_sidebar.schema.json
   canvas:
@@ -66,29 +71,29 @@ symbols:
         box: [0, 0, 960, 540]
         fill: "$bg_color"
 
-      # Thin vertical accent stripe (crimson) at ~87% of the canvas width
+      # Thin vertical accent stripe on the seam (mirror of agenda)
       - type: rect
         id: accent_stripe
-        box: [835, 0, 4, 540]
+        box: [744, 0, 4, 540]
         fill: "$accent_color"
 
-      # Solid color column on the far-right edge (~8% of width)
+      # Wide solid pane on the RIGHT (212 px — mirror of agenda's left pane)
       - type: rect
-        id: right_block
-        box: [884, 0, 76, 540]
-        fill: "$right_block_color"
+        id: right_pane
+        box: [748, 0, 212, 540]
+        fill: "$right_pane_color"
 
-      # Title — left-aligned, vertically centered on the slide
+      # Title — left-aligned, vertically centered on the visible left field
       - type: text
         id: title_text
-        box: [60, 240, 760, 76]
+        box: [60, 240, 660, 76]
         text: "$title"
         style: cover_minimal_title
 
       # Subtitle — directly under the title
       - type: text
         id: subtitle_text
-        box: [60, 322, 760, 36]
+        box: [60, 322, 660, 36]
         text: "$subtitle"
         style: cover_minimal_subtitle
 
