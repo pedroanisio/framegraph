@@ -1,0 +1,119 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Honeycomb capability-map cells.
+#
+# Three flat-top hex variants — header (solid fill, reverse-out text),
+# leaf with solid outline, leaf with dashed outline. All three share an
+# identical 150×130 bounding box and an identical hex path; only the
+# fill / stroke / text style differ.
+#
+# Flat-top hex geometry (side a = 75):
+#   width  = 2a            = 150
+#   height = √3 · a        ≈ 130   (rounded to 130 here, see note)
+#   path   = M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z
+#
+# Tessellation pitch (used by the generator, NOT baked into the symbol):
+#   column_pitch_x = 1.5 · a         (= 112.5 for tight tessellation)
+#   row_pitch_y    = √3 · a          (= 130    for tight tessellation)
+#   column_offset_y = √3/2 · a       (= 65     half-row shift between
+#                                              adjacent columns)
+# The sample generator uses larger pitches (130 / 140 / 70) to introduce
+# small breathing-room gaps between cells — preferred for capability
+# maps where each cell needs to read as a discrete tile.
+#
+# Slots (content)
+# ─────────────
+#   label   Cell label. Wrapped inside a 100×80 inset rectangle centered
+#           on the hex (the hex's geometric "safe area").
+#
+# Params (style)
+# ─────────────
+#   hex_header
+#     header_fill           Solid hex fill.       e.g. token `header_blue`
+#   hex_leaf_solid
+#     leaf_fill             Hex interior fill.    typically `bg` (white)
+#     outline_color         Solid stroke color.   e.g. `outline_core` (blue)
+#                                                 or  `outline_extended` (green)
+#   hex_leaf_dashed
+#     leaf_fill             Hex interior fill.    typically `bg` (white)
+#     outline_color         Dashed stroke color.  e.g. `outline_extended`
+#
+# Required deck-level text styles
+# ─────────────
+#   honeycomb_header_text   Reverse-out (white) label inside header hex.
+#   honeycomb_leaf_text     Dark navy label inside leaf hex.
+# ─────────────────────────────────────────────────────────────────────────
+
+_meta:
+  type: symbol_pack
+  id: honeycomb.cells
+  version: 1.0.0
+  description: >-
+    Flat-top hexagonal capability-map cells. Three variants share the
+    same 150×130 hex path; they differ only in fill, stroke, and label
+    style. Designed to be stamped at computed positions by the
+    `honeycomb_capability_map` generator.
+  symbols:
+    - hex_header
+    - hex_leaf_solid
+    - hex_leaf_dashed
+  required_text_styles:
+    - honeycomb_header_text
+    - honeycomb_leaf_text
+  schema: honeycomb_capability_map.schema.json
+
+symbols:
+
+  # ── Filled header hex ───────────────────────────────────────────────
+  hex_header:
+    box: [0, 0, 150, 130]
+    slots: [label]
+    objects:
+      - type: path
+        id: hex
+        d: "M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z"
+        fill: "$header_fill"
+        stroke:
+          color: "$header_fill"
+          width: 1
+      - type: text
+        id: label_text
+        box: [22, 28, 106, 76]
+        text: "$label"
+        style: honeycomb_header_text
+
+  # ── Leaf hex with solid outline ─────────────────────────────────────
+  hex_leaf_solid:
+    box: [0, 0, 150, 130]
+    slots: [label]
+    objects:
+      - type: path
+        id: hex
+        d: "M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z"
+        fill: "$leaf_fill"
+        stroke:
+          color: "$outline_color"
+          width: 3
+      - type: text
+        id: label_text
+        box: [22, 28, 106, 76]
+        text: "$label"
+        style: honeycomb_leaf_text
+
+  # ── Leaf hex with dashed outline ────────────────────────────────────
+  hex_leaf_dashed:
+    box: [0, 0, 150, 130]
+    slots: [label]
+    objects:
+      - type: path
+        id: hex
+        d: "M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z"
+        fill: "$leaf_fill"
+        stroke:
+          color: "$outline_color"
+          width: 3
+          dash: [6, 4]
+      - type: text
+        id: label_text
+        box: [22, 28, 106, 76]
+        text: "$label"
+        style: honeycomb_leaf_text

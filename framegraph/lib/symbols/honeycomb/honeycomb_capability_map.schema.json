@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://framegraph.dev/symbols/honeycomb/honeycomb_capability_map.schema.json",
+  "title": "honeycomb_capability_map — input data contract",
+  "description": "Compact data shape consumed by the honeycomb_capability_map generator. Unlike cover_minimal_sidebar / agenda_left_pane (which are stamped directly as `use` instances), this template is data-driven — its generator expands the structure below into a fully-positioned deck slide with one hex `use` per cell.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "columns"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "Slide title, top-left."
+    },
+    "kicker_label": {
+      "type": "string",
+      "maxLength": 60,
+      "default": "",
+      "description": "Smaller gray subline below the title (e.g. 'Overall Scope')."
+    },
+    "page_number": {
+      "type": ["string", "integer"],
+      "default": "",
+      "description": "Optional footer page numeral, centered."
+    },
+
+    "columns": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "description": "Functional families. Each column renders as a vertical stack: one filled header hex on top, then leaf hexes below.",
+      "items": { "$ref": "#/$defs/column" }
+    },
+
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional palette overrides. Defaults match the reference design (white field, solid blue headers, blue/green leaf outlines).",
+      "properties": {
+        "bg":                    { "$ref": "#/$defs/color", "default": "#FFFFFF" },
+        "title_color":           { "$ref": "#/$defs/color", "default": "#1A2B3E" },
+        "kicker_color":          { "$ref": "#/$defs/color", "default": "#9A9A9A" },
+        "dot_primary":           { "$ref": "#/$defs/color", "default": "#E51A4C" },
+        "dot_secondary":         { "$ref": "#/$defs/color", "default": "#1A2B3E" },
+        "dot_tertiary":          { "$ref": "#/$defs/color", "default": "#C8C8C8" },
+        "header_fill":           { "$ref": "#/$defs/color", "default": "#1A56B0" },
+        "leaf_fill":             { "$ref": "#/$defs/color", "default": "#FFFFFF" },
+        "outline_core":          { "$ref": "#/$defs/color", "default": "#1A56B0" },
+        "outline_extended":      { "$ref": "#/$defs/color", "default": "#7FBA3A" },
+        "outline_future":        { "$ref": "#/$defs/color", "default": "#7FBA3A" },
+        "header_text_color":     { "$ref": "#/$defs/color", "default": "#FFFFFF" },
+        "leaf_text_color":       { "$ref": "#/$defs/color", "default": "#1A2B3E" },
+        "page_number_color":     { "$ref": "#/$defs/color", "default": "#9A9A9A" }
+      }
+    },
+
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional geometry overrides. The defaults target a 1280×900 canvas with side-75 flat-top hexes and ~10–17 px breathing-room gaps between cells.",
+      "properties": {
+        "canvas_w":        { "type": "number", "default": 1280 },
+        "canvas_h":        { "type": "number", "default": 1000 },
+        "hex_side":        { "type": "number", "default": 75, "minimum": 30 },
+        "column_pitch_x":  { "type": "number", "default": 130 },
+        "row_pitch_y":     { "type": "number", "default": 135 },
+        "column_offset_y": { "type": "number", "default": 68, "description": "Vertical shift for columns with offset='shifted' (or every odd column when offsets are auto-derived)." },
+        "left_margin":     { "type": "number", "default": 60 },
+        "top_margin":      { "type": "number", "default": 140, "description": "Distance from canvas top to the top edge of a top-offset column's first hex." }
+      }
+    }
+  },
+
+  "$defs": {
+
+    "column": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["header", "items"],
+      "properties": {
+        "header": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Column title, rendered as the filled header hex at the top of the column."
+        },
+        "offset": {
+          "type": "string",
+          "enum": ["top", "shifted", "auto"],
+          "default": "auto",
+          "description": "Vertical alignment of this column. 'top' = aligned with the top margin; 'shifted' = pushed down by column_offset_y; 'auto' = derive from column index (even index → top, odd index → shifted)."
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/leaf" }
+        }
+      }
+    },
+
+    "leaf": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Cell label. Wrapped inside the hex's 100×80 safe area; keep to ~5 short words for readability."
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["core", "extended", "future"],
+          "default": "core",
+          "description": "Visual scope variant. core=solid blue outline (in scope today); extended=solid green outline (additional / cross-cutting scope); future=dashed green outline (phase 2 / subject to confirmation)."
+        }
+      }
+    },
+
+    "color": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
+        },
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        }
+      ]
+    }
+  },
+
+  "examples": [
+    {
+      "title": "Expected Functional and Technical Coverage of the Solution",
+      "kicker_label": "Overall Scope",
+      "page_number": "3",
+      "columns": [
+        {
+          "header": "General Ledger Accounting",
+          "items": [
+            { "label": "Intercompany Management",       "variant": "core" },
+            { "label": "Period-End Closing Management", "variant": "core" },
+            { "label": "Cost Accounting",               "variant": "core" },
+            { "label": "VAT Management",                "variant": "core" },
+            { "label": "Statutory & Tax Reporting",     "variant": "core" }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Sample input for the `honeycomb_capability_map` template.
+#
+# Validated by:
+#   framegraph/lib/symbols/honeycomb/honeycomb_capability_map.schema.json
+#
+# Build the deck:
+#   python3 -m framegraph.lib.symbols.honeycomb.build \
+#     examples/honeycomb-capability-map/data.yml \
+#     examples/honeycomb-capability-map/deck.yml
+#
+# Render the deck:
+#   framegraph deck examples/honeycomb-capability-map/deck.yml \
+#     -o output/honeycomb-capability-map
+# ─────────────────────────────────────────────────────────────────────────
+
+title: "Expected Functional and Technical Coverage of the Solution"
+kicker_label: "Overall Scope"
+page_number: "3"
+
+columns:
+
+  - header: "General Ledger Accounting"
+    items:
+      - {label: "Intercompany Management",        variant: core}
+      - {label: "Period-End Closing Management",  variant: core}
+      - {label: "Cost Accounting",                variant: core}
+      - {label: "VAT Management",                 variant: core}
+      - {label: "Statutory & Tax Reporting",      variant: core}
+
+  - header: "Fixed Asset Management"
+    items:
+      - {label: "Fixed Asset Tracking",                           variant: core}
+      - {label: "Asset Valuation & Depreciation Calculation",     variant: core}
+      - {label: "Fixed Asset Inventory",                          variant: core}
+      - {label: "Investment Plan",                                variant: future}
+
+  - header: "Third-Party Accounting"
+    items:
+      - {label: "Accounts Receivable (AR) & Invoicing",   variant: core}
+      - {label: "Sales Administration",                    variant: core}
+      - {label: "Accounts Payable (AP) & Vendor Management", variant: core}
+      - {label: "Invoice Dematerialization",               variant: core}
+      - {label: "Debt Collection",                         variant: core}
+
+  - header: "Purchasing and Logistics"
+    items:
+      - {label: "Sourcing & Contract Management",                  variant: extended}
+      - {label: "Catalog Management",                              variant: core}
+      - {label: "Commitments & Encumbrance Tracking",              variant: core}
+      - {label: "Inventory & Stock Management",                    variant: core}
+      - {label: "Subcontractor & Contingent Labor Management",     variant: extended}
+
+  - header: "Project Management & Controlling"
+    items:
+      - {label: "Budget Tracking",                     variant: core}
+      - {label: "Product Lifecycle Management (PLM)",  variant: extended}
+      - {label: "Management Reporting",                variant: core}
+
+  - header: "Treasury"
+    items:
+      - {label: "Bank Relationship Management",   variant: core}
+      - {label: "Bank Reconciliation",            variant: core}
+      - {label: "Liquidity Management",           variant: core}
+      - {label: "Cash Reporting & Forecasting",   variant: core}
+
+  - header: "Consolidation & Reporting"
+    items:
+      - {label: "Reporting & Dashboards",   variant: core}
+      - {label: "Statutory Consolidation",  variant: extended}
+
+  - header: "E-Invoicing"
+    items:
+      - {label: "Invoice Receipt",    variant: core}
+      - {label: "PPF Transmission",   variant: extended}
+      - {label: "E Reporting",        variant: extended}
+      - {label: "PDP",                variant: extended}
