@@ -1,0 +1,106 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Sample deck — exercises the `cover_minimal_sidebar` template.
+#
+# The template's canonical definition lives at:
+#   framegraph/lib/symbols/covers/cover_minimal_sidebar.sym.yml
+#   framegraph/lib/symbols/covers/cover_minimal_sidebar.schema.json
+#
+# The symbol body is inlined into deck.symbols below so the deck renderer
+# can pick it up directly (the deck pipeline does not yet auto-resolve the
+# `$symbols:` directive — when it does, this block can be replaced with
+# `$symbols: [covers/cover_minimal_sidebar]`).
+#
+# Render:
+#   framegraph deck examples/cover-minimal-sidebar/deck.yml \
+#     -o output/cover-minimal-sidebar
+# ─────────────────────────────────────────────────────────────────────────
+
+dsl: FrameGraph
+version: 1.2
+kind: presentation-deck
+
+deck:
+  canvas:
+    size: [960, 540]
+    units: px
+
+  tokens:
+    colors:
+      bg:            "#FFFFFF"
+      ink_navy:      "#1A2B3E"   # title + right-block
+      ink_gray:      "#8A8A8A"   # subtitle + page number
+      accent_red:    "#E51A4C"   # vertical stripe
+
+    fonts:
+      primary: "Century Gothic, Avenir Next, Avenir, Futura, Arial, sans-serif"
+
+    text_styles:
+      cover_minimal_title:
+        font: primary
+        size: 64
+        weight: 300
+        color: ink_navy
+        align: left
+        v_align: top
+        line_height: 72
+        wrap: true
+      cover_minimal_subtitle:
+        font: primary
+        size: 26
+        weight: 400
+        color: ink_gray
+        align: left
+        v_align: top
+        line_height: 32
+        wrap: true
+      cover_minimal_page_number:
+        font: primary
+        size: 11
+        weight: 400
+        color: ink_gray
+        align: center
+        v_align: middle
+
+  # ── Template body — mirrors lib/symbols/covers/cover_minimal_sidebar.sym.yml ──
+  symbols:
+    cover_minimal_sidebar:
+      box: [0, 0, 960, 540]
+      slots: [title, subtitle, page_number]
+      objects:
+        - {type: rect, id: bg,             box: [  0,   0, 960, 540], fill: "$bg_color"}
+        - {type: rect, id: accent_stripe,  box: [835,   0,   4, 540], fill: "$accent_color"}
+        - {type: rect, id: right_block,    box: [884,   0,  76, 540], fill: "$right_block_color"}
+        - {type: text, id: title_text,     box: [ 60, 240, 760,  76], text: "$title",       style: cover_minimal_title}
+        - {type: text, id: subtitle_text,  box: [ 60, 322, 760,  36], text: "$subtitle",    style: cover_minimal_subtitle}
+        - {type: text, id: page_number_text, box: [0, 510, 960, 18],  text: "$page_number", style: cover_minimal_page_number}
+
+slides:
+
+  # ── SLIDE 01 — Docusign Workshop 1.1 cover ────────────────────────────────
+  - slide: 1
+    id: s01_cover
+    title: "Docusign Workshop 1.1 — Organizational Structure and Key Concepts"
+    description: "Workshop cover slide. Quiet typographic opening with a right-edge color rail."
+    notes: |
+      Open with this slide on screen while attendees arrive. Do not
+      narrate the title. Move on as soon as everyone is seated.
+    visual:
+      layers:
+        - id: cover
+          z: 10
+          objects:
+            - type: use
+              id: v.cover
+              decorative: true
+              symbol: cover_minimal_sidebar
+              box: [0, 0, 960, 540]
+              title: "Docusign Workshop 1.1"
+              subtitle: "Organizational Structure and Key Concepts"
+              page_number: "1"
+              params:
+                bg_color:          bg
+                title_color:       ink_navy
+                subtitle_color:    ink_gray
+                accent_color:      accent_red
+                right_block_color: ink_navy
+                page_number_color: ink_gray
