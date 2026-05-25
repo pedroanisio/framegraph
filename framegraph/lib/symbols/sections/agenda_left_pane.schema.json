@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://framegraph.dev/symbols/sections/agenda_left_pane.schema.json",
+  "title": "agenda_left_pane — instance contract",
+  "description": "Validation schema for a single `use` instance of the agenda_left_pane symbol. The symbol renders a section opener with a wide reverse-out left pane, a thin accent stripe, and a pre-numbered list (1.–7.) of agenda items in the right field. Numerals are baked into the symbol; the caller supplies only the item bodies.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["type", "symbol", "box", "section_label"],
+  "properties": {
+    "type": {
+      "const": "use",
+      "description": "FrameGraph object type — must be 'use' for symbol instantiation."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9._]*$"
+    },
+    "symbol": {
+      "const": "agenda_left_pane"
+    },
+    "box": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "[x, y, w, h] of the instance on the slide. Use [0, 0, 960, 540] for a full-canvas section opener."
+    },
+
+    "section_label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
+      "description": "Reverse-out title rendered inside the left pane (e.g. 'Summary', 'Agenda', 'Contents')."
+    },
+    "item_1": { "$ref": "#/$defs/agenda_item" },
+    "item_2": { "$ref": "#/$defs/agenda_item" },
+    "item_3": { "$ref": "#/$defs/agenda_item" },
+    "item_4": { "$ref": "#/$defs/agenda_item" },
+    "item_5": { "$ref": "#/$defs/agenda_item" },
+    "item_6": { "$ref": "#/$defs/agenda_item" },
+    "item_7": { "$ref": "#/$defs/agenda_item" },
+    "page_number": {
+      "type": "string",
+      "maxLength": 4,
+      "description": "Footer numeral (e.g. '2' or '02'). Optional — pass an empty string to suppress."
+    },
+
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "left_pane_color": {
+          "$ref": "#/$defs/color",
+          "default": "#1A2B3E",
+          "description": "Wide left-block fill (deep navy by default)."
+        },
+        "accent_color": {
+          "$ref": "#/$defs/color",
+          "default": "#E51A4C",
+          "description": "Vertical stripe color on the seam between the panes."
+        }
+      },
+      "description": "Per-instance rect fills. Text colors are NOT instance params — they come from the deck-level text styles listed under `required_text_styles`."
+    }
+  },
+
+  "$defs": {
+    "agenda_item": {
+      "type": "string",
+      "maxLength": 100,
+      "default": "",
+      "description": "One line of the numbered list. Empty string leaves the row blank."
+    },
+    "color": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$",
+          "description": "Hex color literal."
+        },
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Named color token resolved from deck.tokens.colors."
+        }
+      ]
+    }
+  },
+
+  "x-required-text-styles": {
+    "description": "Deck-level text styles the template depends on. The deck MUST declare each name under `deck.tokens.text_styles` with the documented role.",
+    "agenda_section_label": "Reverse-out title (light on dark) for the left pane.",
+    "agenda_item_num": "Numerals '1.' '2.' … rendered next to each agenda item.",
+    "agenda_item": "Numbered list body text in the right field.",
+    "agenda_page_number": "Centered footer numeral."
+  },
+
+  "examples": [
+    {
+      "type": "use",
+      "id": "v.agenda",
+      "symbol": "agenda_left_pane",
+      "box": [0, 0, 960, 540],
+      "section_label": "Summary",
+      "item_1": "Context and Objectives",
+      "item_2": "Definition of the Financial and Organizational Structure",
+      "item_3": "Definition of the Accounting Key",
+      "item_4": "Identification of Subledgers by Legal Entity",
+      "item_5": "Definition of Tax Management Rules by Legal Entity",
+      "item_6": "Collection file",
+      "item_7": "Key dates",
+      "page_number": "2",
+      "params": {
+        "left_pane_color": "#1A2B3E",
+        "accent_color": "#E51A4C"
+      }
+    }
+  ]
+}

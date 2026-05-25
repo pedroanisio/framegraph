@@ -1,0 +1,196 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Agenda / Summary / TOC slide — wide left pane with reverse-out section
+# label and a numbered list on the right.
+#
+# Layout (default canvas 960×540):
+#   • Wide solid color block on the LEFT (≈ 22% width) carrying the
+#     section label in reverse-out type.
+#   • Thin vertical accent stripe on the seam between left pane and
+#     right field.
+#   • White right field with a fixed-position numbered list (1. – 7.)
+#     of agenda items.
+#   • Centered page-number numeral in the footer band.
+#
+# Sibling of `covers/cover_minimal_sidebar` — same palette, mirrored
+# composition. Use this for section openers, deck table-of-contents,
+# "Today's Plan" slides, or any divider that names what comes next.
+#
+# Slots (content)
+# ─────────────
+#   section_label  Required.  Reverse-out title in the left pane
+#                            (e.g. "Summary", "Agenda", "Contents").
+#   item_1 … item_7           Numbered list bodies. Empty strings render
+#                            as a blank row — fewer than 7 items is fine.
+#   page_number    Optional.  Footer numeral (e.g. "2" or "02").
+#
+# Params (geometry / rect fills only)
+# ─────────────
+#   left_pane_color   Wide left block fill.        default: #1A2B3E
+#   accent_color      Vertical stripe color.       default: #E51A4C
+#
+# Text colors come from the deck-level `text_styles` listed under
+# `_meta.required_text_styles` — the deck author MUST provide them.
+#
+# The symbol is canvas-sized at 960×540. Callers re-rendering at another
+# canvas size must re-instantiate with a matching `box:` and recompute
+# the left-pane width / stripe x accordingly.
+# ─────────────────────────────────────────────────────────────────────────
+
+_meta:
+  type: symbol_pack
+  id: sections.agenda_left_pane
+  version: 1.0.0
+  description: >-
+    Section opener / agenda slide. Wide solid color pane on the left
+    carries the section label in reverse-out type; a thin vertical
+    stripe separates it from a white right field that holds a
+    pre-numbered list of up to seven agenda items, plus a centered
+    footer page number.
+  slots:
+    - section_label
+    - item_1
+    - item_2
+    - item_3
+    - item_4
+    - item_5
+    - item_6
+    - item_7
+    - page_number
+  params:
+    - left_pane_color
+    - accent_color
+  required_text_styles:
+    - agenda_section_label    # reverse-out title inside the left pane
+    - agenda_item_num         # numerals "1.", "2.", … in the right field
+    - agenda_item             # numbered list body text
+    - agenda_page_number      # centered footer numeral
+  schema: agenda_left_pane.schema.json
+  canvas:
+    size: [960, 540]
+    units: px
+
+symbols:
+
+  agenda_left_pane:
+    box: [0, 0, 960, 540]
+    slots:
+      - section_label
+      - item_1
+      - item_2
+      - item_3
+      - item_4
+      - item_5
+      - item_6
+      - item_7
+      - page_number
+    objects:
+
+      # ── Left pane (wide solid block) ────────────────────────────────
+      - type: rect
+        id: left_pane
+        box: [0, 0, 212, 540]
+        fill: "$left_pane_color"
+
+      # ── Accent stripe on the seam ───────────────────────────────────
+      - type: rect
+        id: accent_stripe
+        box: [212, 0, 4, 540]
+        fill: "$accent_color"
+
+      # ── Section label (reverse-out, top-left of left pane) ──────────
+      - type: text
+        id: section_label_text
+        box: [20, 30, 180, 80]
+        text: "$section_label"
+        style: agenda_section_label
+
+      # ── Numbered list — row 1 ───────────────────────────────────────
+      - type: text
+        id: num_1
+        box: [248, 200, 28, 26]
+        text: "1."
+        style: agenda_item_num
+      - type: text
+        id: item_1
+        box: [280, 200, 660, 26]
+        text: "$item_1"
+        style: agenda_item
+
+      # ── Numbered list — row 2 ───────────────────────────────────────
+      - type: text
+        id: num_2
+        box: [248, 246, 28, 26]
+        text: "2."
+        style: agenda_item_num
+      - type: text
+        id: item_2
+        box: [280, 246, 660, 26]
+        text: "$item_2"
+        style: agenda_item
+
+      # ── Numbered list — row 3 ───────────────────────────────────────
+      - type: text
+        id: num_3
+        box: [248, 292, 28, 26]
+        text: "3."
+        style: agenda_item_num
+      - type: text
+        id: item_3
+        box: [280, 292, 660, 26]
+        text: "$item_3"
+        style: agenda_item
+
+      # ── Numbered list — row 4 ───────────────────────────────────────
+      - type: text
+        id: num_4
+        box: [248, 338, 28, 26]
+        text: "4."
+        style: agenda_item_num
+      - type: text
+        id: item_4
+        box: [280, 338, 660, 26]
+        text: "$item_4"
+        style: agenda_item
+
+      # ── Numbered list — row 5 ───────────────────────────────────────
+      - type: text
+        id: num_5
+        box: [248, 384, 28, 26]
+        text: "5."
+        style: agenda_item_num
+      - type: text
+        id: item_5
+        box: [280, 384, 660, 26]
+        text: "$item_5"
+        style: agenda_item
+
+      # ── Numbered list — row 6 ───────────────────────────────────────
+      - type: text
+        id: num_6
+        box: [248, 430, 28, 26]
+        text: "6."
+        style: agenda_item_num
+      - type: text
+        id: item_6
+        box: [280, 430, 660, 26]
+        text: "$item_6"
+        style: agenda_item
+
+      # ── Numbered list — row 7 ───────────────────────────────────────
+      - type: text
+        id: num_7
+        box: [248, 476, 28, 26]
+        text: "7."
+        style: agenda_item_num
+      - type: text
+        id: item_7
+        box: [280, 476, 660, 26]
+        text: "$item_7"
+        style: agenda_item
+
+      # ── Centered footer page number ─────────────────────────────────
+      - type: text
+        id: page_number_text
+        box: [0, 514, 960, 18]
+        text: "$page_number"
+        style: agenda_page_number
