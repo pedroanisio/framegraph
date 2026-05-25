@@ -20,6 +20,7 @@ from framegraph._helpers import (
     esc,
     fmt,
     fnum,
+    sid,
 )
 from framegraph._types import RendererContext
 from framegraph.renderers.shapes import outer_ring_rect_svg
@@ -96,16 +97,68 @@ def render_image(r: RendererContext, obj: Mapping[str, Any]) -> str:
     # rect emitted before so the image overpaints the ring's interior.
     a.update(r.effect_filter_attrs(obj))
     radius = fnum(obj.get("radius"), 0)
+    clip_svg = _image_clip_path_svg(obj, x=x, y=y, w=w, h=h, radius=radius)
+    if clip_svg is not None:
+        clip_id, clip_def = clip_svg
+        a["clip-path"] = f"url(#{clip_id})"
+    else:
+        clip_def = ""
     ring_svg = outer_ring_rect_svg(
         r, obj.get("outer_ring") or {}, x=x, y=y, w=w, h=h, radius=radius
     )
     if ring_svg is None:
-        return f"<g {attrs(r.group_attrs(obj))}><image {attrs(a)}/></g>"
+        return f"{clip_def}<g {attrs(r.group_attrs(obj))}><image {attrs(a)}/></g>"
     return (
+        f"{clip_def}"
         f"<g {attrs(r.group_attrs(obj))}>"
         f"{ring_svg}"
         f"<image {attrs(a)}/></g>"
     )
+
+
+def _image_clip_path_svg(
+    obj: Mapping[str, Any],
+    *,
+    x: float,
+    y: float,
+    w: float,
+    h: float,
+    radius: float,
+) -> tuple[str, str] | None:
+    """Return a clipPath id/definition for clipped image rendering.
+
+    `clip` accepts:
+    - `ellipse` / `circle`: clip the image to an ellipse inscribed in `box`
+    - `rect`: clip to the box, honoring `radius`
+    - `{shape: ..., radius: ...}` for explicit shape/radius control
+    - `true`: shorthand for rounded-rect clipping
+    """
+    clip = obj.get("clip")
+    if not clip:
+        return None
+
+    if isinstance(clip, Mapping):
+        shape = str(clip.get("shape") or "rect").lower()
+        radius = fnum(clip.get("radius"), radius)
+    elif isinstance(clip, str):
+        shape = clip.lower()
+    else:
+        shape = "rect"
+
+    clip_id = sid(
+        f"clip_{obj.get('id') or 'image'}_{fmt(x)}_{fmt(y)}_{fmt(w)}_{fmt(h)}"
+    )
+    if shape in {"circle", "ellipse"}:
+        clip_node = (
+            f'<ellipse cx="{fmt(x + w / 2)}" cy="{fmt(y + h / 2)}" '
+            f'rx="{fmt(w / 2)}" ry="{fmt(h / 2)}"/>'
+        )
+    else:
+        clip_node = (
+            f'<rect x="{fmt(x)}" y="{fmt(y)}" width="{fmt(w)}" height="{fmt(h)}" '
+            f'rx="{fmt(radius)}" ry="{fmt(radius)}"/>'
+        )
+    return clip_id, f'<defs><clipPath id="{clip_id}">{clip_node}</clipPath></defs>'
 
 
 RENDERERS = {

@@ -251,40 +251,44 @@ def spans_svg(
     def span_width(sp_dict: dict[str, Any], text: str) -> float:
         return r._str_width(text, sp_dict["size"], sp_dict["bold"], span_font)
 
-    # Flatten to words with span index for re-assembly
-    # Each word: (word_text, span_idx, is_last_in_span, trailing_space)
-    flat_words: list[tuple[str, int, bool]] = []
+    # Flatten to hard lines first so explicit "\n" breaks survive the
+    # rich-text path. Without this, markdown text such as
+    # "**Lead** line\nsecond line" collapses into one visual line.
+    hard_lines: list[list[tuple[str, int]]] = [[]]
     for si, sp in enumerate(resolved):
-        words = sp["text"].split(" ")
-        for wi, word in enumerate(words):
-            if not word:
-                continue
-            flat_words.append((word, si, wi == len(words) - 1))
+        parts = sp["text"].split("\n")
+        for pi, part in enumerate(parts):
+            if pi > 0:
+                hard_lines.append([])
+            for word in part.split(" "):
+                if word:
+                    hard_lines[-1].append((word, si))
 
     # Word-wrap: accumulate words measuring their width per-span
-    if do_wrap and flat_words:
+    if do_wrap and hard_lines:
         lines: list[list[tuple[str, int]]] = []  # list of list of (word, span_idx)
-        cur_line: list[tuple[str, int]] = []
-        cur_w = 0.0
-        for word, si, _ in flat_words:
-            sp = resolved[si]
-            word_w = span_width(sp, word)
-            space_w = r._str_width(" ", sp["size"], sp["bold"], span_font)
-            if cur_line and cur_w + space_w + word_w > ew:
+        for hard_line in hard_lines:
+            if not hard_line:
+                lines.append([])
+                continue
+            cur_line: list[tuple[str, int]] = []
+            cur_w = 0.0
+            for word, si in hard_line:
+                sp = resolved[si]
+                word_w = span_width(sp, word)
+                space_w = r._str_width(" ", sp["size"], sp["bold"], span_font)
+                if cur_line and cur_w + space_w + word_w > ew:
+                    lines.append(cur_line)
+                    cur_line = [(word, si)]
+                    cur_w = word_w
+                else:
+                    add_space = bool(cur_line)
+                    cur_line.append((word, si))
+                    cur_w += (space_w if add_space else 0) + word_w
+            if cur_line:
                 lines.append(cur_line)
-                cur_line = [(word, si)]
-                cur_w = word_w
-            else:
-                cur_line.append((word, si))
-                cur_w += (space_w if cur_line else 0) + word_w
-        if cur_line:
-            lines.append(cur_line)
     else:
-        # No wrap — one line per \n in concatenated text
-        # Build lines by splitting on \n within each span, re-merging
-        lines = [[]]
-        for word, si, _ in flat_words:
-            lines[-1].append((word, si))
+        lines = hard_lines or [[]]
 
     n_lines = len(lines) if lines else 1
     block_h = fs + max(0, n_lines - 1) * lh

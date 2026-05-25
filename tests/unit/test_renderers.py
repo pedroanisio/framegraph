@@ -423,6 +423,22 @@ def test_render_text_object_inline_markdown_routes_to_spans() -> None:
     assert 'font-weight="bold">' in out and "bold</tspan>" in out
 
 
+def test_render_text_object_inline_markdown_preserves_newlines() -> None:
+    out = text_objects.render_text_object(
+        _ctx(),
+        {
+            "type": "text",
+            "box": [0, 0, 400, 100],
+            "text": "**Lead** line\nsecond line",
+            "style": {"wrap": True, "v_align": "top"},
+        },
+    )
+
+    assert out.count('x="0" dy=') == 2
+    assert "Lead</tspan>" in out
+    assert "second line" in out
+
+
 def test_render_bullet_list_with_empty_items_emits_group() -> None:
     out = text_objects.render_bullet_list(
         _ctx(),
