@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://framegraph.dev/symbols/gtds/detailed_step_frame.schema.json",
+  "title": "detailed_step_frame - instance contract",
+  "description": "Validation schema for a single use instance of the detailed_step_frame GTDS entity-migration template.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "type",
+    "symbol",
+    "box",
+    "super_title",
+    "step_title",
+    "step_number",
+    "objectives",
+    "body",
+    "activities",
+    "preconditions",
+    "cost_notes",
+    "deliverables"
+  ],
+  "properties": {
+    "type": {
+      "const": "use"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9._]*$"
+    },
+    "symbol": {
+      "const": "detailed_step_frame"
+    },
+    "box": {
+      "$ref": "#/$defs/box"
+    },
+    "super_title": {
+      "$ref": "#/$defs/long_text"
+    },
+    "step_title": {
+      "$ref": "#/$defs/long_text"
+    },
+    "objectives": {
+      "$ref": "#/$defs/long_text"
+    },
+    "body": {
+      "$ref": "#/$defs/long_text"
+    },
+    "activities": {
+      "$ref": "#/$defs/long_text"
+    },
+    "preconditions": {
+      "$ref": "#/$defs/long_text"
+    },
+    "cost_notes": {
+      "$ref": "#/$defs/long_text"
+    },
+    "deliverables": {
+      "$ref": "#/$defs/long_text"
+    },
+    "step_number": {
+      "$ref": "#/$defs/short_text"
+    },
+    "confidentiality": {
+      "$ref": "#/$defs/short_text"
+    },
+    "page_number": {
+      "$ref": "#/$defs/short_text"
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accent_color": {
+          "$ref": "#/$defs/color"
+        },
+        "objectives_label_box": {
+          "$ref": "#/$defs/box"
+        },
+        "deliverables_label_box": {
+          "$ref": "#/$defs/box"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "short_text": {
+      "type": "string",
+      "maxLength": 180
+    },
+    "long_text": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "box": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "color": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
+        },
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        }
+      ]
+    }
+  }
+}

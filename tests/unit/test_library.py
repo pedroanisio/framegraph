@@ -357,6 +357,16 @@ def test_deck_renderer_build_globals_merges_theme_and_deck_tokens(tmp_path: Path
     assert r.global_tokens["colors"]["deck_color"] == "#ff0000"
 
 
+def test_deck_renderer_loads_top_level_symbol_refs(tmp_path: Path) -> None:
+    _, deck = _make_minimal_deck(tmp_path)
+    deck["$symbols"] = ["shared/icons"]
+    lib = FrameGraphLibrary(tmp_path / "lib")
+    r = FrameGraphDeckRenderer(deck, library=lib)
+
+    assert "node_rect" in r.global_symbols
+    assert "deck_sym" in r.global_symbols
+
+
 def test_deck_renderer_without_library_skips_theme_load(tmp_path: Path) -> None:
     _, deck = _make_minimal_deck(tmp_path, with_lib=False)
     deck.pop("$theme", None)

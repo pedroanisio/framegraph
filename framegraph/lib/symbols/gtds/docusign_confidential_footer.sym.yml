@@ -1,0 +1,81 @@
+_meta:
+  type: symbol_pack
+  id: gtds.docusign_confidential_footer
+  version: 1.0.0
+  description: White Docusign frame with mark, confidentiality footer, and page number.
+  slots:
+  - confidentiality
+  - page_number
+  params: []
+  required_text_styles:
+  - footer
+  - page
+  schema: docusign_confidential_footer.schema.json
+  canvas:
+    size:
+    - 960
+    - 540
+    units: px
+symbols:
+  docusign_confidential_footer:
+    box:
+    - 0
+    - 0
+    - 960
+    - 540
+    slots:
+    - confidentiality
+    - page_number
+    objects:
+    - type: rect
+      id: bg
+      box:
+      - 0
+      - 0
+      - 960
+      - 540
+      fill: white
+    - type: rect
+      id: logo_mark_bg_36_503
+      box:
+      - 36
+      - 503
+      - 13
+      - 13
+      fill: purple
+    - type: path
+      id: logo_mark_fold_36_503
+      d: M43,503 L51,503 L58,510 L51,517 L43,517 Z
+      fill: red
+    - type: text
+      id: logo_text_36_503
+      text: docusign.
+      box:
+      - 56
+      - 502
+      - 95
+      - 20
+      style:
+        font: primary
+        size: 22
+        weight: 700
+        color: black
+        align: left
+    - type: text
+      id: confidentiality
+      text: $confidentiality
+      box:
+      - 340
+      - 508
+      - 280
+      - 16
+      style: footer
+    - type: text
+      id: page_number
+      text: $page_number
+      box:
+      - 880
+      - 508
+      - 50
+      - 16
+      style: page

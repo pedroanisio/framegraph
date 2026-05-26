@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://framegraph.dev/symbols/gtds/docusign_white_footer.schema.json",
+  "title": "docusign_white_footer - instance contract",
+  "description": "Validation schema for a single use instance of the docusign_white_footer GTDS entity-migration template.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "type",
+    "symbol",
+    "box",
+    "page_number"
+  ],
+  "properties": {
+    "type": {
+      "const": "use"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9._]*$"
+    },
+    "symbol": {
+      "const": "docusign_white_footer"
+    },
+    "box": {
+      "$ref": "#/$defs/box"
+    },
+    "page_number": {
+      "$ref": "#/$defs/short_text"
+    }
+  },
+  "$defs": {
+    "short_text": {
+      "type": "string",
+      "maxLength": 180
+    },
+    "long_text": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "box": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "color": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
+        },
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        }
+      ]
+    }
+  }
+}

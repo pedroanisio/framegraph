@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://framegraph.dev/symbols/modules/module_hub_radial.schema.json",
+  "title": "module_hub_radial — input data contract",
+  "description": "Compact data shape for the module_hub_radial generator. One central focal hex (the hub) surrounded by satellite hexes at free-form positions, optionally connected by gray edge lines. Each node carries its own outline color, icon variant, and label.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "hub", "satellites"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "Slide title, top-left."
+    },
+    "kicker_label": {
+      "type": "string",
+      "maxLength": 60,
+      "default": "",
+      "description": "Smaller gray subline below the title (e.g. 'Module Configuration')."
+    },
+    "page_number": {
+      "type": ["string", "integer"],
+      "default": "",
+      "description": "Optional footer page numeral, centered."
+    },
+
+    "hub": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "position"],
+      "description": "The focal module — large hex placed at an explicit (cx, cy). Optionally carries a captioned bullet block underneath.",
+      "properties": {
+        "id":            { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+        "label":         { "type": "string", "minLength": 1, "maxLength": 60 },
+        "label_color":   { "$ref": "#/$defs/color", "default": "#E58938" },
+        "outline_color": { "$ref": "#/$defs/color", "default": "#9E1A8C" },
+        "fill":          { "$ref": "#/$defs/color", "default": "#FFFFFF" },
+        "icon":          { "$ref": "#/$defs/icon",  "default": "warning" },
+        "position":      { "$ref": "#/$defs/point" },
+        "size":          { "type": "number", "default": 130, "minimum": 40, "description": "Hex side length. Width = 2·size, height = √3·size." },
+        "detail": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Optional captioned bullet block rendered directly under the hub.",
+          "properties": {
+            "heading":       { "type": "string", "minLength": 1 },
+            "heading_color": { "$ref": "#/$defs/color" },
+            "bullets":       { "type": "array", "items": { "type": "string" } },
+            "box":           { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4, "description": "[x, y, w, h] override. When omitted, the generator places the block centered below the hub." }
+          }
+        }
+      }
+    },
+
+    "satellites": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/satellite" }
+    },
+
+    "edges": {
+      "type": "array",
+      "default": [],
+      "description": "Connector lines between nodes. Each edge draws a straight gray line from the source node's center to the target node's center, drawn UNDER the hexes so the hex outlines remain unbroken.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "from":         { "type": "string", "description": "Source node id (hub.id or satellite.id)." },
+          "to":           { "type": "string", "description": "Target node id." },
+          "stroke_color": { "$ref": "#/$defs/color" },
+          "stroke_width": { "type": "number", "default": 1.5 },
+          "dash":         { "type": "array", "items": { "type": "number" } }
+        }
+      }
+    },
+
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bg":                 { "$ref": "#/$defs/color", "default": "#FFFFFF" },
+        "title_color":        { "$ref": "#/$defs/color", "default": "#1A2B3E" },
+        "kicker_color":       { "$ref": "#/$defs/color", "default": "#9A9A9A" },
+        "dot_primary":        { "$ref": "#/$defs/color", "default": "#E51A4C" },
+        "dot_secondary":      { "$ref": "#/$defs/color", "default": "#1A2B3E" },
+        "dot_tertiary":       { "$ref": "#/$defs/color", "default": "#C8C8C8" },
+        "edge_color":         { "$ref": "#/$defs/color", "default": "#C8C8C8" },
+        "page_number_color":  { "$ref": "#/$defs/color", "default": "#9A9A9A" }
+      }
+    },
+
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "canvas_w":              { "type": "number", "default": 1280 },
+        "canvas_h":              { "type": "number", "default": 900 },
+        "satellite_default_size":{ "type": "number", "default": 70, "description": "Hex side length for satellites that omit their own `size`." },
+        "label_gap":             { "type": "number", "default": 6, "description": "Gap between hex outer edge and the label box." }
+      }
+    }
+  },
+
+  "$defs": {
+
+    "satellite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "position"],
+      "properties": {
+        "id":            { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+        "label":         { "type": "string", "minLength": 1, "maxLength": 80, "description": "Rendered OUTSIDE the hex at the anchor position. May wrap to two lines." },
+        "label_color":   { "$ref": "#/$defs/color", "default": "#1A2B3E" },
+        "label_anchor": {
+          "type": "string",
+          "enum": ["above", "below", "left", "right"],
+          "default": "above"
+        },
+        "outline_color": { "$ref": "#/$defs/color", "default": "#1A56B0" },
+        "fill":          { "$ref": "#/$defs/color", "default": "#FFFFFF" },
+        "icon":          { "$ref": "#/$defs/icon",  "default": "warning" },
+        "position":      { "$ref": "#/$defs/point" },
+        "size":          { "type": "number", "description": "Hex side length. Defaults to geometry.satellite_default_size." }
+      }
+    },
+
+    "icon": {
+      "type": "string",
+      "enum": ["warning", "excel", "money", "none"],
+      "description": "Inset icon. warning=gray plate + ⚠; excel=green plate + white X; money=plate + €; none=no inset."
+    },
+
+    "point": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[cx, cy] hex center position on the canvas."
+    },
+
+    "color": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$"
+        },
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        }
+      ]
+    }
+  },
+
+  "examples": [
+    {
+      "title": "Identification of Modules by Legal Entity",
+      "kicker_label": "Module Configuration",
+      "page_number": "4",
+      "hub": {
+        "id": "gl",
+        "label": "General Ledger (GL)",
+        "label_color": "#E58938",
+        "outline_color": "#9E1A8C",
+        "icon": "warning",
+        "position": [600, 480],
+        "size": 130,
+        "detail": {
+          "heading": "Automatic GL Journal Entries",
+          "heading_color": "#9E1A8C",
+          "bullets": [
+            "Copied journal entries",
+            "Reversal journal entries",
+            "Closing / Year-End Balance Carryforward entries"
+          ]
+        }
+      },
+      "satellites": [
+        {
+          "id": "sla",
+          "label": "Subledger Accounting (SLA)",
+          "label_color": "#1F7A1F",
+          "outline_color": "#1F7A1F",
+          "icon": "warning",
+          "position": [820, 320],
+          "size": 70,
+          "label_anchor": "above"
+        }
+      ],
+      "edges": [
+        { "from": "gl", "to": "sla" }
+      ]
+    }
+  ]
+}

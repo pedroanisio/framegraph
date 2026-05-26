@@ -1,0 +1,145 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Sample input for the `module_hub_radial` template.
+#
+# Validated by:
+#   framegraph/lib/symbols/modules/module_hub_radial.schema.json
+#
+# Build the deck:
+#   python3 -m framegraph.lib.symbols.modules.build \
+#     examples/module-hub-radial/data.yml \
+#     examples/module-hub-radial/deck.yml
+#
+# Render the deck:
+#   framegraph deck examples/module-hub-radial/deck.yml \
+#     -o output/module-hub-radial
+# ─────────────────────────────────────────────────────────────────────────
+
+title: "Identification of Modules by Legal Entity"
+kicker_label: "Module Configuration"
+page_number: "4"
+
+# ── Central focal module — General Ledger ────────────────────────────────
+hub:
+  id: gl
+  label: "General Ledger (GL)"
+  label_color: "#E58938"      # orange — matches the reference design
+  outline_color: "#9E1A8C"    # magenta — thick stroke marks the focus
+  icon: warning
+  position: [600, 480]
+  size: 130                    # ≈ 2× satellite default
+  detail:
+    heading: "Automatic GL Journal Entries"
+    heading_color: "#9E1A8C"
+    bullets:
+      - "Copied journal entries"
+      - "Reversal journal entries"
+      - "Closing / Year-End Balance Carryforward entries"
+    box: [320, 740, 540, 150]
+
+# ── Satellite modules ────────────────────────────────────────────────────
+satellites:
+
+  - id: sla
+    label: "Subledger Accounting (SLA)"
+    label_color: "#1F7A1F"
+    outline_color: "#1F7A1F"
+    icon: warning
+    position: [870, 320]
+    size: 75
+    label_anchor: above
+
+  - id: ppm
+    label: "Project Accounting (PPM)"
+    label_color: "#1F7A1F"
+    outline_color: "#1F7A1F"
+    icon: none
+    position: [560, 160]
+    size: 50
+    label_anchor: above
+
+  - id: receiving
+    label: "Receiving Accounting"
+    label_color: "#1F7A1F"
+    outline_color: "#1F7A1F"
+    icon: none
+    position: [720, 160]
+    size: 50
+    label_anchor: above
+
+  - id: external_payroll
+    label: "External Interfaces (Payroll)"
+    label_color: "#2B5C2B"
+    outline_color: "#2B5C2B"
+    icon: warning
+    position: [220, 320]
+    size: 75
+    label_anchor: above
+
+  - id: excel
+    label: "Excel Spreadsheets (ADFDI)"
+    label_color: "#9A9A9A"
+    outline_color: "#1C6B8A"
+    icon: excel
+    position: [320, 690]
+    size: 75
+    label_anchor: above
+
+  - id: ar
+    label: "Accounts Receivable (AR)"
+    label_color: "#1F7A1F"
+    outline_color: "#1F7A1F"
+    icon: warning
+    position: [1020, 350]
+    size: 70
+    label_anchor: above
+
+  - id: tresorerie
+    label: "Trésorerie"
+    label_color: "#6B2EA8"
+    outline_color: "#6B2EA8"
+    icon: money
+    position: [1170, 460]
+    size: 70
+    label_anchor: below
+
+  - id: ap
+    label: "Accounts Payable (AP)"
+    label_color: "#E89A6A"
+    outline_color: "#E89A6A"
+    icon: warning
+    position: [1020, 520]
+    size: 70
+    label_anchor: below
+
+  - id: fa
+    label: "Fixed Assets (FA)"
+    label_color: "#E690A8"
+    outline_color: "#E690A8"
+    icon: warning
+    position: [870, 580]
+    size: 60
+    label_anchor: below
+
+  - id: manual_je
+    label: "Manually Entered Journal Entries"
+    label_color: "#9E1A8C"
+    outline_color: "#26A4D8"
+    icon: warning
+    position: [970, 770]
+    size: 75
+    label_anchor: right
+
+# ── Connector edges ──────────────────────────────────────────────────────
+edges:
+  - {from: gl, to: sla}
+  - {from: gl, to: external_payroll}
+  - {from: gl, to: excel}
+  - {from: gl, to: manual_je}
+  - {from: gl, to: fa}
+  - {from: sla, to: ppm}
+  - {from: sla, to: receiving}
+  - {from: sla, to: ar}
+  - {from: sla, to: ap}
+  - {from: sla, to: fa}
+  - {from: ar, to: tresorerie}
+  - {from: ar, to: ap}

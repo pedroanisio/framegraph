@@ -1,0 +1,142 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Module-hub radial cell variants — flat-top hex nodes with an optional
+# icon glyph inset.
+#
+# Four variants share an identical 150×130 flat-top hex path; they differ
+# only in the inset icon. The same symbol scales naturally to bigger /
+# smaller node sizes — pass a larger `box:` on the `use` and both the
+# hex outline and the icon plate scale together (SVG stroke included).
+#
+# Hex path (flat-top, side a = 75):
+#   M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z
+#
+# Variants
+# ─────────────
+#   hex_node_warning   gray plate + ⚠ glyph (the dominant "generic content"
+#                      indicator in the reference design).
+#   hex_node_excel     dark-green plate + white "X" — denotes a spreadsheet
+#                      ingestion module.
+#   hex_node_money     light plate + € glyph — denotes a treasury / cash
+#                      module.
+#   hex_node_plain     hex outline only; no icon.
+#
+# Slots (content)
+# ─────────────
+#   (none) — the node label is rendered by the generator OUTSIDE the hex,
+#   not inside; the symbol is a pure geometry + icon primitive.
+#
+# Params (style)
+# ─────────────
+#   outline_color   Hex stroke color (per-node, color-coded by category).
+#   fill            Hex interior fill (typically `bg` / white).
+# ─────────────────────────────────────────────────────────────────────────
+
+_meta:
+  type: symbol_pack
+  id: modules.node_cells
+  version: 1.0.0
+  description: >-
+    Four flat-top hex node variants for the module_hub_radial template.
+    Each variant shares the same hex outline path; the inset icon plate
+    distinguishes warning / excel / money / plain. Designed to be
+    stamped at free-form positions and sizes (the symbol scales
+    naturally with the `use` box).
+  symbols:
+    - hex_node_warning
+    - hex_node_excel
+    - hex_node_money
+    - hex_node_plain
+  schema: module_hub_radial.schema.json
+
+symbols:
+
+  # ── Plain hex — outline only ────────────────────────────────────────
+  hex_node_plain:
+    box: [0, 0, 150, 130]
+    slots: []
+    objects:
+      - type: path
+        id: hex
+        d: "M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z"
+        fill: "$fill"
+        stroke:
+          color: "$outline_color"
+          width: 4
+
+  # ── Hex with warning glyph ──────────────────────────────────────────
+  hex_node_warning:
+    box: [0, 0, 150, 130]
+    slots: []
+    objects:
+      - type: path
+        id: hex
+        d: "M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z"
+        fill: "$fill"
+        stroke:
+          color: "$outline_color"
+          width: 4
+      - type: rect
+        id: icon_plate
+        box: [50, 45, 50, 40]
+        fill: "#EFEFEF"
+        stroke:
+          color: "#CCCCCC"
+          width: 0.5
+        radius: 2
+      - type: text
+        id: icon_glyph
+        box: [50, 45, 50, 40]
+        text: "!"
+        style: module_icon_warning
+
+  # ── Hex with Excel plate ────────────────────────────────────────────
+  hex_node_excel:
+    box: [0, 0, 150, 130]
+    slots: []
+    objects:
+      - type: path
+        id: hex
+        d: "M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z"
+        fill: "$fill"
+        stroke:
+          color: "$outline_color"
+          width: 4
+      - type: rect
+        id: icon_plate
+        box: [50, 45, 50, 40]
+        fill: "#1F6B3D"
+        stroke:
+          color: "#1F6B3D"
+          width: 0.5
+        radius: 2
+      - type: text
+        id: icon_glyph
+        box: [50, 45, 50, 40]
+        text: "X"
+        style: module_icon_excel
+
+  # ── Hex with money / treasury glyph ─────────────────────────────────
+  hex_node_money:
+    box: [0, 0, 150, 130]
+    slots: []
+    objects:
+      - type: path
+        id: hex
+        d: "M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z"
+        fill: "$fill"
+        stroke:
+          color: "$outline_color"
+          width: 4
+      - type: rect
+        id: icon_plate
+        box: [50, 45, 50, 40]
+        fill: "#FFFFFF"
+        stroke:
+          color: "$outline_color"
+          width: 0.5
+        radius: 2
+      - type: text
+        id: icon_glyph
+        box: [50, 45, 50, 40]
+        text: "€"
+        style: module_icon_money

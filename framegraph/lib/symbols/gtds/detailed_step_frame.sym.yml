@@ -1,0 +1,417 @@
+_meta:
+  type: symbol_pack
+  id: gtds.detailed_step_frame
+  version: 1.0.0
+  description: Detailed-approach appendix step template with process spine, objective/activity/deliverable regions, and Docusign footer.
+  slots:
+  - super_title
+  - step_title
+  - step_number
+  - objectives
+  - body
+  - activities
+  - preconditions
+  - cost_notes
+  - deliverables
+  - confidentiality
+  - page_number
+  params:
+  - accent_color
+  - objectives_label_box
+  - deliverables_label_box
+  required_text_styles:
+  - appendix_title
+  - detail_body
+  - detail_xs
+  - footer
+  - page
+  schema: detailed_step_frame.schema.json
+  canvas:
+    size:
+    - 960
+    - 540
+    units: px
+symbols:
+  detailed_step_frame:
+    box:
+    - 0
+    - 0
+    - 960
+    - 540
+    slots:
+    - super_title
+    - step_title
+    - step_number
+    - objectives
+    - body
+    - activities
+    - preconditions
+    - cost_notes
+    - deliverables
+    - confidentiality
+    - page_number
+    objects:
+    - type: rect
+      id: bg
+      box:
+      - 0
+      - 0
+      - 960
+      - 540
+      fill: white
+    - type: text
+      id: super
+      text: $super_title
+      box:
+      - 40
+      - 21
+      - 760
+      - 30
+      style: appendix_title
+    - type: text
+      id: step
+      text: $step_title
+      box:
+      - 38
+      - 64
+      - 780
+      - 24
+      style:
+        font: primary
+        size: 17
+        weight: 700
+        italic: true
+        color: $accent_color
+        align: left
+        line_height: 19
+        wrap: true
+        v_align: top
+    - type: line
+      id: title_rule
+      from:
+      - 45
+      - 54
+      to:
+      - 870
+      - 54
+      stroke:
+        color: '#4B00D8'
+        width: 1.1
+    - type: ellipse
+      id: step_num_ring
+      box:
+      - 13
+      - 63
+      - 18
+      - 18
+      fill: white
+      stroke:
+        color: $accent_color
+        width: 2
+    - type: text
+      id: step_num
+      text: $step_number
+      box:
+      - 13
+      - 65
+      - 18
+      - 10
+      style:
+        font: primary
+        size: 8
+        weight: 700
+        color: $accent_color
+        align: center
+        v_align: middle
+    - type: line
+      id: process_spine
+      from:
+      - 430
+      - 98
+      to:
+      - 430
+      - 493
+      stroke:
+        color: $accent_color
+        width: 5
+    - type: ellipse
+      id: process_node_objectives
+      box:
+      - 420
+      - 137
+      - 20
+      - 20
+      fill: white
+      stroke:
+        color: $accent_color
+        width: 6
+    - type: ellipse
+      id: process_node_activities
+      box:
+      - 420
+      - 282
+      - 20
+      - 20
+      fill: white
+      stroke:
+        color: $accent_color
+        width: 6
+    - type: ellipse
+      id: process_node_deliverables
+      box:
+      - 420
+      - 453
+      - 20
+      - 20
+      fill: white
+      stroke:
+        color: $accent_color
+        width: 6
+    - type: ellipse
+      id: icon_objectives
+      box:
+      - 350
+      - 127
+      - 48
+      - 48
+      fill: $accent_color
+    - type: path
+      id: icon_objectives_flag
+      d: M363 164 L363 140 M366 140 L388 144 L388 157 L366 153
+      fill: none
+      stroke:
+        color: white
+        width: 2
+    - type: ellipse
+      id: icon_activities
+      box:
+      - 476
+      - 272
+      - 48
+      - 48
+      fill: $accent_color
+    - type: ellipse
+      id: icon_activities_gear
+      box:
+      - 487
+      - 284
+      - 14
+      - 14
+      fill: none
+      stroke:
+        color: white
+        width: 2
+    - type: path
+      id: icon_activities_teeth
+      d: M494 279 L494 283 M494 298 L494 302 M482 291 L486 291 M501 291 L505 291 M486 283 L489 286 M499 296 L502 299 M502 283 L499 286 M489 296 L486 299
+      fill: none
+      stroke:
+        color: white
+        width: 1.5
+    - type: ellipse
+      id: icon_deliverables
+      box:
+      - 349
+      - 439
+      - 48
+      - 48
+      fill: $accent_color
+    - type: rect
+      id: icon_deliverables_card
+      box:
+      - 360
+      - 456
+      - 26
+      - 16
+      fill: none
+      stroke:
+        color: white
+        width: 2
+      radius: 2
+    - type: line
+      id: icon_deliverables_line1
+      from:
+      - 365
+      - 462
+      to:
+      - 381
+      - 462
+      stroke:
+        color: white
+        width: 1.5
+    - type: line
+      id: icon_deliverables_line2
+      from:
+      - 365
+      - 467
+      to:
+      - 381
+      - 467
+      stroke:
+        color: white
+        width: 1.5
+    - type: text
+      id: obj_label
+      text: OBJECTIVES
+      box: $objectives_label_box
+      style:
+        font: primary
+        size: 16
+        weight: 700
+        color: $accent_color
+        align: left
+    - type: text
+      id: obj
+      text: $objectives
+      box:
+      - 452
+      - 132
+      - 395
+      - 38
+      style:
+        font: primary
+        size: 7
+        weight: 700
+        color: ink
+        align: left
+        line_height: 10
+        wrap: true
+        v_align: top
+    - type: text
+      id: body
+      text: $body
+      box:
+      - 20
+      - 191
+      - 376
+      - 205
+      style:
+        font: primary
+        size: 9
+        weight: 400
+        color: ink
+        align: left
+        line_height: 13
+        wrap: true
+        v_align: top
+    - type: text
+      id: act
+      text: $activities
+      box:
+      - 540
+      - 292
+      - 120
+      - 18
+      style:
+        font: primary
+        size: 16
+        weight: 700
+        color: $accent_color
+        align: left
+    - type: rect
+      id: right_context_box
+      box:
+      - 674
+      - 198
+      - 230
+      - 220
+      fill: white
+      stroke:
+        color: '#9CA3AF'
+        width: 1
+      radius: 26
+    - type: text
+      id: pre
+      text: $preconditions
+      box:
+      - 692
+      - 242
+      - 194
+      - 90
+      style: detail_xs
+    - type: text
+      id: cost
+      text: $cost_notes
+      box:
+      - 692
+      - 340
+      - 194
+      - 78
+      style: detail_xs
+    - type: text
+      id: del_label
+      text: DELIVERABLES
+      box: $deliverables_label_box
+      style:
+        font: primary
+        size: 16
+        weight: 700
+        color: $accent_color
+        align: left
+    - type: bullet_list
+      id: del
+      items:
+      - 'Key Business Decisions and Key Design Decisions: details, pros and cons and recommended decisions'
+      - Recommendations for ledger strategy and COA alignment
+      box:
+      - 452
+      - 454
+      - 395
+      - 72
+      style:
+        font: primary
+        size: 7.5
+        weight: 700
+        color: $accent_color
+        align: left
+        line_height: 10
+        wrap: true
+        v_align: top
+      marker: "\u2022"
+      gap: 1
+      indent: 9
+      text: $deliverables
+    - type: rect
+      id: logo_mark_bg_36_503
+      box:
+      - 36
+      - 503
+      - 13
+      - 13
+      fill: purple
+    - type: path
+      id: logo_mark_fold_36_503
+      d: M43,503 L51,503 L58,510 L51,517 L43,517 Z
+      fill: red
+    - type: text
+      id: logo_text_36_503
+      text: docusign.
+      box:
+      - 56
+      - 502
+      - 95
+      - 20
+      style:
+        font: primary
+        size: 22
+        weight: 700
+        color: black
+        align: left
+    - type: text
+      id: confidentiality
+      text: $confidentiality
+      box:
+      - 340
+      - 508
+      - 280
+      - 16
+      style: footer
+    - type: text
+      id: page_number
+      text: $page_number
+      box:
+      - 880
+      - 508
+      - 50
+      - 16
+      style: page

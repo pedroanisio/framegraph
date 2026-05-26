@@ -1,0 +1,53 @@
+_meta:
+  type: symbol_pack
+  id: gtds.gt_content_frame
+  version: 1.0.0
+  description: White Grant Thornton content frame with GT mark and page number.
+  slots:
+  - page_number
+  params: []
+  required_text_styles:
+  - gt
+  - page
+  schema: gt_content_frame.schema.json
+  canvas:
+    size:
+    - 960
+    - 540
+    units: px
+symbols:
+  gt_content_frame:
+    box:
+    - 0
+    - 0
+    - 960
+    - 540
+    slots:
+    - page_number
+    objects:
+    - type: rect
+      id: bg
+      box:
+      - 0
+      - 0
+      - 960
+      - 540
+      fill: white
+    - type: text
+      id: gt_mark
+      text: GT
+      box:
+      - 880
+      - 18
+      - 50
+      - 18
+      style: gt
+    - type: text
+      id: page_number
+      text: $page_number
+      box:
+      - 880
+      - 508
+      - 50
+      - 16
+      style: page

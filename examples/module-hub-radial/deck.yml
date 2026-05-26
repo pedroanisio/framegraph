@@ -1,0 +1,686 @@
+dsl: FrameGraph
+version: '1.2'
+kind: presentation-deck
+deck:
+  canvas:
+    size:
+    - 1280
+    - 900
+    units: px
+  tokens:
+    colors:
+      bg: '#FFFFFF'
+      title_color: '#1A2B3E'
+      kicker_color: '#9A9A9A'
+      dot_primary: '#E51A4C'
+      dot_secondary: '#1A2B3E'
+      dot_tertiary: '#C8C8C8'
+      edge_color: '#C8C8C8'
+      page_number_color: '#9A9A9A'
+      _c_17273: '#9E1A8C'
+      _c_89053: '#E58938'
+      _c_02524: '#1F7A1F'
+      _c_11783: '#2B5C2B'
+      _c_27214: '#1C6B8A'
+      _c_88850: '#9A9A9A'
+      _c_26559: '#6B2EA8'
+      _c_53116: '#E89A6A'
+      _c_94968: '#E690A8'
+      _c_64986: '#26A4D8'
+    fonts:
+      primary: Century Gothic, Avenir Next, Avenir, Futura, Arial, sans-serif
+    text_styles:
+      module_title:
+        font: primary
+        size: 32
+        weight: 400
+        color: title_color
+        align: left
+        v_align: top
+        line_height: 38
+        wrap: true
+      module_kicker:
+        font: primary
+        size: 18
+        weight: 400
+        color: kicker_color
+        align: left
+        v_align: middle
+      module_hub_label:
+        font: primary
+        size: 30
+        weight: 400
+        color: '#E58938'
+        align: center
+        v_align: middle
+        line_height: 36
+        wrap: true
+      module_hub_detail_heading:
+        font: primary
+        size: 16
+        weight: 700
+        color: '#9E1A8C'
+        align: left
+        v_align: top
+      module_hub_detail_bullets:
+        font: primary
+        size: 13
+        weight: 400
+        color: '#1A2B3E'
+        align: left
+        v_align: top
+        line_height: 18
+      module_sat_label_center:
+        font: primary
+        size: 14
+        weight: 400
+        color: '#1A2B3E'
+        align: center
+        v_align: middle
+        line_height: 18
+        wrap: true
+      module_sat_label_left:
+        font: primary
+        size: 14
+        weight: 400
+        color: '#1A2B3E'
+        align: left
+        v_align: middle
+        line_height: 18
+        wrap: true
+      module_sat_label_right:
+        font: primary
+        size: 14
+        weight: 400
+        color: '#1A2B3E'
+        align: right
+        v_align: middle
+        line_height: 18
+        wrap: true
+      module_icon_warning:
+        font: primary
+        size: 22
+        weight: 700
+        color: '#1A1A1A'
+        align: center
+        v_align: middle
+      module_icon_excel:
+        font: primary
+        size: 24
+        weight: 700
+        color: '#FFFFFF'
+        align: center
+        v_align: middle
+      module_icon_money:
+        font: primary
+        size: 22
+        weight: 700
+        color: '#1A2B3E'
+        align: center
+        v_align: middle
+      module_page_number:
+        font: primary
+        size: 11
+        weight: 400
+        color: page_number_color
+        align: center
+        v_align: middle
+  symbols:
+    hex_node_plain:
+      box:
+      - 0
+      - 0
+      - 150
+      - 130
+      slots: []
+      objects:
+      - type: path
+        id: hex
+        d: M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z
+        fill: $fill
+        stroke:
+          color: $outline_color
+          width: 4
+    hex_node_warning:
+      box:
+      - 0
+      - 0
+      - 150
+      - 130
+      slots: []
+      objects:
+      - type: path
+        id: hex
+        d: M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z
+        fill: $fill
+        stroke:
+          color: $outline_color
+          width: 4
+      - type: rect
+        id: icon_plate
+        box:
+        - 50
+        - 45
+        - 50
+        - 40
+        fill: '#EFEFEF'
+        stroke:
+          color: '#CCCCCC'
+          width: 0.5
+        radius: 2
+      - type: text
+        id: icon_glyph
+        box:
+        - 50
+        - 45
+        - 50
+        - 40
+        text: '!'
+        style: module_icon_warning
+    hex_node_excel:
+      box:
+      - 0
+      - 0
+      - 150
+      - 130
+      slots: []
+      objects:
+      - type: path
+        id: hex
+        d: M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z
+        fill: $fill
+        stroke:
+          color: $outline_color
+          width: 4
+      - type: rect
+        id: icon_plate
+        box:
+        - 50
+        - 45
+        - 50
+        - 40
+        fill: '#1F6B3D'
+        stroke:
+          color: '#1F6B3D'
+          width: 0.5
+        radius: 2
+      - type: text
+        id: icon_glyph
+        box:
+        - 50
+        - 45
+        - 50
+        - 40
+        text: X
+        style: module_icon_excel
+    hex_node_money:
+      box:
+      - 0
+      - 0
+      - 150
+      - 130
+      slots: []
+      objects:
+      - type: path
+        id: hex
+        d: M 150 65 L 112.5 130 L 37.5 130 L 0 65 L 37.5 0 L 112.5 0 Z
+        fill: $fill
+        stroke:
+          color: $outline_color
+          width: 4
+      - type: rect
+        id: icon_plate
+        box:
+        - 50
+        - 45
+        - 50
+        - 40
+        fill: '#FFFFFF'
+        stroke:
+          color: $outline_color
+          width: 0.5
+        radius: 2
+      - type: text
+        id: icon_glyph
+        box:
+        - 50
+        - 45
+        - 50
+        - 40
+        text: €
+        style: module_icon_money
+slides:
+- slide: 1
+  id: s_module_hub
+  title: Identification of Modules by Legal Entity
+  description: Module Configuration
+  visual:
+    layers:
+    - id: module_hub
+      z: 10
+      objects:
+      - type: ellipse
+        id: dot_primary
+        box:
+        - 22
+        - 14
+        - 18
+        - 18
+        fill: dot_primary
+      - type: ellipse
+        id: dot_secondary
+        box:
+        - 22
+        - 44
+        - 18
+        - 18
+        fill: dot_secondary
+      - type: ellipse
+        id: dot_tertiary
+        box:
+        - 22
+        - 92
+        - 18
+        - 18
+        fill: dot_tertiary
+      - type: text
+        id: title
+        box:
+        - 60
+        - 12
+        - 1200
+        - 56
+        text: Identification of Modules by Legal Entity
+        style: module_title
+      - type: text
+        id: kicker
+        box:
+        - 60
+        - 88
+        - 1200
+        - 24
+        text: Module Configuration
+        style: module_kicker
+      - type: line
+        id: edge_0
+        from:
+        - 600.0
+        - 480.0
+        to:
+        - 870.0
+        - 320.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_1
+        from:
+        - 600.0
+        - 480.0
+        to:
+        - 220.0
+        - 320.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_2
+        from:
+        - 600.0
+        - 480.0
+        to:
+        - 320.0
+        - 690.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_3
+        from:
+        - 600.0
+        - 480.0
+        to:
+        - 970.0
+        - 770.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_4
+        from:
+        - 600.0
+        - 480.0
+        to:
+        - 870.0
+        - 580.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_5
+        from:
+        - 870.0
+        - 320.0
+        to:
+        - 560.0
+        - 160.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_6
+        from:
+        - 870.0
+        - 320.0
+        to:
+        - 720.0
+        - 160.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_7
+        from:
+        - 870.0
+        - 320.0
+        to:
+        - 1020.0
+        - 350.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_8
+        from:
+        - 870.0
+        - 320.0
+        to:
+        - 1020.0
+        - 520.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_9
+        from:
+        - 870.0
+        - 320.0
+        to:
+        - 870.0
+        - 580.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_10
+        from:
+        - 1020.0
+        - 350.0
+        to:
+        - 1170.0
+        - 460.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: line
+        id: edge_11
+        from:
+        - 1020.0
+        - 350.0
+        to:
+        - 1020.0
+        - 520.0
+        stroke:
+          color: edge_color
+          width: 1.5
+      - type: text
+        id: hub_label
+        box:
+        - 430.0
+        - 277.416697508023
+        - 340.0
+        - 80
+        text: General Ledger (GL)
+        style: module_hub_label
+      - type: use
+        id: node_gl
+        symbol: hex_node_warning
+        box:
+        - 470.0
+        - 367.416697508023
+        - 260.0
+        - 225.16660498395404
+        params:
+          outline_color: '#9E1A8C'
+          fill: bg
+      - type: text
+        id: hub_detail_heading
+        box:
+        - 320
+        - 740
+        - 540
+        - 24
+        text: Automatic GL Journal Entries
+        style: module_hub_detail_heading
+      - type: bullet_list
+        id: hub_detail_bullets
+        box:
+        - 344
+        - 772
+        - 516
+        - 118
+        items:
+        - Copied journal entries
+        - Reversal journal entries
+        - Closing / Year-End Balance Carryforward entries
+        marker: •
+        style: module_hub_detail_bullets
+      - type: use
+        id: node_sla
+        symbol: hex_node_warning
+        box:
+        - 795.0
+        - 255.0480947161671
+        - 150.0
+        - 129.9038105676658
+        params:
+          outline_color: '#1F7A1F'
+          fill: bg
+      - type: text
+        id: label_sla
+        box:
+        - 755.0
+        - 205.0480947161671
+        - 230.0
+        - 44
+        text: Subledger Accounting (SLA)
+        style: module_sat_label_center
+      - type: use
+        id: node_ppm
+        symbol: hex_node_plain
+        box:
+        - 510.0
+        - 116.69872981077808
+        - 100.0
+        - 86.60254037844386
+        params:
+          outline_color: '#1F7A1F'
+          fill: bg
+      - type: text
+        id: label_ppm
+        box:
+        - 470.0
+        - 66.69872981077808
+        - 180.0
+        - 44
+        text: Project Accounting (PPM)
+        style: module_sat_label_center
+      - type: use
+        id: node_receiving
+        symbol: hex_node_plain
+        box:
+        - 670.0
+        - 116.69872981077808
+        - 100.0
+        - 86.60254037844386
+        params:
+          outline_color: '#1F7A1F'
+          fill: bg
+      - type: text
+        id: label_receiving
+        box:
+        - 630.0
+        - 66.69872981077808
+        - 180.0
+        - 44
+        text: Receiving Accounting
+        style: module_sat_label_center
+      - type: use
+        id: node_external_payroll
+        symbol: hex_node_warning
+        box:
+        - 145.0
+        - 255.0480947161671
+        - 150.0
+        - 129.9038105676658
+        params:
+          outline_color: '#2B5C2B'
+          fill: bg
+      - type: text
+        id: label_external_payroll
+        box:
+        - 105.0
+        - 205.0480947161671
+        - 230.0
+        - 44
+        text: External Interfaces (Payroll)
+        style: module_sat_label_center
+      - type: use
+        id: node_excel
+        symbol: hex_node_excel
+        box:
+        - 245.0
+        - 625.048094716167
+        - 150.0
+        - 129.9038105676658
+        params:
+          outline_color: '#1C6B8A'
+          fill: bg
+      - type: text
+        id: label_excel
+        box:
+        - 205.0
+        - 575.048094716167
+        - 230.0
+        - 44
+        text: Excel Spreadsheets (ADFDI)
+        style: module_sat_label_center
+      - type: use
+        id: node_ar
+        symbol: hex_node_warning
+        box:
+        - 950.0
+        - 289.3782217350893
+        - 140.0
+        - 121.2435565298214
+        params:
+          outline_color: '#1F7A1F'
+          fill: bg
+      - type: text
+        id: label_ar
+        box:
+        - 910.0
+        - 239.3782217350893
+        - 220.0
+        - 44
+        text: Accounts Receivable (AR)
+        style: module_sat_label_center
+      - type: use
+        id: node_tresorerie
+        symbol: hex_node_money
+        box:
+        - 1100.0
+        - 399.3782217350893
+        - 140.0
+        - 121.2435565298214
+        params:
+          outline_color: '#6B2EA8'
+          fill: bg
+      - type: text
+        id: label_tresorerie
+        box:
+        - 1060.0
+        - 526.6217782649107
+        - 220.0
+        - 44
+        text: Trésorerie
+        style: module_sat_label_center
+      - type: use
+        id: node_ap
+        symbol: hex_node_warning
+        box:
+        - 950.0
+        - 459.3782217350893
+        - 140.0
+        - 121.2435565298214
+        params:
+          outline_color: '#E89A6A'
+          fill: bg
+      - type: text
+        id: label_ap
+        box:
+        - 910.0
+        - 586.6217782649107
+        - 220.0
+        - 44
+        text: Accounts Payable (AP)
+        style: module_sat_label_center
+      - type: use
+        id: node_fa
+        symbol: hex_node_warning
+        box:
+        - 810.0
+        - 528.0384757729337
+        - 120.0
+        - 103.92304845413263
+        params:
+          outline_color: '#E690A8'
+          fill: bg
+      - type: text
+        id: label_fa
+        box:
+        - 770.0
+        - 637.9615242270663
+        - 200.0
+        - 44
+        text: Fixed Assets (FA)
+        style: module_sat_label_center
+      - type: use
+        id: node_manual_je
+        symbol: hex_node_warning
+        box:
+        - 895.0
+        - 705.048094716167
+        - 150.0
+        - 129.9038105676658
+        params:
+          outline_color: '#26A4D8'
+          fill: bg
+      - type: text
+        id: label_manual_je
+        box:
+        - 1051.0
+        - 748.0
+        - 220
+        - 44
+        text: Manually Entered Journal Entries
+        style: module_sat_label_left
+      - type: text
+        id: page_number
+        box:
+        - 0
+        - 872
+        - 1280
+        - 18
+        text: '4'
+        style: module_page_number

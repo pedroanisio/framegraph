@@ -1,0 +1,95 @@
+_meta:
+  type: symbol_pack
+  id: gtds.docusign_section_divider
+  version: 1.0.0
+  description: Docusign section divider with pale background, corner-line treatment, logo, title, and page number.
+  slots:
+  - section_title
+  - page_number
+  params: []
+  required_text_styles:
+  - divider_title
+  - page
+  schema: docusign_section_divider.schema.json
+  canvas:
+    size:
+    - 960
+    - 540
+    units: px
+symbols:
+  docusign_section_divider:
+    box:
+    - 0
+    - 0
+    - 960
+    - 540
+    slots:
+    - section_title
+    - page_number
+    objects:
+    - type: rect
+      id: bg
+      box:
+      - 0
+      - 0
+      - 960
+      - 540
+      fill: '#F6F1EE'
+    - type: path
+      id: corner_purple
+      d: M171 0 L171 161 Q171 219 113 219 L0 219
+      fill: none
+      stroke:
+        color: purple3
+        width: 4.0
+    - type: path
+      id: corner_red
+      d: M0 77 L245 77 Q276 77 276 108 L276 407 Q276 428 256 448 L147 540
+      fill: none
+      stroke:
+        color: red
+        width: 4.0
+    - type: text
+      id: section_title
+      text: $section_title
+      box:
+      - 340
+      - 247
+      - 560
+      - 84
+      style: divider_title
+    - type: rect
+      id: logo_mark_bg_36_503
+      box:
+      - 36
+      - 503
+      - 13
+      - 13
+      fill: purple
+    - type: path
+      id: logo_mark_fold_36_503
+      d: M43,503 L51,503 L58,510 L51,517 L43,517 Z
+      fill: red
+    - type: text
+      id: logo_text_36_503
+      text: docusign.
+      box:
+      - 56
+      - 502
+      - 95
+      - 20
+      style:
+        font: primary
+        size: 22
+        weight: 700
+        color: black
+        align: left
+    - type: text
+      id: page_number
+      text: $page_number
+      box:
+      - 880
+      - 508
+      - 50
+      - 16
+      style: page
