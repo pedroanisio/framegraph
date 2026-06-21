@@ -1,0 +1,819 @@
+(* ═══════════════════════════════════════════════════════════════════ *)
+(* FrameGraph — grammar (EBNF)                                          *)
+(*                                                                      *)
+(* GENERATED, NON-NORMATIVE. Do not edit by hand.                       *)
+(*   Source of truth : framegraph._schema (Pydantic v2 models) +        *)
+(*                      framegraph._frameset.FrameSetDocument           *)
+(*   Generator       : scripts/generate_ebnf.py                         *)
+(*   framegraph      : v0.1.0                                         *)
+(*                                                                      *)
+(* The Pydantic model graph is the executable, normative contract; this *)
+(* EBNF is derived from the JSON Schema those models emit, so it cannot *)
+(* drift. Regenerate with: python scripts/generate_ebnf.py             *)
+(*                                                                      *)
+(* Scope: a structural grammar over the YAML/JSON DATA MODEL (a YAML    *)
+(* document is a superset of JSON). Terminals `string`/`number`/... are *)
+(* YAML scalars; the `"{"`/`"["` terminals are shown in JSON flow style *)
+(* — the equivalent YAML block form is always valid. Mapping members    *)
+(* are UNORDERED; the commas/braces are the JSON projection only.       *)
+(* Models declared `extra="allow"` admit arbitrary extra keys, shown as *)
+(* a trailing `{ extra-member }`.                                        *)
+(*                                                                      *)
+(* Dialect: ISO/IEC 14977.  = define  ; end  , concat  | or            *)
+(*   [ ] optional   { } repeat(0+)   ( ) group   "x" terminal           *)
+(*   ? x ? lexical token   ;   paren-star ... star-paren = comment       *)
+(* ═══════════════════════════════════════════════════════════════════ *)
+
+
+(* ── Start symbol ── *)
+
+framegraph-document = Document | DeckDocument | FrameSetDocument ;
+
+(* ── Document roots ── *)
+
+Document =
+    "{" ,
+      "dsl" , ":" , "FrameGraph" ,
+      "version" , ":" , number ,
+      [ "kind" , ":" , string ] ,
+      "scene" , ":" , Scene ,
+      [ "semantic" , ":" , Semantic ] ,
+      [ "visual" , ":" , Visual ] ,
+      { extra-member } ,
+    "}" ;
+
+DeckDocument =
+    "{" ,
+      "dsl" , ":" , "FrameGraph" ,
+      "version" , ":" , number ,
+      [ "kind" , ":" , string ] ,
+      [ "deck" , ":" , DeckConfig ] ,
+      [ "slides" , ":" , "[" , [ SlideEntry , { "," , SlideEntry } ] , "]" ] ,
+      [ "$theme" , ":" , string ] ,
+      { extra-member } ,
+    "}" ;
+
+FrameSetDocument =
+    "{" ,
+      "dsl" , ":" , "FrameGraph" ,
+      "version" , ":" , number ,
+      "kind" , ":" , "frameset" ,
+      [ "frameset" , ":" , FrameSetMeta ] ,
+      [ "$theme" , ":" , string ] ,
+      [ "stylesheet" , ":" , string ] ,
+      "frames" , ":" , "[" , Frame , { "," , Frame } , "]" ,
+    "}" ;
+
+(* ── Visual object (discriminated on `type`) ── *)
+
+VisualObject =
+      BarChartObject
+    | BulletListObject
+    | ChipRowObject
+    | ComponentObject
+    | ConnectorObject
+    | ContainerObject
+    | EllipseObject
+    | GroupObject
+    | IconObject
+    | ImageObject
+    | LegendObject
+    | LineObject
+    | LineChartObject
+    | PathObject
+    | PolylineObject
+    | RectObject
+    | TableObject
+    | TextObject
+    | UMLActionObject
+    | UMLActivationBarObject
+    | UMLActivityNodeObject
+    | UMLActorObject
+    | UMLArtifactBoxObject
+    | UMLClassifierBoxObject
+    | UMLComponentBoxObject
+    | UMLFragmentFrameObject
+    | UMLLifelineObject
+    | UMLLollipopObject
+    | UMLMarkerGlyphObject
+    | UMLNodeBoxObject
+    | UMLPseudostateObject
+    | UMLSocketObject
+    | UMLStateBoxObject
+    | UMLSwimlaneObject
+    | UMLTimingLaneObject
+    | UseObject
+    | _UnknownObject
+    ;
+
+common-object-fields = (* every field optional; mapping members unordered *)
+      [ "id" , ":" , string ] ,
+      [ "decorative" , ":" , boolean ] ,
+      [ "bind" , ":" , string ] ,
+      [ "box" , ":" , "[" , number , "," , number , "," , number , "," , number , "]" ] ,
+      [ "rotation" , ":" , any ] ,
+      [ "ports" , ":" , "{" , { string , ":" , "[" , number , "," , number , "]" } , "}" ] ,
+      [ "opacity" , ":" , number ] ,
+      [ "fill_opacity" , ":" , number ] ,
+      [ "stroke_opacity" , ":" , number ] ,
+      [ "shadow" , ":" , ( string | object-any | boolean ) ] ,
+      [ "glow" , ":" , ( string | object-any | boolean ) ] ,
+      [ "outer_ring" , ":" , ( OuterRing | object-any ) ]
+    ;
+
+BarChartObject =
+    "{" ,
+      "type" , ":" , "bar_chart" ,
+      [ "data" , ":" , object-any ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+BulletListObject =
+    "{" ,
+      "type" , ":" , "bullet_list" ,
+      [ "items" , ":" , "[" , [ any , { "," , any } ] , "]" ] ,
+      [ "marker" , ":" , string ] ,
+      [ "marker_color" , ":" , string ] ,
+      [ "gap" , ":" , number ] ,
+      [ "indent" , ":" , number ] ,
+      [ "style" , ":" , ( string | TextStyle ) ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+ChipRowObject =
+    "{" ,
+      "type" , ":" , "chip_row" ,
+      [ "items" , ":" , "[" , [ any , { "," , any } ] , "]" ] ,
+      [ "origin" , ":" , "[" , number , "," , number , "]" ] ,
+      [ "height" , ":" , number ] ,
+      [ "gap" , ":" , number ] ,
+      [ "fill" , ":" , string ] ,
+      [ "stroke" , ":" , ( string | object-any ) ] ,
+      [ "style" , ":" , ( string | TextStyle ) ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+ComponentObject =
+    "{" ,
+      "type" , ":" , "component" ,
+      [ "component" , ":" , string ] ,
+      [ "variant" , ":" , string ] ,
+      [ "fill" , ":" , string ] ,
+      [ "radius" , ":" , number ] ,
+      [ "stroke_style" , ":" , string ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+ConnectorObject =
+    "{" ,
+      "type" , ":" , "connector" ,
+      [ "from" , ":" , ( string | object-any ) ] ,
+      [ "to" , ":" , ( string | object-any ) ] ,
+      [ "route" , ":" , object-any ] ,
+      [ "label" , ":" , string ] ,
+      [ "stroke" , ":" , ( string | object-any ) ] ,
+      [ "stroke_style" , ":" , string ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+ContainerObject =
+    "{" ,
+      "type" , ":" , "container" ,
+      [ "children" , ":" , "[" , [ object-any , { "," , object-any } ] , "]" ] ,
+      [ "objects" , ":" , "[" , [ object-any , { "," , object-any } ] , "]" ] ,
+      [ "layout" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+EllipseObject =
+    "{" ,
+      "type" , ":" , "ellipse" ,
+      [ "center" , ":" , "[" , number , "," , number , "]" ] ,
+      [ "rx" , ":" , number ] ,
+      [ "ry" , ":" , number ] ,
+      [ "fill" , ":" , string ] ,
+      [ "stroke" , ":" , ( string | object-any ) ] ,
+      [ "stroke_style" , ":" , string ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+GroupObject =
+    "{" ,
+      "type" , ":" , "group" ,
+      [ "children" , ":" , "[" , [ object-any , { "," , object-any } ] , "]" ] ,
+      [ "objects" , ":" , "[" , [ object-any , { "," , object-any } ] , "]" ] ,
+      [ "transform" , ":" , string ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+IconObject =
+    "{" ,
+      "type" , ":" , "icon" ,
+      [ "glyph" , ":" , string ] ,
+      [ "color" , ":" , string ] ,
+      [ "font" , ":" , string ] ,
+      [ "size" , ":" , number ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+ImageObject =
+    "{" ,
+      "type" , ":" , "image" ,
+      [ "href" , ":" , string ] ,
+      [ "src" , ":" , string ] ,
+      [ "uri" , ":" , string ] ,
+      [ "placeholder" , ":" , boolean ] ,
+      [ "preserve_aspect_ratio" , ":" , string ] ,
+      [ "clip" , ":" , ( boolean | object-any ) ] ,
+      [ "label" , ":" , string ] ,
+      [ "fill" , ":" , string ] ,
+      [ "radius" , ":" , number ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+LegendObject =
+    "{" ,
+      "type" , ":" , "legend" ,
+      [ "items" , ":" , "[" , [ any , { "," , any } ] , "]" ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+LineObject =
+    "{" ,
+      "type" , ":" , "line" ,
+      [ "from" , ":" , ( string | object-any ) ] ,
+      [ "to" , ":" , ( string | object-any ) ] ,
+      [ "stroke" , ":" , ( string | object-any ) ] ,
+      [ "stroke_style" , ":" , string ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+LineChartObject =
+    "{" ,
+      "type" , ":" , "line_chart" ,
+      [ "data" , ":" , object-any ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+PathObject =
+    "{" ,
+      "type" , ":" , "path" ,
+      [ "d" , ":" , string ] ,
+      [ "fill" , ":" , string ] ,
+      [ "stroke" , ":" , ( string | object-any ) ] ,
+      [ "stroke_style" , ":" , string ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+PolylineObject =
+    "{" ,
+      "type" , ":" , "polyline" ,
+      [ "points" , ":" , "[" , [ "[" , number , "," , number , "]" , { "," , "[" , number , "," , number , "]" } ] , "]" ] ,
+      [ "stroke" , ":" , ( string | object-any ) ] ,
+      [ "stroke_style" , ":" , string ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+RectObject =
+    "{" ,
+      "type" , ":" , "rect" ,
+      [ "fill" , ":" , string ] ,
+      [ "radius" , ":" , number ] ,
+      [ "stroke" , ":" , ( string | object-any ) ] ,
+      [ "stroke_style" , ":" , string ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+TableObject =
+    "{" ,
+      "type" , ":" , "table" ,
+      [ "columns" , ":" , "[" , [ any , { "," , any } ] , "]" ] ,
+      [ "header" , ":" , "[" , [ any , { "," , any } ] , "]" ] ,
+      [ "rows" , ":" , "[" , [ "[" , [ any , { "," , any } ] , "]" , { "," , "[" , [ any , { "," , any } ] , "]" } ] , "]" ] ,
+      [ "row_height" , ":" , number ] ,
+      [ "header_height" , ":" , number ] ,
+      [ "zebra" , ":" , boolean ] ,
+      [ "cell_padding" , ":" , ( number | "[" , [ number , { "," , number } ] , "]" ) ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+TextObject =
+    "{" ,
+      "type" , ":" , "text" ,
+      [ "text" , ":" , string ] ,
+      [ "value" , ":" , ( string | number ) ] ,
+      [ "spans" , ":" , "[" , [ object-any , { "," , object-any } ] , "]" ] ,
+      [ "style" , ":" , ( string | TextStyle ) ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLActionObject =
+    "{" ,
+      "type" , ":" , "uml.action" ,
+      "name" , ":" , string ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLActivationBarObject =
+    "{" ,
+      "type" , ":" , "uml.activation_bar" ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLActivityNodeObject =
+    "{" ,
+      "type" , ":" , "uml.activity_node" ,
+      "kind" , ":" , ( "initial" | "final" | "flow_final" | "decision" | "merge" | "fork" | "join" ) ,
+      [ "name" , ":" , string ] ,
+      [ "orientation" , ":" , ( "horizontal" | "vertical" ) ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLActorObject =
+    "{" ,
+      "type" , ":" , "uml.actor" ,
+      "name" , ":" , string ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLArtifactBoxObject =
+    "{" ,
+      "type" , ":" , "uml.artifact_box" ,
+      "name" , ":" , string ,
+      [ "stereotype" , ":" , string ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLClassifierBoxObject =
+    "{" ,
+      "type" , ":" , "uml.classifier_box" ,
+      "name" , ":" , string ,
+      [ "stereotype" , ":" , string ] ,
+      [ "abstract" , ":" , boolean ] ,
+      [ "attributes" , ":" , "[" , [ object-any , { "," , object-any } ] , "]" ] ,
+      [ "operations" , ":" , "[" , [ object-any , { "," , object-any } ] , "]" ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLComponentBoxObject =
+    "{" ,
+      "type" , ":" , "uml.component_box" ,
+      "name" , ":" , string ,
+      [ "stereotype" , ":" , string ] ,
+      [ "provided_interfaces" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "required_interfaces" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLFragmentFrameObject =
+    "{" ,
+      "type" , ":" , "uml.fragment_frame" ,
+      "kind" , ":" , ( "alt" | "opt" | "loop" | "par" | "break" | "critical" | "neg" | "strict" | "seq" | "ignore" | "consider" | "assert" | "ref" | "sd" ) ,
+      [ "operands" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "dividers" , ":" , "[" , [ number , { "," , number } ] , "]" ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLLifelineObject =
+    "{" ,
+      "type" , ":" , "uml.lifeline" ,
+      "name" , ":" , string ,
+      [ "type_name" , ":" , string ] ,
+      [ "actor" , ":" , boolean ] ,
+      [ "head_height" , ":" , number ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLLollipopObject =
+    "{" ,
+      "type" , ":" , "uml.lollipop" ,
+      "name" , ":" , string ,
+      [ "attach" , ":" , ( "north" | "south" | "east" | "west" ) ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLMarkerGlyphObject =
+    "{" ,
+      "type" , ":" , "uml.marker_glyph" ,
+      "kind" , ":" , ( "hollow_diamond" | "filled_diamond" | "hollow_triangle" | "filled_triangle" | "open_arrow" ) ,
+      "position" , ":" , "[" , [ number , { "," , number } ] , "]" ,
+      [ "size" , ":" , number ] ,
+      [ "color" , ":" , string ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLNodeBoxObject =
+    "{" ,
+      "type" , ":" , "uml.node_box" ,
+      "name" , ":" , string ,
+      [ "kind" , ":" , ( "device" | "execution_environment" ) ] ,
+      [ "stereotype" , ":" , string ] ,
+      [ "depth" , ":" , number ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLPseudostateObject =
+    "{" ,
+      "type" , ":" , "uml.pseudostate" ,
+      "kind" , ":" , ( "initial" | "final" | "choice" | "junction" | "fork" | "join" | "shallow_history" | "deep_history" | "entry_point" | "exit_point" | "terminate" ) ,
+      [ "name" , ":" , string ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLSocketObject =
+    "{" ,
+      "type" , ":" , "uml.socket" ,
+      "name" , ":" , string ,
+      [ "attach" , ":" , ( "north" | "south" | "east" | "west" ) ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLStateBoxObject =
+    "{" ,
+      "type" , ":" , "uml.state_box" ,
+      "name" , ":" , string ,
+      [ "entry" , ":" , string ] ,
+      [ "exit" , ":" , string ] ,
+      [ "do" , ":" , string ] ,
+      [ "composite" , ":" , boolean ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLSwimlaneObject =
+    "{" ,
+      "type" , ":" , "uml.swimlane" ,
+      "name" , ":" , string ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UMLTimingLaneObject =
+    "{" ,
+      "type" , ":" , "uml.timing_lane" ,
+      "name" , ":" , string ,
+      "states" , ":" , "[" , [ string , { "," , string } ] , "]" ,
+      [ "label_width" , ":" , number ] ,
+      [ "style" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+UseObject =
+    "{" ,
+      "type" , ":" , "use" ,
+      [ "symbol" , ":" , string ] ,
+      [ "params" , ":" , object-any ] ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+_UnknownObject =
+    "{" ,
+      "type" , ":" , string ,
+      common-object-fields ,
+      { extra-member } ,
+    "}" ;
+
+(* ── Supporting models ── *)
+
+Canvas =
+    "{" ,
+      "size" , ":" , "[" , number , "," , number , "]" ,
+      [ "units" , ":" , ( "px" | "pt" ) ] ,
+      { extra-member } ,
+    "}" ;
+
+ChromeConfig =
+    "{" ,
+      "symbol" , ":" , string ,
+      [ "params" , ":" , object-any ] ,
+      [ "z" , ":" , number ] ,
+      { extra-member } ,
+    "}" ;
+
+ComponentDef =
+    "{" ,
+      [ "fill" , ":" , string ] ,
+      [ "stroke" , ":" , ( string | object-any ) ] ,
+      [ "stroke_style" , ":" , string ] ,
+      [ "radius" , ":" , number ] ,
+      [ "text_style" , ":" , string ] ,
+      [ "geometry" , ":" , object-any ] ,
+      [ "variants" , ":" , "{" , { string , ":" , ComponentVariant } , "}" ] ,
+      [ "internal_layout" , ":" , "{" , { string , ":" , SlotLayout } , "}" ] ,
+      [ "slots" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      { extra-member } ,
+    "}" ;
+
+ComponentVariant =
+    "{" ,
+      [ "fill" , ":" , string ] ,
+      [ "stroke_style" , ":" , string ] ,
+      { extra-member } ,
+    "}" ;
+
+DeckConfig =
+    "{" ,
+      [ "canvas" , ":" , Canvas ] ,
+      [ "tokens" , ":" , Tokens ] ,
+      [ "symbols" , ":" , "{" , { string , ":" , SymbolDef } , "}" ] ,
+      [ "component_defs" , ":" , "{" , { string , ":" , ComponentDef } , "}" ] ,
+      [ "chrome" , ":" , ( string | ChromeConfig ) ] ,
+      { extra-member } ,
+    "}" ;
+
+EdgeEntry =
+    "{" ,
+      "id" , ":" , string ,
+      "type" , ":" , string ,
+      "from" , ":" , ( string | "[" , [ string , { "," , string } ] , "]" ) ,
+      "to" , ":" , ( string | "[" , [ string , { "," , string } ] , "]" ) ,
+      [ "label" , ":" , string ] ,
+      { extra-member } ,
+    "}" ;
+
+Frame =
+    "{" ,
+      "id" , ":" , string ,
+      [ "title" , ":" , string ] ,
+      [ "targets" , ":" , "[" , [ FrameTarget , { "," , FrameTarget } ] , "]" ] ,
+      [ "next" , ":" , string ] ,
+      [ "prev" , ":" , string ] ,
+      [ "links" , ":" , "[" , [ FrameLink , { "," , FrameLink } ] , "]" ] ,
+      [ "extends" , ":" , string ] ,
+      [ "visual" , ":" , object-any ] ,
+      [ "semantic" , ":" , object-any ] ,
+      [ "scene" , ":" , object-any ] ,
+      [ "use" , ":" , ( integer | string ) ] ,
+      [ "fill" , ":" , object-any ] ,
+      [ "notes" , ":" , string ] ,
+      { extra-member } ,
+    "}" ;
+
+FrameLink =
+    "{" ,
+      "to" , ":" , string ,
+      [ "relation" , ":" , ( "next" | "prev" | "see_also" | "appendix" | "source" | "child" | "parent" | "external" ) ] ,
+      [ "label" , ":" , string ] ,
+      [ "external" , ":" , boolean ] ,
+    "}" ;
+
+FrameSetDefaults =
+    "{" ,
+      [ "targets" , ":" , "[" , [ FrameTarget , { "," , FrameTarget } ] , "]" ] ,
+    "}" ;
+
+FrameSetMeta =
+    "{" ,
+      [ "defaults" , ":" , FrameSetDefaults ] ,
+      [ "canvas" , ":" , "[" , number , "," , number , "]" ] ,
+      [ "tokens" , ":" , object-any ] ,
+      [ "symbols" , ":" , object-any ] ,
+      [ "component_defs" , ":" , object-any ] ,
+      [ "chrome" , ":" , object-any ] ,
+      { extra-member } ,
+    "}" ;
+
+FrameTarget =
+    "{" ,
+      "name" , ":" , string ,
+      "canvas" , ":" , "[" , number , "," , number , "]" ,
+      [ "adjustments" , ":" , FrameTargetAdjustments ] ,
+    "}" ;
+
+FrameTargetAdjustments =
+    "{" ,
+      [ "font_scale" , ":" , number ] ,
+      [ "hide" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "padding_delta" , ":" , number ] ,
+    "}" ;
+
+Layer =
+    "{" ,
+      "id" , ":" , string ,
+      [ "z" , ":" , number ] ,
+      [ "opacity" , ":" , number ] ,
+      [ "objects" , ":" , "[" , [ VisualObject , { "," , VisualObject } ] , "]" ] ,
+      { extra-member } ,
+    "}" ;
+
+NodeEntry =
+    "{" ,
+      "id" , ":" , string ,
+      "type" , ":" , string ,
+      [ "label" , ":" , string ] ,
+      { extra-member } ,
+    "}" ;
+
+Ontology =
+    "{" ,
+      [ "node_types" , ":" , "{" , { string , ":" , TypeDef } , "}" ] ,
+      [ "edge_types" , ":" , "{" , { string , ":" , TypeDef } , "}" ] ,
+      { extra-member } ,
+    "}" ;
+
+OuterRing =
+    "{" ,
+      [ "color" , ":" , string ] ,
+      [ "width" , ":" , number ] ,
+      [ "gap" , ":" , number ] ,
+      [ "offset" , ":" , number ] ,
+      [ "dash" , ":" , ( "[" , [ number , { "," , number } ] , "]" | string ) ] ,
+      [ "opacity" , ":" , number ] ,
+      { extra-member } ,
+    "}" ;
+
+RenderingContract =
+    "{" ,
+      [ "coordinate_mode" , ":" , "absolute" ] ,
+      [ "text" , ":" , TextContract ] ,
+      [ "semantics" , ":" , SemanticsContract ] ,
+      [ "debug_boxes" , ":" , boolean ] ,
+      [ "preserve_manual_line_breaks" , ":" , boolean ] ,
+      { extra-member } ,
+    "}" ;
+
+Scene =
+    "{" ,
+      "id" , ":" , string ,
+      [ "name" , ":" , string ] ,
+      [ "description" , ":" , string ] ,
+      "canvas" , ":" , Canvas ,
+      [ "rendering_contract" , ":" , RenderingContract ] ,
+      [ "source_image" , ":" , object-any ] ,
+      { extra-member } ,
+    "}" ;
+
+Semantic =
+    "{" ,
+      [ "ontology" , ":" , Ontology ] ,
+      [ "nodes" , ":" , "[" , [ NodeEntry , { "," , NodeEntry } ] , "]" ] ,
+      [ "edges" , ":" , "[" , [ EdgeEntry , { "," , EdgeEntry } ] , "]" ] ,
+      { extra-member } ,
+    "}" ;
+
+SemanticsContract =
+    "{" ,
+      [ "decorative_objects_may_omit_bind" , ":" , boolean ] ,
+      { extra-member } ,
+    "}" ;
+
+SlideEntry =
+    "{" ,
+      [ "slide" , ":" , integer ] ,
+      "id" , ":" , string ,
+      [ "title" , ":" , string ] ,
+      [ "description" , ":" , string ] ,
+      [ "notes" , ":" , string ] ,
+      [ "$extends" , ":" , string ] ,
+      [ "tokens" , ":" , Tokens ] ,
+      [ "symbols" , ":" , "{" , { string , ":" , SymbolDef } , "}" ] ,
+      [ "semantic" , ":" , Semantic ] ,
+      [ "visual" , ":" , Visual ] ,
+      [ "chrome" , ":" , ( boolean | object-any ) ] ,
+      { extra-member } ,
+    "}" ;
+
+SlotLayout =
+    "{" ,
+      "box_offset" , ":" , "[" , ( number | string ) , "," , ( number | string ) , "," , ( number | string ) , "," , ( number | string ) , "]" ,
+      [ "style" , ":" , ( string | TextStyle ) ] ,
+      { extra-member } ,
+    "}" ;
+
+StrokeStyle =
+    "{" ,
+      [ "color" , ":" , string ] ,
+      [ "width" , ":" , number ] ,
+      [ "dash" , ":" , "[" , [ number , { "," , number } ] , "]" ] ,
+      [ "arrow_start" , ":" , boolean ] ,
+      [ "arrow_end" , ":" , boolean ] ,
+      [ "linecap" , ":" , string ] ,
+      [ "linejoin" , ":" , string ] ,
+      [ "opacity" , ":" , number ] ,
+      [ "stroke_opacity" , ":" , number ] ,
+      { extra-member } ,
+    "}" ;
+
+SymbolDef =
+    "{" ,
+      "box" , ":" , "[" , number , "," , number , "," , number , "," , number , "]" ,
+      [ "slots" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "ports" , ":" , "{" , { string , ":" , "[" , number , "," , number , "]" } , "}" ] ,
+      [ "objects" , ":" , "[" , [ object-any , { "," , object-any } ] , "]" ] ,
+      { extra-member } ,
+    "}" ;
+
+TextContract =
+    "{" ,
+      [ "min_font_size" , ":" , number ] ,
+      [ "overflow" , ":" , ( "visible" | "clip" | "shrink_to_fit" ) ] ,
+      { extra-member } ,
+    "}" ;
+
+TextStyle =
+    "{" ,
+      [ "font" , ":" , string ] ,
+      [ "size" , ":" , number ] ,
+      [ "weight" , ":" , ( integer | string ) ] ,
+      [ "color" , ":" , string ] ,
+      [ "align" , ":" , ( "left" | "center" | "right" ) ] ,
+      [ "v_align" , ":" , ( "top" | "middle" | "bottom" ) ] ,
+      [ "line_height" , ":" , number ] ,
+      [ "italic" , ":" , boolean ] ,
+      [ "wrap" , ":" , boolean ] ,
+      [ "overflow" , ":" , ( "visible" | "clip" ) ] ,
+      { extra-member } ,
+    "}" ;
+
+Tokens =
+    "{" ,
+      [ "colors" , ":" , "{" , { string , ":" , string } , "}" ] ,
+      [ "fonts" , ":" , "{" , { string , ":" , string } , "}" ] ,
+      [ "text_styles" , ":" , "{" , { string , ":" , TextStyle } , "}" ] ,
+      [ "stroke_styles" , ":" , "{" , { string , ":" , StrokeStyle } , "}" ] ,
+      [ "fill_styles" , ":" , "{" , { string , ":" , object-any } , "}" ] ,
+      [ "glyph_map" , ":" , "{" , { string , ":" , string } , "}" ] ,
+      { extra-member } ,
+    "}" ;
+
+TypeDef =
+    "{" ,
+      [ "meaning" , ":" , string ] ,
+      [ "directionality" , ":" , ( "directed" | "undirected" | "bidirectional" ) ] ,
+      { extra-member } ,
+    "}" ;
+
+Visual =
+    "{" ,
+      [ "tokens" , ":" , Tokens ] ,
+      [ "symbols" , ":" , "{" , { string , ":" , SymbolDef } , "}" ] ,
+      [ "component_defs" , ":" , "{" , { string , ":" , ComponentDef } , "}" ] ,
+      [ "layers" , ":" , "[" , [ Layer , { "," , Layer } ] , "]" ] ,
+      { extra-member } ,
+    "}" ;
+
+(* ── Lexical scalar terminals (YAML scalars / JSON primitives) ── *)
+string       = ? any YAML scalar interpreted as text ? ;
+number       = ? any YAML number — integer or float ? ;
+integer      = ? any YAML integer ? ;
+boolean      = "true" | "false" ;
+null         = "null" | "~" ;   (* in YAML, an absent/empty value is also null *)
+any          = string | number | boolean | null | array-any | object-any ;
+array-any    = "[" , [ any , { "," , any } ] , "]" ;
+object-any   = "{" , [ member-any , { "," , member-any } ] , "}" ;
+member-any   = string , ":" , any ;
+
+(* A model declared `extra="allow"` accepts arbitrary additional keys. *)
+extra-member = string , ":" , any ;

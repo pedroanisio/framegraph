@@ -27,7 +27,9 @@ Design notes:
 
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal
+import difflib
+from dataclasses import dataclass
+from typing import Annotated, Any, Literal, get_args
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 
@@ -48,6 +50,11 @@ Color = str
 
 # Stroke spec: either a single COLOR string or a full StrokeInline mapping.
 StrokeInlineLike = str | dict[str, Any]
+
+# Connector / line endpoint: a bare semantic-node or object id, OR a full
+# endpoint spec mapping (`{object, port, side, offset, …}`) resolved by the
+# renderer's `endpoint()`.
+EndpointSpec = str | dict[str, Any]
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -377,54 +384,102 @@ class RectObject(_ObjectBase):
     """Visual object `type: rect` — an axis-aligned, optionally rounded rectangle."""
 
     type: Literal["rect"]
+    fill: Color | None = None
+    radius: float | None = None
+    stroke: StrokeInlineLike | None = None
+    stroke_style: str | None = None
 
 
 class EllipseObject(_ObjectBase):
     """Visual object `type: ellipse` — an ellipse from `box` or `center` + radii."""
 
     type: Literal["ellipse"]
+    center: Point | None = None
+    rx: float | None = None
+    ry: float | None = None
+    fill: Color | None = None
+    stroke: StrokeInlineLike | None = None
+    stroke_style: str | None = None
 
 
 class TextObject(_ObjectBase):
     """Visual object `type: text` — a styled, box-bounded text block."""
 
     type: Literal["text"]
+    text: str | None = None
+    # `value` is a raw fallback for `text` (coerced to a string at render time).
+    value: str | float | None = None
+    # Rich inline runs: a list of `{text, weight?, color?, italic?, size?}` maps.
+    spans: list[dict[str, Any]] | None = None
+    style: str | TextStyle | None = None
 
 
 class BulletListObject(_ObjectBase):
     """Visual object `type: bullet_list` — a vertical list of `items` with markers."""
 
     type: Literal["bullet_list"]
+    # Each item is a string or a `{text, indent?, …}` mapping.
+    items: list[Any] | None = None
+    marker: str | None = None
+    marker_color: Color | None = None
+    gap: float | None = None
+    indent: float | None = None
+    style: str | TextStyle | None = None
 
 
 class LineObject(_ObjectBase):
     """Visual object `type: line` — a straight segment between two endpoints."""
 
     type: Literal["line"]
+    from_: EndpointSpec | None = Field(default=None, alias="from")
+    to: EndpointSpec | None = None
+    stroke: StrokeInlineLike | None = None
+    stroke_style: str | None = None
 
 
 class PolylineObject(_ObjectBase):
     """Visual object `type: polyline` — a connected multi-point open path."""
 
     type: Literal["polyline"]
+    points: list[Point] | None = None
+    stroke: StrokeInlineLike | None = None
+    stroke_style: str | None = None
 
 
 class PathObject(_ObjectBase):
     """Visual object `type: path` — a raw SVG path (`d`) primitive."""
 
     type: Literal["path"]
+    d: str | None = None
+    fill: Color | None = None
+    stroke: StrokeInlineLike | None = None
+    stroke_style: str | None = None
 
 
 class ImageObject(_ObjectBase):
     """Visual object `type: image` — an embedded or referenced image."""
 
     type: Literal["image"]
+    # Image source; `href` / `src` / `uri` are accepted synonyms.
+    href: str | None = None
+    src: str | None = None
+    uri: str | None = None
+    placeholder: bool | None = None
+    preserve_aspect_ratio: str | None = None
+    clip: bool | dict[str, Any] | None = None
+    label: str | None = None
+    fill: Color | None = None
+    radius: float | None = None
 
 
 class IconObject(_ObjectBase):
     """Visual object `type: icon` — a glyph selected by `glyph` (or `code`)."""
 
     type: Literal["icon"]
+    glyph: str | None = None
+    color: Color | None = None
+    font: str | None = None
+    size: float | None = None
 
 
 class UseObject(_ObjectBase):
@@ -439,24 +494,40 @@ class ConnectorObject(_ObjectBase):
     """Visual object `type: connector` — a routed edge between `from` and `to`."""
 
     type: Literal["connector"]
+    from_: EndpointSpec | None = Field(default=None, alias="from")
+    to: EndpointSpec | None = None
+    route: dict[str, Any] | None = None
+    label: str | None = None
+    stroke: StrokeInlineLike | None = None
+    stroke_style: str | None = None
 
 
 class LegendObject(_ObjectBase):
     """Visual object `type: legend` — a key of `sample` / `label` entries."""
 
     type: Literal["legend"]
+    # Each item is a `{sample/color, label}` mapping.
+    items: list[Any] | None = None
 
 
 class GroupObject(_ObjectBase):
     """Visual object `type: group` — a transform/opacity wrapper over children."""
 
     type: Literal["group"]
+    # Nested objects; `children` / `objects` are accepted synonyms.
+    children: list[dict[str, Any]] | None = None
+    objects: list[dict[str, Any]] | None = None
+    transform: str | None = None
 
 
 class ContainerObject(_ObjectBase):
     """Visual object `type: container` — auto-lays out `children` via its `layout`."""
 
     type: Literal["container"]
+    # Nested objects; `children` / `objects` are accepted synonyms.
+    children: list[dict[str, Any]] | None = None
+    objects: list[dict[str, Any]] | None = None
+    layout: dict[str, Any] | None = None
 
 
 class ComponentObject(_ObjectBase):
@@ -464,24 +535,41 @@ class ComponentObject(_ObjectBase):
 
     type: Literal["component"]
     component: str | None = None
+    variant: str | None = None
+    fill: Color | None = None
+    radius: float | None = None
+    stroke_style: str | None = None
 
 
 class ChipRowObject(_ObjectBase):
     """Visual object `type: chip_row` — a horizontal row of labelled chips."""
 
     type: Literal["chip_row"]
+    items: list[Any] | None = None
+    origin: Point | None = None
+    height: float | None = None
+    gap: float | None = None
+    fill: Color | None = None
+    stroke: StrokeInlineLike | None = None
+    style: str | TextStyle | None = None
 
 
 class BarChartObject(_ObjectBase):
     """Visual object `type: bar_chart` — a bar chart from `data` (built-in primitive)."""
 
     type: Literal["bar_chart"]
+    # `{labels, values | series, note}` — see the renderer for the series shape.
+    data: dict[str, Any] | None = None
+    style: dict[str, Any] | None = None
 
 
 class LineChartObject(_ObjectBase):
     """Visual object `type: line_chart` — a line chart from `data` (built-in primitive)."""
 
     type: Literal["line_chart"]
+    # `{labels, values | series, note}` — see the renderer for the series shape.
+    data: dict[str, Any] | None = None
+    style: dict[str, Any] | None = None
 
 
 class TableObject(_ObjectBase):
@@ -1067,6 +1155,122 @@ def validate_object(obj: dict[str, Any]) -> Any:
     return _ObjectAdapter.model_validate(obj).root
 
 
+# ─────────────────────────────────────────────────────────────────
+# Strict authoring check — unknown / mistyped object keys
+# ─────────────────────────────────────────────────────────────────
+#
+# PALS's Law (CLAUDE.md): LLM-authored YAML statistically carries typos
+# and hallucinated field names. The ingestion models are `extra="allow"`
+# for v1.x backward-compat (PURPOSE.md) and slot pass-through, so those
+# bad keys validate clean and render silently wrong. This SEPARATE,
+# opt-in layer flags any top-level object key not declared on the object's
+# model — catching `radious`/`colour`/`algin` before they ship — without
+# tightening the permissive ingestion contract.
+
+# Object types that legitimately accept arbitrary top-level keys:
+#   - `use` pulls symbol-slot values from arbitrary top-level fields
+#     (`obj[slot_name]`), so its key set is open by design.
+#   - `component` does the same for its `ComponentDef.slots` (the renderer
+#     reads `obj[slot]` for each declared slot).
+#   - unknown / third-party `register(type, fn)` types validate via
+#     `_UnknownObject` and have no declared contract to check against.
+_OPEN_OBJECT_TYPES: frozenset[str] = frozenset({"use", "component"})
+
+# Keys permitted on every object regardless of `type`:
+#   - `class`  — documented common pass-through (CSS-style hook).
+#   - `flex`   — container-child layout hint read by the layout engine from
+#                any child object, not by the child's own renderer.
+_UNIVERSAL_OBJECT_KEYS: frozenset[str] = frozenset({"class", "flex"})
+
+
+@dataclass(frozen=True)
+class StrictViolation:
+    """One unknown top-level key found on a visual object in strict mode."""
+
+    object_type: str
+    key: str
+    path: str
+    suggestion: str | None
+
+    def __str__(self) -> str:
+        """Render the violation as a `path (type): unknown key 'k'` diagnostic."""
+        hint = f" — did you mean '{self.suggestion}'?" if self.suggestion else ""
+        return f"{self.path} ({self.object_type}): unknown key '{self.key}'{hint}"
+
+
+def _object_models() -> dict[str, type[BaseModel]]:
+    """Map each first-class object `type` literal to its concrete model."""
+    union = get_args(KnownObject)[0]  # KnownObject = Annotated[<union>, Field(...)]
+    out: dict[str, type[BaseModel]] = {}
+    for member in get_args(union):
+        lits = get_args(member.model_fields["type"].annotation)
+        if lits and isinstance(lits[0], str):
+            out[lits[0]] = member
+    return out
+
+
+def _allowed_keys(model: type[BaseModel]) -> set[str]:
+    keys: set[str] = set(_UNIVERSAL_OBJECT_KEYS)
+    for name, field in model.model_fields.items():
+        keys.add(name)
+        if field.alias:
+            keys.add(field.alias)
+    return keys
+
+
+_ALLOWED_OBJECT_KEYS: dict[str, set[str]] = {
+    type_name: _allowed_keys(model) for type_name, model in _object_models().items()
+}
+
+
+def _check_object(obj: dict[str, Any], path: str, out: list[StrictViolation]) -> None:
+    type_name = obj.get("type")
+    if not isinstance(type_name, str) or type_name in _OPEN_OBJECT_TYPES:
+        return
+    allowed = _ALLOWED_OBJECT_KEYS.get(type_name)
+    if allowed is None:
+        return  # unknown / plug-in type → no declared contract to check
+    for key in obj:
+        if not isinstance(key, str) or key in allowed:
+            continue
+        match = difflib.get_close_matches(key, allowed, n=1, cutoff=0.7)
+        out.append(StrictViolation(type_name, key, path, match[0] if match else None))
+
+
+def iter_strict_violations(data: Any) -> list[StrictViolation]:
+    """Report every unknown top-level key on a visual object in a document.
+
+    Walks the whole document and inspects each object found in an `objects`
+    or `children` list (layers, groups, containers, symbol bodies),
+    comparing its top-level keys against the keys declared on the object's
+    Pydantic model. Open types (`use`) and unknown plug-in types are exempt.
+
+    This is an opt-in authoring-strictness layer (`framegraph render
+    --strict`, `framegraph validate --strict`) on top of the permissive,
+    backward-compatible ingestion schema — it never changes what
+    `validate_*` accepts.
+    """
+    out: list[StrictViolation] = []
+
+    def walk(node: Any, path: str) -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key in ("objects", "children") and isinstance(value, list):
+                    for i, item in enumerate(value):
+                        item_path = f"{path}.{key}[{i}]"
+                        if isinstance(item, dict) and isinstance(item.get("type"), str):
+                            _check_object(item, item_path, out)
+                        walk(item, item_path)
+                else:
+                    walk(value, f"{path}.{key}" if path else key)
+        elif isinstance(node, list):
+            for i, item in enumerate(node):
+                walk(item, f"{path}[{i}]")
+
+    walk(data, "")
+    return out
+
+
 __all__ = [
     "ComponentDef",
     "DeckDocument",
@@ -1074,9 +1278,11 @@ __all__ = [
     "Layer",
     "Scene",
     "Semantic",
+    "StrictViolation",
     "SymbolDef",
     "Tokens",
     "Visual",
+    "iter_strict_violations",
     "validate_any",
     "validate_deck",
     "validate_document",

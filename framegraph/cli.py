@@ -180,8 +180,22 @@ def cmd_validate(args: argparse.Namespace) -> int:
         print(f"ERROR validating: {exc}", file=sys.stderr)
         return 1
 
+    if getattr(args, "strict", False) and kind == "framegraph":
+        from framegraph._schema import iter_strict_violations
+
+        violations = iter_strict_violations(data)
+        if violations:
+            print(
+                f"STRICT: {args.input}  [{len(violations)} unknown object key(s)]",
+                file=sys.stderr,
+            )
+            for v in violations:
+                print(f"  {v}", file=sys.stderr)
+            return 1
+
     if not args.quiet:
-        print(f"VALID: {args.input}  [{kind} → {label}]")
+        suffix = " (strict)" if getattr(args, "strict", False) else ""
+        print(f"VALID: {args.input}  [{kind} → {label}]{suffix}")
     return 0
 
 
@@ -225,6 +239,19 @@ def cmd_render(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 1
+
+    if getattr(args, "strict", False):
+        from framegraph._schema import iter_strict_violations
+
+        violations = iter_strict_violations(doc)
+        if violations:
+            print(
+                f"ERROR: {args.input} has {len(violations)} unknown object key(s) (strict mode):",
+                file=sys.stderr,
+            )
+            for v in violations:
+                print(f"  {v}", file=sys.stderr)
+            return 1
 
     target_name = getattr(args, "target", None)
     link_base_url = getattr(args, "link_base_url", None)
@@ -1337,6 +1364,15 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["auto", "framegraph", "pattern-sidecar", "pattern-catalog"],
         default="auto",
         help="Validation schema family (default: auto-detect)",
+    )
+    vp.add_argument(
+        "--strict",
+        action="store_true",
+        help=(
+            "Also flag unknown / mistyped object keys (e.g. `radious`, `colour`) "
+            "with did-you-mean hints. Catches typos the permissive schema allows. "
+            "FrameGraph documents only."
+        ),
     )
     vp.add_argument("--quiet", action="store_true", help="Suppress success output")
 
