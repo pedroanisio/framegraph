@@ -196,42 +196,68 @@ def _render_api_index(catalog: dict[str, Any], generated_on: str) -> str:
 
 
 def _render_schema_page(catalog: dict[str, Any], generated_on: str) -> str:
-    """Render the schema reference: every model with its field table."""
+    """Render the COMPLETE schema reference from the document-model surface.
+
+    Enumerates `catalog["schema_models"]` — the `$defs` closure of the
+    document roots — so the page covers every object `type` and every
+    reachable model. Completeness is enforced by
+    `tests/unit/test_schema_reference_complete.py`.
+    """
+    sm = catalog.get("schema_models") or {}
+    models = sm.get("models") or []
+    object_types = sm.get("object_types") or {}
+    roots = sm.get("roots") or []
+
     parts = [
         _frontmatter(generated_on, extra={"title": "Schema reference"}),
         "",
         "# Schema reference",
         "",
-        "Field tables for every Pydantic model in the document schema, "
-        "derived from `model_json_schema()`. Use these to author valid "
-        "FrameGraph YAML.",
+        "Complete field tables for every model reachable from the document "
+        "root"
+        + ("s " if len(roots) != 1 else " ")
+        + ", ".join(f"`{r}`" for r in roots)
+        + ". Derived structurally from `model_json_schema()`, so this page "
+        "cannot omit a type the schema accepts — a CI gate "
+        "(`test_schema_reference_complete`) fails the build if it ever does.",
         "",
     ]
-    seen: set[str] = set()
-    for mod in catalog["modules"].values():
-        for sym in mod.get("symbols") or []:
-            fields = sym.get("schema_fields")
-            if not fields or sym["name"] in seen:
-                continue
-            seen.add(sym["name"])
-            parts += [f"## `{sym['name']}`", ""]
-            doc = (sym.get("docstring") or "").strip().splitlines()
-            if doc:
-                parts += [doc[0], ""]
-            rows = [
-                [
-                    f"`{f['name']}`",
-                    f"`{f['type']}`",
-                    "yes" if f.get("required") else "no",
-                    f.get("description", ""),
-                    _escape_cell(f.get("constraints", "")),
-                ]
-                for f in fields
+
+    # Object-type index — what may appear in an `objects:` list.
+    if object_types:
+        parts += [
+            "## Object types",
+            "",
+            "Every first-class `type:` value and the model that defines it.",
+            "",
+        ]
+        rows = [[f"`{t}`", f"[`{model}`](#{model.lower()})"] for t, model in object_types.items()]
+        parts += [_md_table(["`type:`", "Model"], rows), ""]
+
+    # Per-model field tables (one `##` heading each → stable anchors).
+    for m in models:
+        parts += [f"## `{m['name']}`", ""]
+        desc = (m.get("description") or "").strip().splitlines()
+        if desc:
+            parts += [desc[0], ""]
+        fields = m.get("schema_fields") or []
+        if not fields:
+            parts += ["*No declared fields (enum, alias, or open type).*", ""]
+            continue
+        rows = [
+            [
+                f"`{f['name']}`",
+                f"`{f['type']}`",
+                "yes" if f.get("required") else "no",
+                f.get("description", ""),
+                _escape_cell(f.get("constraints", "")),
             ]
-            parts += [
-                _md_table(["Field", "Type", "Required", "Description", "Constraints"], rows),
-                "",
-            ]
+            for f in fields
+        ]
+        parts += [
+            _md_table(["Field", "Type", "Required", "Description", "Constraints"], rows),
+            "",
+        ]
     return "\n".join(parts).rstrip() + "\n"
 
 

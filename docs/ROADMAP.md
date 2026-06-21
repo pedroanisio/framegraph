@@ -49,7 +49,7 @@ It is the only open tool that combines all four of:
 | Symbol packs | 2: `shared/s_node.sym.yml`, `shared/insight_box.sym.yml` |
 | Golden harness | [tests/run_tests.py](../tests/run_tests.py) — 21 fixtures · 35 golden slides · 1 % pixel tolerance ([tests/tolerance.cfg](../tests/tolerance.cfg)). **35 / 35 slides pass** as of commit `843c2c4` (re-bless of `genai_mediated_system_v2*` in `58a1894`, content-invariant regression test in `843c2c4`). |
 | Pytest suite | 419 unit + integration tests at [tests/unit/](../tests/unit/) and [tests/integration/](../tests/integration/) · 91.39 % line + branch coverage · `--cov-fail-under=90` enforced in [pyproject.toml](../pyproject.toml) |
-| Document schema | Pydantic v2 models at [`framegraph/_schema.py`](../framegraph/_schema.py) — normative. Human-readable companion at [`static/specs/SCHEMA.md`](../static/specs/SCHEMA.md). The previous `GRAMMAR.ebnf` was removed in the schema migration (2026-05-07); see SCHEMA.md history. |
+| Document schema | Pydantic v2 models at [`framegraph/_schema.py`](../framegraph/_schema.py) — normative. A complete, always-current field reference (every model and object type) is generated into the documentation portal by [`framegraph/_docsite`](../framegraph/_docsite/), CI-gated for completeness. The previous `GRAMMAR.ebnf` was removed in the schema migration (2026-05-07). |
 | CLI | `framegraph render` · `framegraph deck` · `framegraph version` ([framegraph/cli.py](../framegraph/cli.py)) |
 
 ### Feature surface

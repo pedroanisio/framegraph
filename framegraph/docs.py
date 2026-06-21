@@ -42,17 +42,22 @@ from pydantic import BaseModel
 __all__ = [
     "CATALOG_SCHEMA_VERSION",
     "build_catalog",
+    "build_schema_models",
     "render_catalog_json",
 ]
 
 
-CATALOG_SCHEMA_VERSION = "1.1.0"
+CATALOG_SCHEMA_VERSION = "1.2.0"
 """Semver of the catalog JSON shape. Bump major when consumers must adapt.
 
 History:
     1.0.0 — modules / symbols / docstrings / json_schema.
     1.1.0 — additive: per-symbol ``schema_fields`` flat table and a
         top-level ``cli`` section introspected from ``build_parser()``.
+    1.2.0 — additive: top-level ``schema_models`` section enumerating
+        every model reachable from the document roots (``Document`` /
+        ``DeckDocument``) plus the complete object ``type`` map — the
+        anti-drift basis for a *complete* schema reference.
 """
 
 
@@ -378,6 +383,104 @@ def _cli_catalog() -> dict[str, Any]:
 
 
 # ─────────────────────────────────────────────────────────────────
+# Complete schema-model enumeration (document-root reachable)
+# ─────────────────────────────────────────────────────────────────
+#
+# The `modules` section above is scoped to each module's `__all__` — the
+# curated *public API* surface. That is deliberately NOT the same as the
+# set of models an author needs to write valid YAML: the discriminated
+# object-type union members (`RectObject`, …) and many structural models
+# are not exported. To produce a *complete* schema reference that cannot
+# silently drop a type, enumerate every model reachable from the document
+# roots via JSON-Schema `$defs`, which Pydantic derives from the models
+# themselves — so the set is authoritative by construction.
+
+# Document-root models whose `$defs` closure defines the full surface.
+_DOCUMENT_ROOTS: tuple[str, ...] = ("Document", "DeckDocument")
+
+
+def _object_type_map() -> dict[str, str]:
+    """Map every object ``type`` literal to its model name.
+
+    Walks the discriminated-union members in ``framegraph._schema`` and
+    reads each model's ``type: Literal[...]`` field. The result is the
+    authoritative, complete list of first-class object types — the basis
+    for the schema-reference completeness gate.
+    """
+    import typing
+
+    import framegraph._schema as schema_mod
+
+    out: dict[str, str] = {}
+    for name, obj in vars(schema_mod).items():
+        if not (inspect.isclass(obj) and issubclass(obj, BaseModel)):
+            continue
+        field = obj.model_fields.get("type")
+        if field is None:
+            continue
+        for arg in typing.get_args(field.annotation):
+            if isinstance(arg, str):
+                out[arg] = name
+    return dict(sorted(out.items()))
+
+
+def _collect_document_defs() -> dict[str, dict[str, Any]]:
+    """Return every model schema reachable from the document roots.
+
+    Keyed by model name; includes the root models themselves and every
+    ``$defs`` entry Pydantic emits for their nested models. This is the
+    complete document-model surface, derived from the models — it cannot
+    omit a type that the schema actually accepts.
+    """
+    import framegraph._schema as schema_mod
+
+    defs: dict[str, dict[str, Any]] = {}
+    for root_name in _DOCUMENT_ROOTS:
+        model = getattr(schema_mod, root_name, None)
+        if model is None or not issubclass(model, BaseModel):
+            continue
+        root_schema = model.model_json_schema(ref_template="#/$defs/{model}")
+        for name, node in (root_schema.get("$defs") or {}).items():
+            defs.setdefault(name, node)
+        # The root carries no $def for itself; register it explicitly.
+        root_only = {k: v for k, v in root_schema.items() if k != "$defs"}
+        defs.setdefault(root_name, root_only)
+    return defs
+
+
+def build_schema_models() -> dict[str, Any]:
+    """Enumerate the complete document-model surface for the schema reference.
+
+    Returns a mapping with:
+        ``models`` — a sorted list of ``{name, title, description,
+        schema_fields, json_schema}`` for every model reachable from the
+        document roots,
+        ``object_types`` — the complete ``type`` → model-name map,
+        ``roots`` — the document-root model names.
+
+    Completeness is structural: the set is the ``$defs`` closure of the
+    document roots, so a model the schema accepts cannot be missing here.
+    """
+    defs = _collect_document_defs()
+    models = [
+        {
+            "name": name,
+            "title": node.get("title", name),
+            "description": node.get("description", ""),
+            "schema_fields": _schema_fields(node),
+            "json_schema": node,
+        }
+        for name in sorted(defs)
+        for node in (defs[name],)
+    ]
+    return {
+        "models": models,
+        "object_types": _object_type_map(),
+        "roots": list(_DOCUMENT_ROOTS),
+    }
+
+
+# ─────────────────────────────────────────────────────────────────
 # Public entry points
 # ─────────────────────────────────────────────────────────────────
 
@@ -400,6 +503,7 @@ def build_catalog() -> dict[str, Any]:
         "package": {"name": "framegraph", "version": __version__},
         "modules": {m: _module_entry(m) for m in _PUBLIC_MODULES},
         "cli": _cli_catalog(),
+        "schema_models": build_schema_models(),
     }
 
 

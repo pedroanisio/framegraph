@@ -79,10 +79,16 @@ class TestSchemaPage:
 
     def test_known_model_rendered_with_fields(self, pages: dict[str, str]) -> None:
         schema = pages["reference/schema.md"]
-        # `UMLClass` is a stable public model with `id` / `name` fields.
-        assert "## `UMLClass`" in schema
+        # `RectObject` is a stable document object-type model.
+        assert "## `RectObject`" in schema
         assert "| Field | Type | Required | Description | Constraints |" in schema
         assert "`id`" in schema
+
+    def test_object_type_index_present(self, pages: dict[str, str]) -> None:
+        schema = pages["reference/schema.md"]
+        assert "## Object types" in schema
+        # The `type:` value and its model both appear.
+        assert "`rect`" in schema and "`RectObject`" in schema
 
 
 class TestCliPage:

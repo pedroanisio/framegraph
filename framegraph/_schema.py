@@ -2,7 +2,9 @@
 
 This module is the executable contract for what a FrameGraph YAML
 document must look like. It supersedes the prior EBNF specification.
-The companion human-readable spec lives at `static/specs/SCHEMA.md`.
+A complete, always-current human-readable field reference is generated
+from these models into the documentation portal (``framegraph._docsite``),
+with a CI gate guaranteeing every object type and model is documented.
 
 Design notes:
   - Used as a validation gate at the public entry points
