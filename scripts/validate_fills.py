@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate every sidecar in `static/refs/fills/` against the catalog.
+"""Validate every shipped sidecar (`framegraph/data/fills/`) against the catalog.
 
 For each sidecar YAML:
 
@@ -27,11 +27,16 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from framegraph._patterns import load_pattern_catalog  # noqa: E402
 from framegraph.patterns import (  # noqa: E402
+    SIDECAR_DIR,
     derive_fill_schema_with_sidecar,
     load_sidecar,
 )
 
-FILLS_DIR = REPO_ROOT / "static" / "refs" / "fills"
+# Resolve through the package's canonical sidecar directory rather than a
+# hand-mirrored path. The previous `static/refs/fills/` literal had drifted
+# to a non-existent location (drift-risk-map Finding C2), so this validator
+# silently found nothing to check.
+FILLS_DIR = SIDECAR_DIR
 
 
 def _validate_one(path: Path, catalog) -> list[str]:
@@ -62,6 +67,7 @@ def _validate_one(path: Path, catalog) -> list[str]:
 
 
 def main() -> int:
+    """Validate every shipped sidecar; return 0 on success, 1 on any failure."""
     if not FILLS_DIR.exists():
         print(f"fills directory not found: {FILLS_DIR}", file=sys.stderr)
         return 1

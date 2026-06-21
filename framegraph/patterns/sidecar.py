@@ -38,22 +38,48 @@ from framegraph.patterns.fill import (
 
 __all__ = [
     "BMC_SIDECAR_PATH",
+    "SIDECAR_DIR",
     "PatternFillSidecar",
     "SidecarFieldSpec",
     "SidecarZoneOverride",
     "derive_fill_schema_with_sidecar",
+    "find_sidecar",
     "load_sidecar",
 ]
 
 
-# Path to the BMC sidecar — the Phase 2 proof. Lives under the
-# package's `data/fills/` directory so it travels with the wheel.
-BMC_SIDECAR_PATH: Path = (
-    Path(__file__).resolve().parent.parent
-    / "data"
-    / "fills"
-    / "044-business-model-canvas.yml"
-)
+# Canonical directory holding the package-shipped, per-pattern sidecar fills.
+# This is the SINGLE source of truth for "where sidecars live": the CLI
+# (`cli._find_sidecar`), the corpus render-coverage regression test,
+# `scripts/validate_fills.py`, and the sidecar-contract test all resolve
+# through `SIDECAR_DIR` / `find_sidecar`. Before this was centralised, two
+# call sites hard-coded a stale `static/refs/fills/` path that no longer
+# existed, so sidecars were silently skipped (drift-risk-map Findings C1/C2).
+# Lives under `data/fills/` so it travels with the wheel.
+SIDECAR_DIR: Path = Path(__file__).resolve().parent.parent / "data" / "fills"
+
+# Path to the BMC sidecar — the Phase 2 proof.
+BMC_SIDECAR_PATH: Path = SIDECAR_DIR / "044-business-model-canvas.yml"
+
+
+def find_sidecar(pattern_id: int) -> Path | None:
+    """Return the sidecar path for a pattern id, or ``None`` if none ships.
+
+    Resolves ``<SIDECAR_DIR>/<id:03d>-*.yml`` (the package-shipped fills).
+    A missing sidecar is not an error — pattern fills work without one via
+    the content_type-derived defaults.
+
+    Args:
+        pattern_id: The catalog id whose sidecar to locate.
+
+    Returns:
+        The first matching sidecar path, or ``None`` when the directory is
+        absent or no sidecar matches the id.
+    """
+    if not SIDECAR_DIR.is_dir():
+        return None
+    matches = sorted(SIDECAR_DIR.glob(f"{pattern_id:03d}-*.yml"))
+    return matches[0] if matches else None
 
 
 # ─────────────────────────────────────────────────────────────────

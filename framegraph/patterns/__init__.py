@@ -27,10 +27,12 @@ from framegraph.patterns.render import (
 )
 from framegraph.patterns.sidecar import (
     BMC_SIDECAR_PATH,
+    SIDECAR_DIR,
     PatternFillSidecar,
     SidecarFieldSpec,
     SidecarZoneOverride,
     derive_fill_schema_with_sidecar,
+    find_sidecar,
     load_sidecar,
 )
 from framegraph.patterns.style import (
@@ -50,10 +52,12 @@ __all__ = [
     "load_fill",
     # Phase 2
     "BMC_SIDECAR_PATH",
+    "SIDECAR_DIR",
     "PatternFillSidecar",
     "SidecarFieldSpec",
     "SidecarZoneOverride",
     "derive_fill_schema_with_sidecar",
+    "find_sidecar",
     "load_sidecar",
     # Phase 3 (layout) + planner
     "Box",

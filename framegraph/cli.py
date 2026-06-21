@@ -806,16 +806,14 @@ def cmd_docs(args: argparse.Namespace) -> int:
 def _find_sidecar(pattern_id: int) -> Path | None:
     """Locate a sidecar YAML for the given pattern id.
 
-    Returns the first match in `framegraph/data/fills/<id_zero_padded>-*.yml`
-    (the package-shipped catalog), or None when no sidecar exists.
-    Pattern fills work without a sidecar via the content_type-derived
-    defaults.
+    Thin wrapper over `framegraph.patterns.find_sidecar` so the canonical
+    sidecar-directory resolver has exactly one definition. Centralising this
+    closes drift-risk-map Finding C2, where a duplicated hard-coded path drifted
+    to a stale `static/refs/fills/` location and silently skipped sidecars.
     """
-    fills_dir = Path(__file__).resolve().parent / "data" / "fills"
-    if not fills_dir.exists():
-        return None
-    matches = sorted(fills_dir.glob(f"{pattern_id:03d}-*.yml"))
-    return matches[0] if matches else None
+    from framegraph.patterns import find_sidecar
+
+    return find_sidecar(pattern_id)
 
 
 def _sidecar_slug(sidecar_path: Path) -> str:

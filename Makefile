@@ -31,6 +31,7 @@ help:
 	@echo "    check           lint + typecheck + test + goldens (full release gate)"
 	@echo "    test            pytest (unit + integration, coverage-gated)"
 	@echo "    goldens         golden-snapshot regression harness"
+	@echo "    validate-fills  validate every shipped sidecar against the catalog"
 	@echo "    lint            ruff check + ruff format --check"
 	@echo "    typecheck       mypy --strict on the package"
 	@echo "    format          ruff format (autofix)"
@@ -63,14 +64,22 @@ install-pdf-vector:
 	$(PIP) install -e ".[pdf-vector]"
 
 # ── Gate ──────────────────────────────────────────────────────────────────
-.PHONY: check test goldens lint typecheck format fix
-check: lint typecheck test goldens
+.PHONY: check test goldens lint typecheck format fix validate-fills
+check: lint typecheck test goldens validate-fills
 
 test:
 	$(PYTHON) -m pytest
 
 goldens:
 	$(PYTHON) tests/run_tests.py --verbose
+
+# Validate every shipped sidecar (framegraph/data/fills/) against the live
+# catalog: pattern_id resolves, effective schema builds, example_fill
+# round-trips. The pytest suite already enforces this per-sidecar
+# (tests/integration/test_sidecar_fill_contract.py); this target runs the
+# same contract as a standalone gate for local pre-push and scripting.
+validate-fills:
+	$(PYTHON) scripts/validate_fills.py
 
 lint:
 	ruff check .

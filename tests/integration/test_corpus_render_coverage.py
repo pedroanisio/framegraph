@@ -19,35 +19,28 @@ Phase 6 acceptance criteria (per `docs/ROADMAP-FILL-RENDER.md`):
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 import pytest
 
 from framegraph._patterns import (
-    Anchor,
     PatternZone,
     SlidePattern,
     load_pattern_catalog,
 )
 from framegraph.patterns import (
+    SIDECAR_DIR,
     compose_document,
     compute_boxes,
     derive_default_fill_schema,
     derive_fill_schema_with_sidecar,
+    find_sidecar,
     load_sidecar,
     render_pattern_svg,
 )
 
-
 CANVAS_W = 1920.0
 CANVAS_H = 1080.0
-FILLS_DIR = (
-    Path(__file__).resolve().parent.parent.parent
-    / "static"
-    / "refs"
-    / "fills"
-)
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -97,7 +90,7 @@ def _default_value_for_zone(zone: PatternZone, sidecar) -> Any:
         if override.item_kind == "object":
             assert override.item_fields is not None
             obj: dict[str, Any] = {}
-            for fname, spec in override.item_fields.items():
+            for fname in override.item_fields:
                 # All v1 fields are typed `string`; supply a placeholder.
                 obj[fname] = "x"
             return [obj, obj]
@@ -122,13 +115,30 @@ def all_patterns(catalog) -> list[SlidePattern]:
 
 
 def _sidecar_for(pattern_id: int):
-    """Locate a sidecar by pattern id, or return None."""
-    if not FILLS_DIR.exists():
-        return None
-    matches = sorted(FILLS_DIR.glob(f"{pattern_id:03d}-*.yml"))
-    if not matches:
-        return None
-    return load_sidecar(matches[0])
+    """Locate and load a sidecar by pattern id, or return None.
+
+    Resolves through the package's canonical `find_sidecar` so this test can
+    never again silently miss the whole sidecar set by pointing at a stale
+    directory (drift-risk-map Finding C2).
+    """
+    path = find_sidecar(pattern_id)
+    return load_sidecar(path) if path is not None else None
+
+
+def test_sidecar_dir_is_present_and_nonempty() -> None:
+    """The canonical sidecar dir must exist and actually ship sidecars.
+
+    drift-risk-map Finding C2: this suite previously resolved sidecars from a
+    stale `static/refs/fills/` path that no longer existed, so `_sidecar_for`
+    always returned ``None`` and every pattern rendered with *defaults* — the
+    sidecar branch (`derive_fill_schema_with_sidecar`, object-item overrides)
+    was dead code in the test while reading as "covered". If the directory
+    moves again, fail loudly here instead of silently degrading coverage.
+    """
+    assert SIDECAR_DIR.is_dir(), f"canonical sidecar dir is missing: {SIDECAR_DIR}"
+    assert any(SIDECAR_DIR.glob("*.yml")), f"no sidecars shipped under {SIDECAR_DIR}"
+    # The resolver must actually find a known sidecar (BMC #44).
+    assert _sidecar_for(44) is not None, "BMC sidecar (#44) not resolved via find_sidecar"
 
 
 def test_every_pattern_builds_to_svg(all_patterns: list[SlidePattern]) -> None:
@@ -163,13 +173,11 @@ def test_every_pattern_builds_to_svg(all_patterns: list[SlidePattern]) -> None:
     if failures:
         # Report the first 10 failures, then total count.
         msg = "\n".join(
-            f"  #{fid:3d}  {name!r:50s}  {reason}"
-            for fid, name, reason in failures[:10]
+            f"  #{fid:3d}  {name!r:50s}  {reason}" for fid, name, reason in failures[:10]
         )
         pytest.fail(
             f"{len(failures)} pattern(s) failed to build:\n{msg}"
-            + (f"\n  ... (showing first 10 of {len(failures)})"
-               if len(failures) > 10 else "")
+            + (f"\n  ... (showing first 10 of {len(failures)})" if len(failures) > 10 else "")
         )
 
 
@@ -192,18 +200,13 @@ def test_corpus_render_uses_compose_document(
             assert doc["dsl"] == "FrameGraph"
             assert doc["scene"]["canvas"]["size"] == [CANVAS_W, CANVAS_H]
             assert len(doc["visual"]["layers"]) >= 1
-            objects = [
-                o for layer in doc["visual"]["layers"] for o in layer["objects"]
-            ]
+            objects = [o for layer in doc["visual"]["layers"] for o in layer["objects"]]
             # At least one visual object per zone.
             assert len(objects) >= len(p.zones)
         except Exception as exc:
             failures.append((p.id, p.name, f"compose failed: {exc}"))
     if failures:
-        msg = "\n".join(
-            f"  #{fid:3d}  {name!r}: {reason}"
-            for fid, name, reason in failures[:10]
-        )
+        msg = "\n".join(f"  #{fid:3d}  {name!r}: {reason}" for fid, name, reason in failures[:10])
         pytest.fail(f"{len(failures)} pattern(s) failed compose:\n{msg}")
 
 
