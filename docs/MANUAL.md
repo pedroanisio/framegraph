@@ -86,6 +86,7 @@ path applies:
 | **A. Single bespoke diagram** | A custom architecture, hub-and-spoke, scope boundary, or one-off illustration | `framegraph render diagram.yml -o out.svg` |
 | **B. One pattern + a fill** | The slide matches a catalog pattern (SWOT, BMC, Communications Plan, etc.) | `framegraph patterns build <id> --fill content.yml -o out.svg` |
 | **C. Multi-page deck** | Two or more slides, themed and assembled into one PDF | `framegraph deck deck.yml -o ./out --pdf` |
+| **D. From Markdown** | An existing `.md` document you want as an A4-paged deck (hybrid: prose → bespoke pages, ` ```framegraph `/`use:` fences → pattern slides) | `framegraph from-markdown doc.md -o deck.yml` then path C |
 
 Decks (path C) are the highest-leverage surface — slides can be
 either bespoke (`visual.layers` blocks, like path A) or

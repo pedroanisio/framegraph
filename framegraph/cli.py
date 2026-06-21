@@ -7,6 +7,7 @@ Usage
                                     [--4k] [--pdf [--vector] [--dpi N]]
     framegraph deck     deck.yml    [-o output_dir/] [--quiet]
                                     [--4k] [--pdf [--vector] [--dpi N]]
+    framegraph from-markdown doc.md [-o deck.yml] [--theme T] [--canvas a4|a3|letter]
     framegraph validate input.yml [--kind auto|framegraph|pattern-sidecar|pattern-catalog]
     framegraph docs     [-o catalog.json]
     framegraph patterns list [--category=generic|consulting|expert]
@@ -1099,13 +1100,35 @@ def cmd_version(_args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_from_markdown(args: argparse.Namespace) -> int:
+    """Handle `framegraph from-markdown` — convert a Markdown doc to a deck YAML.
+
+    Delegates to `framegraph.markdown.convert_file` (deferred import keeps CLI
+    startup fast). Output defaults to ``<input>.deck.yml`` next to the source.
+    """
+    from framegraph.markdown import convert_file
+
+    in_path = Path(args.input)
+    if not in_path.is_file():
+        print(f"input not found: {in_path}", file=sys.stderr)
+        return 1
+    out_path = Path(args.output) if args.output else in_path.with_suffix(".deck.yml")
+    try:
+        written = convert_file(in_path, out_path, theme=args.theme, canvas=args.canvas)
+    except Exception as exc:  # surface conversion/validation failures to the shell
+        print(f"conversion failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    print(f"wrote {written}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the top-level `framegraph` argparse parser with all subcommands.
 
     Returns:
         Configured `ArgumentParser`. Top-level subcommands: `render`,
-        `deck`, `validate`, `docs`, `sitemap`, `version`, `patterns`
-        (with nested `list`, `show`, `example`, `build`, `deck`).
+        `deck`, `from-markdown`, `validate`, `docs`, `sitemap`, `version`,
+        `patterns` (with nested `list`, `show`, `example`, `build`, `deck`).
         The returned parser requires a subcommand (`required=True`);
         calling it without one exits with usage. The authoritative list
         is the dispatch table at the bottom of `main()` — keep this
@@ -1536,6 +1559,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sm.add_argument("--quiet", action="store_true", help="Suppress progress output")
 
+    # from-markdown — convert a Markdown document into a deck YAML
+    fmp = sub.add_parser(
+        "from-markdown",
+        help=(
+            "Convert a Markdown document into a FrameGraph presentation-deck YAML "
+            "(A4-paged; hybrid bespoke + `use:` pattern slides). Feed the result "
+            "to `framegraph deck`."
+        ),
+    )
+    fmp.add_argument("input", help="Markdown source file (.md)")
+    fmp.add_argument("-o", "--output", help="Output deck YAML path (default: <input>.deck.yml)")
+    fmp.add_argument("--theme", default=None, help="Library theme id (e.g. mckinsey)")
+    fmp.add_argument("--canvas", default="a4", help="Canvas preset: a4 | a3 | letter (default: a4)")
+
     # version
     sub.add_parser("version", help="Print version and exit")
 
@@ -1572,6 +1609,7 @@ def main(argv: list[str] | None = None) -> int:
         "docs": cmd_docs,
         "sitemap": cmd_sitemap,
         "version": cmd_version,
+        "from-markdown": cmd_from_markdown,
     }
     return dispatch[args.command](args)
 

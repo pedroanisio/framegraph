@@ -33,6 +33,7 @@ from framegraph.cli import build_parser, main
 LIVE_TOP_LEVEL_SUBCOMMANDS = {
     "render",
     "deck",
+    "from-markdown",
     "validate",
     "docs",
     "sitemap",

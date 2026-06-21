@@ -37,6 +37,7 @@ Decide by what the agent has been asked to produce:
 | Smoke-check the whole pattern catalog | `framegraph patterns deck --pdf -o ./out` |
 | A multi-slide deck themed and assembled into one PDF | `framegraph deck deck.yml -o ./out --pdf` (deck composed from `use:`/`fill:` slides) |
 | A bespoke single diagram (architecture, flow, swimlane) | `framegraph render diagram.yml -o out.svg` |
+| An existing Markdown document → an A4-paged deck | `framegraph from-markdown doc.md -o deck.yml` → `framegraph deck deck.yml -o ./out --pdf` |
 | Discover what's available before authoring | `framegraph patterns list --has-sidecar --json`, `framegraph docs -o catalog.json` |
 
 If you are unsure which path applies, **default to the deck path

@@ -108,6 +108,7 @@ deck.render_all(Path("output/"))
 ```
 framegraph render   diagram.yml [-o output.svg] [--pdf] [--4k]
 framegraph deck     deck.yml    [-o output_dir/] [--pdf] [--4k]
+framegraph from-markdown doc.md [-o deck.yml] [--theme T] [--canvas a4|a3|letter]
 framegraph validate input.yml   [--kind=auto|framegraph|pattern-sidecar|pattern-catalog]
 framegraph patterns list [--has-sidecar] [--json]
 framegraph patterns show    <id>
