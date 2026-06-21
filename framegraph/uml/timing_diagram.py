@@ -61,6 +61,7 @@ class _TimingDiagramComposer:
         opts: TimingDiagramOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the timing model, options, and canvas size."""
         self.model = model
         self.opts = opts
         self.canvas_size = canvas_size
@@ -107,6 +108,11 @@ class _TimingDiagramComposer:
     # ── Visual emission ─────────────────────────────────────────
 
     def compose(self) -> ComposedDiagram:
+        """Lay out timing lanes, state-change step lines, and notes.
+
+        Emits lanes (z=10), state-change lines (z=20), and an optional
+        notes layer (z=30).
+        """
         layers: list[dict[str, Any]] = []
 
         # Lane backgrounds + state grids (z=10).

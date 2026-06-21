@@ -215,6 +215,7 @@ class HierarchicalComposer(ABC):
         margin: float = 40.0,
         layout: str = "sugiyama",
     ) -> None:
+        """Store the shared canvas and Sugiyama layout tunables."""
         self.canvas_size = canvas_size
         self.layer_height = layer_height
         self.node_gap = node_gap

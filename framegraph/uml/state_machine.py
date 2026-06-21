@@ -86,6 +86,7 @@ class _StateMachineComposer(HierarchicalComposer):
         opts: StateMachineOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the state-machine model and options, indexing states and pseudostates."""
         super().__init__(
             canvas_size=canvas_size,
             layer_height=opts.layer_height,

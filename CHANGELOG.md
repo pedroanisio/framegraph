@@ -28,6 +28,28 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Documentation portal pipeline** (`framegraph._docsite`, `mkdocs.yml`,
+  `.github/workflows/docs.yml`) — a deterministic, CI-gated pipeline that
+  renders the public API, schema, and CLI reference plus a dogfooded
+  example gallery into a MkDocs-Material static site, generated entirely
+  from in-source docstrings and the Pydantic schema. The `framegraph docs`
+  catalog is the single source of truth (no second parser → no drift).
+  - `framegraph.docs.build_catalog()` extended (catalog schema **1.1.0**):
+    each symbol now carries a flat `schema_fields` table, and a top-level
+    `cli` section is introspected from `framegraph.cli.build_parser()`, so
+    the schema and CLI reference cannot drift from the implemented flags.
+  - Docstring-coverage gate (`framegraph._docsite.coverage`, asserted by
+    `tests/unit/test_docstring_coverage.py`): 100 % of public symbols
+    (modules, classes, module-level functions, methods) must carry a
+    docstring; single-underscore helpers and nested local functions are
+    exempt. The build fails with the gap list on any shortfall.
+  - Backfilled docstrings for 88 previously-undocumented public symbols
+    (Pydantic schema models, the `RendererContext` protocol, UML composers,
+    library/helper functions) — docstrings only, no behavior change.
+  - New `[docs]` extra (`mkdocs`, `mkdocs-material`) and `Makefile` targets
+    `install-docs`, `portal-gen`, `portal`, `portal-serve`, `portal-check`,
+    `docs-coverage`. The `Docs` workflow builds the site under `--strict`
+    and deploys to GitHub Pages on `main`.
 - **ADR 0001 Phase 6** ([docs/adr/0001-frameset-reframe.md](docs/adr/0001-frameset-reframe.md))
   — Link injection. The same FrameSet that emits a sitemap (Phase 4)
   now wires its `frame.next` chain into the rendered SVG as

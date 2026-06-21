@@ -96,6 +96,7 @@ class _ComponentDiagramComposer(HierarchicalComposer):
         opts: ComponentDiagramOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the component model and options, indexing components and interfaces."""
         super().__init__(
             canvas_size=canvas_size,
             layer_height=opts.layer_height,
@@ -351,6 +352,7 @@ class _ComponentDiagramComposer(HierarchicalComposer):
     _last_node_boxes: dict[str, tuple[float, float, float, float]]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:  # pragma: no cover
+        """Delegate subclass initialization to the base class unchanged."""
         super().__init_subclass__(**kwargs)
 
 

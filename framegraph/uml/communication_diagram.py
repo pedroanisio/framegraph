@@ -58,6 +58,7 @@ class _CommunicationDiagramComposer:
         opts: CommunicationDiagramOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the communication model, options, and canvas size."""
         self.model = model
         self.opts = opts
         self.canvas_size = canvas_size
@@ -101,6 +102,11 @@ class _CommunicationDiagramComposer:
         return positions
 
     def compose(self) -> ComposedDiagram:
+        """Lay out lifelines and messages into a composed visual block.
+
+        Emits an edges layer (z=10), a lifelines layer (z=20), and an
+        optional notes layer (z=30).
+        """
         widths = self._lifeline_widths()
         positions = self._lifeline_positions()
         layers: list[dict[str, Any]] = []

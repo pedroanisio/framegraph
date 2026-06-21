@@ -18,6 +18,11 @@ __pycache__/
 # Build outputs (rendered SVGs from running the CLI)
 output/
 
+# Documentation portal — generated source tree + built static site.
+# Regenerated from docstrings / schema / examples by `make portal`.
+docs/portal/
+site/
+
 # Agent-skill metadata (not part of project source)
 .repo/
 .agent-tasks/

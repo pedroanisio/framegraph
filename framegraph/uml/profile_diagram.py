@@ -67,6 +67,7 @@ class _ProfileDiagramComposer(HierarchicalComposer):
         opts: ProfileDiagramOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the profile model and options for layout."""
         super().__init__(
             canvas_size=canvas_size,
             layer_height=opts.layer_height,

@@ -90,6 +90,7 @@ class _ActivityDiagramComposer(HierarchicalComposer):
         opts: ActivityDiagramOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the activity model and options, indexing nodes and lanes by id."""
         super().__init__(
             canvas_size=canvas_size,
             layer_height=opts.layer_height,

@@ -97,12 +97,17 @@ def strip_meta(d: dict[str, Any]) -> dict[str, Any]:
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
+    """Load a YAML file into a dict, returning ``{}`` for empty documents."""
     with open(path, encoding="utf-8") as f:
         loaded = yaml.safe_load(f)
         return cast(dict[str, Any], loaded or {})
 
 
 def dump_yaml(data: dict[str, Any], path: Path | None = None) -> str:
+    """Serialize ``data`` to YAML, writing to ``path`` if given, and return it.
+
+    Preserves key order and uses block style with unicode allowed.
+    """
     text = yaml.dump(data, allow_unicode=True, sort_keys=False, default_flow_style=False)
     if path:
         path.write_text(text, encoding="utf-8")
@@ -236,6 +241,7 @@ class FrameGraphComposer:
     """
 
     def __init__(self, library: FrameGraphLibrary) -> None:
+        """Bind the composer to a `FrameGraphLibrary` for piece lookups."""
         self.library = library
 
     def compose(
@@ -244,6 +250,20 @@ class FrameGraphComposer:
         theme_override: str | None = None,
         extra_symbols: list[str] | None = None,
     ) -> dict[str, Any]:
+        """Merge library tokens and symbols into a diagram, stripping directives.
+
+        Deep-copies ``diagram``, then pops ``$theme`` and ``$symbols`` (or the
+        explicit overrides) and folds the referenced token pack and symbol
+        packs into ``visual``. Library tokens are defaults; diagram values win.
+
+        Args:
+            diagram: The source FrameGraph spec.
+            theme_override: Theme id replacing any ``$theme`` directive.
+            extra_symbols: Symbol refs prepended ahead of ``$symbols``.
+
+        Returns:
+            The merged spec with directives removed.
+        """
         doc = copy.deepcopy(diagram)
 
         # ── Extract directives ────────────────────────────────────────
@@ -301,6 +321,7 @@ def cmd_compose(args: argparse.Namespace, lib: FrameGraphLibrary) -> int:
 
 
 def cmd_list_themes(lib: FrameGraphLibrary) -> int:
+    """Print each token pack id with its display name; return exit code 0."""
     print("\nAvailable themes:")
     for tid in lib.token_ids():
         path = lib._token_packs[tid]
@@ -312,11 +333,13 @@ def cmd_list_themes(lib: FrameGraphLibrary) -> int:
 
 
 def cmd_show_theme(args: argparse.Namespace, lib: FrameGraphLibrary) -> int:
+    """Print the theme named by ``args.theme_id``; return exit code 0."""
     lib.show_theme(args.theme_id)
     return 0
 
 
 def cmd_list_symbols(lib: FrameGraphLibrary) -> int:
+    """Print each symbol pack id with its symbol names; return exit code 0."""
     print("\nAvailable symbol packs:")
     for sid in lib.symbol_ids():
         path = lib._symbol_packs[sid]
@@ -328,6 +351,11 @@ def cmd_list_symbols(lib: FrameGraphLibrary) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the composer CLI argument parser with all subcommands.
+
+    Subcommands: ``compose``, ``list-themes``, ``show-theme``,
+    ``list-symbols``, and ``render-deck``.
+    """
     p = argparse.ArgumentParser(
         description="FrameGraph Component Library Composer",
         formatter_class=argparse.RawDescriptionHelpFormatter,

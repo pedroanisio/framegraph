@@ -122,6 +122,7 @@ class _SequenceDiagramComposer:
         opts: SequenceDiagramOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the sequence model and options; index lifelines and sort messages by step."""
         self.model = model
         self.opts = opts
         self.canvas_size = canvas_size
@@ -225,6 +226,11 @@ class _SequenceDiagramComposer:
     # ── Visual emission ─────────────────────────────────────────
 
     def compose(self) -> ComposedDiagram:
+        """Lay out lifelines, activations, messages, fragments, and notes.
+
+        Emits fragments (z=8), lifelines (z=10), activation bars
+        (z=15), messages (z=20), and an optional notes layer.
+        """
         widths = self._lifeline_widths()
         columns = self._lifeline_columns()
         diagram_bottom = self._diagram_height()

@@ -257,6 +257,12 @@ def _build_objects(
 
 
 def build_deck(data: dict[str, Any]) -> dict[str, Any]:
+    """Build a complete FrameGraph presentation-deck dict from input ``data``.
+
+    Merges palette and geometry over defaults, registers per-node hex
+    colors as deck tokens, inlines the hex cell symbols, builds the layer
+    objects and text styles, and returns the single-slide deck.
+    """
     pal: dict[str, str] = {**DEFAULT_PALETTE, **(data.get("palette") or {})}
     geo: dict[str, float] = {**DEFAULT_GEOMETRY, **(data.get("geometry") or {})}
 
@@ -370,6 +376,11 @@ def build_deck(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def main(argv: list[str]) -> int:
+    """Read input YAML, build the deck, and write it to the output path.
+
+    Expects ``argv == [prog, in_path, out_path]``; prints usage and
+    returns 2 on a wrong argument count, otherwise returns 0.
+    """
     if len(argv) != 3:
         print(__doc__, file=sys.stderr)
         return 2

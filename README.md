@@ -67,6 +67,13 @@ For the golden-snapshot test harness:
 pip install "framegraph[test]"
 ```
 
+To build the documentation portal locally:
+
+```bash
+pip install -e ".[docs]"
+make portal-serve   # live-reload dev server, or `make portal` for a static ./site
+```
+
 ---
 
 ## Quick start
@@ -119,12 +126,31 @@ framegraph version
 | If you want… | Read |
 |---|---|
 | Concept overview + install + quick start | this file |
+| **Browsable API / schema / CLI reference + example gallery** (generated from docstrings) | the documentation portal — `make portal-serve`, or the published GitHub Pages site |
 | **Comprehensive human user manual** (multi-page workflows, theming, comparison with alternatives) | [`docs/MANUAL.md`](docs/MANUAL.md) |
 | Agent-oriented CLI reference (entry points, fill contract, error recovery) | [`AGENTS.md`](./AGENTS.md) |
 | Fill / sidecar authoring depth | [`docs/AUTHORING-FILLS.md`](docs/AUTHORING-FILLS.md) |
 | Mission, audience, non-goals | [`PURPOSE.md`](./PURPOSE.md) |
 | Project conventions and constraints | [`CLAUDE.md`](./CLAUDE.md) |
 | End-to-end worked single-slide example | [`examples/genai-ecosystem/`](examples/genai-ecosystem/) |
+
+### Documentation portal
+
+A MkDocs-Material site is generated **from the package's own docstrings,
+Pydantic schema, and bundled examples** — there is no hand-maintained API
+reference to drift. The pipeline (`framegraph._docsite`) renders the API,
+schema, and CLI reference plus a gallery of framegraph rendering its own
+examples, and is gated in CI: the build fails unless every public symbol is
+documented (100 % coverage) and every gallery example validates against the
+schema.
+
+```bash
+make portal-gen     # materialize docs/portal/ from source
+make portal         # generate + build the static site into ./site
+make portal-check   # CI gate: coverage + strict build (warnings are errors)
+```
+
+The site deploys to GitHub Pages from `main` via `.github/workflows/docs.yml`.
 
 ## For AI agents
 

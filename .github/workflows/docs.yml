@@ -1,0 +1,82 @@
+# Documentation portal — build, verify, and deploy to GitHub Pages.
+#
+# The portal source tree (docs/portal/) is GENERATED from the package's
+# docstrings, Pydantic schema, and bundled examples by
+# `framegraph._docsite.build`; MkDocs-Material renders it to ./site.
+#
+# This workflow is the enforcement surface for the docs pipeline
+# (see codebase-standards.md): `make portal-check` runs the
+# docstring-coverage gate, regenerates the source tree, and builds the
+# site with `--strict` (warnings are errors). On main, the built site is
+# deployed to GitHub Pages.
+#
+# One-time setup (cannot be done from a workflow): in the repository
+# settings, set Pages → Build and deployment → Source = "GitHub Actions".
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Build + verify (every push / PR) ───────────────────────────────────────
+  build:
+    name: Build + verify portal
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # The [docs] extra brings MkDocs-Material; framegraph itself (the
+      # generator) needs only its base deps (PyYAML + Pydantic).
+      - name: Install framegraph + docs extra
+        run: pip install -e ".[docs]"
+
+      # PALS's law gate: 100% public-symbol docstring coverage. Fails the
+      # build (with the gap list) before anything is rendered.
+      - name: Docstring-coverage gate
+        run: make docs-coverage
+
+      # Generate the source tree and build the static site with warnings
+      # promoted to errors. `build_portal` additionally fails if any
+      # bundled gallery example does not validate against the schema.
+      - name: Build portal (strict)
+        run: make portal-check
+
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  # ── Deploy to GitHub Pages (main only) ─────────────────────────────────────
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -66,6 +66,7 @@ class _CompositeStructureComposer:
         opts: CompositeStructureOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the composite-structure model, options, and canvas size."""
         self.model = model
         self.opts = opts
         self.canvas_size = canvas_size
@@ -148,6 +149,11 @@ class _CompositeStructureComposer:
         return (px + pw - ps / 2, py + ph * frac - ps / 2)
 
     def compose(self) -> ComposedDiagram:
+        """Lay out the outer frame, parts, ports, connectors, and notes.
+
+        Emits frame (z=5), connectors (z=15), parts (z=20), ports
+        (z=25), and an optional notes layer (z=30).
+        """
         layers: list[dict[str, Any]] = []
         frame_box = self._frame_box()
         fx, fy, fw, fh = frame_box

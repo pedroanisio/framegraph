@@ -62,17 +62,36 @@ class Canvas(BaseModel):
 
 
 class TextContract(BaseModel):
+    """`rendering_contract.text` — scene-wide text-layout policy.
+
+    `min_font_size` is the floor for shrink-to-fit; `overflow` selects
+    how text exceeding its box is handled.
+    """
+
     model_config = ConfigDict(extra="allow")
     min_font_size: float | None = None
     overflow: Literal["visible", "clip", "shrink_to_fit"] | None = None
 
 
 class SemanticsContract(BaseModel):
+    """`rendering_contract.semantics` — semantic-binding policy.
+
+    When `decorative_objects_may_omit_bind` is true, objects flagged
+    `decorative` are exempt from the bind-to-semantic-node requirement.
+    """
+
     model_config = ConfigDict(extra="allow")
     decorative_objects_may_omit_bind: bool | None = None
 
 
 class RenderingContract(BaseModel):
+    """`rendering_contract` block — scene-wide rendering policy.
+
+    Bundles the coordinate mode (only `absolute` is implemented), the
+    nested `text` and `semantics` contracts, and the debug toggles
+    `debug_boxes` and `preserve_manual_line_breaks`.
+    """
+
     model_config = ConfigDict(extra="allow")
     coordinate_mode: Literal["absolute"] | None = None
     text: TextContract | None = None
@@ -117,6 +136,11 @@ class TypeDef(BaseModel):
 
 
 class Ontology(BaseModel):
+    """`semantic.ontology` — node-type and edge-type declarations.
+
+    `node_types` and `edge_types` each map a type name to its `TypeDef`.
+    """
+
     model_config = ConfigDict(extra="allow")
     node_types: dict[str, TypeDef] = Field(default_factory=dict)
     edge_types: dict[str, TypeDef] = Field(default_factory=dict)
@@ -150,6 +174,8 @@ class EdgeEntry(BaseModel):
 
 
 class Semantic(BaseModel):
+    """`semantic` block — the ontology plus node and edge instances."""
+
     model_config = ConfigDict(extra="allow")
     ontology: Ontology | None = None
     nodes: list[NodeEntry] = Field(default_factory=list)
@@ -178,6 +204,12 @@ class TextStyle(BaseModel):
 
 
 class StrokeStyle(BaseModel):
+    """Named stroke style — colour, width, dash, arrowheads, and opacity.
+
+    Registered under `tokens.stroke_styles` and referenced by
+    `stroke_style` on `line`, `connector`, and `path` objects.
+    """
+
     model_config = ConfigDict(extra="allow")
     color: Color | None = None
     width: float | None = None
@@ -221,6 +253,12 @@ class SymbolDef(BaseModel):
 
 
 class ComponentVariant(BaseModel):
+    """Theme override for a `ComponentDef` — swaps `fill` / `stroke_style`.
+
+    Selected by variant name so one component geometry can paint in
+    several palettes.
+    """
+
     model_config = ConfigDict(extra="allow")
     fill: Color | None = None
     stroke_style: str | None = None
@@ -302,6 +340,15 @@ GlowSpec = str | dict[str, Any] | bool | None
 
 
 class _ObjectBase(BaseModel):
+    """Common fields shared by every concrete visual-object model.
+
+    Carries identity/binding (`id`, `decorative`, `bind`), geometry
+    (`box`, `rotation`, `ports`), the three opacity channels, and the
+    HD-effect decorations (`shadow`, `glow`, `outer_ring`). Concrete
+    object models add only their `type` discriminator; all other
+    paint/geometry fields flow through via `extra="allow"`.
+    """
+
     model_config = ConfigDict(extra="allow")
     id: str | None = None
     decorative: bool | None = None
@@ -325,38 +372,56 @@ class _ObjectBase(BaseModel):
 
 
 class RectObject(_ObjectBase):
+    """Visual object `type: rect` — an axis-aligned, optionally rounded rectangle."""
+
     type: Literal["rect"]
 
 
 class EllipseObject(_ObjectBase):
+    """Visual object `type: ellipse` — an ellipse from `box` or `center` + radii."""
+
     type: Literal["ellipse"]
 
 
 class TextObject(_ObjectBase):
+    """Visual object `type: text` — a styled, box-bounded text block."""
+
     type: Literal["text"]
 
 
 class BulletListObject(_ObjectBase):
+    """Visual object `type: bullet_list` — a vertical list of `items` with markers."""
+
     type: Literal["bullet_list"]
 
 
 class LineObject(_ObjectBase):
+    """Visual object `type: line` — a straight segment between two endpoints."""
+
     type: Literal["line"]
 
 
 class PolylineObject(_ObjectBase):
+    """Visual object `type: polyline` — a connected multi-point open path."""
+
     type: Literal["polyline"]
 
 
 class PathObject(_ObjectBase):
+    """Visual object `type: path` — a raw SVG path (`d`) primitive."""
+
     type: Literal["path"]
 
 
 class ImageObject(_ObjectBase):
+    """Visual object `type: image` — an embedded or referenced image."""
+
     type: Literal["image"]
 
 
 class IconObject(_ObjectBase):
+    """Visual object `type: icon` — a glyph selected by `glyph` (or `code`)."""
+
     type: Literal["icon"]
 
 
@@ -369,35 +434,51 @@ class UseObject(_ObjectBase):
 
 
 class ConnectorObject(_ObjectBase):
+    """Visual object `type: connector` — a routed edge between `from` and `to`."""
+
     type: Literal["connector"]
 
 
 class LegendObject(_ObjectBase):
+    """Visual object `type: legend` — a key of `sample` / `label` entries."""
+
     type: Literal["legend"]
 
 
 class GroupObject(_ObjectBase):
+    """Visual object `type: group` — a transform/opacity wrapper over children."""
+
     type: Literal["group"]
 
 
 class ContainerObject(_ObjectBase):
+    """Visual object `type: container` — auto-lays out `children` via its `layout`."""
+
     type: Literal["container"]
 
 
 class ComponentObject(_ObjectBase):
+    """Visual object `type: component` — an instance of the named `ComponentDef`."""
+
     type: Literal["component"]
     component: str | None = None
 
 
 class ChipRowObject(_ObjectBase):
+    """Visual object `type: chip_row` — a horizontal row of labelled chips."""
+
     type: Literal["chip_row"]
 
 
 class BarChartObject(_ObjectBase):
+    """Visual object `type: bar_chart` — a bar chart from `data` (built-in primitive)."""
+
     type: Literal["bar_chart"]
 
 
 class LineChartObject(_ObjectBase):
+    """Visual object `type: line_chart` — a line chart from `data` (built-in primitive)."""
+
     type: Literal["line_chart"]
 
 
@@ -939,9 +1020,7 @@ def validate_any(data: dict[str, Any]) -> Any:
             `dsl: FrameGraph`.
     """
     if not isinstance(data, dict):
-        raise ValueError(
-            f"FrameGraph document root must be a mapping; got {type(data).__name__}"
-        )
+        raise ValueError(f"FrameGraph document root must be a mapping; got {type(data).__name__}")
     if data.get("dsl") != "FrameGraph":
         raise ValueError(
             f"FrameGraph document must declare `dsl: FrameGraph`; got {data.get('dsl')!r}"

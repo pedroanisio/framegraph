@@ -97,6 +97,7 @@ class _PackageDiagramComposer(HierarchicalComposer):
         opts: PackageDiagramOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the package model and options, indexing packages by id."""
         super().__init__(
             canvas_size=canvas_size,
             layer_height=opts.layer_height,

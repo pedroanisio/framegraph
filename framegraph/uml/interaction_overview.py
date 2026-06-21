@@ -64,6 +64,7 @@ class _InteractionOverviewComposer(HierarchicalComposer):
         opts: InteractionOverviewOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the interaction-overview model and options, indexing nodes by id."""
         super().__init__(
             canvas_size=canvas_size,
             layer_height=opts.layer_height,

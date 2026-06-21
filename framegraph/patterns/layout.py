@@ -222,6 +222,7 @@ class _AnchorGrid:
         row_h: list[float],
         margin: float,
     ) -> None:
+        """Store the column/row labels, their x/y/width/height arrays, and margin."""
         self.cols = cols
         self.rows = rows
         self._col_x = col_x
@@ -1175,6 +1176,7 @@ class LayoutReport:
         min_scale: float,
         overflows: list[dict[str, Any]] | None = None,
     ) -> None:
+        """Store the applied scale, scale floor, and overflow records (default empty)."""
         self.scale = scale
         self.min_scale = min_scale
         self.overflows = overflows or []
@@ -1211,6 +1213,7 @@ class LayoutPlan:
         scale: float,
         report: LayoutReport,
     ) -> None:
+        """Store the per-zone boxes, typography scale, and layout report."""
         self.boxes = boxes
         self.scale = scale
         self.report = report

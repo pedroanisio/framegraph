@@ -15,7 +15,6 @@ import pytest
 
 from framegraph.docs import build_catalog, render_catalog_json
 
-
 # ─────────────────────────────────────────────────────────────────
 # Catalog shape
 # ─────────────────────────────────────────────────────────────────
@@ -50,9 +49,7 @@ class TestCatalogShape:
         for k in mods:
             assert k.startswith("framegraph"), k
 
-    def test_each_module_has_overview_and_symbols(
-        self, catalog: dict[str, Any]
-    ) -> None:
+    def test_each_module_has_overview_and_symbols(self, catalog: dict[str, Any]) -> None:
         for path, mod in catalog["modules"].items():
             assert isinstance(mod.get("docstring"), str), path
             assert isinstance(mod.get("symbols"), list), path
@@ -122,9 +119,7 @@ class TestSymbolEntries:
                 return s
         raise AssertionError(f"{module}.{name} not found")
 
-    def test_class_entry_carries_signature_and_docstring(
-        self, catalog: dict[str, Any]
-    ) -> None:
+    def test_class_entry_carries_signature_and_docstring(self, catalog: dict[str, Any]) -> None:
         s = self._find(catalog, "framegraph._uml", "UMLClass")
         assert s["kind"] == "class"
         assert isinstance(s["docstring"], str) and s["docstring"].strip()
@@ -158,6 +153,74 @@ class TestSymbolEntries:
 # ─────────────────────────────────────────────────────────────────
 # JSON serialization
 # ─────────────────────────────────────────────────────────────────
+
+
+class TestSchemaFields:
+    """The flat `schema_fields` table the docs portal renders (v1.1.0)."""
+
+    def _find(self, catalog: dict[str, Any], module: str, name: str) -> dict[str, Any]:
+        for s in catalog["modules"][module]["symbols"]:
+            if s["name"] == name:
+                return s
+        raise AssertionError(f"{module}.{name} not found")
+
+    def test_pydantic_model_has_schema_fields(self, catalog: dict[str, Any]) -> None:
+        s = self._find(catalog, "framegraph._uml", "UMLClass")
+        fields = s.get("schema_fields")
+        assert isinstance(fields, list) and fields
+        names = {f["name"] for f in fields}
+        assert {"id", "name"}.issubset(names)
+
+    def test_field_rows_have_required_keys(self, catalog: dict[str, Any]) -> None:
+        s = self._find(catalog, "framegraph._uml", "UMLClass")
+        for row in s["schema_fields"]:
+            assert set(row) >= {"name", "type", "required", "description", "constraints"}
+            assert isinstance(row["required"], bool)
+            assert isinstance(row["type"], str) and row["type"]
+
+    def test_optional_field_type_uses_question_suffix(self, catalog: dict[str, Any]) -> None:
+        """`Optional[X]` (X | null) collapses to the compact ``X?`` form."""
+        s = self._find(catalog, "framegraph._uml", "UMLClass")
+        # An optional field (X | null) should render with the ``?`` suffix.
+        optional = [f["type"] for f in s["schema_fields"] if not f["required"]]
+        assert any(t.endswith("?") for t in optional), optional
+
+
+class TestCliCatalog:
+    """The introspected CLI section (v1.1.0) mirrors the live argparse tree."""
+
+    def test_cli_section_present(self, catalog: dict[str, Any]) -> None:
+        cli = catalog.get("cli")
+        assert isinstance(cli, dict)
+        assert cli["prog"] == "framegraph"
+
+    def test_all_top_level_commands_listed(self, catalog: dict[str, Any]) -> None:
+        names = {c["name"] for c in catalog["cli"]["subcommands"]}
+        # The authoritative dispatch table in cli.main().
+        assert {
+            "render",
+            "deck",
+            "validate",
+            "docs",
+            "sitemap",
+            "version",
+            "patterns",
+        }.issubset(names)
+
+    def test_render_command_exposes_documented_flags(self, catalog: dict[str, Any]) -> None:
+        render = next(c for c in catalog["cli"]["subcommands"] if c["name"] == "render")
+        positionals = {p["dest"] for p in render["positionals"]}
+        option_flags = {n for o in render["options"] for n in o["names"]}
+        assert "input" in positionals
+        assert "--output" in option_flags
+        # Every option carries help text (no blank portal rows).
+        for o in render["options"]:
+            assert isinstance(o["help"], str)
+
+    def test_patterns_has_nested_subcommands(self, catalog: dict[str, Any]) -> None:
+        patterns = next(c for c in catalog["cli"]["subcommands"] if c["name"] == "patterns")
+        nested = {c["name"] for c in patterns["subcommands"]}
+        assert {"list", "show"}.issubset(nested)
 
 
 class TestJsonRendering:

@@ -65,6 +65,7 @@ class _ObjectDiagramComposer(HierarchicalComposer):
         opts: ObjectDiagramOptions,
         canvas_size: tuple[float, float],
     ) -> None:
+        """Store the object model and options for layout."""
         super().__init__(
             canvas_size=canvas_size,
             layer_height=opts.layer_height,

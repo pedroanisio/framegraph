@@ -1061,6 +1061,7 @@ class RenderedFrame:
         svg: str,
         warnings: list[str],
     ) -> None:
+        """Store the frame id, target name, canvas, SVG, and warnings."""
         self.frame_id = frame_id
         self.target_name = target_name
         self.canvas = canvas

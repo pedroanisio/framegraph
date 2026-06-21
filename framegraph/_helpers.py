@@ -20,10 +20,12 @@ Point = tuple[float, float]
 
 
 def esc(v: Any) -> str:
+    """Return ``v`` as an XML-attribute-safe string (escapes ``&<>"'``)."""
     return html.escape(str(v), quote=True)
 
 
 def fnum(v: Any, default: float = 0.0) -> float:
+    """Coerce ``v`` to float, returning ``default`` on None or failure."""
     if v is None:
         return default
     try:
@@ -33,6 +35,10 @@ def fnum(v: Any, default: float = 0.0) -> float:
 
 
 def fmt(v: Any) -> str:
+    """Format a number for SVG: integers bare, floats to 3 trimmed decimals.
+
+    Non-numeric values are returned escaped via ``esc``.
+    """
     try:
         n = float(v)
     except (TypeError, ValueError):
@@ -43,6 +49,7 @@ def fmt(v: Any) -> str:
 
 
 def sid(v: Any) -> str:
+    """Sanitize ``v`` into a valid SVG/XML id, prefixing ``id_`` if needed."""
     s = re.sub(r"[^A-Za-z0-9_.:-]+", "_", str(v))
     if not s or not re.match(r"^[A-Za-z_]", s):
         s = "id_" + s
@@ -50,6 +57,11 @@ def sid(v: Any) -> str:
 
 
 def attrs(a: Mapping[str, Any]) -> str:
+    """Render a mapping as a space-joined SVG attribute string.
+
+    Keys with value None or False are skipped; True becomes ``"true"``;
+    other values are escaped via ``esc``.
+    """
     out: list[str] = []
     for k, v in a.items():
         if v is None or v is False:
@@ -61,18 +73,29 @@ def attrs(a: Mapping[str, Any]) -> str:
 
 
 def box(v: Any) -> Box:
+    """Coerce a 4-element sequence into a ``(x, y, w, h)`` float tuple.
+
+    Raises:
+        ValueError: When ``v`` is not a non-string sequence of length 4.
+    """
     if not isinstance(v, Sequence) or isinstance(v, (str, bytes)) or len(v) != 4:
         raise ValueError(f"expected box [x,y,w,h], got {v!r}")
     return fnum(v[0]), fnum(v[1]), fnum(v[2]), fnum(v[3])
 
 
 def pt(v: Any) -> Point:
+    """Coerce a 2-element sequence into a ``(x, y)`` float tuple.
+
+    Raises:
+        ValueError: When ``v`` is not a non-string sequence of length 2.
+    """
     if not isinstance(v, Sequence) or isinstance(v, (str, bytes)) or len(v) != 2:
         raise ValueError(f"expected point [x,y], got {v!r}")
     return fnum(v[0]), fnum(v[1])
 
 
 def deep_get(m: Mapping[str, Any], path: Sequence[str], default: Any = None) -> Any:
+    """Walk nested mappings by ``path`` keys, returning ``default`` if absent."""
     cur: Any = m
     for key in path:
         if not isinstance(cur, Mapping) or key not in cur:
@@ -82,6 +105,7 @@ def deep_get(m: Mapping[str, Any], path: Sequence[str], default: Any = None) -> 
 
 
 def pts_attr(points: Sequence[Point]) -> str:
+    """Format points as an SVG ``points`` attribute (``"x,y x,y …"``)."""
     return " ".join(f"{fmt(x)},{fmt(y)}" for x, y in points)
 
 

@@ -118,6 +118,39 @@ catalog:
 patterns-list:
 	$(PYTHON) -m $(PACKAGE) patterns list --has-sidecar --json
 
+# ── Documentation portal ──────────────────────────────────────────────────
+# The MkDocs source tree (docs/portal/) is generated from docstrings, the
+# Pydantic schema, and the bundled examples — never edited by hand. The
+# build enforces 100%% docstring coverage and example schema validity
+# (PALS's law). Requires the [docs] extra: `make install-docs`.
+PORTAL_DATE ?= $(shell date +%F)
+
+.PHONY: install-docs portal-gen portal portal-serve portal-check docs-coverage
+install-docs:
+	$(PIP) install -e ".[docs]"
+
+# Materialize docs/portal/ from source (no site build).
+portal-gen:
+	$(PYTHON) -m $(PACKAGE)._docsite.build --out docs/portal --date $(PORTAL_DATE)
+
+# Generate + build the static site into ./site (warnings allowed).
+portal: portal-gen
+	mkdocs build
+
+# Live-reload dev server (regenerates the source tree first).
+portal-serve: portal-gen
+	mkdocs serve
+
+# Docstring-coverage gate alone (fast; run by the Docs CI workflow via
+# portal-check, and enforceable locally before pushing). The same invariant
+# is also asserted by tests/unit/test_docstring_coverage.py under `make test`.
+docs-coverage:
+	$(PYTHON) -m $(PACKAGE)._docsite.coverage
+
+# CI gate: coverage + generate + strict build (warnings are errors).
+portal-check: docs-coverage portal-gen
+	mkdocs build --strict
+
 # ── Release ───────────────────────────────────────────────────────────────
 # Bumps the two version sites in lockstep (matches docs/PUBLISHING.md §2),
 # runs the full gate, builds artefacts, and creates an annotated tag.

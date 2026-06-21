@@ -80,6 +80,17 @@ pdf-vector = [
     "pypdf>=4.0",
 ]
 
+# Required to build the documentation portal (`make portal`). The portal
+# source tree is GENERATED from the package's docstrings, Pydantic schema,
+# and bundled examples by `framegraph._docsite.build`; MkDocs-Material then
+# renders it to a static site. The generator itself adds no dependencies
+# (stdlib + the already-required PyYAML/Pydantic), so only the site backend
+# is listed here.
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+]
+
 # Convenience bundle. `types-PyYAML` ships PyYAML's mypy stubs; without
 # it strict-mode mypy raises `Library stubs not installed for "yaml"`
 # at every `import yaml` site. The pre-commit mypy hook lists the same

@@ -57,6 +57,7 @@ class FontMetrics:
         default_em: float,
         source_path: str,
     ):
+        """Store the per-codepoint advance widths, fallback em, and source path."""
         self.advance_widths_em = advance_widths_em
         self.default_em = default_em
         self.source_path = source_path
