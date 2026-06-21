@@ -28,6 +28,15 @@ Versioning follows [Semantic Versioning 2.0.0](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Docker image for the documentation portal** (`Dockerfile`,
+  `docker/default.conf`, `docker-compose.yml`, `.dockerignore`) — serves the
+  rendered `./site` static portal from a non-root `nginx-unprivileged`
+  container. The nginx config resolves MkDocs directory-style URLs
+  (`/guides/manual/` → `index.html`), serves the theme's custom `404.html`,
+  and caches fingerprinted `/assets/` aggressively. Compose maps host port
+  `8085` → container `8080` (override with `PORT=…`). `./site` is a build
+  artifact (`make portal`); `.dockerignore` restricts the build context to
+  `site/` + `docker/`. Docs-only — no package or renderer behavior change.
 - **Documentation portal pipeline** (`framegraph._docsite`, `mkdocs.yml`,
   `.github/workflows/docs.yml`) — a deterministic, CI-gated pipeline that
   renders the public API, schema, and CLI reference plus a dogfooded

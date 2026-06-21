@@ -1,0 +1,6 @@
+# Keep the Docker build context minimal: the image only needs the rendered
+# static site and the nginx config. Exclude everything else (source tree,
+# .git, .venv, caches) so builds are fast and nothing extraneous leaks in.
+*
+!site
+!docker

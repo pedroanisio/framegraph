@@ -1,0 +1,27 @@
+# Serve the generated MkDocs static site (./site) with nginx.
+#
+# ./site is a BUILD ARTIFACT — regenerate it before building the image:
+#
+#     make portal            # python -m framegraph._docsite.build + mkdocs build
+#     docker compose up -d    # http://localhost:8085/
+#
+# Override the host port without editing this file:
+#
+#     PORT=9000 docker compose up -d
+
+services:
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: framegraph-docs
+    container_name: framegraph-docs
+    ports:
+      - "${PORT:-8085}:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3

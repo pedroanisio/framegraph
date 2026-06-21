@@ -152,6 +152,27 @@ make portal-check   # CI gate: coverage + strict build (warnings are errors)
 
 The site deploys to GitHub Pages from `main` via `.github/workflows/docs.yml`.
 
+#### Serving the built site with Docker
+
+To serve the rendered `./site` from a container (non-root nginx, host port
+`8085` → container `8080`):
+
+```bash
+make portal              # regenerate ./site first — it is a build artifact
+docker compose up -d     # http://localhost:8085/
+```
+
+`./site` is git-ignored and must exist in the build context before the image
+is built (Docker reads `.dockerignore`, not `.gitignore`, so the ignored
+directory is still copied in). Override the host port without editing the
+compose file: `PORT=9000 docker compose up -d`. To build and run the image
+directly without Compose:
+
+```bash
+docker build -t framegraph-docs .
+docker run --rm -p 8085:8080 framegraph-docs
+```
+
 ## For AI agents
 
 If you are an AI agent producing slides or diagrams, start with
