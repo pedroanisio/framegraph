@@ -26,10 +26,12 @@ from __future__ import annotations
 import argparse
 import copy
 import sys
+from contextlib import suppress
 from pathlib import Path
 from typing import Any, cast
 
 from framegraph._helpers import fnum
+from framegraph.canvas import DEFAULT_DECK_CANVAS, CanvasSize, canvas_from_mapping
 
 try:
     import yaml
@@ -78,15 +80,11 @@ def _scale_text_styles(text_styles: dict[str, Any], scale: float) -> dict[str, A
             continue
         scaled = dict(raw)
         if "size" in scaled:
-            try:
+            with suppress(TypeError, ValueError):
                 scaled["size"] = float(scaled["size"]) * scale
-            except (TypeError, ValueError):
-                pass
         if "line_height" in scaled:
-            try:
+            with suppress(TypeError, ValueError):
                 scaled["line_height"] = float(scaled["line_height"]) * scale
-            except (TypeError, ValueError):
-                pass
         out[name] = scaled
     return out
 
@@ -111,7 +109,7 @@ def dump_yaml(data: dict[str, Any], path: Path | None = None) -> str:
     text = yaml.dump(data, allow_unicode=True, sort_keys=False, default_flow_style=False)
     if path:
         path.write_text(text, encoding="utf-8")
-    return cast(str, text)
+    return text
 
 
 # ---------------------------------------------------------------------------
@@ -563,13 +561,16 @@ class FrameGraphDeckRenderer:
         self,
     ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         theme_id = self.raw.get("$theme")
+        library = self.library
         base_tokens: dict[str, Any] = {}
-        if theme_id and self.library:
-            base_tokens = self.library.load_tokens(theme_id)
+        if theme_id and library is not None:
+            base_tokens = library.load_tokens(theme_id)
         deck_tokens = deep_merge(base_tokens, self.deck_config.get("tokens") or {})
         deck_symbols: dict[str, Any] = {}
         for ref in self.raw.get("$symbols", []) or []:
-            deck_symbols.update(self.library.load_symbols(str(ref)))
+            if library is None:
+                raise ValueError("$symbols requires a FrameGraphLibrary")
+            deck_symbols.update(library.load_symbols(str(ref)))
         deck_symbols.update(self.deck_config.get("symbols") or {})
         deck_cdefs = {**(self.deck_config.get("component_defs") or {})}
         return deck_tokens, deck_symbols, deck_cdefs
@@ -607,14 +608,11 @@ class FrameGraphDeckRenderer:
             # Canvas-aware default selection. Read width from the
             # deck-level canvas; fall back to a print-grade default
             # when the canvas is absent or malformed.
-            canvas = self.deck_config.get("canvas") or {}
-            size = canvas.get("size") if isinstance(canvas, dict) else None
-            canvas_w = 0.0
-            if isinstance(size, (list, tuple)) and len(size) >= 1:
-                try:
-                    canvas_w = float(size[0])
-                except (TypeError, ValueError):
-                    canvas_w = 0.0
+            canvas = canvas_from_mapping(
+                self.deck_config.get("canvas"),
+                fallback=CanvasSize(0.0, 0.0),
+            )
+            canvas_w = canvas.width
             return load_bundled_stylesheet("default-screen" if canvas_w >= 1600 else "default")
         if isinstance(ref, dict):
             return Stylesheet.model_validate(ref)
@@ -719,9 +717,9 @@ class FrameGraphDeckRenderer:
         # Phase 3 — `canvas` override (used by multi-target rendering).
         # When None, fall back to the deck-level canvas.
         if canvas is None:
-            canvas = self.deck_config.get("canvas", {"size": [960, 540]})
-        size = canvas.get("size", [960, 540])
-        canvas_w, canvas_h = float(size[0]), float(size[1])
+            canvas = self.deck_config.get("canvas")
+        canvas_size = canvas_from_mapping(canvas, fallback=DEFAULT_DECK_CANVAS)
+        canvas_w, canvas_h = canvas_size.size
 
         # Compute the content rect (canvas minus chrome / footer /
         # synthesis reservations).
@@ -859,7 +857,7 @@ class FrameGraphDeckRenderer:
         # deck loader. One report per slide; keyed by slide id.
         self._layout_reports[slide_id] = plan_report
 
-        return doc
+        return cast(dict[str, Any], doc)
 
     def _build_chrome_layer_v2(
         self,
@@ -977,11 +975,7 @@ class FrameGraphDeckRenderer:
         # 4. Page number — top-right (suppress with `chrome.page_number: false`)
         page_num_cfg = chrome_cfg.get("page_number") or {}
         slide_num = slide.get("slide")
-        if (
-            page_num_cfg
-            and slide_num is not None
-            and overrides.get("page_number", True)
-        ):
+        if page_num_cfg and slide_num is not None and overrides.get("page_number", True):
             x_from_right = float(page_num_cfg.get("x_from_right", 32))
             y = float(page_num_cfg.get("y", 18))
             fmt = page_num_cfg.get("format", "{n:02d}")
@@ -1328,8 +1322,8 @@ class FrameGraphDeckRenderer:
 
         # Build the `use` object. Top-level fields are slot pass-through;
         # `params` is the nested parameter map. Both layers contribute.
-        size = canvas.get("size") or [960, 540]
-        canvas_box = [0, 0, fnum(size[0], 960), fnum(size[1], 540)]
+        canvas_size = canvas_from_mapping(canvas, fallback=DEFAULT_DECK_CANVAS)
+        canvas_box = [0, 0, fnum(canvas_size.width, 960), fnum(canvas_size.height, 540)]
 
         use_obj: dict[str, Any] = {
             "type": "use",

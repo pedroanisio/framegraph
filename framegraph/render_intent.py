@@ -20,6 +20,7 @@ from framegraph._frameset import (
     coerce_to_frameset,
     list_frameset_target_union,
 )
+from framegraph.canvas import CanvasUnits, parse_canvas_size
 
 ExportFormat = Literal["svg", "png", "pdf"]
 """Supported output formats for a normalized render request."""
@@ -37,7 +38,7 @@ class ResolvedCanvas:
     """
 
     size: tuple[float, float]
-    units: Literal["px"] = "px"
+    units: CanvasUnits = "px"
     target_name: str = "default"
 
 
@@ -86,8 +87,10 @@ class RenderIntent:
 
 def _resolved_canvas(target: FrameTarget) -> ResolvedCanvas:
     """Return the renderer-facing canvas value for a selected target."""
+    canvas = parse_canvas_size(target.canvas)
     return ResolvedCanvas(
-        size=(float(target.canvas[0]), float(target.canvas[1])),
+        size=canvas.size,
+        units=canvas.units,
         target_name=target.name,
     )
 

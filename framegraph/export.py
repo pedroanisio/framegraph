@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
+from framegraph.canvas import svg_canvas_size as _parse_svg_canvas_size
+
 ExportFormat = Literal["svg", "png", "pdf"]
 """Supported export formats."""
 
@@ -96,18 +98,7 @@ def write_png_4k(svg: str, out: Path) -> ExportResult:
 
 def svg_canvas_size(svg: str) -> tuple[float, float]:
     """Extract the canvas `(width, height)` in SVG user units."""
-    import re
-
-    m_w = re.search(r'<svg\b[^>]*\bwidth="([0-9.]+)(?:px)?"', svg)
-    m_h = re.search(r'<svg\b[^>]*\bheight="([0-9.]+)(?:px)?"', svg)
-    if m_w and m_h:
-        return float(m_w.group(1)), float(m_h.group(1))
-    m_vb = re.search(r'<svg\b[^>]*\bviewBox="([^"]+)"', svg)
-    if m_vb:
-        parts = m_vb.group(1).split()
-        if len(parts) >= 4:
-            return float(parts[2]), float(parts[3])
-    return 960.0, 540.0
+    return _parse_svg_canvas_size(svg).size
 
 
 def svg_to_raster_pdf_page(svg: str, *, dpi: int) -> Any:
