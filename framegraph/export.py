@@ -17,6 +17,18 @@ from framegraph.canvas import svg_canvas_size as _parse_svg_canvas_size
 ExportFormat = Literal["svg", "png", "pdf"]
 """Supported export formats."""
 
+DpiPreset = Literal["screen", "print", "archive", "high-quality"]
+"""Named raster quality presets."""
+
+_DPI_PRESETS: dict[str, int] = {
+    "screen": 150,
+    "print": 300,
+    "archive": 600,
+    "high-quality": 600,
+    "high_quality": 600,
+}
+"""Raster DPI presets for PNG-backed PDF export."""
+
 
 @dataclass(frozen=True)
 class ExportOptions:
@@ -44,6 +56,32 @@ class ExportResult:
     page_count: int = 1
     raster_dpi: int | None = None
     vector: bool = False
+
+
+def _normalize_key(value: str) -> str:
+    """Return a lower-case preset key with whitespace normalized."""
+    return value.strip().lower().replace(" ", "-")
+
+
+def resolve_dpi_preset(name: str) -> int:
+    """Resolve a named raster DPI preset.
+
+    Args:
+        name: Preset name. Supported values are ``screen`` (150),
+            ``print`` (300), ``archive`` (600), and ``high-quality`` (600).
+
+    Returns:
+        Raster DPI value.
+
+    Raises:
+        ValueError: If the preset is unknown.
+    """
+    preset_key = _normalize_key(name)
+    try:
+        return _DPI_PRESETS[preset_key]
+    except KeyError as exc:
+        supported = ", ".join(sorted({"screen", "print", "archive", "high-quality"}))
+        raise ValueError(f"unknown DPI preset {name!r}; expected one of: {supported}") from exc
 
 
 def _coerce_pdf_options(

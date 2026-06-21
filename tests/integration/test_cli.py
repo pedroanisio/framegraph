@@ -315,10 +315,71 @@ def test_cli_build_parser_render_4k_default_false() -> None:
     assert args.four_k is False
 
 
+def test_cli_build_parser_render_dpi_preset_round_trip() -> None:
+    """`render --dpi-preset` maps to the export quality preset field."""
+    args = build_parser().parse_args(["render", "in.yml", "-o", "out.svg", "--dpi-preset", "print"])
+    assert args.dpi_preset == "print"
+
+
 def test_cli_build_parser_deck_4k_flag_round_trip() -> None:
     """`--4k` is also wired on the deck subcommand."""
     args = build_parser().parse_args(["deck", "deck.yml", "-o", "out_dir", "--4k"])
     assert args.four_k is True
+
+
+def test_cli_build_parser_deck_dpi_preset_round_trip() -> None:
+    """`deck --dpi-preset` maps to the export quality preset field."""
+    args = build_parser().parse_args(
+        ["deck", "deck.yml", "-o", "out_dir", "--dpi-preset", "screen"]
+    )
+    assert args.dpi_preset == "screen"
+
+
+def test_cli_render_rejects_dpi_and_dpi_preset_together(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Raw DPI and named DPI presets are mutually exclusive."""
+    out = tmp_path / "out.svg"
+
+    rc = cli_main(
+        [
+            "render",
+            str(STANDALONE_FIXTURES[0]),
+            "-o",
+            str(out),
+            "--pdf",
+            "--dpi",
+            "200",
+            "--dpi-preset",
+            "print",
+        ]
+    )
+
+    assert rc == 1
+    assert "dpi" in capsys.readouterr().err.lower()
+
+
+def test_cli_render_rejects_vector_with_dpi_preset(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Vector PDF is DPI-independent, so named DPI presets are rejected."""
+    out = tmp_path / "out.svg"
+
+    rc = cli_main(
+        [
+            "render",
+            str(STANDALONE_FIXTURES[0]),
+            "-o",
+            str(out),
+            "--pdf",
+            "--vector",
+            "--dpi-preset",
+            "print",
+        ]
+    )
+
+    assert rc == 1
+    assert "vector" in capsys.readouterr().err.lower()
 
 
 def test_cli_render_4k_writes_png_alongside_svg(tmp_path: Path) -> None:

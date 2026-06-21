@@ -140,6 +140,73 @@ class TestPatternsBuild:
         # Must contain rendered fill text.
         assert "Subscription" in svg or "Engineering" in svg
 
+    def test_build_uses_canvas_preset_and_orientation(
+        self, capsys, tmp_path: Path, bmc_fill_file: Path
+    ) -> None:
+        """`--canvas-preset` resolves paper sizes before pattern rendering."""
+        out_path = tmp_path / "bmc-a4.svg"
+
+        rc = main(
+            [
+                "patterns",
+                "build",
+                "44",
+                "--fill",
+                str(bmc_fill_file),
+                "--canvas-preset",
+                "a4",
+                "--orientation",
+                "portrait",
+                "-o",
+                str(out_path),
+            ]
+        )
+
+        assert rc == 0
+        root = ET.fromstring(out_path.read_text(encoding="utf-8"))
+        assert root.attrib["width"] == "794"
+        assert root.attrib["height"] == "1123"
+
+    def test_build_rejects_canvas_preset_with_raw_canvas_size(
+        self, capsys, tmp_path: Path, bmc_fill_file: Path
+    ) -> None:
+        """Named canvas presets and raw canvas dimensions are mutually exclusive."""
+        rc = main(
+            [
+                "patterns",
+                "build",
+                "44",
+                "--fill",
+                str(bmc_fill_file),
+                "--canvas-preset",
+                "a4",
+                "--canvas-w",
+                "1920",
+            ]
+        )
+
+        assert rc != 0
+        assert "canvas" in capsys.readouterr().err.lower()
+
+    def test_build_rejects_orientation_without_canvas_preset(
+        self, capsys, tmp_path: Path, bmc_fill_file: Path
+    ) -> None:
+        """Orientation only has meaning when a named canvas preset is selected."""
+        rc = main(
+            [
+                "patterns",
+                "build",
+                "44",
+                "--fill",
+                str(bmc_fill_file),
+                "--orientation",
+                "portrait",
+            ]
+        )
+
+        assert rc != 0
+        assert "orientation" in capsys.readouterr().err.lower()
+
     def test_build_to_stdout_when_no_output_flag(self, capsys, bmc_fill_file: Path) -> None:
         rc = main(["patterns", "build", "44", "--fill", str(bmc_fill_file)])
         assert rc == 0
@@ -222,6 +289,54 @@ class TestPatternsDeck:
         assert "zones" not in loaded
         assert "example_fill" not in loaded
         assert "strengths" in loaded  # SWOT zone
+
+    def test_deck_uses_canvas_preset_for_rendered_svgs(self, capsys, tmp_path: Path) -> None:
+        """`patterns deck --canvas-preset` applies to every rendered pattern."""
+        out_dir = tmp_path / "deck-out"
+
+        rc = main(
+            [
+                "patterns",
+                "deck",
+                "--ids",
+                "10",
+                "--canvas-preset",
+                "letter",
+                "--orientation",
+                "portrait",
+                "-o",
+                str(out_dir),
+                "--quiet",
+            ]
+        )
+
+        assert rc == 0
+        svg = out_dir / "svgs" / "010-swot-analysis.svg"
+        root = ET.fromstring(svg.read_text(encoding="utf-8"))
+        assert root.attrib["width"] == "816"
+        assert root.attrib["height"] == "1056"
+
+    def test_deck_rejects_dpi_and_dpi_preset_together(self, capsys, tmp_path: Path) -> None:
+        """Raw DPI and named DPI presets are mutually exclusive for pattern decks."""
+        rc = main(
+            [
+                "patterns",
+                "deck",
+                "--ids",
+                "10",
+                "--pdf",
+                "--dpi",
+                "200",
+                "--dpi-preset",
+                "print",
+                "-o",
+                str(tmp_path / "bad"),
+                "--quiet",
+            ]
+        )
+
+        assert rc != 0
+        assert "dpi" in capsys.readouterr().err.lower()
 
     def test_deck_renders_multiple_ids(self, capsys, tmp_path: Path) -> None:
         out_dir = tmp_path / "deck-out"

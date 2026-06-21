@@ -11,7 +11,7 @@ from unittest.mock import ANY
 import pytest
 
 from framegraph import export as export_mod
-from framegraph.export import ExportOptions, svg_canvas_size
+from framegraph.export import ExportOptions, resolve_dpi_preset, svg_canvas_size
 
 
 def test_svg_canvas_size_prefers_root_width_height() -> None:
@@ -28,6 +28,22 @@ def test_svg_canvas_size_falls_back_to_viewbox() -> None:
 
 def test_svg_canvas_size_uses_default_when_svg_has_no_canvas() -> None:
     assert svg_canvas_size("<svg></svg>") == (960.0, 540.0)
+
+
+def test_resolve_dpi_preset_maps_named_quality_levels() -> None:
+    assert resolve_dpi_preset("screen") == 150
+    assert resolve_dpi_preset("print") == 300
+    assert resolve_dpi_preset("archive") == 600
+
+
+def test_resolve_dpi_preset_normalizes_case_and_separator() -> None:
+    assert resolve_dpi_preset("Screen") == 150
+    assert resolve_dpi_preset("high-quality") == 600
+
+
+def test_resolve_dpi_preset_rejects_unknown_preset() -> None:
+    with pytest.raises(ValueError, match="unknown DPI preset"):
+        resolve_dpi_preset("poster")
 
 
 def test_write_svg_writes_file_and_metadata(tmp_path: Path) -> None:

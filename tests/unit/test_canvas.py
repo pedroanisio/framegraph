@@ -11,6 +11,7 @@ from framegraph.canvas import (
     canvas_from_scene,
     canvas_size_list,
     parse_canvas_size,
+    resolve_canvas_preset,
     svg_canvas_size,
 )
 
@@ -115,3 +116,28 @@ def test_svg_canvas_size_uses_fallback_for_short_viewbox() -> None:
 
 def test_svg_canvas_size_uses_configured_fallback() -> None:
     assert svg_canvas_size("<svg></svg>") is DEFAULT_SVG_CANVAS
+
+
+def test_resolve_canvas_preset_screen_aliases_to_hd_landscape() -> None:
+    assert resolve_canvas_preset("screen-16:9").size == (1920.0, 1080.0)
+    assert resolve_canvas_preset("hd").size == (1920.0, 1080.0)
+
+
+def test_resolve_canvas_preset_print_sizes_use_css_pixels() -> None:
+    assert resolve_canvas_preset("a4", orientation="portrait").size == (794.0, 1123.0)
+    assert resolve_canvas_preset("a3", orientation="portrait").size == (1123.0, 1587.0)
+    assert resolve_canvas_preset("letter", orientation="portrait").size == (816.0, 1056.0)
+
+
+def test_resolve_canvas_preset_landscape_swaps_print_dimensions() -> None:
+    assert resolve_canvas_preset("A4", orientation="landscape").size == (1123.0, 794.0)
+
+
+def test_resolve_canvas_preset_rejects_unknown_preset() -> None:
+    with pytest.raises(ValueError, match="unknown canvas preset"):
+        resolve_canvas_preset("tabloid")
+
+
+def test_resolve_canvas_preset_rejects_unknown_orientation() -> None:
+    with pytest.raises(ValueError, match="orientation"):
+        resolve_canvas_preset("a4", orientation="square")

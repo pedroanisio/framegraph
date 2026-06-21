@@ -57,6 +57,10 @@ from typing import Any
 
 import yaml
 
+from framegraph.canvas import DEFAULT_PATTERN_CANVAS, resolve_canvas_preset
+from framegraph.export import (
+    resolve_dpi_preset,
+)
 from framegraph.export import (
     write_deck_pdf as _write_deck_pdf,
 )
@@ -66,6 +70,40 @@ from framegraph.export import (
 from framegraph.export import (
     write_png_4k as _write_png_4k,
 )
+
+
+def _resolve_pattern_canvas_args(args: argparse.Namespace) -> tuple[float, float]:
+    """Resolve pattern CLI canvas flags into concrete dimensions."""
+    preset = getattr(args, "canvas_preset", None)
+    orientation = getattr(args, "orientation", None)
+    canvas_w = getattr(args, "canvas_w", None)
+    canvas_h = getattr(args, "canvas_h", None)
+
+    if preset is not None:
+        if canvas_w is not None or canvas_h is not None:
+            raise ValueError("--canvas-preset cannot be combined with --canvas-w or --canvas-h")
+        canvas = resolve_canvas_preset(preset, orientation=orientation or "landscape")
+        return canvas.size
+    if orientation is not None:
+        raise ValueError("--orientation requires --canvas-preset")
+    return (
+        float(canvas_w) if canvas_w is not None else DEFAULT_PATTERN_CANVAS.width,
+        float(canvas_h) if canvas_h is not None else DEFAULT_PATTERN_CANVAS.height,
+    )
+
+
+def _resolve_pdf_dpi_args(args: argparse.Namespace) -> int:
+    """Resolve PDF DPI flags while enforcing preset conflicts."""
+    dpi = getattr(args, "dpi", None)
+    dpi_preset = getattr(args, "dpi_preset", None)
+    vector = bool(getattr(args, "vector", False))
+    if dpi is not None and dpi_preset is not None:
+        raise ValueError("--dpi cannot be combined with --dpi-preset")
+    if vector and dpi_preset is not None:
+        raise ValueError("--dpi-preset cannot be used with --vector")
+    if dpi_preset is not None:
+        return resolve_dpi_preset(str(dpi_preset))
+    return int(dpi) if dpi is not None else 300
 
 
 def _detect_validation_kind(data: Any) -> str | None:
@@ -197,6 +235,11 @@ def cmd_render(args: argparse.Namespace) -> int:
         )
         return 1
     try:
+        pdf_dpi = _resolve_pdf_dpi_args(args)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    try:
         if target_name is not None or link_base_url is not None or link_template is not None:
             # Phase 3 / Phase 6: FrameSet path. Required when
             # `--target` is set (canvas comes from the target) or
@@ -264,12 +307,12 @@ def cmd_render(args: argparse.Namespace) -> int:
         pdf_out = out.with_suffix(".pdf")
         vector = getattr(args, "vector", False)
         try:
-            _write_pdf(svg, pdf_out, dpi=getattr(args, "dpi", 300), vector=vector)
+            _write_pdf(svg, pdf_out, dpi=pdf_dpi, vector=vector)
         except Exception as e:
             print(f"ERROR writing PDF: {e}", file=sys.stderr)
             return 1
         if not args.quiet:
-            mode = "vector" if vector else f"raster {getattr(args, 'dpi', 300)} DPI"
+            mode = "vector" if vector else f"raster {pdf_dpi} DPI"
             print(f"wrote {pdf_out}  ({pdf_out.stat().st_size / 1024:.1f} KB, {mode})")
     return 0
 
@@ -327,6 +370,11 @@ def cmd_deck(args: argparse.Namespace) -> int:
             "ERROR: --link-base-url and --link-template are mutually exclusive",
             file=sys.stderr,
         )
+        return 1
+    try:
+        pdf_dpi = _resolve_pdf_dpi_args(args)
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
         return 1
 
     # Phase 3 multi-target loop. When `--all-targets` is set, render
@@ -439,16 +487,15 @@ def cmd_deck(args: argparse.Namespace) -> int:
             if not args.quiet:
                 print(f"  wrote {png_out.name}  ({png_out.stat().st_size / 1024:.1f} KB)")
     if getattr(args, "pdf", False):
-        dpi = getattr(args, "dpi", 300)
         vector = getattr(args, "vector", False)
         deck_pdf = out_dir / f"{Path(args.input).stem}.pdf"
         try:
-            _write_deck_pdf(paths, deck_pdf, dpi=dpi, vector=vector)
+            _write_deck_pdf(paths, deck_pdf, dpi=pdf_dpi, vector=vector)
         except Exception as e:
             print(f"ERROR writing PDF: {e}", file=sys.stderr)
             return 1
         if not args.quiet:
-            mode = "vector, selectable text" if vector else f"raster, {dpi} DPI"
+            mode = "vector, selectable text" if vector else f"raster, {pdf_dpi} DPI"
             print(
                 f"  wrote {deck_pdf.name}  "
                 f"({deck_pdf.stat().st_size / 1024:.1f} KB, "
@@ -797,9 +844,8 @@ def cmd_patterns_build(args: argparse.Namespace) -> int:
         print(f"ERROR: could not parse fill YAML: {exc}", file=sys.stderr)
         return 1
 
-    canvas_w = float(args.canvas_w)
-    canvas_h = float(args.canvas_h)
     try:
+        canvas_w, canvas_h = _resolve_pattern_canvas_args(args)
         svg = _build_pattern_svg(args.pattern_id, payload, canvas_w=canvas_w, canvas_h=canvas_h)
     except KeyError:
         print(
@@ -809,6 +855,9 @@ def cmd_patterns_build(args: argparse.Namespace) -> int:
         return 1
     except ValidationError as exc:
         print(f"ERROR: fill validation failed:\n{exc}", file=sys.stderr)
+        return 1
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
         return 1
     except Exception as exc:
         print(f"ERROR: render failed: {exc}", file=sys.stderr)
@@ -902,8 +951,12 @@ def cmd_patterns_deck(args: argparse.Namespace) -> int:
     svgs_dir.mkdir(parents=True, exist_ok=True)
     fills_dir.mkdir(parents=True, exist_ok=True)
 
-    canvas_w = float(args.canvas_w)
-    canvas_h = float(args.canvas_h)
+    try:
+        canvas_w, canvas_h = _resolve_pattern_canvas_args(args)
+        pdf_dpi = _resolve_pdf_dpi_args(args)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
     if not args.quiet:
         print(f"Rendering {len(sidecared)} pattern(s) → {out_dir}", file=sys.stderr)
@@ -970,14 +1023,14 @@ def cmd_patterns_deck(args: argparse.Namespace) -> int:
             _write_deck_pdf(
                 svg_paths,
                 pdf_out,
-                dpi=getattr(args, "dpi", 300),
+                dpi=pdf_dpi,
                 vector=getattr(args, "vector", False),
             )
         except Exception as exc:
             print(f"ERROR: writing PDF failed: {exc}", file=sys.stderr)
             return 1
         if not args.quiet:
-            mode = "vector" if getattr(args, "vector", False) else f"raster {args.dpi} DPI"
+            mode = "vector" if getattr(args, "vector", False) else f"raster {pdf_dpi} DPI"
             print(
                 f"wrote {pdf_out}  "
                 f"({pdf_out.stat().st_size / 1024:.1f} KB, "
@@ -1107,8 +1160,13 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument(
         "--dpi",
         type=int,
-        default=300,
+        default=None,
         help="Rasterization DPI for --pdf output (default: 300; ignored with --vector)",
+    )
+    rp.add_argument(
+        "--dpi-preset",
+        dest="dpi_preset",
+        help="Named raster PDF DPI preset: screen (150), print (300), archive (600)",
     )
     rp.add_argument(
         "--target",
@@ -1186,8 +1244,13 @@ def build_parser() -> argparse.ArgumentParser:
     dp.add_argument(
         "--dpi",
         type=int,
-        default=300,
+        default=None,
         help="Rasterization DPI for --pdf output (default: 300; ignored with --vector)",
+    )
+    dp.add_argument(
+        "--dpi-preset",
+        dest="dpi_preset",
+        help="Named raster PDF DPI preset: screen (150), print (300), archive (600)",
     )
     dp.add_argument(
         "--target",
@@ -1341,15 +1404,24 @@ def build_parser() -> argparse.ArgumentParser:
         "--canvas-w",
         dest="canvas_w",
         type=float,
-        default=1920.0,
+        default=None,
         help="Canvas width in pixels (default: 1920)",
     )
     pb.add_argument(
         "--canvas-h",
         dest="canvas_h",
         type=float,
-        default=1080.0,
+        default=None,
         help="Canvas height in pixels (default: 1080)",
+    )
+    pb.add_argument(
+        "--canvas-preset",
+        dest="canvas_preset",
+        help="Named canvas preset: hd, screen-16:9, a4, a3, letter",
+    )
+    pb.add_argument(
+        "--orientation",
+        help="Preset orientation: landscape or portrait (requires --canvas-preset)",
     )
     pb.add_argument("--quiet", action="store_true", help="Suppress progress output")
 
@@ -1380,15 +1452,24 @@ def build_parser() -> argparse.ArgumentParser:
         "--canvas-w",
         dest="canvas_w",
         type=float,
-        default=1920.0,
+        default=None,
         help="Canvas width in pixels (default: 1920)",
     )
     pd.add_argument(
         "--canvas-h",
         dest="canvas_h",
         type=float,
-        default=1080.0,
+        default=None,
         help="Canvas height in pixels (default: 1080)",
+    )
+    pd.add_argument(
+        "--canvas-preset",
+        dest="canvas_preset",
+        help="Named canvas preset: hd, screen-16:9, a4, a3, letter",
+    )
+    pd.add_argument(
+        "--orientation",
+        help="Preset orientation: landscape or portrait (requires --canvas-preset)",
     )
     pd.add_argument(
         "--pdf",
@@ -1409,8 +1490,13 @@ def build_parser() -> argparse.ArgumentParser:
     pd.add_argument(
         "--dpi",
         type=int,
-        default=300,
+        default=None,
         help="Rasterization DPI for --pdf output (default: 300; ignored with --vector)",
+    )
+    pd.add_argument(
+        "--dpi-preset",
+        dest="dpi_preset",
+        help="Named raster PDF DPI preset: screen (150), print (300), archive (600)",
     )
     pd.add_argument("--quiet", action="store_true", help="Suppress progress output")
 

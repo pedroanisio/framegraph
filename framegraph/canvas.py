@@ -17,6 +17,9 @@ from typing import Any, Literal
 CanvasUnits = Literal["px", "pt"]
 """Canvas units accepted by the schema."""
 
+CanvasOrientation = Literal["portrait", "landscape"]
+"""Supported named-preset orientations."""
+
 
 @dataclass(frozen=True)
 class CanvasSize:
@@ -67,10 +70,67 @@ DEFAULT_DECK_CANVAS = CanvasSize(960.0, 540.0)
 DEFAULT_PATTERN_CANVAS = CanvasSize(1920.0, 1080.0)
 """Default canvas used by pattern CLI rendering."""
 
+_CANVAS_PRESETS: dict[str, CanvasSize] = {
+    "screen-16:9": DEFAULT_PATTERN_CANVAS,
+    "screen-16-9": DEFAULT_PATTERN_CANVAS,
+    "hd": DEFAULT_PATTERN_CANVAS,
+    "a4": CanvasSize(794.0, 1123.0),
+    "a3": CanvasSize(1123.0, 1587.0),
+    "letter": CanvasSize(816.0, 1056.0),
+}
+"""Named canvas presets expressed as CSS pixels at 96 DPI."""
+
 
 def canvas_size_list(canvas: CanvasSize) -> list[float]:
     """Return a mutable ``[width, height]`` pair for existing schema surfaces."""
     return canvas.as_list()
+
+
+def _normalize_key(value: str) -> str:
+    """Return a lower-case preset key with whitespace normalized."""
+    return value.strip().lower().replace("_", "-")
+
+
+def resolve_canvas_preset(
+    name: str,
+    *,
+    orientation: CanvasOrientation = "landscape",
+) -> CanvasSize:
+    """Resolve a named canvas preset to CSS-pixel dimensions.
+
+    Print paper presets are represented as CSS pixels at 96 DPI. This
+    preserves the existing renderer/export contract where SVG user units
+    behave as CSS pixels. True physical-unit export remains a separate
+    concern.
+
+    Args:
+        name: Preset name. Supported names include ``screen-16:9``, ``hd``,
+            ``a4``, ``a3``, and ``letter``.
+        orientation: ``portrait`` or ``landscape``. Landscape returns the
+            wider dimension first; portrait returns the taller dimension
+            second.
+
+    Returns:
+        Canvas dimensions in CSS pixels.
+
+    Raises:
+        ValueError: If the preset name or orientation is unknown.
+    """
+    orientation_key = _normalize_key(orientation)
+    if orientation_key not in ("portrait", "landscape"):
+        raise ValueError("canvas orientation must be 'portrait' or 'landscape'")
+
+    preset_key = _normalize_key(name)
+    try:
+        preset = _CANVAS_PRESETS[preset_key]
+    except KeyError as exc:
+        supported = ", ".join(sorted(_CANVAS_PRESETS))
+        raise ValueError(f"unknown canvas preset {name!r}; expected one of: {supported}") from exc
+
+    short, long = sorted((preset.width, preset.height))
+    if orientation_key == "portrait":
+        return CanvasSize(short, long, units=preset.units)
+    return CanvasSize(long, short, units=preset.units)
 
 
 def parse_canvas_size(
