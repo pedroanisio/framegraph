@@ -21,3 +21,4 @@ output/
 # Agent-skill metadata (not part of project source)
 .repo/
 .agent-tasks/
+.env
