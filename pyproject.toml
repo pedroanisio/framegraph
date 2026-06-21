@@ -188,6 +188,10 @@ convention = "google"
 "framegraph/library.py" = ["D"]
 # Test fixtures and harness scripts: D rules are overkill.
 "tests/**" = ["D"]
+# Dev/maintenance utilities (catalog merges, annotation, deck builders):
+# tooling, not the public API surface the D rules enforce — same rationale
+# as tests/**. Non-D rules (F, B, SIM, …) still apply.
+"scripts/**" = ["D"]
 
 # ── Mypy ──────────────────────────────────────────────────────────────────────
 # Strict mode is enabled. The v2.0 modular-split regression that previously

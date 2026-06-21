@@ -128,9 +128,7 @@ class TestComputeFrameUrl:
         assert url == "slide_agenda.svg"
 
     def test_file_template_with_target(self) -> None:
-        url = _compute_frame_url(
-            "agenda", "mobile", file_template="{target_name}/{frame_id}.svg"
-        )
+        url = _compute_frame_url("agenda", "mobile", file_template="{target_name}/{frame_id}.svg")
         assert url == "mobile/agenda.svg"
 
     def test_neither_raises(self) -> None:
@@ -139,9 +137,7 @@ class TestComputeFrameUrl:
 
     def test_both_raises(self) -> None:
         with pytest.raises(ValueError, match="at most one"):
-            _compute_frame_url(
-                "x", "t", base_url="https://example.com", file_template="x.svg"
-            )
+            _compute_frame_url("x", "t", base_url="https://example.com", file_template="x.svg")
 
     def test_empty_base_url_rejected(self) -> None:
         with pytest.raises(ValueError, match="non-empty"):
@@ -631,9 +627,7 @@ class TestCliDeckLinks:
     def test_deck_no_link_flags_no_a_tag(self, tmp_path: Path) -> None:
         in_path = _two_slide_deck_yaml(tmp_path)
         out_dir = tmp_path / "out"
-        rc = cli_main(
-            ["deck", str(in_path), "-o", str(out_dir), "--quiet"]
-        )
+        rc = cli_main(["deck", str(in_path), "-o", str(out_dir), "--quiet"])
         assert rc == 0
         for p in out_dir.glob("*.svg"):
             assert "<a href=" not in p.read_text(encoding="utf-8")

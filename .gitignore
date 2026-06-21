@@ -9,6 +9,9 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
+# Scratch / working dump (not project source; excluded from lint surface)
+_tmp/
+
 # Local virtual env
 .venv/
 

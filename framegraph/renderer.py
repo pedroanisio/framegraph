@@ -289,10 +289,7 @@ class FrameGraphRenderer:
             if stop_op is None:
                 stop_op = root_opacity
             op_attr = f' stop-opacity="{fmt(stop_op)}"' if stop_op is not None else ""
-            stops_svg_parts.append(
-                f'<stop offset="{offset}"'
-                f' stop-color="{stop_color}"{op_attr}/>'
-            )
+            stops_svg_parts.append(f'<stop offset="{offset}" stop-color="{stop_color}"{op_attr}/>')
         stops_svg = "".join(stops_svg_parts)
 
         # Optional shared attributes: spread method, coordinate space, transform.
@@ -317,12 +314,16 @@ class FrameGraphRenderer:
             # Optional focal point for off-centre highlight: defaults to centre.
             focal = fs.get("focal")
             focal_attr = ""
-            if isinstance(focal, Sequence) and not isinstance(focal, (str, bytes)) and len(focal) >= 2:
+            if (
+                isinstance(focal, Sequence)
+                and not isinstance(focal, (str, bytes))
+                and len(focal) >= 2
+            ):
                 focal_attr = f' fx="{fmt(fnum(focal[0]))}" fy="{fmt(fnum(focal[1]))}"'
             self.gradient_defs.append(
                 f'<radialGradient id="{gid}"'
                 f' cx="{fmt(fnum(c[0]))}" cy="{fmt(fnum(c[1]))}" r="{fmt(r)}"'
-                f'{focal_attr}'
+                f"{focal_attr}"
                 f' gradientUnits="{esc(units)}"{spread_attr}{gtrans_attr}>{stops_svg}</radialGradient>'
             )
         return gid
@@ -690,10 +691,9 @@ class FrameGraphRenderer:
         return ports
 
     def _assign_side_ports(self) -> None:
-        """Pre-pass: detect connector endpoints that pile up on a side
-        and auto-assign distributed port positions.
+        """Assign distributed side-ports to piled-up connector endpoints.
 
-        Walks every connector in z-order. For each `from`/`to` endpoint
+        Pre-pass. Walks every connector in z-order. For each `from`/`to` endpoint
         of the form ``{object: X, side: Y}`` *without* an explicit
         ``offset`` or ``port_index``, the connector is registered as a
         candidate for the ``(X, Y)`` collision bucket. After the walk,
@@ -738,9 +738,7 @@ class FrameGraphRenderer:
                         continue
                     bucket_key = (str(oid), str(side))
                     sort_key = self._port_sort_key(obj, end_label)
-                    buckets.setdefault(bucket_key, []).append(
-                        (f"{conn_id}::{end_label}", sort_key)
-                    )
+                    buckets.setdefault(bucket_key, []).append((f"{conn_id}::{end_label}", sort_key))
 
         for bucket_key, members in buckets.items():
             if len(members) < 2:
@@ -1499,8 +1497,9 @@ class FrameGraphRenderer:
     # the correct absolute coordinates.
     # ------------------------------------------------------------------
 
-    def endpoint(self, ep: Any, *, _connector_id: str | None = None,
-                 _end_label: str | None = None) -> Point:
+    def endpoint(
+        self, ep: Any, *, _connector_id: str | None = None, _end_label: str | None = None
+    ) -> Point:
         """Resolve a connector endpoint to a canvas-space (x, y) point.
 
         Accepted forms:
@@ -1572,8 +1571,10 @@ class FrameGraphRenderer:
                     if auto is not None:
                         idx, total = auto
                         return self.side_anchor(
-                            rec, str(ep["side"]),
-                            port_index=idx, port_total=total,
+                            rec,
+                            str(ep["side"]),
+                            port_index=idx,
+                            port_total=total,
                         )
                 return self.side_anchor(rec, str(ep["side"]), fnum(ep.get("offset"), 0))
             return cast(Point, rec["ports"].get("center", (0.0, 0.0)))
@@ -1634,7 +1635,7 @@ class FrameGraphRenderer:
         if port_total is not None and port_total > 0:
             idx = max(1, min(int(port_index or 1), port_total))
             # Available span along the side's tangent direction.
-            tangent_len = (w if side in ("north", "top", "south", "bottom") else h)
+            tangent_len = w if side in ("north", "top", "south", "bottom") else h
             inset = min(port_inset, max(0.0, (tangent_len - 1) / 2))
             usable = max(0.0, tangent_len - 2 * inset)
             if port_total == 1:

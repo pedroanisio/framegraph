@@ -37,7 +37,7 @@ The bundled YAML is normalized to this shape via
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -61,7 +61,9 @@ __all__ = [
 ]
 
 
-PATTERN_CATALOG_PATH: Path = Path(__file__).resolve().parent / "data" / "patterns" / "slides-patter-a.yml"
+PATTERN_CATALOG_PATH: Path = (
+    Path(__file__).resolve().parent / "data" / "patterns" / "slides-patter-a.yml"
+)
 """Path to the canonical pattern catalog shipped with the package.
 
 Lives under `framegraph/data/patterns/` so it travels with the wheel
@@ -191,7 +193,7 @@ class RegionPlacement(BaseModel):
 # Discriminated by which key is present. Pydantic resolves the union
 # by validating each shape; ``extra="forbid"`` on each variant means
 # only one shape will match a given input.
-Placement = Union[Anchor, RegionPlacement, RelativePlacement]
+Placement = Anchor | RegionPlacement | RelativePlacement
 """A zone's placement: 9-cell anchor, named region, or relative."""
 
 

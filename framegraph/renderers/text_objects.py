@@ -6,7 +6,7 @@ draw labels inside container/component decorations.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from framegraph._helpers import (
@@ -147,7 +147,10 @@ def text_svg(
     if do_wrap:
         lines = wrap_text(raw_text, fs)
         # After wrapping, longest line might still exceed box → shrink only if needed
-        if ew > 0 and r._str_width(lines[lines.index(max(lines, key=len))], fs, bold, font_family) > ew:
+        if (
+            ew > 0
+            and r._str_width(lines[lines.index(max(lines, key=len))], fs, bold, font_family) > ew
+        ):
             old = fs
             _lw = r._str_width(max(lines, key=len), fs, bold, font_family)
             fs = max(min_fs, fs * ew / max(_lw, 1))
@@ -156,7 +159,10 @@ def text_svg(
         lines = wrap_text(raw_text, fs)
     else:
         lines = raw_text.split("\n")
-        if ew > 0 and r._str_width(lines[lines.index(max(lines, key=len))], fs, bold, font_family) > ew:
+        if (
+            ew > 0
+            and r._str_width(lines[lines.index(max(lines, key=len))], fs, bold, font_family) > ew
+        ):
             old = fs
             _lw = r._str_width(max(lines, key=len), fs, bold, font_family)
             fs = max(min_fs, fs * ew / max(_lw, 1))
@@ -202,7 +208,7 @@ def text_svg(
 
 def spans_svg(
     r: RendererContext,
-    spans_raw: list[Mapping[str, Any]],
+    spans_raw: Sequence[Mapping[str, Any]],
     b: Box,
     base_style: Mapping[str, Any],
     *,
@@ -495,9 +501,7 @@ def render_bullet_list(r: RendererContext, obj: Mapping[str, Any]) -> str:
             cur_line: list[tuple[str, dict[str, Any]]] = []
             cur_text = ""
             for word, sp_attrs in flat:
-                sp_bold = bool(
-                    str(sp_attrs.get("weight", "")) in ("700", "bold", "bolder")
-                ) or bold
+                sp_bold = bool(str(sp_attrs.get("weight", "")) in ("700", "bold", "bolder")) or bold
                 space = " " if cur_text else ""
                 test = cur_text + space + word
                 if cur_line and r._str_width(test, fs, sp_bold, bullet_font) > safe_body_w:

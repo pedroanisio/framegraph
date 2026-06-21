@@ -116,7 +116,9 @@ class RendererContext(Protocol):
         ...
 
     # ── Connector / line geometry ─────────────────────────────────────
-    def endpoint(self, ep: Any) -> Point:
+    def endpoint(
+        self, ep: Any, *, _connector_id: str | None = None, _end_label: str | None = None
+    ) -> Point:
         """Resolve a connector endpoint to a canvas-space (x, y) point."""
         ...
 
@@ -135,7 +137,7 @@ class RendererContext(Protocol):
         ...
 
     # ── Text metrics ──────────────────────────────────────────────────
-    def _str_width(self, text: str, fs: float, bold: bool) -> float: ...
+    def _str_width(self, text: str, fs: float, bold: bool, font: str | None = None) -> float: ...
 
     # ── Object dispatch ───────────────────────────────────────────────
     def render_object(self, obj: Mapping[str, Any]) -> str:

@@ -66,9 +66,12 @@ Source of truth per topic:
 - `PL*`/`PLR*`/`PLW*` and `PLC0415` are intentionally NOT enabled. Do not
   re-enable without a documented defect pattern.
 - Per-file `D` exemptions (`[tool.ruff.lint.per-file-ignores]`):
-  `framegraph/_helpers.py`, `framegraph/library.py`, `tests/**`. The enforced
-  value for each is `["D"]` only. (A pyproject comment claims `_helpers.py` is
-  also `F401`-exempt for re-exports, but the config does not grant it — see §17.)
+  `framegraph/_helpers.py`, `framegraph/library.py`, `tests/**`, `scripts/**`.
+  The enforced value for each is `["D"]` only — docstring rigor is reserved for
+  the public package surface; tests and dev/maintenance scripts are tooling and
+  exempt. Non-D rules (F, B, SIM, …) still apply everywhere. (A pyproject comment
+  claims `_helpers.py` is also `F401`-exempt for re-exports, but the config does
+  not grant it — see §17.)
 - Formatting is mandatory at commit; no formatter diffs may land.
 - Autofix: `make fix` (`ruff check --fix . && ruff format .`).
 

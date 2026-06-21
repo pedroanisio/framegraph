@@ -360,9 +360,7 @@ def _doc_with_object(obj: dict) -> dict:
 def test_shadow_on_path_attaches_filter_to_path_element() -> None:
     """Path renderer must honour `shadow:` in addition to rect/ellipse."""
     svg = _render(
-        _doc_with_object(
-            {"type": "path", "id": "p1", "d": "M0 0 L 50 50", "shadow": "small"}
-        )
+        _doc_with_object({"type": "path", "id": "p1", "d": "M0 0 L 50 50", "shadow": "small"})
     )
     assert "<filter " in svg
     # The path element itself carries the filter wiring.
@@ -612,5 +610,5 @@ def test_shadow_and_outer_ring_on_image_compose() -> None:
     assert 'filter="url(#fg-fx-sh_' in svg
     # Ring is a separate <rect> — should NOT also carry filter (avoids
     # double-shadow on the composite).
-    rect_segment = svg[svg.find("<rect "): svg.find("/>", svg.find("<rect "))]
+    rect_segment = svg[svg.find("<rect ") : svg.find("/>", svg.find("<rect "))]
     assert "filter=" not in rect_segment

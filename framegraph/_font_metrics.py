@@ -34,7 +34,6 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
-from typing import Optional
 
 __all__ = ["FontMetrics", "measure_text", "get_font_metrics", "clear_cache"]
 
@@ -72,7 +71,7 @@ class FontMetrics:
 # Module-level cache. Keyed on (font_family_chain, bold) to keep sans-bold
 # and sans-regular distinct (they often live in separate font files with
 # materially different advance widths).
-_CACHE: dict[tuple[str, bool], Optional[FontMetrics]] = {}
+_CACHE: dict[tuple[str, bool], FontMetrics | None] = {}
 
 
 def clear_cache() -> None:
@@ -97,7 +96,7 @@ def _split_family_chain(font_family: str) -> list[str]:
 _GENERIC_FAMILIES = {"sans-serif", "serif", "monospace", "system-ui", "cursive", "fantasy"}
 
 
-def _resolve_font_file(font_family: str, bold: bool) -> Optional[str]:
+def _resolve_font_file(font_family: str, bold: bool) -> str | None:
     """Resolve the first concrete name in a CSS font-family chain to a file path.
 
     Uses ``fc-match`` (fontconfig) so the resolved file matches what the
@@ -136,14 +135,14 @@ def _resolve_font_file(font_family: str, bold: bool) -> Optional[str]:
     return None
 
 
-def _load_font_metrics(font_path: str) -> Optional[FontMetrics]:
+def _load_font_metrics(font_path: str) -> FontMetrics | None:
     """Read advance widths from a TTF/OTF file via ``fontTools``.
 
     Returns ``None`` when ``fontTools`` is not installed or the file
     fails to parse — callers fall back to the legacy per-class estimator.
     """
     try:
-        from fontTools.ttLib import TTFont  # type: ignore[import-untyped]
+        from fontTools.ttLib import TTFont
     except ImportError:
         return None
     try:
@@ -172,7 +171,7 @@ def _load_font_metrics(font_path: str) -> Optional[FontMetrics]:
     )
 
 
-def get_font_metrics(font_family: str, bold: bool) -> Optional[FontMetrics]:
+def get_font_metrics(font_family: str, bold: bool) -> FontMetrics | None:
     """Resolve, load, and cache metrics for a CSS font-family chain.
 
     Returns ``None`` when fontconfig or ``fontTools`` are unavailable, or
@@ -193,7 +192,7 @@ def get_font_metrics(font_family: str, bold: bool) -> Optional[FontMetrics]:
     return metrics
 
 
-def measure_text(text: str, font_family: str, font_size: float, bold: bool) -> Optional[float]:
+def measure_text(text: str, font_family: str, font_size: float, bold: bool) -> float | None:
     """Return rendered text width using real font metrics, or ``None`` on miss.
 
     Convenience wrapper for callers that don't need to keep the

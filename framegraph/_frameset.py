@@ -957,9 +957,7 @@ def _apply_hide(visual: dict[str, Any], hide_ids: list[str]) -> None:
         objects = layer.get("objects")
         if isinstance(objects, list):
             layer["objects"] = [
-                obj
-                for obj in objects
-                if not (isinstance(obj, dict) and obj.get("id") in drop)
+                obj for obj in objects if not (isinstance(obj, dict) and obj.get("id") in drop)
             ]
         kept_layers.append(layer)
     visual["layers"] = kept_layers
@@ -1232,9 +1230,7 @@ def _compute_frame_url(
         ValueError: If neither or both of the URL inputs are supplied.
     """
     if base_url is None and file_template is None:
-        raise ValueError(
-            "_compute_frame_url requires exactly one of `base_url` or `file_template`"
-        )
+        raise ValueError("_compute_frame_url requires exactly one of `base_url` or `file_template`")
     if base_url is not None and file_template is not None:
         raise ValueError(
             "_compute_frame_url accepts at most one of `base_url` or `file_template`; "
@@ -1261,7 +1257,9 @@ def _compute_frame_url(
     return f"{prefix}/{quote(target_name, safe='')}/{quote(frame_id, safe='')}"
 
 
-_SVG_BODY_SPLIT_RE = re.compile(r"(?P<head>.*?</desc>\s*(?:<defs>.*?</defs>\s*)?)(?P<body>.*)</svg>", re.DOTALL)
+_SVG_BODY_SPLIT_RE = re.compile(
+    r"(?P<head>.*?</desc>\s*(?:<defs>.*?</defs>\s*)?)(?P<body>.*)</svg>", re.DOTALL
+)
 
 
 def inject_svg_navigation_links(
@@ -1494,11 +1492,7 @@ def emit_sitemap(
             # escaping spaces, '#', '?', etc. We pass empty `safe`
             # because frame ids and target names are single path
             # segments — any '/' inside them is data, not a separator.
-            url_path = (
-                f"{prefix}/"
-                f"{quote(target_name, safe='')}/"
-                f"{quote(frame.id, safe='')}"
-            )
+            url_path = f"{prefix}/{quote(target_name, safe='')}/{quote(frame.id, safe='')}"
             url_el = ET.SubElement(urlset, f"{{{SITEMAP_NS}}}url")
             loc_el = ET.SubElement(url_el, f"{{{SITEMAP_NS}}}loc")
             loc_el.text = url_path

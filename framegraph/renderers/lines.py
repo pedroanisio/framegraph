@@ -62,7 +62,7 @@ def _collect_obstacle_boxes(
         b = rec.get("box")
         if b is None:
             continue
-        out.append(tuple(float(v) for v in b))
+        out.append((float(b[0]), float(b[1]), float(b[2]), float(b[3])))
     return out
 
 
@@ -128,9 +128,7 @@ def render_connector(r: RendererContext, obj: Mapping[str, Any]) -> str:
     if "type" not in route:
         route = dict(route)
         route["type"] = (
-            "orthogonal"
-            if (_endpoint_side(from_ep) or _endpoint_side(to_ep))
-            else "straight"
+            "orthogonal" if (_endpoint_side(from_ep) or _endpoint_side(to_ep)) else "straight"
         )
     rtype = str(route.get("type", "straight"))
     if rtype == "straight":
@@ -223,8 +221,7 @@ def _auto_label_box(
     points: list[tuple[float, float]],
     label: Mapping[str, Any],
 ) -> list[float]:
-    """Compute an [x, y, w, h] for a connector label that does not
-    overlap the connector's own path.
+    """Compute an [x, y, w, h] box for a connector label clear of the path.
 
     Strategy: pick the longest segment of the polyline. For a
     horizontal segment, place the label above it (or below if the
@@ -235,7 +232,7 @@ def _auto_label_box(
     is empty.
     """
     if len(points) < 2:
-        x, y = (points[0] if points else (0.0, 0.0))
+        x, y = points[0] if points else (0.0, 0.0)
         return [float(x), float(y), 100.0, 16.0]
 
     # Find the longest segment.
@@ -260,17 +257,11 @@ def _auto_label_box(
 
     if horizontal:
         cx = (p0[0] + p1[0]) / 2.0
-        if placement == "below":
-            y = p0[1] + pad
-        else:
-            y = p0[1] - pad - label_h
+        y = p0[1] + pad if placement == "below" else p0[1] - pad - label_h
         return [cx - label_w / 2.0, y, label_w, label_h]
     # Vertical segment.
     cy = (p0[1] + p1[1]) / 2.0
-    if placement == "left":
-        x = p0[0] - pad - label_w
-    else:
-        x = p0[0] + pad
+    x = p0[0] - pad - label_w if placement == "left" else p0[0] + pad
     return [x, cy - label_h / 2.0, label_w, label_h]
 
 

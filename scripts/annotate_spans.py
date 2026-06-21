@@ -70,9 +70,7 @@ def _is_heavy(zone: dict) -> bool:
     ct = zone.get("content_type")
     if ct in HEAVY_CONTENT_TYPES:
         return True
-    if ct == "list_items" and zone.get("shape") == "chart":
-        return True
-    return False
+    return ct == "list_items" and zone.get("shape") == "chart"
 
 
 def suggest_spans(pattern: dict) -> list[tuple[str, dict[str, int]]]:
@@ -90,7 +88,7 @@ def suggest_spans(pattern: dict) -> list[tuple[str, dict[str, int]]]:
 
     # Group zones by row for R2 (find rows where only one anchor zone exists).
     row_to_cells: dict[str, set[str]] = defaultdict(set)
-    for c, zs in cell_to_zones.items():
+    for c in cell_to_zones:
         h, v = c
         row_to_cells[v].add(h)
 
@@ -137,13 +135,10 @@ def suggest_spans(pattern: dict) -> list[tuple[str, dict[str, int]]]:
                 suggestions.append((z["role"], {"h": h_span}))
             continue
 
-        # R2: medium size + no other zone anywhere in this row → span 2.
-        if size == "medium":
-            if len(row_to_cells[v]) == 1:
-                # Only this zone occupies any cell in row v.
-                # Span rightward up to 2 cells.
-                if col_idx <= 1:  # left or center
-                    suggestions.append((z["role"], {"h": 2}))
+        # R2: medium size + sole occupant of its row → span 2 rightward
+        # (only when this zone is in the left or center column).
+        if size == "medium" and len(row_to_cells[v]) == 1 and col_idx <= 1:
+            suggestions.append((z["role"], {"h": 2}))
 
     return suggestions
 
@@ -171,9 +166,7 @@ def main() -> int:
                         z["span"] = span
                         break
 
-    print(
-        f"Suggested {total} span annotation(s) across {affected_patterns} pattern(s):"
-    )
+    print(f"Suggested {total} span annotation(s) across {affected_patterns} pattern(s):")
     for h in sorted(by_h):
         print(f"  span: {{h: {h}}}  →  {by_h[h]} zones")
 
@@ -191,9 +184,7 @@ def main() -> int:
             shown += 1
 
     if not apply:
-        print(
-            "\n(dry run — re-run with --apply to write these to the bundled YAML)"
-        )
+        print("\n(dry run — re-run with --apply to write these to the bundled YAML)")
         return 0
 
     # Validate before writing.

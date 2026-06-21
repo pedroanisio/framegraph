@@ -60,7 +60,7 @@ _MULTIPLICITY_RE = re.compile(r"^(\d+(\.\.(\d+|\*))?|\*)$")
 
 
 def _validate_multiplicity(value: str) -> str:
-    """Validate a multiplicity string against the UML 2.5.1 grammar.
+    r"""Validate a multiplicity string against the UML 2.5.1 grammar.
 
     Enforces the `MultiplicityElement` constraints from the OMG
     metamodel (`static/specs/ptc-18-01-01.xmi`):
@@ -68,7 +68,7 @@ def _validate_multiplicity(value: str) -> str:
     - `lower_is_integer`: lower bound is a non-negative integer
     - `upper_is_unlimitedNatural`: upper bound is a non-negative
       integer or `*` (UnlimitedNatural infinity)
-    - `lower_ge_0`: lower bound ≥ 0 (enforced by the `\\d+` regex)
+    - `lower_ge_0`: lower bound ≥ 0 (enforced by the `\d+` regex)
     - `upper_ge_lower`: upper bound ≥ lower bound
 
     Args:
@@ -1264,13 +1264,14 @@ class UMLUseCaseDiagramModel(BaseModel):
         """
         use_case_ids = {u.id for u in self.use_cases}
         for rel in self.relations:
-            if rel.kind in ("include", "extend"):
-                if rel.from_id not in use_case_ids or rel.to_id not in use_case_ids:
-                    raise ValueError(
-                        f"use-case relation {rel.id!r} kind={rel.kind!r} "
-                        f"requires both endpoints to be use cases; UML 2.5.1 "
-                        f"§18.1.4 restricts include/extend to use-case pairs"
-                    )
+            if rel.kind in ("include", "extend") and (
+                rel.from_id not in use_case_ids or rel.to_id not in use_case_ids
+            ):
+                raise ValueError(
+                    f"use-case relation {rel.id!r} kind={rel.kind!r} "
+                    f"requires both endpoints to be use cases; UML 2.5.1 "
+                    f"§18.1.4 restricts include/extend to use-case pairs"
+                )
         return self
 
     @model_validator(mode="after")

@@ -9,6 +9,7 @@ box. The user's stylesheet still controls brand/theme tokens.
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from framegraph._patterns import (
     EnterpriseLayout,
@@ -19,7 +20,6 @@ from framegraph.patterns.style import (
     Stylesheet,
     resolve_zone_style,
 )
-
 
 # ── Schema ──────────────────────────────────────────────────────────
 
@@ -49,7 +49,7 @@ def test_enterprise_layout_default_zones_is_empty() -> None:
 
 
 def test_enterprise_zone_preset_rejects_unknown_fields() -> None:
-    with pytest.raises(Exception):  # pydantic ValidationError
+    with pytest.raises(ValidationError):
         EnterpriseZonePreset(treatment={}, font_size=72)  # type: ignore[call-arg]
 
 
@@ -79,7 +79,9 @@ def test_catalog_pilot_patterns_all_have_enterprise_layout() -> None:
     pilot_ids = [1, 2, 10, 49, 93, 219]
     for pid in pilot_ids:
         p = by_id[pid]
-        assert p.enterprise_layout is not None, f"pattern {pid} ({p.name!r}) missing enterprise_layout"
+        assert p.enterprise_layout is not None, (
+            f"pattern {pid} ({p.name!r}) missing enterprise_layout"
+        )
         assert p.enterprise_layout.zones, f"pattern {pid} has empty enterprise_layout.zones"
 
 
@@ -163,18 +165,14 @@ def test_resolve_zone_style_no_preset_falls_back_to_stylesheet() -> None:
     rules — the merge is additive."""
     cat = load_pattern_catalog()
     # Find a pattern with no enterprise_layout (there are many).
-    p_unpolished = next(
-        p for p in cat.slide_template_patterns if p.enterprise_layout is None
-    )
+    p_unpolished = next(p for p in cat.slide_template_patterns if p.enterprise_layout is None)
     zone = p_unpolished.zones[0]
 
     ss = Stylesheet.model_validate(
         {
             "text_styles": {"card_body": {"size": 10}},
             "treatments": {"plain": {"fill_color": "surface"}},
-            "roles": [
-                {"match": {}, "treatment": "plain", "typography": "card_body"}
-            ],
+            "roles": [{"match": {}, "treatment": "plain", "typography": "card_body"}],
         }
     )
 

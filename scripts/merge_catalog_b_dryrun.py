@@ -39,7 +39,6 @@ sys.path.insert(0, str(REPO_ROOT))
 from framegraph._patterns import (  # noqa: E402
     PatternCatalog,
     SlidePattern,
-    _zone_fingerprint,
 )
 from scripts._pattern_normalization import (  # noqa: E402
     POSITION_NORMALIZATION,
@@ -89,10 +88,14 @@ def main() -> int:
 
     merged = {"slide_template_patterns": a_patterns + b_patterns}
 
-    print(f"Catalog A: {len(a_patterns)} patterns (ids "
-          f"{min(p['id'] for p in a_patterns)}–{max(p['id'] for p in a_patterns)})")
-    print(f"Catalog B: {len(b_patterns)} patterns (ids "
-          f"{min(p['id'] for p in b_patterns)}–{max(p['id'] for p in b_patterns)})")
+    print(
+        f"Catalog A: {len(a_patterns)} patterns (ids "
+        f"{min(p['id'] for p in a_patterns)}–{max(p['id'] for p in a_patterns)})"
+    )
+    print(
+        f"Catalog B: {len(b_patterns)} patterns (ids "
+        f"{min(p['id'] for p in b_patterns)}–{max(p['id'] for p in b_patterns)})"
+    )
     print(f"Merged:    {len(a_patterns) + len(b_patterns)} patterns")
     print()
 

@@ -408,17 +408,23 @@ def test_deck_renderer_extends_inherits_and_replaces_base_layers(tmp_path: Path)
         },
         {
             "id": "content",
-            "objects": [{"type": "text", "id": "base_text", "text": "Base", "box": [20, 20, 120, 30]}],
+            "objects": [
+                {"type": "text", "id": "base_text", "text": "Base", "box": [20, 20, 120, 30]}
+            ],
         },
     ]
     deck["slides"][1]["visual"]["layers"] = [
         {
             "id": "content",
-            "objects": [{"type": "text", "id": "child_text", "text": "Child", "box": [20, 20, 120, 30]}],
+            "objects": [
+                {"type": "text", "id": "child_text", "text": "Child", "box": [20, 20, 120, 30]}
+            ],
         },
         {
             "id": "footer",
-            "objects": [{"type": "text", "id": "foot", "text": "Footer", "box": [20, 560, 120, 20]}],
+            "objects": [
+                {"type": "text", "id": "foot", "text": "Footer", "box": [20, 560, 120, 20]}
+            ],
         },
     ]
     lib = FrameGraphLibrary(tmp_path / "lib")

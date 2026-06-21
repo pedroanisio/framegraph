@@ -210,7 +210,7 @@ def derive_default_fill_schema(pattern: SlidePattern) -> type[BaseModel]:
         # only `None` is a valid value (per type(None)).
         fields[z.role] = (py_type, Field(...))
 
-    Model = create_model(
+    Model: type[BaseModel] = create_model(
         f"DefaultFill_p{pattern.id}",
         __config__=ConfigDict(extra="forbid"),
         **fields,

@@ -17,7 +17,6 @@ from framegraph._routing import (
     simplify_polyline,
 )
 
-
 # ─────────────────────────────────────────────────────────────────
 # normalize_side
 # ─────────────────────────────────────────────────────────────────
@@ -91,8 +90,12 @@ class TestSimplifyPolyline:
         not an L (3 points). The micro-jogs at y=441 and y=381 must
         be gone."""
         path = [
-            (1438, 441), (1422, 441), (1426, 441),
-            (1426, 381), (1430, 381), (1414, 381),
+            (1438, 441),
+            (1422, 441),
+            (1426, 441),
+            (1426, 381),
+            (1430, 381),
+            (1414, 381),
         ]
         out = simplify_polyline(path)
         assert out[0] == (1438.0, 441.0)
@@ -100,10 +103,7 @@ class TestSimplifyPolyline:
         # No segment shorter than 2 px should survive.
         for i in range(len(out) - 1):
             seg_len = abs(out[i + 1][0] - out[i][0]) + abs(out[i + 1][1] - out[i][1])
-            assert seg_len >= 2.0, (
-                f"micro-segment of {seg_len}px between "
-                f"{out[i]} and {out[i + 1]}"
-            )
+            assert seg_len >= 2.0, f"micro-segment of {seg_len}px between {out[i]} and {out[i + 1]}"
         # No two consecutive segments should reverse direction along
         # the same axis (the "zigzag" symptom).
         for i in range(1, len(out) - 1):
@@ -171,9 +171,7 @@ class TestSegmentIntersectsBox:
         # Without clearance, a segment at y=99 (one px above the box)
         # does NOT intersect; with clearance=2 it does.
         assert not segment_intersects_box((50, 99), (350, 99), self.BOX)
-        assert segment_intersects_box(
-            (50, 99), (350, 99), self.BOX, clearance=2
-        )
+        assert segment_intersects_box((50, 99), (350, 99), self.BOX, clearance=2)
 
     def test_segment_fully_inside_box_intersects(self) -> None:
         assert segment_intersects_box((150, 150), (250, 150), self.BOX)
@@ -346,9 +344,9 @@ class TestObstacleAvoidance:
             stub=10.0,
         )
         for i in range(len(path) - 1):
-            assert not segment_intersects_box(
-                path[i], path[i + 1], obstacle, clearance=4.0
-            ), f"segment {path[i]}→{path[i+1]} crosses obstacle"
+            assert not segment_intersects_box(path[i], path[i + 1], obstacle, clearance=4.0), (
+                f"segment {path[i]}→{path[i + 1]} crosses obstacle"
+            )
 
     def test_route_falls_back_when_obstacle_blocks_both_endpoint_rows(self) -> None:
         # When an obstacle blocks both endpoint rows the simple
@@ -419,13 +417,13 @@ class TestInvariants:
         assert path[-1] == (789.0, 321.0)
 
     def test_repeated_invocations_are_deterministic(self) -> None:
-        kwargs = dict(
-            start=(100, 100),
-            end=(400, 200),
-            start_side="east",
-            end_side="west",
-            obstacles=[(200.0, 80.0, 100.0, 140.0)],
-        )
+        kwargs = {
+            "start": (100, 100),
+            "end": (400, 200),
+            "start_side": "east",
+            "end_side": "west",
+            "obstacles": [(200.0, 80.0, 100.0, 140.0)],
+        }
         a = route_orthogonal(**kwargs)
         b = route_orthogonal(**kwargs)
         assert a == b
@@ -444,5 +442,5 @@ class TestInvariants:
             dx = path[i + 1][0] - path[i][0]
             dy = path[i + 1][1] - path[i][1]
             assert (abs(dx) > 0.5) or (abs(dy) > 0.5), (
-                f"consecutive duplicate points at index {i}: {path[i]}, {path[i+1]}"
+                f"consecutive duplicate points at index {i}: {path[i]}, {path[i + 1]}"
             )

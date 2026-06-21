@@ -135,9 +135,7 @@ def main() -> int:
     # Drop patterns from any source category we'll re-merge below
     # (idempotency).
     sourced_categories = {s["category"] for s in SOURCES}
-    bundled_patterns = [
-        p for p in bundled_patterns if p.get("category") not in sourced_categories
-    ]
+    bundled_patterns = [p for p in bundled_patterns if p.get("category") not in sourced_categories]
     # Tag any leftover patterns with `generic` if absent.
     # Migrate the legacy `consulting_use` field name to `use_case`
     # if it survived from a pre-rename bundled file.
@@ -160,10 +158,7 @@ def main() -> int:
 
     cats = Counter(p.category for p in cat.slide_template_patterns)
     breakdown = ", ".join(f"{n} {c}" for c, n in sorted(cats.items()))
-    print(
-        f"Validated merged catalog: {len(cat.slide_template_patterns)} patterns "
-        f"({breakdown})"
-    )
+    print(f"Validated merged catalog: {len(cat.slide_template_patterns)} patterns ({breakdown})")
 
     BUNDLED.write_text(
         yaml.safe_dump(

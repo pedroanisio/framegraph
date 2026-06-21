@@ -34,7 +34,6 @@ from framegraph._patterns import (  # noqa: E402
     Anchor,
     PatternCatalog,
     RegionPlacement,
-    RelativePlacement,
     SlidePattern,
 )
 from scripts.merge_catalogs import (  # noqa: E402

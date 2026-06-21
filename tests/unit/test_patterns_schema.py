@@ -27,13 +27,11 @@ from framegraph._patterns import (
     Anchor,
     PatternCatalog,
     PatternZone,
-    Placement,
     RegionPlacement,
     RelativePlacement,
     SlidePattern,
     load_pattern_catalog,
 )
-
 
 # ─────────────────────────────────────────────────────────────────
 # Anchor — 9-cell grid + fullbleed
@@ -263,8 +261,16 @@ class TestPatternZone:
     @pytest.mark.parametrize(
         "ct",
         [
-            "title_body", "metric", "list_items", "key_value", "comparison",
-            "chart_data", "table_data", "image", "axis_label", "decorative",
+            "title_body",
+            "metric",
+            "list_items",
+            "key_value",
+            "comparison",
+            "chart_data",
+            "table_data",
+            "image",
+            "axis_label",
+            "decorative",
         ],
     )
     def test_all_content_type_values_accepted(self, ct: str) -> None:
@@ -419,9 +425,7 @@ class TestPatternCatalog:
         return base
 
     def test_minimal_catalog(self) -> None:
-        c = PatternCatalog.model_validate(
-            {"slide_template_patterns": [self._patt()]}
-        )
+        c = PatternCatalog.model_validate({"slide_template_patterns": [self._patt()]})
         assert len(c.slide_template_patterns) == 1
 
     def test_duplicate_ids_rejected(self) -> None:
@@ -470,9 +474,7 @@ class TestPatternCatalog:
         assert c.get(2).name == "B"
 
     def test_get_unknown_raises(self) -> None:
-        c = PatternCatalog.model_validate(
-            {"slide_template_patterns": [self._patt()]}
-        )
+        c = PatternCatalog.model_validate({"slide_template_patterns": [self._patt()]})
         with pytest.raises(KeyError):
             c.get(99)
 
@@ -720,9 +722,7 @@ class TestBundledCatalog:
                                 {
                                     "role": "r",
                                     "size": "medium",
-                                    "placement": {
-                                        "anchor": {"h": "center", "v": "middle"}
-                                    },
+                                    "placement": {"anchor": {"h": "center", "v": "middle"}},
                                 }
                             ],
                         }

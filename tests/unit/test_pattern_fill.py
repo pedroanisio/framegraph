@@ -19,14 +19,13 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from framegraph._patterns import PatternZone, SlidePattern
+from framegraph._patterns import SlidePattern
 from framegraph.patterns import (
     MissingContentTypeError,
     PatternFill,
     derive_default_fill_schema,
     load_fill,
 )
-
 
 # ─────────────────────────────────────────────────────────────────
 # Helpers — minimal fully-typed pattern fixtures
@@ -78,9 +77,7 @@ class TestRequiredZones:
         """
         p = _pattern(1, [_zone("title", content_type="title_body")])
         with pytest.raises(ValidationError, match="title"):
-            PatternFill.model_validate(
-                {"pattern_id": 1, "content": {}, "_pattern": p}
-            )
+            PatternFill.model_validate({"pattern_id": 1, "content": {}, "_pattern": p})
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -368,15 +365,12 @@ example_fill:
         assert sidecar.pattern_id == 44
         assert "revenue_streams" in sidecar.zones
 
-    def test_sidecar_overrides_default_list_items_to_object_list(
-        self, tmp_path
-    ) -> None:
+    def test_sidecar_overrides_default_list_items_to_object_list(self, tmp_path) -> None:
         """A list_items zone with an object override accepts list[dict]."""
-        from framegraph.patterns import load_sidecar
-
         # Use a synthetic pattern (single list_items zone) so this
         # test doesn't depend on BMC bundled-catalog state.
         from framegraph._patterns import SlidePattern
+        from framegraph.patterns import load_sidecar
 
         pattern = SlidePattern.model_validate(
             {
@@ -427,15 +421,13 @@ zones:
 
     def test_sidecar_pattern_id_must_match(self, tmp_path) -> None:
         """A sidecar declares its pattern_id; mismatch with the pattern is rejected."""
+        from framegraph._patterns import SlidePattern
         from framegraph.patterns import (
             PatternFillSidecar,
             derive_fill_schema_with_sidecar,
         )
-        from framegraph._patterns import SlidePattern
 
-        sidecar = PatternFillSidecar.model_validate(
-            {"pattern_id": 999, "zones": {}}
-        )
+        sidecar = PatternFillSidecar.model_validate({"pattern_id": 999, "zones": {}})
         pattern = SlidePattern.model_validate(
             {
                 "id": 1,

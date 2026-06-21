@@ -31,7 +31,7 @@ Architecture
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from pydantic import BaseModel
@@ -345,9 +345,7 @@ def _body_title_body(
     #   2. treatment.slots.body.typography
     #   3. fallback: stylesheet's `card_body` text style
     body_typo_ref = (
-        style.get("typography")
-        or (slots.get("body") or {}).get("typography")
-        or "card_body"
+        style.get("typography") or (slots.get("body") or {}).get("typography") or "card_body"
     )
     body_typo = _resolve_typography_ref(body_typo_ref, stylesheet)
     title_text = getattr(value, "title", None) or ""
@@ -359,7 +357,9 @@ def _body_title_body(
     # split the box: title at the top, body below.
     if title_typo_ref and (title_text or body_text):
         title_typo = _resolve_typography_ref(title_typo_ref, stylesheet)
-        title_h = float(title_slot.get("height", title_typo.get("line_height", 32) if title_typo else 32))
+        title_h = float(
+            title_slot.get("height", title_typo.get("line_height", 32) if title_typo else 32)
+        )
         gap_below = float(title_slot.get("gap_below", 6))
         objects: list[dict[str, Any]] = []
         if title_text:
@@ -725,7 +725,8 @@ def compose_document(
         pattern: The catalog pattern.
         fill: A validated fill object.
         layout: Per-zone box mapping.
-        canvas_w / canvas_h: Canvas size in pixels.
+        canvas_w: Canvas width in pixels.
+        canvas_h: Canvas height in pixels.
         stylesheet: Active `Stylesheet`. Without one, the card
             primitive degrades to a single body emission and the
             renderer uses defaults.
@@ -777,9 +778,7 @@ def compose_document(
 
         zone_style: dict[str, Any] = {}
         if stylesheet is not None:
-            zone_style = resolve_zone_style(
-                zone, stylesheet, enterprise_preset=zone_preset
-            )
+            zone_style = resolve_zone_style(zone, stylesheet, enterprise_preset=zone_preset)
 
         value = _content_value(fill, zone.role)
         body_emitter = _BODY_EMITTERS[ct]
@@ -792,9 +791,7 @@ def compose_document(
             # Preset `label_text` overrides the humanized auto-label,
             # but a user-supplied `label_overrides[role]` still wins —
             # `_zone_label_text` checks `label_overrides` first.
-            preset_label = (
-                zone_preset.label_text if zone_preset is not None else None
-            )
+            preset_label = zone_preset.label_text if zone_preset is not None else None
             if (label_overrides or {}).get(zone.role) is not None:
                 label_text = _zone_label_text(zone.role, label_overrides, label_cfg)
             elif preset_label is not None:
@@ -814,9 +811,10 @@ def compose_document(
             _zone: Any = zone,
             _value: Any = value,
             _style: dict[str, Any] = zone_style,
+            _emit_fn: Callable[..., list[dict[str, Any]]] = body_emitter,
         ) -> Any:
             def _emit(body_box: Box) -> list[dict[str, Any]]:
-                return body_emitter(_zone.role, _value, body_box, _style, stylesheet)
+                return _emit_fn(_zone.role, _value, body_box, _style, stylesheet)
 
             return _emit
 

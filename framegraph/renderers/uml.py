@@ -1914,7 +1914,7 @@ def render_marker_glyph(r: RendererContext, obj: Mapping[str, Any]) -> str:
         transform += f" rotate({fmt(rotation)})"
     stroke_width = 1.0 / size  # 1 px in canvas space
     return (
-        f'<g {attrs(r.group_attrs(obj))}>'
+        f"<g {attrs(r.group_attrs(obj))}>"
         f'<g transform="{transform}">'
         f'<path d="{path_d}" fill="{fill}" stroke="{stroke}" '
         f'stroke-width="{fmt(stroke_width)}" stroke-linejoin="miter"/>'

@@ -312,10 +312,7 @@ class _AnchorGrid:
                 ]
                 n_wide = sum(1 for z in zones_here if (z.content_type or "") in wide_types)
                 stacks = n_wide >= (len(zones_here) + 1) // 2
-                if not widths:
-                    cell_w = 0.0
-                else:
-                    cell_w = (max(widths) if stacks else sum(widths)) or 1.0
+                cell_w = 0.0 if not widths else ((max(widths) if stacks else sum(widths)) or 1.0)
                 best = max(best, cell_w)
             col_weight.append(best)
 
@@ -1125,7 +1122,7 @@ def compute_boxes(
         # annotation invariant; subdivide.
         cell = grid.cell(h, v)
         sub_boxes = _density_subdivide(cell, zones_in_cell, fill, margin)
-        for z, box in zip(zones_in_cell, sub_boxes):
+        for z, box in zip(zones_in_cell, sub_boxes, strict=False):
             boxes[z.role] = box
 
     # ──── Pass 1d: place region zones ────

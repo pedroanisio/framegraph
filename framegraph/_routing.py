@@ -22,7 +22,6 @@ from collections.abc import Sequence
 
 from framegraph._helpers import Box, Point
 
-
 __all__ = [
     "route_orthogonal",
     "segment_intersects_box",
@@ -32,18 +31,22 @@ __all__ = [
 
 
 _SIDE_ALIASES: dict[str, str] = {
-    "north": "north", "top": "north",
-    "south": "south", "bottom": "south",
-    "east":  "east",  "right": "east",
-    "west":  "west",  "left": "west",
+    "north": "north",
+    "top": "north",
+    "south": "south",
+    "bottom": "south",
+    "east": "east",
+    "right": "east",
+    "west": "west",
+    "left": "west",
 }
 
 # Outward unit vector for each cardinal side.
 _SIDE_VECTOR: dict[str, tuple[float, float]] = {
     "north": (0.0, -1.0),
-    "south": (0.0,  1.0),
-    "east":  (1.0,  0.0),
-    "west":  (-1.0, 0.0),
+    "south": (0.0, 1.0),
+    "east": (1.0, 0.0),
+    "west": (-1.0, 0.0),
 }
 
 
@@ -327,12 +330,14 @@ def route_orthogonal(
     """Compute an obstacle-aware orthogonal polyline from ``start`` to ``end``.
 
     Args:
-        start, end: Endpoint coordinates in canvas space.
-        start_side, end_side: Cardinal direction the path must
-            leave / enter, expressed as ``"north"``/``"south"``/``"east"``/
-            ``"west"`` or any alias accepted by :func:`normalize_side`.
-            None means the corresponding endpoint is unconstrained;
-            the router treats it as a free point and skips the stub.
+        start: Start endpoint coordinate in canvas space.
+        end: End endpoint coordinate in canvas space.
+        start_side: Cardinal direction the path must leave the start,
+            expressed as ``"north"``/``"south"``/``"east"``/``"west"`` or any
+            alias accepted by :func:`normalize_side`. None leaves the start
+            unconstrained; the router treats it as a free point and skips the stub.
+        end_side: Cardinal direction the path must enter the end, using the
+            same alias set as ``start_side``. None leaves the end unconstrained.
         obstacles: Iterable of axis-aligned boxes the routed path
             must not pass through (typically other classifier boxes).
             Boxes that contain or touch the start/end are treated as
@@ -359,7 +364,8 @@ def route_orthogonal(
     # almost certainly the source/destination boxes themselves, and the
     # router cannot route around its own anchor.
     obstacles = [
-        rect for rect in obstacles
+        rect
+        for rect in obstacles
         if not _box_contains_point(rect, start, slack=1.0)
         and not _box_contains_point(rect, end, slack=1.0)
     ]
@@ -374,9 +380,16 @@ def route_orthogonal(
     if s_horiz and e_horiz:
         # H-V-H: bend on a vertical lane between the two horizontal stubs.
         for mx in _candidate_lanes(s_stub[0], e_stub[0]):
-            candidates.append([
-                start, s_stub, (mx, s_stub[1]), (mx, e_stub[1]), e_stub, end,
-            ])
+            candidates.append(
+                [
+                    start,
+                    s_stub,
+                    (mx, s_stub[1]),
+                    (mx, e_stub[1]),
+                    e_stub,
+                    end,
+                ]
+            )
         # H-V-H-V-H escape detour: step onto a free horizontal lane
         # (above or below the obstacle band), traverse to the dest
         # column at that lane, then drop down inside the destination's
@@ -386,27 +399,44 @@ def route_orthogonal(
         # row of components — a direct H-V-H must cross at least one
         # of them.
         for my in _escape_lanes_y(obstacles, s_stub[1], e_stub[1], clearance):
-            candidates.append([
-                start, s_stub,
-                (s_stub[0], my), (e_stub[0], my),
-                e_stub, end,
-            ])
+            candidates.append(
+                [
+                    start,
+                    s_stub,
+                    (s_stub[0], my),
+                    (e_stub[0], my),
+                    e_stub,
+                    end,
+                ]
+            )
     elif s_vert and e_vert:
         # V-H-V: bend on a horizontal lane between the two vertical stubs.
         for my in _candidate_lanes(s_stub[1], e_stub[1]):
-            candidates.append([
-                start, s_stub, (s_stub[0], my), (e_stub[0], my), e_stub, end,
-            ])
+            candidates.append(
+                [
+                    start,
+                    s_stub,
+                    (s_stub[0], my),
+                    (e_stub[0], my),
+                    e_stub,
+                    end,
+                ]
+            )
         # V-H-V-H-V escape detour: step onto a free vertical lane
         # (east or west of the obstacle column), descend at that
         # lane to the dest row, then approach the destination
         # horizontally inside its own row.
         for mx in _escape_lanes_x(obstacles, s_stub[0], e_stub[0], clearance):
-            candidates.append([
-                start, s_stub,
-                (mx, s_stub[1]), (mx, e_stub[1]),
-                e_stub, end,
-            ])
+            candidates.append(
+                [
+                    start,
+                    s_stub,
+                    (mx, s_stub[1]),
+                    (mx, e_stub[1]),
+                    e_stub,
+                    end,
+                ]
+            )
     elif s_horiz and e_vert:
         # Single elbow: go horizontally past s_stub.x to e_stub.x, then
         # vertically. The elbow sits at (e_stub.x, s_stub.y).

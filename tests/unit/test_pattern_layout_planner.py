@@ -141,9 +141,7 @@ class TestTableDataBranches:
     def test_table_without_headers_uses_first_row_width(self) -> None:
         """Hits the `if headers:` false branch (line 1320→1323)."""
         z = _make_zone("data", "table_data")
-        fill = SimpleNamespace(
-            data=SimpleNamespace(headers=[], rows=[["x", "y"], ["z", "w"]])
-        )
+        fill = SimpleNamespace(data=SimpleNamespace(headers=[], rows=[["x", "y"], ["z", "w"]]))
         h = _measure_zone_height(z, fill, box_w=600.0, scale=1.0)
         # chrome (34) + 0 header + 2 rows × (12 + 4) = 66
         assert h == pytest.approx(66.0)

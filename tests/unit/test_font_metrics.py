@@ -17,7 +17,6 @@ import pytest
 
 from framegraph import _font_metrics
 
-
 # Skip any test that depends on real metrics when fontTools is unavailable
 # or the host has no fontconfig — both are required for the resolver to
 # return a parseable file path. The legacy renderer path keeps working;

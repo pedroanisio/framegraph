@@ -857,7 +857,7 @@ class FrameGraphDeckRenderer:
         # deck loader. One report per slide; keyed by slide id.
         self._layout_reports[slide_id] = plan_report
 
-        return cast(dict[str, Any], doc)
+        return doc
 
     def _build_chrome_layer_v2(
         self,

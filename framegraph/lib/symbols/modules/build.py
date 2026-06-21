@@ -17,9 +17,8 @@ Hex sub-symbols are inlined into deck.symbols from
 honeycomb_cells.sym.yml's sibling pack at module_node_cells.sym.yml.
 
 CLI usage:
-    python -m framegraph.lib.symbols.modules.build \\
-        examples/module-hub-radial/data.yml \\
-        examples/module-hub-radial/deck.yml
+    python -m framegraph.lib.symbols.modules.build IN_DATA.yml OUT_DECK.yml
+    (e.g. examples/module-hub-radial/{data,deck}.yml)
 """
 
 from __future__ import annotations
@@ -31,30 +30,29 @@ from typing import Any
 
 import yaml
 
-
 DEFAULT_PALETTE: dict[str, str] = {
-    "bg":                "#FFFFFF",
-    "title_color":       "#1A2B3E",
-    "kicker_color":      "#9A9A9A",
-    "dot_primary":       "#E51A4C",
-    "dot_secondary":     "#1A2B3E",
-    "dot_tertiary":      "#C8C8C8",
-    "edge_color":        "#C8C8C8",
+    "bg": "#FFFFFF",
+    "title_color": "#1A2B3E",
+    "kicker_color": "#9A9A9A",
+    "dot_primary": "#E51A4C",
+    "dot_secondary": "#1A2B3E",
+    "dot_tertiary": "#C8C8C8",
+    "edge_color": "#C8C8C8",
     "page_number_color": "#9A9A9A",
 }
 
 DEFAULT_GEOMETRY: dict[str, float] = {
-    "canvas_w":               1280,
-    "canvas_h":               900,
+    "canvas_w": 1280,
+    "canvas_h": 900,
     "satellite_default_size": 70,
-    "label_gap":              6,
+    "label_gap": 6,
 }
 
 ICON_TO_SYMBOL = {
     "warning": "hex_node_warning",
-    "excel":   "hex_node_excel",
-    "money":   "hex_node_money",
-    "none":    "hex_node_plain",
+    "excel": "hex_node_excel",
+    "money": "hex_node_money",
+    "none": "hex_node_plain",
 }
 
 
@@ -108,25 +106,37 @@ def _build_objects(
     objects: list[dict[str, Any]] = []
 
     # ── Decorator dots ──────────────────────────────────────────────
-    objects.append({"type": "ellipse", "id": "dot_primary",   "box": [22, 14, 18, 18], "fill": "dot_primary"})
-    objects.append({"type": "ellipse", "id": "dot_secondary", "box": [22, 44, 18, 18], "fill": "dot_secondary"})
-    objects.append({"type": "ellipse", "id": "dot_tertiary",  "box": [22, 92, 18, 18], "fill": "dot_tertiary"})
+    objects.append(
+        {"type": "ellipse", "id": "dot_primary", "box": [22, 14, 18, 18], "fill": "dot_primary"}
+    )
+    objects.append(
+        {"type": "ellipse", "id": "dot_secondary", "box": [22, 44, 18, 18], "fill": "dot_secondary"}
+    )
+    objects.append(
+        {"type": "ellipse", "id": "dot_tertiary", "box": [22, 92, 18, 18], "fill": "dot_tertiary"}
+    )
 
     # ── Title + kicker ──────────────────────────────────────────────
-    objects.append({
-        "type": "text", "id": "title",
-        "box": [60, 12, geo["canvas_w"] - 80, 56],
-        "text": data["title"],
-        "style": "module_title",
-    })
+    objects.append(
+        {
+            "type": "text",
+            "id": "title",
+            "box": [60, 12, geo["canvas_w"] - 80, 56],
+            "text": data["title"],
+            "style": "module_title",
+        }
+    )
     kicker = (data.get("kicker_label") or "").strip()
     if kicker:
-        objects.append({
-            "type": "text", "id": "kicker",
-            "box": [60, 88, geo["canvas_w"] - 80, 24],
-            "text": kicker,
-            "style": "module_kicker",
-        })
+        objects.append(
+            {
+                "type": "text",
+                "id": "kicker",
+                "box": [60, 88, geo["canvas_w"] - 80, 24],
+                "text": kicker,
+                "style": "module_kicker",
+            }
+        )
 
     # ── Build node registry (id → (cx, cy, size) ) ──────────────────
     sat_default = geo["satellite_default_size"]
@@ -148,10 +158,10 @@ def _build_objects(
         if not src or not tgt:
             continue
         line_obj: dict[str, Any] = {
-            "type":   "line",
-            "id":     f"edge_{edge_idx}",
-            "from":   [src[0], src[1]],
-            "to":     [tgt[0], tgt[1]],
+            "type": "line",
+            "id": f"edge_{edge_idx}",
+            "from": [src[0], src[1]],
+            "to": [tgt[0], tgt[1]],
             "stroke": {
                 "color": edge.get("stroke_color") or "edge_color",
                 "width": float(edge.get("stroke_width") or 1.5),
@@ -164,25 +174,30 @@ def _build_objects(
     # ── Hub label (above the hub hex) ───────────────────────────────
     hub_box = _hex_box(hub_cx, hub_cy, hub_size)
     hub_label_box = [hub_box[0] - 40, hub_box[1] - 90, hub_box[2] + 80, 80]
-    objects.append({
-        "type": "text", "id": "hub_label",
-        "box": hub_label_box,
-        "text": hub["label"],
-        "style": "module_hub_label",
-    })
+    objects.append(
+        {
+            "type": "text",
+            "id": "hub_label",
+            "box": hub_label_box,
+            "text": hub["label"],
+            "style": "module_hub_label",
+        }
+    )
 
     # ── Hub hex ──────────────────────────────────────────────────────
     hub_icon = (hub.get("icon") or "warning").lower()
-    objects.append({
-        "type":   "use",
-        "id":     f"node_{hub['id']}",
-        "symbol": ICON_TO_SYMBOL.get(hub_icon, "hex_node_warning"),
-        "box":    hub_box,
-        "params": {
-            "outline_color": hub.get("outline_color") or "#9E1A8C",
-            "fill":          hub.get("fill") or "bg",
-        },
-    })
+    objects.append(
+        {
+            "type": "use",
+            "id": f"node_{hub['id']}",
+            "symbol": ICON_TO_SYMBOL.get(hub_icon, "hex_node_warning"),
+            "box": hub_box,
+            "params": {
+                "outline_color": hub.get("outline_color") or "#9E1A8C",
+                "fill": hub.get("fill") or "bg",
+            },
+        }
+    )
 
     # ── Hub detail block (optional) ─────────────────────────────────
     detail = hub.get("detail") or {}
@@ -193,24 +208,28 @@ def _build_objects(
             d_box = [hub_box[0] - 60, hub_box[1] + hub_box[3] + 12, hub_box[2] + 120, 160]
 
         # Heading
-        objects.append({
-            "type":  "text",
-            "id":    "hub_detail_heading",
-            "box":   [d_box[0], d_box[1], d_box[2], 24],
-            "text":  detail.get("heading") or "",
-            "style": "module_hub_detail_heading",
-        })
+        objects.append(
+            {
+                "type": "text",
+                "id": "hub_detail_heading",
+                "box": [d_box[0], d_box[1], d_box[2], 24],
+                "text": detail.get("heading") or "",
+                "style": "module_hub_detail_heading",
+            }
+        )
         # Bullets
         bullets = detail.get("bullets") or []
         if bullets:
-            objects.append({
-                "type":   "bullet_list",
-                "id":     "hub_detail_bullets",
-                "box":    [d_box[0] + 24, d_box[1] + 32, d_box[2] - 24, d_box[3] - 32],
-                "items":  list(bullets),
-                "marker": "•",
-                "style":  "module_hub_detail_bullets",
-            })
+            objects.append(
+                {
+                    "type": "bullet_list",
+                    "id": "hub_detail_bullets",
+                    "box": [d_box[0] + 24, d_box[1] + 32, d_box[2] - 24, d_box[3] - 32],
+                    "items": list(bullets),
+                    "marker": "•",
+                    "style": "module_hub_detail_bullets",
+                }
+            )
 
     # ── Satellites ──────────────────────────────────────────────────
     for sat in data["satellites"]:
@@ -218,40 +237,48 @@ def _build_objects(
         sat_cx, sat_cy = _node_center(sat, sat_default)
         sat_box = _hex_box(sat_cx, sat_cy, sat_size)
         icon = (sat.get("icon") or "warning").lower()
-        objects.append({
-            "type":   "use",
-            "id":     f"node_{sat['id']}",
-            "symbol": ICON_TO_SYMBOL.get(icon, "hex_node_warning"),
-            "box":    sat_box,
-            "params": {
-                "outline_color": sat.get("outline_color") or "#1A56B0",
-                "fill":          sat.get("fill") or "bg",
-            },
-        })
+        objects.append(
+            {
+                "type": "use",
+                "id": f"node_{sat['id']}",
+                "symbol": ICON_TO_SYMBOL.get(icon, "hex_node_warning"),
+                "box": sat_box,
+                "params": {
+                    "outline_color": sat.get("outline_color") or "#1A56B0",
+                    "fill": sat.get("fill") or "bg",
+                },
+            }
+        )
         # Label
-        lab_box, lab_align = _label_box(sat_box, sat.get("label_anchor") or "above", geo["label_gap"])
+        lab_box, lab_align = _label_box(
+            sat_box, sat.get("label_anchor") or "above", geo["label_gap"]
+        )
         style_name = {
-            "right": "module_sat_label_left",   # anchor right means text is left-aligned
-            "left":  "module_sat_label_right",  # anchor left means text is right-aligned
+            "right": "module_sat_label_left",  # anchor right means text is left-aligned
+            "left": "module_sat_label_right",  # anchor left means text is right-aligned
         }.get(sat.get("label_anchor") or "above", "module_sat_label_center")
-        objects.append({
-            "type":  "text",
-            "id":    f"label_{sat['id']}",
-            "box":   lab_box,
-            "text":  sat["label"],
-            "style": style_name,
-        })
+        objects.append(
+            {
+                "type": "text",
+                "id": f"label_{sat['id']}",
+                "box": lab_box,
+                "text": sat["label"],
+                "style": style_name,
+            }
+        )
 
     # ── Footer page number ─────────────────────────────────────────
     page_num = data.get("page_number")
     if page_num not in (None, ""):
-        objects.append({
-            "type":  "text",
-            "id":    "page_number",
-            "box":   [0, geo["canvas_h"] - 28, geo["canvas_w"], 18],
-            "text":  str(page_num),
-            "style": "module_page_number",
-        })
+        objects.append(
+            {
+                "type": "text",
+                "id": "page_number",
+                "box": [0, geo["canvas_h"] - 28, geo["canvas_w"], 18],
+                "text": str(page_num),
+                "style": "module_page_number",
+            }
+        )
 
     return objects
 
@@ -283,60 +310,112 @@ def build_deck(data: dict[str, Any]) -> dict[str, Any]:
 
     text_styles: dict[str, Any] = {
         "module_title": {
-            "font": "primary", "size": 32, "weight": 400,
-            "color": "title_color", "align": "left", "v_align": "top",
-            "line_height": 38, "wrap": True,
+            "font": "primary",
+            "size": 32,
+            "weight": 400,
+            "color": "title_color",
+            "align": "left",
+            "v_align": "top",
+            "line_height": 38,
+            "wrap": True,
         },
         "module_kicker": {
-            "font": "primary", "size": 18, "weight": 400,
-            "color": "kicker_color", "align": "left", "v_align": "middle",
+            "font": "primary",
+            "size": 18,
+            "weight": 400,
+            "color": "kicker_color",
+            "align": "left",
+            "v_align": "middle",
         },
         "module_hub_label": {
-            "font": "primary", "size": 30, "weight": 400,
+            "font": "primary",
+            "size": 30,
+            "weight": 400,
             "color": (data["hub"].get("label_color") or "#E58938"),
-            "align": "center", "v_align": "middle",
-            "line_height": 36, "wrap": True,
+            "align": "center",
+            "v_align": "middle",
+            "line_height": 36,
+            "wrap": True,
         },
         "module_hub_detail_heading": {
-            "font": "primary", "size": 16, "weight": 700,
-            "color": (data["hub"].get("detail") or {}).get("heading_color") or (data["hub"].get("outline_color") or "#9E1A8C"),
-            "align": "left", "v_align": "top",
+            "font": "primary",
+            "size": 16,
+            "weight": 700,
+            "color": (data["hub"].get("detail") or {}).get("heading_color")
+            or (data["hub"].get("outline_color") or "#9E1A8C"),
+            "align": "left",
+            "v_align": "top",
         },
         "module_hub_detail_bullets": {
-            "font": "primary", "size": 13, "weight": 400,
-            "color": "#1A2B3E", "align": "left", "v_align": "top",
+            "font": "primary",
+            "size": 13,
+            "weight": 400,
+            "color": "#1A2B3E",
+            "align": "left",
+            "v_align": "top",
             "line_height": 18,
         },
         "module_sat_label_center": {
-            "font": "primary", "size": 14, "weight": 400,
-            "color": "#1A2B3E", "align": "center", "v_align": "middle",
-            "line_height": 18, "wrap": True,
+            "font": "primary",
+            "size": 14,
+            "weight": 400,
+            "color": "#1A2B3E",
+            "align": "center",
+            "v_align": "middle",
+            "line_height": 18,
+            "wrap": True,
         },
         "module_sat_label_left": {
-            "font": "primary", "size": 14, "weight": 400,
-            "color": "#1A2B3E", "align": "left", "v_align": "middle",
-            "line_height": 18, "wrap": True,
+            "font": "primary",
+            "size": 14,
+            "weight": 400,
+            "color": "#1A2B3E",
+            "align": "left",
+            "v_align": "middle",
+            "line_height": 18,
+            "wrap": True,
         },
         "module_sat_label_right": {
-            "font": "primary", "size": 14, "weight": 400,
-            "color": "#1A2B3E", "align": "right", "v_align": "middle",
-            "line_height": 18, "wrap": True,
+            "font": "primary",
+            "size": 14,
+            "weight": 400,
+            "color": "#1A2B3E",
+            "align": "right",
+            "v_align": "middle",
+            "line_height": 18,
+            "wrap": True,
         },
         "module_icon_warning": {
-            "font": "primary", "size": 22, "weight": 700,
-            "color": "#1A1A1A", "align": "center", "v_align": "middle",
+            "font": "primary",
+            "size": 22,
+            "weight": 700,
+            "color": "#1A1A1A",
+            "align": "center",
+            "v_align": "middle",
         },
         "module_icon_excel": {
-            "font": "primary", "size": 24, "weight": 700,
-            "color": "#FFFFFF", "align": "center", "v_align": "middle",
+            "font": "primary",
+            "size": 24,
+            "weight": 700,
+            "color": "#FFFFFF",
+            "align": "center",
+            "v_align": "middle",
         },
         "module_icon_money": {
-            "font": "primary", "size": 22, "weight": 700,
-            "color": "#1A2B3E", "align": "center", "v_align": "middle",
+            "font": "primary",
+            "size": 22,
+            "weight": 700,
+            "color": "#1A2B3E",
+            "align": "center",
+            "v_align": "middle",
         },
         "module_page_number": {
-            "font": "primary", "size": 11, "weight": 400,
-            "color": "page_number_color", "align": "center", "v_align": "middle",
+            "font": "primary",
+            "size": 11,
+            "weight": 400,
+            "color": "page_number_color",
+            "align": "center",
+            "v_align": "middle",
         },
     }
 

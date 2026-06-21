@@ -4,10 +4,7 @@ from __future__ import annotations
 
 from framegraph import FrameGraphRenderer
 
-
-ONE_PIXEL_GIF = (
-    "data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA="
-)
+ONE_PIXEL_GIF = "data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA="
 
 
 def _render_image(obj: dict) -> str:

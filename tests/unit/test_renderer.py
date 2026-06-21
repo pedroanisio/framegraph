@@ -914,7 +914,11 @@ def test_stroke_attrs_omits_stroke_opacity_when_absent() -> None:
 
 def test_stroke_style_alias_stroke_opacity_to_opacity() -> None:
     r = FrameGraphRenderer(
-        {"visual": {"tokens": {"stroke_styles": {"soft": {"color": "#000", "stroke_opacity": 0.3}}}}}
+        {
+            "visual": {
+                "tokens": {"stroke_styles": {"soft": {"color": "#000", "stroke_opacity": 0.3}}}
+            }
+        }
     )
     s = r.stroke_style("soft")
     assert s is not None and s.get("opacity") == 0.3
@@ -928,9 +932,7 @@ def test_opacity_attrs_returns_fill_and_stroke_opacity() -> None:
 
 def test_opacity_attrs_skips_fill_when_geometry_is_stroke_only() -> None:
     r = FrameGraphRenderer({})
-    a = r.opacity_attrs(
-        {"fill_opacity": 0.6, "stroke_opacity": 0.7}, has_fill=False
-    )
+    a = r.opacity_attrs({"fill_opacity": 0.6, "stroke_opacity": 0.7}, has_fill=False)
     assert a == {"stroke-opacity": "0.7"}
 
 

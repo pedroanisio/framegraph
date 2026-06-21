@@ -387,6 +387,7 @@ SIZE_NORMALIZATION: dict[str, dict[str, str]] = {
 # Disjunctive originals like "right_or_bottom" are resolved to a
 # single canonical placement (the first listed alternative).
 
+
 # Helper aliases for readability below.
 def _A(h: str, v: str) -> dict[str, Any]:
     return {"anchor": {"h": h, "v": v}}

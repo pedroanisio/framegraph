@@ -386,10 +386,7 @@ class TestClassifierBoxRender:
         )
         # Capture the y baseline of every drawn attribute row.
         attr_ys = [
-            float(m.group(1))
-            for m in re.finditer(
-                r'<text x="8" y="([0-9.]+)"[^>]*>\+ field_', svg
-            )
+            float(m.group(1)) for m in re.finditer(r'<text x="8" y="([0-9.]+)"[^>]*>\+ field_', svg)
         ]
         assert len(attr_ys) == 2, "both attribute rows must be emitted"
         # Every horizontal separator <line> must clear the bottom of
@@ -400,8 +397,7 @@ class TestClassifierBoxRender:
                 # Allow up to 4px below the baseline for descenders;
                 # the separator must land outside that band.
                 assert not (ay - 12 < ly < ay + 4), (
-                    f"separator at y={ly} cuts through attribute "
-                    f"row baseline y={ay}"
+                    f"separator at y={ly} cuts through attribute row baseline y={ay}"
                 )
 
     def test_compressed_box_keeps_inner_separator_inside_frame(self) -> None:
@@ -428,8 +424,7 @@ class TestClassifierBoxRender:
         for m in re.finditer(r'<line[^>]*y1="([0-9.]+)"', svg):
             y = float(m.group(1))
             assert y <= outer_bottom + 0.5, (
-                f"separator line at y={y} overshoots the outer "
-                f"frame bottom (y={outer_bottom})"
+                f"separator line at y={y} overshoots the outer frame bottom (y={outer_bottom})"
             )
 
     def test_box_height_zero_auto_computes_total(self) -> None:
@@ -479,7 +474,8 @@ class TestArtifactStereotypeOverlay:
         # corner cut). Search inside the artifact's <g>.
         m = re.search(
             r'<g id="A"[^>]*>(.*?)</g>',
-            svg, re.DOTALL,
+            svg,
+            re.DOTALL,
         )
         assert m
         body = m.group(1)
@@ -493,7 +489,8 @@ class TestArtifactStereotypeOverlay:
         svg = self._render_artifact(box=[10, 20, 200, 80])
         m = re.search(
             r'<g id="A"[^>]*>.*?<polygon points="([0-9.,\- ]+)"',
-            svg, re.DOTALL,
+            svg,
+            re.DOTALL,
         )
         # First polygon in the box is the artifact icon. Its first
         # vertex should be near the upper-right corner of the box
@@ -510,7 +507,8 @@ class TestArtifactStereotypeOverlay:
         svg = self._render_artifact(stereotype="component")
         m = re.search(
             r'<g id="A"[^>]*>(.*?)</g>',
-            svg, re.DOTALL,
+            svg,
+            re.DOTALL,
         )
         assert m
         polygons = re.findall(r"<polygon", m.group(1))

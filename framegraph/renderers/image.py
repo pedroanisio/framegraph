@@ -108,12 +108,7 @@ def render_image(r: RendererContext, obj: Mapping[str, Any]) -> str:
     )
     if ring_svg is None:
         return f"{clip_def}<g {attrs(r.group_attrs(obj))}><image {attrs(a)}/></g>"
-    return (
-        f"{clip_def}"
-        f"<g {attrs(r.group_attrs(obj))}>"
-        f"{ring_svg}"
-        f"<image {attrs(a)}/></g>"
-    )
+    return f"{clip_def}<g {attrs(r.group_attrs(obj))}>{ring_svg}<image {attrs(a)}/></g>"
 
 
 def _image_clip_path_svg(
@@ -145,9 +140,7 @@ def _image_clip_path_svg(
     else:
         shape = "rect"
 
-    clip_id = sid(
-        f"clip_{obj.get('id') or 'image'}_{fmt(x)}_{fmt(y)}_{fmt(w)}_{fmt(h)}"
-    )
+    clip_id = sid(f"clip_{obj.get('id') or 'image'}_{fmt(x)}_{fmt(y)}_{fmt(w)}_{fmt(h)}")
     if shape in {"circle", "ellipse"}:
         clip_node = (
             f'<ellipse cx="{fmt(x + w / 2)}" cy="{fmt(y + h / 2)}" '

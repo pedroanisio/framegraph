@@ -105,9 +105,7 @@ class TestSideAwareWiring:
         assert pts[-1] == (400.0, 230.0)
         # First move is east (a.east → outward); last move is east
         # (approaching b.west from west).
-        assert pts[1][0] > pts[0][0], (
-            f"first segment did not depart east of {pts[0]}: {pts[1]}"
-        )
+        assert pts[1][0] > pts[0][0], f"first segment did not depart east of {pts[0]}: {pts[1]}"
         assert pts[-2][0] < pts[-1][0], (
             f"last segment did not approach west of {pts[-1]}: {pts[-2]}"
         )
@@ -127,7 +125,7 @@ class TestSideAwareWiring:
         assert pts[0] == (160.0, 130.0)
         assert pts[-1] == (460.0, 130.0)
         # Every point lies on y=130 (collinear → simplified flat).
-        for x, y in pts:
+        for _x, y in pts:
             assert y == 130.0
 
     def test_explicit_route_points_bypass_side_routing(self) -> None:
@@ -168,8 +166,8 @@ class TestObstacleIntegration:
         router to shift to a free lane. Verifies obstacles are
         discovered automatically from the renderer's object_index —
         the connector YAML doesn't need to enumerate them."""
-        a = _classifier("a", 100, 100, w=80, h=40)   # x=100..180
-        b = _classifier("b", 400, 200, w=80, h=40)   # x=400..480
+        a = _classifier("a", 100, 100, w=80, h=40)  # x=100..180
+        b = _classifier("b", 400, 200, w=80, h=40)  # x=400..480
         # Obstacle squarely on the default bend lane (mid_x ≈ 290).
         # Spans y=145..205 — between the two endpoint rows so the
         # router can dodge by shifting the bend lane east or west.
@@ -283,8 +281,7 @@ class TestVisualHygiene:
         # excluded from obstacles.
         bend_x = pts[2][0]
         assert 240.0 < bend_x < 360.0, (
-            f"bend lane shifted to x={bend_x}; decorative box was wrongly "
-            "treated as an obstacle"
+            f"bend lane shifted to x={bend_x}; decorative box was wrongly treated as an obstacle"
         )
 
     def test_literal_coordinate_endpoint_keeps_legacy_z(self) -> None:
@@ -298,6 +295,7 @@ class TestVisualHygiene:
         # Centre Z bend at mid_x=325.
         assert len(pts) == 4
         assert pts[1][0] == pytest.approx(325.0)
+
 
 class TestAutoLabelPlacement:
     """When a connector declares an inline `label` without an explicit
@@ -324,13 +322,13 @@ class TestAutoLabelPlacement:
         # Label baseline must sit above y=130 with a clearance gap.
         m = re.search(
             r'<g id="e"[^>]*>.*?<text[^>]*y="([0-9.\-]+)"',
-            svg, re.DOTALL,
+            svg,
+            re.DOTALL,
         )
         assert m, "label not emitted"
         label_y = float(m.group(1))
         assert label_y < 130 - 4, (
-            f"label baseline y={label_y} should sit at least 4px "
-            "above the path at y=130"
+            f"label baseline y={label_y} should sit at least 4px above the path at y=130"
         )
 
     def test_vertical_segment_label_sits_beside_path(self) -> None:
@@ -349,7 +347,8 @@ class TestAutoLabelPlacement:
         svg = FrameGraphRenderer(doc).render_svg()
         m = re.search(
             r'<g id="e"[^>]*>.*?<text[^>]*x="([0-9.\-]+)"',
-            svg, re.DOTALL,
+            svg,
+            re.DOTALL,
         )
         assert m, "label not emitted"
         label_x = float(m.group(1))
@@ -357,8 +356,7 @@ class TestAutoLabelPlacement:
         # when boxes share the same x). Label x should sit to the
         # right of that line by the configured gap.
         assert label_x > 160 + 4, (
-            f"label x={label_x} should sit at least 4px right of the "
-            "vertical path at x=160"
+            f"label x={label_x} should sit at least 4px right of the vertical path at x=160"
         )
 
     def test_explicit_label_box_wins(self) -> None:
@@ -380,7 +378,8 @@ class TestAutoLabelPlacement:
         # The text element must use the explicit y=200-ish coordinate.
         m = re.search(
             r'<g id="e"[^>]*>.*?<text[^>]*y="([0-9.\-]+)"',
-            svg, re.DOTALL,
+            svg,
+            re.DOTALL,
         )
         assert m and 195 < float(m.group(1)) < 215
 
@@ -400,10 +399,8 @@ class TestAutoPortDistribution:
         hub = _classifier("hub", 200, 100, w=200, h=60)
         a = _classifier("a", 100, 300)
         b = _classifier("b", 400, 300)
-        e1 = _connector("e1", {"object": "a", "side": "north"},
-                              {"object": "hub", "side": "south"})
-        e2 = _connector("e2", {"object": "b", "side": "north"},
-                              {"object": "hub", "side": "south"})
+        e1 = _connector("e1", {"object": "a", "side": "north"}, {"object": "hub", "side": "south"})
+        e2 = _connector("e2", {"object": "b", "side": "north"}, {"object": "hub", "side": "south"})
         doc = _doc_with([hub, a, b, e1, e2])
         svg = FrameGraphRenderer(doc).render_svg()
         e1_end = _path_points(_path_d(svg, "e1"))[-1]
@@ -411,8 +408,7 @@ class TestAutoPortDistribution:
         # Both end at the hub's south edge (y=160) but at different x.
         assert e1_end[1] == 160.0 and e2_end[1] == 160.0
         assert e1_end[0] != e2_end[0], (
-            f"both connectors landed at the same x={e1_end[0]} — "
-            "auto-distribution did not fire"
+            f"both connectors landed at the same x={e1_end[0]} — auto-distribution did not fire"
         )
         # And the leftmost source (a, x=100) lands left of the
         # rightmost source (b, x=400) — sort order preserves visual
@@ -427,10 +423,10 @@ class TestAutoPortDistribution:
         a = _classifier("a", 100, 300)
         b = _classifier("b", 400, 300)
         # e1 explicitly anchors at hub.south + offset=80 (x=380).
-        e1 = _connector("e1", {"object": "a", "side": "north"},
-                              {"object": "hub", "side": "south", "offset": 80})
-        e2 = _connector("e2", {"object": "b", "side": "north"},
-                              {"object": "hub", "side": "south"})
+        e1 = _connector(
+            "e1", {"object": "a", "side": "north"}, {"object": "hub", "side": "south", "offset": 80}
+        )
+        e2 = _connector("e2", {"object": "b", "side": "north"}, {"object": "hub", "side": "south"})
         doc = _doc_with([hub, a, b, e1, e2])
         svg = FrameGraphRenderer(doc).render_svg()
         e1_end = _path_points(_path_d(svg, "e1"))[-1]
@@ -441,14 +437,12 @@ class TestAutoPortDistribution:
         """A lone connector keeps the side-midpoint anchor."""
         hub = _classifier("hub", 200, 100, w=200, h=60)
         a = _classifier("a", 100, 300)
-        e1 = _connector("e1", {"object": "a", "side": "north"},
-                              {"object": "hub", "side": "south"})
+        e1 = _connector("e1", {"object": "a", "side": "north"}, {"object": "hub", "side": "south"})
         doc = _doc_with([hub, a, e1])
         svg = FrameGraphRenderer(doc).render_svg()
         e1_end = _path_points(_path_d(svg, "e1"))[-1]
         # Hub.south midpoint x = 200 + 200/2 = 300.
         assert e1_end == (300.0, 160.0)
-
 
     def test_path_endpoints_match_resolved_anchors(self) -> None:
         """Routing must never alter the anchor coordinates — the

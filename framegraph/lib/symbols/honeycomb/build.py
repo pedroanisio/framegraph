@@ -10,9 +10,8 @@ expand them without depending on the `$symbols` directive (which the
 deck composer does not yet auto-resolve).
 
 CLI usage:
-    python -m framegraph.lib.symbols.honeycomb.build \\
-        examples/honeycomb-capability-map/data.yml \\
-        examples/honeycomb-capability-map/deck.yml
+    python -m framegraph.lib.symbols.honeycomb.build IN_DATA.yml OUT_DECK.yml
+    (e.g. examples/honeycomb-capability-map/{data,deck}.yml)
 """
 
 from __future__ import annotations
@@ -23,35 +22,34 @@ from typing import Any
 
 import yaml
 
-
 # Defaults match the JSON schema's documented defaults.
 DEFAULT_PALETTE: dict[str, str] = {
-    "bg":                "#FFFFFF",
-    "title_color":       "#1A2B3E",
-    "kicker_color":      "#9A9A9A",
-    "dot_primary":       "#E51A4C",
-    "dot_secondary":     "#1A2B3E",
-    "dot_tertiary":      "#C8C8C8",
-    "header_fill":       "#1A56B0",
-    "leaf_fill":         "#FFFFFF",
-    "outline_core":      "#1A56B0",
-    "outline_extended":  "#7FBA3A",
-    "outline_future":    "#7FBA3A",
+    "bg": "#FFFFFF",
+    "title_color": "#1A2B3E",
+    "kicker_color": "#9A9A9A",
+    "dot_primary": "#E51A4C",
+    "dot_secondary": "#1A2B3E",
+    "dot_tertiary": "#C8C8C8",
+    "header_fill": "#1A56B0",
+    "leaf_fill": "#FFFFFF",
+    "outline_core": "#1A56B0",
+    "outline_extended": "#7FBA3A",
+    "outline_future": "#7FBA3A",
     "header_text_color": "#FFFFFF",
-    "leaf_text_color":   "#1A2B3E",
+    "leaf_text_color": "#1A2B3E",
     "page_number_color": "#9A9A9A",
 }
 
 DEFAULT_GEOMETRY: dict[str, float] = {
-    "canvas_w":        1280,
-    "canvas_h":        1000,
-    "hex_w":           150,
-    "hex_h":           130,
-    "column_pitch_x":  130,
-    "row_pitch_y":     135,
+    "canvas_w": 1280,
+    "canvas_h": 1000,
+    "hex_w": 150,
+    "hex_h": 130,
+    "column_pitch_x": 130,
+    "row_pitch_y": 135,
     "column_offset_y": 68,
-    "left_margin":     60,
-    "top_margin":      140,
+    "left_margin": 60,
+    "top_margin": 140,
 }
 
 
@@ -77,40 +75,57 @@ def _build_objects(
     pal: dict[str, str],
     geo: dict[str, float],
 ) -> list[dict[str, Any]]:
-    """Compose the ordered list of slide objects (decorator dots,
-    title, kicker, hex cells, footer)."""
+    """Compose the ordered list of slide objects (dots, title, kicker, cells, footer)."""
     objects: list[dict[str, Any]] = []
     hex_w, hex_h = geo["hex_w"], geo["hex_h"]
 
     # ── Decorator dots (top-left corner) ────────────────────────────
-    objects.append({
-        "type": "ellipse", "id": "dot_primary",
-        "box": [22, 14, 18, 18], "fill": "dot_primary",
-    })
-    objects.append({
-        "type": "ellipse", "id": "dot_secondary",
-        "box": [22, 44, 18, 18], "fill": "dot_secondary",
-    })
-    objects.append({
-        "type": "ellipse", "id": "dot_tertiary",
-        "box": [22, 92, 18, 18], "fill": "dot_tertiary",
-    })
+    objects.append(
+        {
+            "type": "ellipse",
+            "id": "dot_primary",
+            "box": [22, 14, 18, 18],
+            "fill": "dot_primary",
+        }
+    )
+    objects.append(
+        {
+            "type": "ellipse",
+            "id": "dot_secondary",
+            "box": [22, 44, 18, 18],
+            "fill": "dot_secondary",
+        }
+    )
+    objects.append(
+        {
+            "type": "ellipse",
+            "id": "dot_tertiary",
+            "box": [22, 92, 18, 18],
+            "fill": "dot_tertiary",
+        }
+    )
 
     # ── Title + kicker ───────────────────────────────────────────────
-    objects.append({
-        "type": "text", "id": "title",
-        "box": [60, 12, geo["canvas_w"] - 80, 56],
-        "text": data["title"],
-        "style": "honeycomb_title",
-    })
+    objects.append(
+        {
+            "type": "text",
+            "id": "title",
+            "box": [60, 12, geo["canvas_w"] - 80, 56],
+            "text": data["title"],
+            "style": "honeycomb_title",
+        }
+    )
     kicker = (data.get("kicker_label") or "").strip()
     if kicker:
-        objects.append({
-            "type": "text", "id": "kicker",
-            "box": [60, 88, geo["canvas_w"] - 80, 24],
-            "text": kicker,
-            "style": "honeycomb_kicker",
-        })
+        objects.append(
+            {
+                "type": "text",
+                "id": "kicker",
+                "box": [60, 88, geo["canvas_w"] - 80, 24],
+                "text": kicker,
+                "style": "honeycomb_kicker",
+            }
+        )
 
     # ── Honeycomb cells ──────────────────────────────────────────────
     for col_idx, col in enumerate(data["columns"]):
@@ -119,45 +134,52 @@ def _build_objects(
         col_top_y = geo["top_margin"] + (geo["column_offset_y"] if offset == "shifted" else 0)
 
         # Header hex
-        objects.append({
-            "type": "use",
-            "id": f"col{col_idx}_header",
-            "symbol": "hex_header",
-            "box": [col_x, col_top_y, hex_w, hex_h],
-            "label": col["header"],
-            "params": {"header_fill": "header_fill"},
-        })
+        objects.append(
+            {
+                "type": "use",
+                "id": f"col{col_idx}_header",
+                "symbol": "hex_header",
+                "box": [col_x, col_top_y, hex_w, hex_h],
+                "label": col["header"],
+                "params": {"header_fill": "header_fill"},
+            }
+        )
 
         # Leaf hexes — stacked below the header
         for item_idx, item in enumerate(col["items"]):
             cell_y = col_top_y + (item_idx + 1) * geo["row_pitch_y"]
             variant = (item.get("variant") or "core").lower()
             outline_token = {
-                "core":     "outline_core",
+                "core": "outline_core",
                 "extended": "outline_extended",
-                "future":   "outline_future",
+                "future": "outline_future",
             }.get(variant, "outline_core")
-            objects.append({
-                "type": "use",
-                "id": f"col{col_idx}_item{item_idx}",
-                "symbol": _variant_to_symbol(variant),
-                "box": [col_x, cell_y, hex_w, hex_h],
-                "label": item["label"],
-                "params": {
-                    "leaf_fill":     "leaf_fill",
-                    "outline_color": outline_token,
-                },
-            })
+            objects.append(
+                {
+                    "type": "use",
+                    "id": f"col{col_idx}_item{item_idx}",
+                    "symbol": _variant_to_symbol(variant),
+                    "box": [col_x, cell_y, hex_w, hex_h],
+                    "label": item["label"],
+                    "params": {
+                        "leaf_fill": "leaf_fill",
+                        "outline_color": outline_token,
+                    },
+                }
+            )
 
     # ── Optional footer page number ──────────────────────────────────
     page_num = data.get("page_number")
     if page_num not in (None, ""):
-        objects.append({
-            "type": "text", "id": "page_number",
-            "box": [0, geo["canvas_h"] - 28, geo["canvas_w"], 18],
-            "text": str(page_num),
-            "style": "honeycomb_page_number",
-        })
+        objects.append(
+            {
+                "type": "text",
+                "id": "page_number",
+                "box": [0, geo["canvas_h"] - 28, geo["canvas_w"], 18],
+                "text": str(page_num),
+                "style": "honeycomb_page_number",
+            }
+        )
 
     return objects
 
@@ -172,27 +194,50 @@ def build_deck(data: dict[str, Any]) -> dict[str, Any]:
 
     text_styles: dict[str, Any] = {
         "honeycomb_title": {
-            "font": "primary", "size": 32, "weight": 400,
-            "color": "title_color", "align": "left", "v_align": "top",
-            "line_height": 38, "wrap": True,
+            "font": "primary",
+            "size": 32,
+            "weight": 400,
+            "color": "title_color",
+            "align": "left",
+            "v_align": "top",
+            "line_height": 38,
+            "wrap": True,
         },
         "honeycomb_kicker": {
-            "font": "primary", "size": 18, "weight": 400,
-            "color": "kicker_color", "align": "left", "v_align": "middle",
+            "font": "primary",
+            "size": 18,
+            "weight": 400,
+            "color": "kicker_color",
+            "align": "left",
+            "v_align": "middle",
         },
         "honeycomb_header_text": {
-            "font": "primary", "size": 13, "weight": 700,
-            "color": "header_text_color", "align": "center", "v_align": "middle",
-            "line_height": 16, "wrap": True,
+            "font": "primary",
+            "size": 13,
+            "weight": 700,
+            "color": "header_text_color",
+            "align": "center",
+            "v_align": "middle",
+            "line_height": 16,
+            "wrap": True,
         },
         "honeycomb_leaf_text": {
-            "font": "primary", "size": 12, "weight": 400,
-            "color": "leaf_text_color", "align": "center", "v_align": "middle",
-            "line_height": 14, "wrap": True,
+            "font": "primary",
+            "size": 12,
+            "weight": 400,
+            "color": "leaf_text_color",
+            "align": "center",
+            "v_align": "middle",
+            "line_height": 14,
+            "wrap": True,
         },
         "honeycomb_page_number": {
-            "font": "primary", "size": 11, "weight": 400,
-            "color": "page_number_color", "align": "center", "v_align": "middle",
+            "font": "primary",
+            "size": 11,
+            "weight": 400,
+            "color": "page_number_color",
+            "align": "center",
+            "v_align": "middle",
         },
     }
 
