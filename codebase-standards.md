@@ -119,10 +119,20 @@ Source of truth per topic:
   effective schema, and round-trips its `example_fill`.
 - Commands: `make goldens`, `make validate-fills`.
 
+## 7a. Generated grammar reference
+
+- `docs/framegraph.ebnf` is generated, non-normative reference material. The
+  executable schema contract remains the Pydantic model graph in
+  `framegraph._schema` plus `framegraph._frameset.FrameSetDocument`.
+- Generator: `python scripts/generate_ebnf.py`.
+- Drift gate: `make ebnf-check` (`python scripts/generate_ebnf.py --check`).
+  A schema change that affects the grammar must update the generated EBNF in the
+  same change.
+
 ## 8. Quality gate
 
 - Full local gate: `make check` =
-  `lint + typecheck + test + goldens + validate-fills`.
+  `lint + typecheck + test + ebnf-check + goldens + validate-fills`.
 - CI (`.github/workflows/ci.yml`) does NOT invoke `make check`. It re-implements
   the gate as independent jobs: `golden-snapshots` (`python tests/run_tests.py`),
   `pytest` (`python -m pytest`), `lint` (`ruff check framegraph/` +
@@ -270,11 +280,6 @@ stale source for reconciliation.
   `_helpers.py` is "Also exempt from F401," but the enforced value is `["D"]`
   only. If the exemption is required, add `"F401"` to the list; otherwise delete
   the misleading comment.
-- **Makefile version prose vs recipe.** The `make release` help line ("bump
-  version in pyproject.toml + `__init__.py`") and the release-section comment
-  ("Bumps the two version sites in lockstep") describe a two-site bump, but the
-  recipe seds only `pyproject.toml` — correct per §10 (single source). Reconcile
-  the Makefile prose to single-source.
 - **In-flight documentation portal (aspirational, not a standard yet).**
   `pyproject.toml` adds a `docs` extra and the `Makefile` adds `install-docs`,
   `portal-gen`, `portal`, `portal-serve`, `portal-check`, and `docs-coverage`

@@ -30,3 +30,4 @@ site/
 .repo/
 .agent-tasks/
 .env
+build/

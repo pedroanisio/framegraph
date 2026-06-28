@@ -689,6 +689,7 @@ pdf-vector = [
 ]
 test = [
     { name = "cairosvg" },
+    { name = "fonttools" },
     { name = "hypothesis" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -702,6 +703,7 @@ requires-dist = [
     { name = "cairosvg", marker = "extra == 'pdf'", specifier = ">=2.7" },
     { name = "cairosvg", marker = "extra == 'test'", specifier = ">=2.7" },
     { name = "fonttools", marker = "extra == 'metrics'", specifier = ">=4.50" },
+    { name = "fonttools", marker = "extra == 'test'", specifier = ">=4.50" },
     { name = "framegraph", extras = ["test", "metrics"], marker = "extra == 'dev'" },
     { name = "hypothesis", marker = "extra == 'test'", specifier = ">=6.100" },
     { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.6" },

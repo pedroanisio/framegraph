@@ -49,6 +49,7 @@ dependencies = [
 # Required for the golden-snapshot test harness (SP-6) and the unit/integration suite
 test = [
     "cairosvg>=2.7",
+    "fonttools>=4.50",
     "Pillow>=10.0",
     "numpy>=1.26",
     "pytest>=8.0",
@@ -144,7 +145,7 @@ framegraph = [
 #
 # Release checklist:
 #   1. python tests/run_tests.py         — all goldens must pass
-#   2. bump version in pyproject.toml + framegraph/__init__.py
+#   2. bump version in pyproject.toml
 #   3. update CHANGELOG.md
 #   4. git tag v<VERSION>
 #   5. gh release create v<VERSION>      — CI pushes to PyPI on tag push

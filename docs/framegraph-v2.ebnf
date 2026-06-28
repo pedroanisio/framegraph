@@ -1,0 +1,816 @@
+(* ═══════════════════════════════════════════════════════════════════ *)
+(* FrameGraph — grammar (EBNF) — PROPOSED v2 (clean, non-back-compat)   *)
+(*                                                                      *)
+(* DESIGN PROPOSAL, NON-NORMATIVE. Intended to be GENERATED from a new  *)
+(* set of Pydantic v2 models once accepted; hand-written here only to   *)
+(* specify the target. Nothing here is authoritative until the models   *)
+(* exist and emit it. Treat every construct as a proposal to verify     *)
+(* against the renderer, not as fact.                                   *)
+(*                                                                      *)
+(* Differences from v0.1.0 (by design, intentional breaks):            *)
+(*   - ONE start symbol (no Document|DeckDocument|FrameSetDocument).    *)
+(*   - version is a semver STRING, not a number.                       *)
+(*   - Models are CLOSED (extra="forbid"): no trailing { extra-member }.*)
+(*     A single explicit `meta` bag is the only place open data lives.  *)
+(*   - Unified page model: a document is an ordered list of page        *)
+(*     producers; each is an explicit Page (deck/diagram/figure/cover)  *)
+(*     or a FlowSection (book/letter/report). Decks and books are the   *)
+(*     two ends of one spectrum over a shared canvas/master substrate.  *)
+(*   - Canvas presets + orientation.                                    *)
+(*   - Payloads are TYPED (Box, Length, Anchor, ChartData, Span, …) and *)
+(*     REQUIRED where the object cannot render without them.            *)
+(*   - Synonyms collapsed: image `src` only (no href/uri); container/   *)
+(*     group `children` only (no `objects`); text `text` XOR `spans`    *)
+(*     (no `value`).                                                    *)
+(*   - `_UnknownObject` removed from the closed unions; forward-compat  *)
+(*     handled by a parser-level left-to-right fallback (see notes).    *)
+(*                                                                      *)
+(* Scope: a structural grammar over the YAML/JSON DATA MODEL. Mapping   *)
+(* members are UNORDERED; the commas/braces are the JSON projection.    *)
+(* Constraints EBNF cannot express (cross-references, "exactly one of", *)
+(* per-target integrity) live in framegraph-v2-spec.md, Static Rules.   *)
+(*                                                                      *)
+(* Dialect: ISO/IEC 14977.  = define  ; end  , concat  | or            *)
+(*   [ ] optional   { } repeat(0+)   ( ) group   "x" terminal           *)
+(*   ? x ? lexical token   ;   paren-star ... star-paren = comment      *)
+(* ═══════════════════════════════════════════════════════════════════ *)
+
+
+(* ═══ 1. Start symbol + stable envelope ═══════════════════════════════ *)
+
+framegraph-document =
+    "{" ,
+      "dsl"     , ":" , "FrameGraph" ,
+      "version" , ":" , semver ,
+      (* `profile` is ADVISORY metadata for tooling only; it is NOT a    *)
+      (* discriminant and never changes how the body is parsed.          *)
+      [ "profile" , ":" , ( "deck" | "book" | "letter" | "report" | "diagram" | "mixed" ) ] ,
+      [ "title"       , ":" , string ] ,
+      [ "description" , ":" , string ] ,
+      [ "defs"    , ":" , Defs ] ,
+      [ "targets" , ":" , "[" , RenderTarget , { "," , RenderTarget } , "]" ] ,
+      "pages" , ":" , "[" , PageProducer , { "," , PageProducer } , "]" ,
+      [ "meta" , ":" , object-any ] ,
+    "}" ;
+
+
+(* ═══ 2. Document-level shared definitions ════════════════════════════ *)
+
+Defs =
+    "{" ,
+      [ "tokens"     , ":" , Tokens ] ,
+      [ "symbols"    , ":" , "{" , { string , ":" , SymbolDef } , "}" ] ,
+      [ "components" , ":" , "{" , { string , ":" , ComponentDef } , "}" ] ,
+      [ "masters"    , ":" , "{" , { string , ":" , PageMaster } , "}" ] ,
+      [ "ontology"   , ":" , Ontology ] ,
+    "}" ;
+
+
+(* ═══ 3. Page production (the deck↔book spectrum) ═════════════════════ *)
+(* PageProducer is discriminated on `mode`. A Page is an explicit, fixed- *)
+(* layout page (decks, diagrams, figures, covers). A FlowSection pours a  *)
+(* story through a master and GENERATES as many pages as the content      *)
+(* needs (books, letters, reports). A deck = all producers are Pages; a   *)
+(* book = one or more FlowSections; mixed = any interleaving.             *)
+
+PageProducer = Page | FlowSection ;
+
+Page =
+    "{" ,
+      "mode" , ":" , "page" ,
+      "id"   , ":" , string ,
+      (* exactly one source of canvas: `master` ref OR inline `canvas`    *)
+      [ "master" , ":" , string ] ,
+      [ "canvas" , ":" , CanvasSpec ] ,
+      [ "rendering" , ":" , RenderingContract ] ,
+      [ "layers"    , ":" , "[" , Layer , { "," , Layer } , "]" ] ,
+      [ "semantic"  , ":" , Semantic ] ,
+      [ "links"     , ":" , "[" , PageLink , { "," , PageLink } , "]" ] ,
+      [ "notes"     , ":" , string ] ,
+      [ "meta"      , ":" , object-any ] ,
+    "}" ;
+
+FlowSection =
+    "{" ,
+      "mode"   , ":" , "flow" ,
+      "id"     , ":" , string ,
+      "master" , ":" , string ,    (* required: master to flow through (must define ≥1 region) *)
+      "story"  , ":" , "[" , Flowable , { "," , Flowable } , "]" ,
+      [ "semantic" , ":" , Semantic ] ,
+      [ "meta"     , ":" , object-any ] ,
+    "}" ;
+
+PageMaster =
+    "{" ,
+      "canvas" , ":" , CanvasSpec ,
+      [ "margin"  , ":" , Box ] ,
+      [ "fixed"   , ":" , "[" , VisualObject , { "," , VisualObject } , "]" ] ,  (* furniture/background *)
+      [ "regions" , ":" , "[" , FlowRegion , { "," , FlowRegion } , "]" ] ,      (* [] ⇒ pure fixed page *)
+      [ "running" , ":" , Running ] ,
+      [ "next"    , ":" , string ] ,    (* successor master id for overflow pages; defaults to self *)
+    "}" ;
+
+(* Flow region: a rectangular area that content flows into. Renamed from  *)
+(* "Frame" to avoid colliding with the legacy frameset vocabulary.        *)
+FlowRegion =
+    "{" ,
+      "id"  , ":" , string ,
+      "box" , ":" , Box ,
+      [ "columns"    , ":" , integer ] ,
+      [ "column_gap" , ":" , Length ] ,
+      [ "next"       , ":" , string ] ,   (* next region on same page before page overflow *)
+    "}" ;
+
+Running =     (* running header/footer/page-number content for generated pages *)
+    "{" ,
+      [ "header"      , ":" , "[" , VisualObject , { "," , VisualObject } , "]" ] ,
+      [ "footer"      , ":" , "[" , VisualObject , { "," , VisualObject } , "]" ] ,
+      [ "page_number" , ":" , ( boolean | TextStyle ) ] ,
+    "}" ;
+
+CanvasSpec = PagePreset | CanvasObject ;   (* a bare preset string, or an explicit object *)
+
+CanvasObject =
+    "{" ,
+      ( ( "preset" , ":" , PagePreset )
+      | ( "size" , ":" , "[" , number , "," , number , "]" , [ "," , "units" , ":" , Units ] ) ) ,
+      [ "orientation" , ":" , Orientation ] ,   (* swaps width/height of the resolved size *)
+      [ "bleed"  , ":" , Length ] ,
+      [ "margin" , ":" , Box ] ,
+    "}" ;
+
+PagePreset  = "A3" | "A4" | "A5" | "Letter" | "Legal" | "Tabloid"
+            | "deck-16x9" | "deck-4x3" | "square" ;
+Orientation = "portrait" | "landscape" ;
+Units       = "pt" | "px" | "mm" | "in" ;
+
+
+(* ═══ 4. Flow vocabulary (the story for FlowSections) ═════════════════ *)
+(* Discriminated on `type`. Break controls model pagination intent.       *)
+
+Flowable =
+      ParagraphFlow | HeadingFlow | ListFlow   | TableFlow | ImageFlow
+    | FigureFlow    | BlockFlow   | SpacerFlow | KeepTogetherFlow
+    | PageBreakFlow | ColumnBreakFlow ;
+
+break-fields =
+      [ "break_before" , ":" , ( "auto" | "always" | "avoid" ) ] ,
+      [ "break_after"  , ":" , ( "auto" | "always" | "avoid" ) ] ;
+
+ParagraphFlow =
+    "{" , "type" , ":" , "paragraph" ,
+      TextContent ,                          (* required: text XOR spans *)
+      [ "style" , ":" , StyleRef ] ,
+      break-fields ,
+    "}" ;
+
+HeadingFlow =
+    "{" , "type" , ":" , "heading" ,
+      "level" , ":" , integer ,
+      "text"  , ":" , string ,
+      [ "id" , ":" , string ] ,              (* anchor for cross-references *)
+      [ "style" , ":" , StyleRef ] ,
+      break-fields ,
+    "}" ;
+
+ListFlow =
+    "{" , "type" , ":" , "list" ,
+      "items" , ":" , "[" , ListItem , { "," , ListItem } , "]" ,
+      [ "ordered" , ":" , boolean ] ,
+      [ "marker"  , ":" , string ] ,
+      [ "style"   , ":" , StyleRef ] ,
+      break-fields ,
+    "}" ;
+ListItem = string | "[" , Flowable , { "," , Flowable } , "]" ;
+
+TableFlow =
+    "{" , "type" , ":" , "table" ,
+      TableBody ,
+      break-fields ,
+    "}" ;
+
+ImageFlow =
+    "{" , "type" , ":" , "image" ,
+      "src" , ":" , string ,                 (* required *)
+      [ "width"  , ":" , Length ] ,
+      [ "height" , ":" , Length ] ,
+      [ "preserve_aspect_ratio" , ":" , boolean ] ,
+      [ "caption" , ":" , string ] ,
+      break-fields ,
+    "}" ;
+
+FigureFlow =                                  (* any fixed VisualObject embedded in flow *)
+    "{" , "type" , ":" , "figure" ,
+      "object" , ":" , VisualObject ,
+      "size"   , ":" , "[" , Length , "," , Length , "]" ,
+      [ "caption" , ":" , string ] ,
+      [ "align"   , ":" , ( "left" | "center" | "right" ) ] ,
+      break-fields ,
+    "}" ;
+
+BlockFlow =                                   (* a sub-flow with its own column/box (e.g. a callout) *)
+    "{" , "type" , ":" , "block" ,
+      "children" , ":" , "[" , Flowable , { "," , Flowable } , "]" ,
+      [ "fill"    , ":" , Fill ] ,
+      [ "stroke"  , ":" , Stroke ] ,
+      [ "padding" , ":" , Box ] ,
+      break-fields ,
+    "}" ;
+
+KeepTogetherFlow =
+    "{" , "type" , ":" , "keep_together" ,
+      "children" , ":" , "[" , Flowable , { "," , Flowable } , "]" ,
+    "}" ;
+
+SpacerFlow     = "{" , "type" , ":" , "spacer" , "height" , ":" , Length , "}" ;
+PageBreakFlow  = "{" , "type" , ":" , "page_break" , [ "master" , ":" , string ] , "}" ;
+ColumnBreakFlow= "{" , "type" , ":" , "column_break" , "}" ;
+
+
+(* ═══ 5. Fixed vocabulary (visual objects on a page) ══════════════════ *)
+
+Layer =
+    "{" ,
+      "id" , ":" , string ,
+      [ "z"       , ":" , number ] ,
+      [ "opacity" , ":" , unit-interval ] ,
+      [ "objects" , ":" , "[" , VisualObject , { "," , VisualObject } , "]" ] ,
+    "}" ;
+
+(* Closed, discriminated on `type`. Unknown `type` values are NOT part of  *)
+(* this grammar; a renderer MAY accept them via a left-to-right fallback   *)
+(* to a generic object, but that is a parser policy, not a valid document. *)
+VisualObject =
+      RectObject     | EllipseObject | LineObject     | PolylineObject | PathObject
+    | TextObject     | ImageObject   | IconObject
+    | BarChartObject | LineChartObject | LegendObject
+    | BulletListObject | ChipRowObject  | TableObject
+    | ConnectorObject  | ContainerObject | GroupObject
+    | ComponentObject  | UseObject
+    | UMLActionObject       | UMLActivationBarObject | UMLActivityNodeObject
+    | UMLActorObject        | UMLArtifactBoxObject   | UMLClassifierBoxObject
+    | UMLComponentBoxObject | UMLFragmentFrameObject | UMLLifelineObject
+    | UMLLollipopObject     | UMLMarkerGlyphObject   | UMLNodeBoxObject
+    | UMLPseudostateObject  | UMLSocketObject        | UMLStateBoxObject
+    | UMLSwimlaneObject     | UMLTimingLaneObject ;
+
+(* Shared by every visual object. Closed; `meta` is the only open bag.     *)
+common-object-fields =
+      [ "id"         , ":" , string ] ,
+      [ "box"        , ":" , Box ] ,            (* [x, y, w, h] in canvas units *)
+      [ "rotation"   , ":" , Rotation ] ,
+      [ "ports"      , ":" , Ports ] ,
+      [ "bind"       , ":" , string ] ,         (* ref → semantic node id *)
+      [ "decorative" , ":" , boolean ] ,
+      [ "z"          , ":" , number ] ,
+      [ "opacity"        , ":" , unit-interval ] ,
+      [ "fill_opacity"   , ":" , unit-interval ] ,
+      [ "stroke_opacity" , ":" , unit-interval ] ,
+      [ "shadow"     , ":" , Effect ] ,
+      [ "glow"       , ":" , Effect ] ,
+      [ "outer_ring" , ":" , OuterRing ] ,
+      [ "meta"       , ":" , object-any ] ;
+
+(* ── primitives ── *)
+
+RectObject =
+    "{" , "type" , ":" , "rect" ,
+      [ "fill"   , ":" , Fill ] ,
+      [ "radius" , ":" , Length ] ,
+      [ "stroke" , ":" , Stroke ] ,
+      common-object-fields ,
+    "}" ;
+
+EllipseObject =
+    "{" , "type" , ":" , "ellipse" ,
+      "center" , ":" , Point ,
+      "rx" , ":" , number ,
+      "ry" , ":" , number ,
+      [ "fill"   , ":" , Fill ] ,
+      [ "stroke" , ":" , Stroke ] ,
+      common-object-fields ,
+    "}" ;
+
+LineObject =
+    "{" , "type" , ":" , "line" ,
+      "from" , ":" , Anchor ,        (* required *)
+      "to"   , ":" , Anchor ,        (* required *)
+      [ "stroke" , ":" , Stroke ] ,
+      common-object-fields ,
+    "}" ;
+
+PolylineObject =
+    "{" , "type" , ":" , "polyline" ,
+      "points" , ":" , "[" , Point , { "," , Point } , "]" ,   (* required *)
+      [ "closed" , ":" , boolean ] ,
+      [ "fill"   , ":" , Fill ] ,
+      [ "stroke" , ":" , Stroke ] ,
+      common-object-fields ,
+    "}" ;
+
+PathObject =
+    "{" , "type" , ":" , "path" ,
+      "d" , ":" , string ,           (* required: SVG-style path data *)
+      [ "fill"   , ":" , Fill ] ,
+      [ "stroke" , ":" , Stroke ] ,
+      common-object-fields ,
+    "}" ;
+
+TextObject =
+    "{" , "type" , ":" , "text" ,
+      TextContent ,                  (* required: text XOR spans *)
+      [ "style" , ":" , StyleRef ] ,
+      common-object-fields ,
+    "}" ;
+
+ImageObject =
+    "{" , "type" , ":" , "image" ,
+      "src" , ":" , string ,         (* required; single canonical source key *)
+      [ "placeholder" , ":" , boolean ] ,
+      [ "preserve_aspect_ratio" , ":" , boolean ] ,
+      [ "clip"   , ":" , ClipSpec ] ,
+      [ "radius" , ":" , Length ] ,
+      [ "label"  , ":" , string ] ,
+      common-object-fields ,
+    "}" ;
+
+IconObject =
+    "{" , "type" , ":" , "icon" ,
+      "glyph" , ":" , string ,       (* required: glyph name / token *)
+      [ "color" , ":" , Color ] ,
+      [ "font"  , ":" , string ] ,
+      [ "size"  , ":" , number ] ,
+      common-object-fields ,
+    "}" ;
+
+(* ── data-viz ── *)
+
+BarChartObject =
+    "{" , "type" , ":" , "bar_chart" ,
+      "data" , ":" , ChartData ,     (* required *)
+      [ "axes"   , ":" , Axes ] ,
+      [ "legend" , ":" , boolean ] ,
+      [ "style"  , ":" , object-any ] ,
+      common-object-fields ,
+    "}" ;
+
+LineChartObject =
+    "{" , "type" , ":" , "line_chart" ,
+      "data" , ":" , ChartData ,     (* required *)
+      [ "axes"   , ":" , Axes ] ,
+      [ "legend" , ":" , boolean ] ,
+      [ "style"  , ":" , object-any ] ,
+      common-object-fields ,
+    "}" ;
+
+LegendObject =
+    "{" , "type" , ":" , "legend" ,
+      "items" , ":" , "[" , LegendItem , { "," , LegendItem } , "]" ,   (* required *)
+      [ "style" , ":" , StyleRef ] ,
+      common-object-fields ,
+    "}" ;
+LegendItem = "{" , "label" , ":" , string , [ "," , "color" , ":" , Color ] , [ "," , "marker" , ":" , string ] , "}" ;
+
+BulletListObject =
+    "{" , "type" , ":" , "bullet_list" ,
+      "items" , ":" , "[" , ( string | Span ) , { "," , ( string | Span ) } , "]" ,  (* required *)
+      [ "marker"       , ":" , string ] ,
+      [ "marker_color" , ":" , Color ] ,
+      [ "gap"    , ":" , number ] ,
+      [ "indent" , ":" , number ] ,
+      [ "style"  , ":" , StyleRef ] ,
+      common-object-fields ,
+    "}" ;
+
+ChipRowObject =
+    "{" , "type" , ":" , "chip_row" ,
+      "items" , ":" , "[" , ( string | Span ) , { "," , ( string | Span ) } , "]" ,  (* required *)
+      [ "origin" , ":" , Point ] ,
+      [ "height" , ":" , number ] ,
+      [ "gap"    , ":" , number ] ,
+      [ "fill"   , ":" , Fill ] ,
+      [ "stroke" , ":" , Stroke ] ,
+      [ "style"  , ":" , StyleRef ] ,
+      common-object-fields ,
+    "}" ;
+
+TableObject =
+    "{" , "type" , ":" , "table" ,
+      TableBody ,
+      common-object-fields ,
+    "}" ;
+
+(* Shared by TableObject and TableFlow. Cells are typed as inline content. *)
+TableBody =
+      "rows" , ":" , "[" , "[" , Cell , { "," , Cell } , "]" , { "," , "[" , Cell , { "," , Cell } , "]" } , "]" ,
+      [ "columns"       , ":" , "[" , ColumnSpec , { "," , ColumnSpec } , "]" ] ,
+      [ "header"        , ":" , "[" , Cell , { "," , Cell } , "]" ] ,
+      [ "row_height"    , ":" , Length ] ,
+      [ "header_height" , ":" , Length ] ,
+      [ "zebra"         , ":" , boolean ] ,
+      [ "cell_padding"  , ":" , ( Length | "[" , Length , { "," , Length } , "]" ) ] ,
+      [ "style"         , ":" , object-any ] ;
+Cell       = string | number | boolean | null | Span | "{" , "content" , ":" , string , [ "," , "style" , ":" , StyleRef ] , [ "," , "span" , ":" , "[" , integer , "," , integer , "]" ] , "}" ;
+ColumnSpec = string | "{" , [ "label" , ":" , string ] , [ "," , "width" , ":" , Length ] , [ "," , "align" , ":" , ( "left" | "center" | "right" ) ] , "}" ;
+
+(* ── relations / grouping / reuse ── *)
+
+ConnectorObject =
+    "{" , "type" , ":" , "connector" ,
+      "from" , ":" , Anchor ,        (* required *)
+      "to"   , ":" , Anchor ,        (* required *)
+      [ "route"  , ":" , Route ] ,
+      [ "label"  , ":" , string ] ,
+      [ "stroke" , ":" , Stroke ] ,
+      common-object-fields ,
+    "}" ;
+
+ContainerObject =
+    "{" , "type" , ":" , "container" ,
+      "children" , ":" , "[" , VisualObject , { "," , VisualObject } , "]" ,   (* required; single key *)
+      [ "layout" , ":" , Layout ] ,
+      common-object-fields ,
+    "}" ;
+
+GroupObject =
+    "{" , "type" , ":" , "group" ,
+      "children" , ":" , "[" , VisualObject , { "," , VisualObject } , "]" ,   (* required; single key *)
+      [ "transform" , ":" , string ] ,
+      common-object-fields ,
+    "}" ;
+
+ComponentObject =
+    "{" , "type" , ":" , "component" ,
+      "component" , ":" , string ,   (* required: ref → defs.components *)
+      [ "variant"      , ":" , string ] ,
+      [ "fill"         , ":" , Fill ] ,
+      [ "radius"       , ":" , Length ] ,
+      [ "stroke_style" , ":" , string ] ,   (* ref → tokens.stroke_styles *)
+      common-object-fields ,
+    "}" ;
+
+UseObject =
+    "{" , "type" , ":" , "use" ,
+      "symbol" , ":" , string ,      (* required: ref → defs.symbols *)
+      [ "params" , ":" , object-any ] ,
+      common-object-fields ,
+    "}" ;
+
+(* ── UML (field sets retained from v0.1.0; cleaned to closed + typed) ── *)
+
+UMLActionObject =
+    "{" , "type" , ":" , "uml.action" , "name" , ":" , string ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLActivationBarObject =
+    "{" , "type" , ":" , "uml.activation_bar" ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLActivityNodeObject =
+    "{" , "type" , ":" , "uml.activity_node" ,
+      "kind" , ":" , ( "initial" | "final" | "flow_final" | "decision" | "merge" | "fork" | "join" ) ,
+      [ "name" , ":" , string ] ,
+      [ "orientation" , ":" , ( "horizontal" | "vertical" ) ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLActorObject =
+    "{" , "type" , ":" , "uml.actor" , "name" , ":" , string ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLArtifactBoxObject =
+    "{" , "type" , ":" , "uml.artifact_box" , "name" , ":" , string ,
+      [ "stereotype" , ":" , string ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLClassifierBoxObject =
+    "{" , "type" , ":" , "uml.classifier_box" , "name" , ":" , string ,
+      [ "stereotype" , ":" , string ] ,
+      [ "abstract" , ":" , boolean ] ,
+      [ "attributes" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "operations" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLComponentBoxObject =
+    "{" , "type" , ":" , "uml.component_box" , "name" , ":" , string ,
+      [ "stereotype" , ":" , string ] ,
+      [ "provided_interfaces" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "required_interfaces" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLFragmentFrameObject =
+    "{" , "type" , ":" , "uml.fragment_frame" ,
+      "kind" , ":" , ( "alt" | "opt" | "loop" | "par" | "break" | "critical" | "neg" | "strict" | "seq" | "ignore" | "consider" | "assert" | "ref" | "sd" ) ,
+      [ "operands" , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "dividers" , ":" , "[" , [ number , { "," , number } ] , "]" ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLLifelineObject =
+    "{" , "type" , ":" , "uml.lifeline" , "name" , ":" , string ,
+      [ "type_name" , ":" , string ] ,
+      [ "actor" , ":" , boolean ] ,
+      [ "head_height" , ":" , number ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLLollipopObject =
+    "{" , "type" , ":" , "uml.lollipop" , "name" , ":" , string ,
+      [ "attach" , ":" , ( "north" | "south" | "east" | "west" ) ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLMarkerGlyphObject =
+    "{" , "type" , ":" , "uml.marker_glyph" ,
+      "kind" , ":" , ( "hollow_diamond" | "filled_diamond" | "hollow_triangle" | "filled_triangle" | "open_arrow" ) ,
+      "position" , ":" , Point ,
+      [ "size" , ":" , number ] ,
+      [ "color" , ":" , Color ] , common-object-fields , "}" ;
+
+UMLNodeBoxObject =
+    "{" , "type" , ":" , "uml.node_box" , "name" , ":" , string ,
+      [ "kind" , ":" , ( "device" | "execution_environment" ) ] ,
+      [ "stereotype" , ":" , string ] ,
+      [ "depth" , ":" , number ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLPseudostateObject =
+    "{" , "type" , ":" , "uml.pseudostate" ,
+      "kind" , ":" , ( "initial" | "final" | "choice" | "junction" | "fork" | "join" | "shallow_history" | "deep_history" | "entry_point" | "exit_point" | "terminate" ) ,
+      [ "name" , ":" , string ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLSocketObject =
+    "{" , "type" , ":" , "uml.socket" , "name" , ":" , string ,
+      [ "attach" , ":" , ( "north" | "south" | "east" | "west" ) ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLStateBoxObject =
+    "{" , "type" , ":" , "uml.state_box" , "name" , ":" , string ,
+      [ "entry" , ":" , string ] , [ "exit" , ":" , string ] , [ "do" , ":" , string ] ,
+      [ "composite" , ":" , boolean ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLSwimlaneObject =
+    "{" , "type" , ":" , "uml.swimlane" , "name" , ":" , string ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+UMLTimingLaneObject =
+    "{" , "type" , ":" , "uml.timing_lane" , "name" , ":" , string ,
+      "states" , ":" , "[" , string , { "," , string } , "]" ,
+      [ "label_width" , ":" , number ] ,
+      [ "style" , ":" , object-any ] , common-object-fields , "}" ;
+
+
+(* ═══ 6. Semantic graph ═══════════════════════════════════════════════ *)
+
+Semantic =
+    "{" ,
+      [ "ontology" , ":" , Ontology ] ,
+      [ "nodes" , ":" , "[" , NodeEntry , { "," , NodeEntry } , "]" ] ,
+      [ "edges" , ":" , "[" , EdgeEntry , { "," , EdgeEntry } , "]" ] ,
+    "}" ;
+
+Ontology =
+    "{" ,
+      [ "node_types" , ":" , "{" , { string , ":" , TypeDef } , "}" ] ,
+      [ "edge_types" , ":" , "{" , { string , ":" , TypeDef } , "}" ] ,
+    "}" ;
+
+TypeDef =
+    "{" ,
+      [ "meaning" , ":" , string ] ,
+      [ "directionality" , ":" , ( "directed" | "undirected" | "bidirectional" ) ] ,
+    "}" ;
+
+NodeEntry =
+    "{" , "id" , ":" , string , "type" , ":" , string ,   (* type ref → ontology.node_types *)
+      [ "label" , ":" , string ] , [ "meta" , ":" , object-any ] , "}" ;
+
+EdgeEntry =
+    "{" , "id" , ":" , string , "type" , ":" , string ,   (* type ref → ontology.edge_types *)
+      "from" , ":" , ( string | "[" , string , { "," , string } , "]" ) ,   (* ref → node ids *)
+      "to"   , ":" , ( string | "[" , string , { "," , string } , "]" ) ,
+      [ "label" , ":" , string ] , [ "meta" , ":" , object-any ] , "}" ;
+
+
+(* ═══ 7. Rendering contract + multi-target ════════════════════════════ *)
+
+RenderingContract =
+    "{" ,
+      [ "coordinate_mode" , ":" , ( "absolute" | "flow" ) ] ,   (* flow added in v2 *)
+      [ "text"      , ":" , TextContract ] ,
+      [ "semantics" , ":" , SemanticsContract ] ,
+      [ "debug_boxes" , ":" , boolean ] ,
+      [ "preserve_manual_line_breaks" , ":" , boolean ] ,
+    "}" ;
+
+TextContract =
+    "{" ,
+      [ "min_font_size" , ":" , number ] ,
+      [ "overflow" , ":" , ( "visible" | "clip" | "shrink_to_fit" ) ] ,
+    "}" ;
+
+SemanticsContract =
+    "{" , [ "decorative_objects_may_omit_bind" , ":" , boolean ] , "}" ;
+
+RenderTarget =
+    "{" ,
+      "name"   , ":" , string ,
+      "canvas" , ":" , CanvasSpec ,
+      [ "adjustments" , ":" , TargetAdjustments ] ,
+    "}" ;
+
+TargetAdjustments =
+    "{" ,
+      [ "font_scale"    , ":" , number ] ,
+      [ "hide"          , ":" , "[" , [ string , { "," , string } ] , "]" ] ,   (* refs → object ids *)
+      [ "padding_delta" , ":" , number ] ,
+    "}" ;
+
+PageLink =
+    "{" ,
+      "to" , ":" , string ,    (* ref → page/section id, or external uri if external=true *)
+      [ "relation" , ":" , ( "next" | "prev" | "see_also" | "appendix" | "source" | "child" | "parent" | "external" ) ] ,
+      [ "label"    , ":" , string ] ,
+      [ "external" , ":" , boolean ] ,
+    "}" ;
+
+
+(* ═══ 8. Styling, reuse, and value types ══════════════════════════════ *)
+
+Tokens =
+    "{" ,
+      [ "colors"        , ":" , "{" , { string , ":" , Color } , "}" ] ,
+      [ "fonts"         , ":" , "{" , { string , ":" , string } , "}" ] ,
+      [ "text_styles"   , ":" , "{" , { string , ":" , TextStyle } , "}" ] ,
+      [ "stroke_styles" , ":" , "{" , { string , ":" , StrokeStyle } , "}" ] ,
+      [ "fill_styles"   , ":" , "{" , { string , ":" , Fill } , "}" ] ,
+      [ "glyph_map"     , ":" , "{" , { string , ":" , string } , "}" ] ,
+    "}" ;
+
+TextStyle =
+    "{" ,
+      [ "font"   , ":" , string ] ,
+      [ "size"   , ":" , number ] ,
+      [ "weight" , ":" , ( integer | string ) ] ,
+      [ "color"  , ":" , Color ] ,
+      [ "align"  , ":" , ( "left" | "center" | "right" ) ] ,
+      [ "v_align", ":" , ( "top" | "middle" | "bottom" ) ] ,
+      [ "line_height" , ":" , number ] ,
+      [ "italic" , ":" , boolean ] ,
+      [ "wrap"   , ":" , boolean ] ,
+      [ "overflow" , ":" , ( "visible" | "clip" ) ] ,
+    "}" ;
+
+StrokeStyle =
+    "{" ,
+      [ "color"   , ":" , Color ] ,
+      [ "width"   , ":" , number ] ,
+      [ "dash"    , ":" , "[" , number , { "," , number } , "]" ] ,
+      [ "arrow_start" , ":" , boolean ] ,
+      [ "arrow_end"   , ":" , boolean ] ,
+      [ "linecap"  , ":" , ( "butt" | "round" | "square" ) ] ,
+      [ "linejoin" , ":" , ( "miter" | "round" | "bevel" ) ] ,
+      [ "opacity"  , ":" , unit-interval ] ,
+    "}" ;
+
+ComponentDef =
+    "{" ,
+      [ "fill"     , ":" , Fill ] ,
+      [ "stroke"   , ":" , Stroke ] ,
+      [ "stroke_style" , ":" , string ] ,
+      [ "radius"   , ":" , Length ] ,
+      [ "text_style" , ":" , string ] ,
+      [ "geometry" , ":" , object-any ] ,
+      [ "variants" , ":" , "{" , { string , ":" , ComponentVariant } , "}" ] ,
+      [ "internal_layout" , ":" , "{" , { string , ":" , SlotLayout } , "}" ] ,
+      [ "slots"    , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+    "}" ;
+
+ComponentVariant =
+    "{" , [ "fill" , ":" , Fill ] , [ "stroke_style" , ":" , string ] , "}" ;
+
+SlotLayout =
+    "{" ,
+      "box_offset" , ":" , "[" , Length , "," , Length , "," , Length , "," , Length , "]" ,
+      [ "style" , ":" , StyleRef ] ,
+    "}" ;
+
+SymbolDef =
+    "{" ,
+      "box" , ":" , Box ,
+      [ "slots"   , ":" , "[" , [ string , { "," , string } ] , "]" ] ,
+      [ "ports"   , ":" , Ports ] ,
+      [ "objects" , ":" , "[" , VisualObject , { "," , VisualObject } , "]" ] ,
+    "}" ;
+
+OuterRing =
+    "{" ,
+      [ "color"  , ":" , Color ] ,
+      [ "width"  , ":" , number ] ,
+      [ "gap"    , ":" , number ] ,
+      [ "offset" , ":" , number ] ,
+      [ "dash"   , ":" , ( "[" , number , { "," , number } , "]" | string ) ] ,
+      [ "opacity", ":" , unit-interval ] ,
+    "}" ;
+
+(* Effects: a token ref, a boolean toggle, or an explicit object — no bare object-any *)
+Effect = string | boolean | EffectObject ;
+EffectObject =
+    "{" ,
+      [ "color"  , ":" , Color ] ,
+      [ "blur"   , ":" , number ] ,
+      [ "dx"     , ":" , number ] ,
+      [ "dy"     , ":" , number ] ,
+      [ "opacity", ":" , unit-interval ] ,
+    "}" ;
+
+(* Fill: a color/token ref or a gradient. Gradient is explicit. *)
+Fill     = Color | Gradient ;
+Gradient =
+    "{" ,
+      "kind"  , ":" , ( "linear" | "radial" ) ,
+      "stops" , ":" , "[" , GradientStop , { "," , GradientStop } , "]" ,
+      [ "angle" , ":" , number ] ,
+    "}" ;
+GradientStop = "{" , "offset" , ":" , unit-interval , "," , "color" , ":" , Color , "}" ;
+
+(* Stroke: a token ref (string) or an inline StrokeStyle — uses the real type *)
+Stroke = string | StrokeStyle ;
+
+(* Style references: a token name or an inline style. *)
+StyleRef = string | TextStyle ;
+
+(* Text content: required choice between plain text and rich spans. *)
+TextContent = ( "text" , ":" , string ) | ( "spans" , ":" , "[" , Span , { "," , Span } , "]" ) ;
+Span = "{" , "text" , ":" , string , [ "," , "style" , ":" , StyleRef ] , "}" ;
+
+(* Anchors for line/connector endpoints: an object/port ref, or a literal point. *)
+Anchor = string | Point | AnchorObject ;
+AnchorObject = "{" , "ref" , ":" , string , [ "," , "port" , ":" , string ] , "}" ;
+
+Route =
+    "{" ,
+      [ "kind"      , ":" , ( "straight" | "orthogonal" | "curved" ) ] ,
+      [ "waypoints" , ":" , "[" , Point , { "," , Point } , "]" ] ,
+    "}" ;
+
+Layout =
+    "{" ,
+      "kind" , ":" , ( "row" | "column" | "grid" | "free" ) ,
+      [ "gap"     , ":" , Length ] ,
+      [ "padding" , ":" , Box ] ,
+      [ "columns" , ":" , integer ] ,
+    "}" ;
+
+ClipSpec = boolean | "{" , "shape" , ":" , ( "rect" | "ellipse" | "path" ) , [ "," , "radius" , ":" , Length ] , "}" ;
+
+ChartData =
+    "{" ,
+      "series" , ":" , "[" , Series , { "," , Series } , "]" ,
+      [ "categories" , ":" , "[" , string , { "," , string } , "]" ] ,
+    "}" ;
+Series =
+    "{" ,
+      "values" , ":" , "[" , number , { "," , number } , "]" ,
+      [ "name"  , ":" , string ] ,
+      [ "color" , ":" , Color ] ,
+    "}" ;
+Axes =
+    "{" ,
+      [ "x" , ":" , AxisSpec ] ,
+      [ "y" , ":" , AxisSpec ] ,
+    "}" ;
+AxisSpec =
+    "{" ,
+      [ "label" , ":" , string ] ,
+      [ "min"   , ":" , number ] ,
+      [ "max"   , ":" , number ] ,
+      [ "grid"  , ":" , boolean ] ,
+    "}" ;
+
+Ports = "{" , { string , ":" , Point } , "}" ;     (* port name → [x, y] *)
+
+Point = "[" , number , "," , number , "]" ;
+
+(* Box is [x, y, w, h]. Each component is a Length so boxes/regions may be *)
+(* absolute (number) or relative ("50%", "1fr", "2cm"). *)
+Box = "[" , Length , "," , Length , "," , Length , "," , Length , "]" ;
+
+Rotation = number | "{" , "angle" , ":" , number , [ "," , "center" , ":" , Point ] , "}" ;
+
+Color = string ;   (* a hex literal (#RRGGBB[AA]), a CSS name, or a token ref *)
+
+
+(* ═══ 9. Lexical scalar terminals (YAML scalars / JSON primitives) ════ *)
+
+string       = ? any YAML scalar interpreted as text ? ;
+number       = ? any YAML number — integer or float ? ;
+integer      = ? any YAML integer ? ;
+boolean      = "true" | "false" ;
+null         = "null" | "~" ;
+unit-interval= ? number in the closed range 0.0 .. 1.0 ? ;
+semver       = ? string matching <major>.<minor>.<patch>[-prerelease][+build] ? ;
+Length       = number | ? string of the form <number>("pt"|"px"|"mm"|"in"|"cm"|"%"|"fr") ? ;
+
+any          = string | number | boolean | null | array-any | object-any ;
+array-any    = "[" , [ any , { "," , any } ] , "]" ;
+object-any   = "{" , [ member-any , { "," , member-any } ] , "}" ;   (* ONLY under explicit `meta`/`style`/`params` keys *)
+member-any   = string , ":" , any ;

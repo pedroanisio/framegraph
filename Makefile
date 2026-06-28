@@ -30,6 +30,8 @@ help:
 	@echo "  Gate (matches docs/PUBLISHING.md release checklist)"
 	@echo "    check           lint + typecheck + test + goldens (full release gate)"
 	@echo "    test            pytest (unit + integration, coverage-gated)"
+	@echo "    ebnf            regenerate docs/framegraph.ebnf from the schema"
+	@echo "    ebnf-check      verify docs/framegraph.ebnf is schema-current"
 	@echo "    goldens         golden-snapshot regression harness"
 	@echo "    validate-fills  validate every shipped sidecar against the catalog"
 	@echo "    lint            ruff check + ruff format --check"
@@ -44,7 +46,7 @@ help:
 	@echo ""
 	@echo "  Release"
 	@echo "    build           build sdist + wheel via python -m build"
-	@echo "    release VERSION=X.Y.Z   bump version in pyproject.toml + __init__.py, then tag"
+	@echo "    release VERSION=X.Y.Z   bump pyproject.toml version, then tag"
 	@echo ""
 	@echo "  Housekeeping"
 	@echo "    clean           remove build/, dist/, caches, coverage artefacts"
@@ -64,11 +66,18 @@ install-pdf-vector:
 	$(PIP) install -e ".[pdf-vector]"
 
 # ── Gate ──────────────────────────────────────────────────────────────────
-.PHONY: check test goldens lint typecheck format fix validate-fills
-check: lint typecheck test goldens validate-fills
+.PHONY: check test ebnf ebnf-check goldens lint typecheck format fix validate-fills
+check: lint typecheck test ebnf-check goldens validate-fills
 
 test:
 	$(PYTHON) -m pytest
+
+# Regenerate the (non-normative) EBNF grammar from the Pydantic schema.
+ebnf:
+	$(PYTHON) scripts/generate_ebnf.py
+
+ebnf-check:
+	$(PYTHON) scripts/generate_ebnf.py --check
 
 goldens:
 	$(PYTHON) tests/run_tests.py --verbose
@@ -152,8 +161,8 @@ portal-check: docs-coverage portal-gen
 	mkdocs build --strict
 
 # ── Release ───────────────────────────────────────────────────────────────
-# Bumps the two version sites in lockstep (matches docs/PUBLISHING.md §2),
-# runs the full gate, builds artefacts, and creates an annotated tag.
+# Bumps the single pyproject.toml version source, runs the full gate,
+# builds artefacts, and creates an annotated tag.
 # Push the tag manually after inspection: `git push origin vX.Y.Z`.
 .PHONY: build release
 build:

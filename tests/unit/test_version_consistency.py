@@ -24,6 +24,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT = ROOT / "pyproject.toml"
 INIT_PY = ROOT / "framegraph" / "__init__.py"
+MAKEFILE = ROOT / "Makefile"
+STANDARDS = ROOT / "codebase-standards.md"
 
 
 def _pyproject_version() -> str:
@@ -209,3 +211,30 @@ def test_doc_version_assignment_lines_match_pyproject(doc_path: str) -> None:
             f'{doc_path} embeds a literal `version = "{found}"` line that '
             f"disagrees with pyproject.toml ({expected})."
         )
+
+
+def test_release_prose_names_single_version_source() -> None:
+    """Release instructions must not describe the obsolete two-site version bump."""
+    stale_fragments = [
+        "pyproject.toml + __init__.py",
+        "two version sites",
+        "two-site",
+    ]
+    checked = {
+        "Makefile": MAKEFILE.read_text(encoding="utf-8"),
+        "pyproject.toml": PYPROJECT.read_text(encoding="utf-8"),
+    }
+
+    for path, text in checked.items():
+        for fragment in stale_fragments:
+            assert fragment not in text, (
+                f"{path} still contains stale release/version prose {fragment!r}; "
+                "the single source of truth is pyproject.toml [project] version."
+            )
+
+
+def test_standards_no_longer_list_release_version_prose_as_drift() -> None:
+    """Resolved standards discrepancies should be removed instead of fossilized."""
+    text = STANDARDS.read_text(encoding="utf-8")
+
+    assert "Makefile version prose vs recipe" not in text

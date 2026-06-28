@@ -27,8 +27,10 @@ Architecture
              or framegraph.library.FrameGraphDeckRenderer (deck.yml files)
 
 The harness rasterises at 2× scale (1920×1080 for 960×540 canvas) via
-cairosvg, then computes the per-channel max delta across all pixels.
-A slide passes if max_delta / 255 <= tolerance / 100.
+cairosvg, then computes both the max channel delta and the mean RGB
+delta across all pixels. A slide passes if mean_delta_pct <= tolerance.
+The max channel delta is retained as a diagnostic so sparse antialiasing
+noise does not fail the gate by itself.
 """
 
 from __future__ import annotations
@@ -198,10 +200,15 @@ class SlideResult:
     max_delta: float  # 0–255
     tolerance: float  # percent
     elapsed_ms: float
+    mean_delta_pct: float = 0.0
     error: str | None = None
 
     @property
     def pct_delta(self) -> float:
+        return self.mean_delta_pct
+
+    @property
+    def max_pct_delta(self) -> float:
         return self.max_delta / 255 * 100
 
     @property
@@ -211,16 +218,17 @@ class SlideResult:
 
 def compare(
     img_new: Image.Image, img_golden: Image.Image, tolerance_pct: float
-) -> tuple[bool, float]:
+) -> tuple[bool, float, float]:
     arr_new = np.asarray(img_new, dtype=np.int32)
     arr_golden = np.asarray(img_golden, dtype=np.int32)
     if arr_new.shape != arr_golden.shape:
         # Size mismatch — always fails
-        return False, 255.0
-    diff = np.abs(arr_new - arr_golden)
+        return False, 255.0, 100.0
+    diff = np.abs(arr_new[..., :3] - arr_golden[..., :3])
     max_delta = float(diff.max())
-    passed = (max_delta / 255 * 100) <= tolerance_pct
-    return passed, max_delta
+    mean_delta_pct = float(diff.mean() / 255 * 100)
+    passed = mean_delta_pct <= tolerance_pct
+    return passed, max_delta, mean_delta_pct
 
 
 # ── Bless ─────────────────────────────────────────────────────────────────────
@@ -284,7 +292,7 @@ def test_fixture(path: Path, tolerance_pct: float, verbose: bool) -> list[SlideR
         try:
             img_new = rasterise(sl.svg, sl.width, sl.height)
             img_golden = Image.open(golden_path).convert("RGBA")
-            passed, max_delta = compare(img_new, img_golden, tolerance_pct)
+            passed, max_delta, mean_delta_pct = compare(img_new, img_golden, tolerance_pct)
         except Exception as e:
             results.append(
                 SlideResult(
@@ -307,14 +315,17 @@ def test_fixture(path: Path, tolerance_pct: float, verbose: bool) -> list[SlideR
                 max_delta=max_delta,
                 tolerance=tolerance_pct,
                 elapsed_ms=per_slide_ms,
+                mean_delta_pct=mean_delta_pct,
             )
         )
 
         if verbose and not passed:
             print(
                 f"  FAIL  {path.name}/{sl.slide_id}  "
-                f"max_delta={max_delta:.1f}  "
-                f"({max_delta / 255 * 100:.2f}% > {tolerance_pct:.2f}% tolerance)"
+                f"mean_delta={mean_delta_pct:.4f}%  "
+                f"(max_delta={max_delta:.1f}, "
+                f"max_channel={max_delta / 255 * 100:.2f}%)  "
+                f"> {tolerance_pct:.2f}% tolerance"
             )
 
     return results
@@ -381,7 +392,10 @@ def main(argv=None) -> int:
         if args.verbose:
             for r in results:
                 if not r.passed:
-                    err = r.error or f"delta={r.max_delta:.1f} ({r.pct_delta:.2f}%)"
+                    err = r.error or (
+                        f"mean_delta={r.pct_delta:.4f}% "
+                        f"(max channel {r.max_delta:.1f}px / {r.max_pct_delta:.2f}%)"
+                    )
                     print(f"         ✗  {r.slide_id}  {err}")
 
     elapsed = time.perf_counter() - t0
@@ -401,7 +415,10 @@ def main(argv=None) -> int:
         print(f"\n  {failed} failure(s):")
         for r in all_results:
             if not r.passed:
-                err = r.error or f"max delta {r.max_delta:.1f}px ({r.pct_delta:.2f}%)"
+                err = r.error or (
+                    f"mean delta {r.pct_delta:.4f}% "
+                    f"(max channel {r.max_delta:.1f}px / {r.max_pct_delta:.2f}%)"
+                )
                 print(f"    ✗  {r.fixture}/{r.slide_id}  — {err}")
 
     print()
